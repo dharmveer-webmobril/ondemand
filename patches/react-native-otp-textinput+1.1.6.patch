@@ -1,0 +1,31 @@
+diff --git a/node_modules/react-native-otp-textinput/dist/index.js b/node_modules/react-native-otp-textinput/dist/index.js
+index 52cfb61..2c5a33d 100644
+--- a/node_modules/react-native-otp-textinput/dist/index.js
++++ b/node_modules/react-native-otp-textinput/dist/index.js
+@@ -138,8 +138,8 @@ class OTPTextView extends Component {
+     };
+     render() {
+         const { inputCount, offTintColor, tintColor, defaultValue, // eslint-disable-line @typescript-eslint/no-unused-vars
+-        inputCellLength, // eslint-disable-line @typescript-eslint/no-unused-vars
+-        containerStyle, textInputStyle, keyboardType, testIDPrefix, autoFocus, ...textInputProps } = this.props;
++            inputCellLength, // eslint-disable-line @typescript-eslint/no-unused-vars
++            containerStyle, textInputStyle, keyboardType, testIDPrefix, autoFocus, ...textInputProps } = this.props;
+         const { focusedInput, otpText } = this.state;
+         const TextInputs = [];
+         for (let i = 0; i < inputCount; i += 1) {
+@@ -158,10 +158,11 @@ class OTPTextView extends Component {
+                 });
+             }
+             TextInputs.push(<TextInput ref={e => {
+-                    if (e) {
+-                        this.inputs[i] = e;
+-                    }
+-                }} key={i} autoCorrect={false} keyboardType={keyboardType} autoFocus={autoFocus && i === 0} value={otpText[i] || ''} style={inputStyle} maxLength={this.props.inputCellLength} onFocus={() => this.onInputFocus(i)} onChangeText={text => this.onTextChange(text, i)} multiline={false} onKeyPress={e => this.onKeyPress(e, i)} selectionColor={_tintColor} cursorColor={_tintColor} {...textInputProps} testID={`${testIDPrefix}${i}`}/>);
++                if (e) {
++                    this.inputs[i] = e;
++                }
++
++            }} allowFontScaling={false} key={i} autoCorrect={false} keyboardType={keyboardType} autoFocus={autoFocus && i === 0} value={otpText[i] || ''} style={inputStyle} maxLength={this.props.inputCellLength} onFocus={() => this.onInputFocus(i)} onChangeText={text => this.onTextChange(text, i)} multiline={false} onKeyPress={e => this.onKeyPress(e, i)} selectionColor={_tintColor} cursorColor={_tintColor} {...textInputProps} testID={`${testIDPrefix}${i}`} />);
+         }
+         return <View style={[styles.container, containerStyle]}>{TextInputs}</View>;
+     }

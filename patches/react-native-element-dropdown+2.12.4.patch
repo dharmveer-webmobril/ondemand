@@ -1,0 +1,65 @@
+diff --git a/node_modules/react-native-element-dropdown/src/components/Dropdown/index.tsx b/node_modules/react-native-element-dropdown/src/components/Dropdown/index.tsx
+index 2a73f2f..d35c6b7 100644
+--- a/node_modules/react-native-element-dropdown/src/components/Dropdown/index.tsx
++++ b/node_modules/react-native-element-dropdown/src/components/Dropdown/index.tsx
+@@ -37,7 +37,7 @@ import { DropdownProps, IDropdownRef } from './model';
+ import { styles } from './styles';
+ 
+ const { isTablet } = useDetectDevice;
+-const ic_down = require('../../assets/down.png');
++const ic_down = require('../../../../.../../../src/assets/images/drop_down.png');
+ 
+ const statusBarHeight: number = StatusBar.currentHeight || 0;
+ 
+@@ -452,6 +452,7 @@ const DropdownComponent = React.forwardRef<IDropdownRef, DropdownProps<any>>(
+           <View style={styles.dropdown}>
+             {renderLeftIcon?.(visible)}
+             <Text
++              allowFontScaling={false}
+               style={[
+                 styles.textItem,
+                 isSelected !== null ? selectedTextStyle : placeholderStyle,
+@@ -468,6 +469,7 @@ const DropdownComponent = React.forwardRef<IDropdownRef, DropdownProps<any>>(
+             ) : (
+               <Image
+                 source={ic_down}
++                resizeMode='contain'
+                 style={StyleSheet.flatten([
+                   styles.icon,
+                   { tintColor: iconColor },
+@@ -510,6 +512,7 @@ const DropdownComponent = React.forwardRef<IDropdownRef, DropdownProps<any>>(
+               ) : (
+                 <View style={styles.item}>
+                   <Text
++                    allowFontScaling={false}
+                     style={StyleSheet.flatten([
+                       styles.textItem,
+                       itemTextStyle,
+@@ -695,9 +698,9 @@ const DropdownComponent = React.forwardRef<IDropdownRef, DropdownProps<any>>(
+                       !isTopPosition
+                         ? { paddingTop: extendHeight }
+                         : {
+-                            justifyContent: 'flex-end',
+-                            paddingBottom: extendHeight,
+-                          },
++                          justifyContent: 'flex-end',
++                          paddingBottom: extendHeight,
++                        },
+                       isFull && styles.fullScreen,
+                     ])}
+                   >
+diff --git a/node_modules/react-native-element-dropdown/src/components/Dropdown/styles.ts b/node_modules/react-native-element-dropdown/src/components/Dropdown/styles.ts
+index 2c83bdd..023616c 100644
+--- a/node_modules/react-native-element-dropdown/src/components/Dropdown/styles.ts
++++ b/node_modules/react-native-element-dropdown/src/components/Dropdown/styles.ts
+@@ -49,8 +49,8 @@ export const styles = StyleSheet.create({
+     writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
+   },
+   icon: {
+-    width: 20,
+-    height: 20,
++    width: 12,
++    height: 12,
+   },
+   input: {
+     borderWidth: 0.5,
