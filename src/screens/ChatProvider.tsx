@@ -6,10 +6,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-// import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import database, { get, getDatabase, ref, update } from '@react-native-firebase/database';
-import { Alert } from 'react-native';
-import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import { ChatUser } from '../utils';
 
 // Types
@@ -21,25 +18,25 @@ interface Chat {
 }
 
 export interface messageUser {
-  userId: string|number;
+  userId: string | number;
   name: string;
 }
+
 export interface Message {
   _id: any;
-  createdAt: string|Date|null;
+  key?: string;
+  createdAt: Date;
   text: string;
-  user: messageUser
+  user: messageUser;
 }
 
-
 interface ChatContextType {
-  // user: FirebaseAuthTypes.User | null;
   chats: Chat[];
   messages: Message[];
   loading: boolean;
   allUsers: ChatUser[];
   userData: ChatUser | null;
-  fetchMessages: (chatId: string, timeStamp: any) => void;
+  fetchMessages: (chatId: string, timeStamp: any) => Promise<() => void>;
   createUser: (userId: string, userObject: any) => void;
   createUserInbox: (obj: any, id: any, otherUserId: any) => void;
   sendMessage: (messageId: string, messageJson: any) => void;
@@ -55,104 +52,86 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [allUsers, setAllUsers] = useState<ChatUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-
+  // Fetch messages with optional pagination
   const fetchMessages = useCallback(
-    async (chatId: string, lastMessageKey: any | null = null) => {
-      console.log('chatIdchatId', chatId);
-
-      let messagesRef = database()
-        .ref(`/messages/${chatId}`)
-        .orderByChild('createdAt')
-        .limitToLast(25);
+    async (chatId: string, lastMessageKey: any | null = null): Promise<() => void> => {
+      const dbRef = database().ref(`/messages/${chatId}`);
+      let query = dbRef.orderByChild('createdAt').limitToLast(25);
 
       if (lastMessageKey) {
-        messagesRef = database()
-          .ref(`/messages/${chatId}`)
-          .orderByChild('createdAt')
-          .endAt(lastMessageKey)
-          .limitToLast(25);
+        query = dbRef.orderByChild('createdAt').endAt(lastMessageKey).limitToLast(25);
       }
 
+      const seenMessageKeys = new Set<string>();
 
+      const snapshot = await query.once('value');
 
-      // Track seen messages to prevent duplicates
-      let seenMessageKeys = new Set();
+      if (snapshot.exists()) {
+        let messagesArray = Object.entries(snapshot.val() || {}).map(
+          ([key, value]: any) => ({
+            ...value,
+            key,
+          }),
+        );
 
-      messagesRef.once('value', snapshot => {
-        if (snapshot.exists()) {
-          let messagesArray = Object.entries(snapshot.val() || {}).map(
-            ([key, value]: any) => ({
-              ...value,
-              key: key,
-            }),
-          );
+        messagesArray.sort(
+          (a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
 
-          messagesArray.sort(
-            (a: any, b: any) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
-
-          if (lastMessageKey) {
-            messagesArray.pop(); // Remove duplicate last message
-            setMessages(prevMessages => {
-              const uniqueMessages = messagesArray.filter(
-                msg => !prevMessages.some((pMsg: any) => pMsg.key === msg.key)
-              );
-              return [...prevMessages, ...uniqueMessages];
-            });
-          } else {
-            setMessages(messagesArray);
-          }
-
-          // Store seen message keys
-          messagesArray.forEach(msg => seenMessageKeys.add(msg.key));
-
-          console.log('--messagesArray--', messagesArray);
+        if (lastMessageKey) {
+          messagesArray.pop(); // Remove duplicate message
+          setMessages(prev => {
+            const unique = messagesArray.filter(
+              msg => !prev.some(p => p.key === msg.key)
+            );
+            return [...prev, ...unique];
+          });
+        } else {
+          setMessages(messagesArray);
         }
-      });
 
-      // Real-time listener for new messages
-      const messagesRef1 = database().ref(`/messages/${chatId}`);
+        messagesArray.forEach(msg => seenMessageKeys.add(msg.key));
+      }
 
+      // Real-time new message listener
       const onNewMessage = (snapshot: any) => {
         const newMessage = { ...snapshot.val(), key: snapshot.key };
-
-        // Check if the message is already in the list
         if (!seenMessageKeys.has(newMessage.key)) {
-          setMessages(prevMessages => [newMessage, ...prevMessages]);
-          seenMessageKeys.add(newMessage.key); // Mark it as seen
+          setMessages(prev => [newMessage, ...prev]);
+          seenMessageKeys.add(newMessage.key);
         }
       };
 
-      messagesRef1.limitToLast(1).on('child_added', onNewMessage);
+      dbRef.limitToLast(1).on('child_added', onNewMessage);
 
+      // Cleanup function
       return () => {
-        messagesRef.off();
-        messagesRef1.off('child_added', onNewMessage); // Proper cleanup
+        dbRef.off('child_added', onNewMessage);
       };
     },
     [],
   );
 
-
-  // Fetch All Users (Optimized)
   const fetchAllUsers = useCallback(async () => {
+    setLoading(true);
     const db = getDatabase();
     const dbRef = ref(db, '/users/');
     try {
       const snapshot = await get(dbRef);
-      console.log('snapshot', snapshot);
       if (snapshot.exists()) {
-        setAllUsers(snapshot.val() ? Object.values(snapshot.val()) : []);
+        const users = snapshot.val();
+        setAllUsers(users ? Object.values(users) : []);
       } else {
-        console.log('No data available');
+        console.log('No users found');
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  // Get Single User Details
   const getSingleUser = useCallback(
     async (userID: string): Promise<ChatUser | null> => {
       const snapshot = await database().ref(`/users/${userID}`).once('value');
@@ -161,35 +140,31 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [],
   );
 
-  // Create New User in Database
   const createUser = useCallback(async (userId: string, userObject: any) => {
     const userData: ChatUser = {
       name: userObject.name,
       email: userObject.email,
-      image: 'image',
+      image: userObject.image || '', // updated
       mobileNo: userObject.mobileno,
-      onlineStatus: 'true',
-      fcmToken: 'player_id_me',
+      onlineStatus: true, // changed to boolean
+      fcmToken: userObject.fcmToken || '',
       userId,
       userType: userObject.userType,
       notificationStatus: '',
       chat_room_id: 'no',
       loginType: '',
     };
+
     const db = getDatabase();
-    console.log('userData', userData);
-    console.log('db', db);
 
     try {
       await update(ref(db, `users/${userId}`), userData);
-      setUserData(userData)
+      setUserData(userData);
     } catch (error) {
       console.error(error);
     }
-
   }, []);
 
-  // Create User Inbox
   const createUserInbox = useCallback(
     (res: any, userId: any, otherUserId: any) => {
       database().ref(`users/${userId}/myInbox/${otherUserId}`).update(res);
@@ -197,18 +172,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [],
   );
 
-  // Send Message
-  const sendMessage = useCallback((messageId: string, messageJson: any) => {
-    database()
+const sendMessage = useCallback(async (messageId: string, messageJson: any) => {
+  try {
+    await database()
       .ref(`messages/${messageId}`)
       .push()
-      .set(messageJson)
-      .catch(error => console.error('SendMessage Error:', error));
-  }, []);
+      .set(messageJson);
+  } catch (error) {
+    console.error('SendMessage Error:', error);
+  }
+}, []);
 
 
-
-  // Memoized Context Value
   const chatContextValue = useMemo(
     () => ({
       chats,

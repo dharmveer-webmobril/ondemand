@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {  Keyboard, StyleSheet,  TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, SF, SH, SW, useCountdown, useProfileUpdate } from '../../utils';
-import { AppText, AuthBottomContainer, AuthImgComp, Container, Spacing, VectoreIcons } from '../../component';
+import { ActivityIndicator, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, SF, SH, SW, useCountdown, useProfileUpdate } from '../../utils';
+import { AppText, AuthBottomContainer, AuthImgComp, Container, showAppToast, Spacing, VectoreIcons } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import imagePaths from '../../assets/images';
 import Buttons from '../../component/Button';
@@ -9,7 +9,7 @@ import RouteName from '../../navigation/RouteName';
 import OTPTextView from 'react-native-otp-textinput';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { setToken } from '../../redux';
+import { setToken, useResendOtpMutation, useVerifyOtpMutation } from '../../redux';
 import { useDispatch } from 'react-redux';
 
 type OtpVerifyScreenProps = {};
@@ -25,7 +25,8 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
   const [otp, setOtp] = useState<string | number>('');
   const [userToken, setUserToken] = useState<string>(route?.params?.userToken);
 
-
+  const [resendOtp, { isLoading: otpLoader }] = useResendOtpMutation();
+  const [verifyOtp, { isLoading: otpVerifyLoader }] = useVerifyOtpMutation();
   const dispatch = useDispatch();
 
   const { time, startCountdown, resetCountdown, status, formatTime } = useCountdown();
@@ -36,21 +37,75 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
 
   useProfileUpdate();
 
+
   const btnResendOtp = async () => {
-    let userData = {
-      email,
-    };
+    console.log('userToken:', userToken);
+
+    try {
+      const response = await resendOtp(userToken).unwrap();
+      console.log('resendOtp Response:', response);
+
+      if (response?.success) {
+        handleSuccessToast(response.message || 'OTP resent successfully.');
+
+        const accessToken = typeof response.data?.accessToken === 'string'
+          ? response.data.accessToken
+          : response.data?.accessToken?.accessToken;
+
+        if (accessToken) {
+          setUserToken(accessToken);
+        }
+
+        resetCountdown();
+        startCountdown(60);
+      } else {
+        handleApiFailureResponse(response, 'Failed to resend OTP.');
+      }
+    } catch (error: any) {
+      handleApiError(error);
+    }
   };
 
   const btnVerifyOtp = async () => {
-    if (fromScreen === 'signup') {
-      dispatch(setToken({ token: 'response.ResponseBody.token' }));
-      navigation.navigate(RouteName.HOME);
+    if (!otp) {
+      showAppToast({
+        title: 'Error',
+        message: 'Please Enter OTP',
+        type: 'error',
+        timeout: 3000,
+      });
+      return;
     }
-    if (fromScreen === 'forgotpass') {
-      navigation.navigate(RouteName.PASS_UPDATE, { userToken: 'response.ResponseBody.token' });
+
+    const userData = { otp };
+
+    try {
+      const response = await verifyOtp({ otpData: userData, token: userToken }).unwrap();
+      console.log('Verify OTP Response:', response);
+
+      if (response.success) {
+        // handleSuccessToast(response.message || 'OTP verified successfully');
+
+        const token = response?.data?.accessToken?.accessToken || response?.data?.accessToken;
+
+        if (fromScreen === 'signup') {
+          dispatch(setToken({ token }));
+          navigation.navigate(RouteName.HOME);
+        }
+
+        if (fromScreen === 'forgotpass') {
+          navigation.navigate(RouteName.PASS_UPDATE, { userToken: response.ResponseBody?.token || token });
+        }
+
+        resetCountdown();
+
+      } else {
+        handleApiFailureResponse(response, 'Invalid or expired OTP.');
+      }
+
+    } catch (error: any) {
+      handleApiError(error);
     }
-   
   };
 
 
@@ -91,7 +146,6 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
               <AppText style={styles.subtitile}>{t('otpverify.subtitle')}</AppText>
 
               <OTPTextView
-
                 ref={input}
                 textInputStyle={styles.textInputContainer}
                 handleTextChange={val => {
@@ -105,18 +159,17 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
 
               <View
                 style={styles.resteTextCont}>
-                {/* {otpLoader ? (
+                {otpLoader ? (
                   <ActivityIndicator color={'#ffffff'} style={styles.activeIndigator} />
-                ) : ( */}
+                ) : (
                   <AppText
                     onPress={() => {
                       status !== 'running' && btnResendOtp();
                     }}
                     style={styles.resteText}>
-                    {/* {status === 'running' ? formatTime(time) : 'Resend OTP'} */}
-                    Resend OTP
+                    {status === 'running' ? formatTime(time) : 'Resend OTP'}
                   </AppText>
-                {/* )} */}
+                )}
               </View>
             </View>
 
@@ -128,7 +181,7 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
                 btnVerifyOtp();
                 Keyboard.dismiss();
               }}
-              // isLoading={otpVerifyLoader}
+              isLoading={otpVerifyLoader}
             />
           </View>
         </AuthBottomContainer>

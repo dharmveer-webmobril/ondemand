@@ -59,7 +59,7 @@ export const showAppToast = ({
   title,
   message,
   type = 'info',
-  timeout = 4000,
+  timeout = 2500,
   onOkPress,
   position = 'top',
 }: {
@@ -77,6 +77,7 @@ export const showAppToast = ({
     visibilityTime: timeout,
     autoHide: !onOkPress,
     position,
+    topOffset: position === 'top' ? SH(10) : 0,
     props: {
       customOnPress: onOkPress,
     },
@@ -94,7 +95,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 5,
     borderRadius: 8,
     marginHorizontal: SW(10),
-    marginVertical: SH(6),
+    // marginVertical: SH(6),
+    top: SH(0),
     width: '90%',
   },
   textTitle: {

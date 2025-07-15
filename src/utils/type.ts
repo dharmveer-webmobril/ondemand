@@ -1,12 +1,12 @@
 // src/types.ts
-export interface User  {
-    email: string;
-    fcmToken: string;
-    name: string;
-    id: string;
-    mobile?: string;
-    status: number;
-    token: string;
+export interface User {
+  email: string;
+  fcmToken: string;
+  name: string;
+  id: string;
+  mobile?: string;
+  status: number;
+  token: string;
 }
 
 export interface ChatUser {
@@ -24,15 +24,16 @@ export interface ChatUser {
 }
 
 export interface RegisterRequest {
-  full_name: string;
   email: string;
   password: string;
-  mobile: string;
-  fcmToken: string|null;
-  device_id: string;
-  device_type: string;
+  fullName: string;
+  mobileNo: string;
+  countryCode: string;
+  deviceId: string;
+  userFcmToken: string | null;
+  providerFcmToken: string | null;
+  roleType: string; // limit roles to allowed strings
 }
-
 
 export interface AuthResponse {
   user: User;
@@ -42,17 +43,18 @@ export interface AuthResponse {
 export interface LoginRequest {
   email: string;
   password: string;
-  fcmToken: string|null;
-  device_id: string;
-  device_type: string;
+  // deviceId?: string;
+  // userFcmToken: string | null;
+  // providerFcmToken: string | null;
+  // roleType: string; // limit roles to allowed strings
 }
- 
+
 
 export interface ResenOtpReq {
-  email: string;
+  token: string;
 }
 export interface VerifyOtpReq {
-  otp: string|number;
+  otp: string | number;
 }
 export interface ExtraHeaders {
   [key: string]: string;

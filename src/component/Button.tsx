@@ -28,7 +28,7 @@ type ButtonsProps = {
 
 const Buttons: React.FC<ButtonsProps> = ({
   title = "",
-  onPress = () => { },
+  onPress = () => {},
   isLoading = false,
   buttonStyle = {},
   disable = false,
@@ -37,13 +37,17 @@ const Buttons: React.FC<ButtonsProps> = ({
   spacedImages = false,
   linearGradientProps,
   textColor = "#ffffff",
-  isExtraBoxShadow=true
+  isExtraBoxShadow = true,
 }) => {
+  const isButtonDisabled = disable || isLoading;
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
         buttonStyle: {
-          backgroundColor: disable ? "#A9A9A9" : Colors.themeColor,
+          backgroundColor: disable
+            ? `${Colors.themeColor}80` // 50% opacity
+            : Colors.themeColor,
           height: SF(42),
           width: "100%",
           borderRadius: 10,
@@ -71,16 +75,17 @@ const Buttons: React.FC<ButtonsProps> = ({
 
   return (
     <Pressable
-      onPress={!disable && !isLoading ? onPress : undefined}
+      onPress={!isButtonDisabled ? onPress : undefined}
       style={({ pressed }) => [
-        styles.buttonStyle, isExtraBoxShadow?boxShadow:boxShadowlight,
+        styles.buttonStyle,
+        isExtraBoxShadow ? boxShadow : boxShadowlight,
         buttonStyle,
-        pressed && { opacity: 0.8 }, // Slight fade effect when pressed
+        pressed && !isButtonDisabled && { opacity: 0.8 },
       ]}
-      disabled={disable}
+      disabled={isButtonDisabled}
     >
       {isLoading ? (
-        <ActivityIndicator size="large" color={textColor || Colors.themeColor} />
+        <ActivityIndicator size="small" color={textColor || Colors.themeColor} />
       ) : (
         <View style={styles.buttonViewStyle}>
           {icon && <View style={styles.LeftImageViewStyle}>{icon}</View>}

@@ -49,11 +49,6 @@ export const languageData = [
     id: 4,
     image: imagePaths.US_flag,
   },
-  {
-    name: 'Arabic',
-    id: 5,
-    image: imagePaths.US_flag,
-  },
 ];
 
 export const socialButtons = [
@@ -200,7 +195,7 @@ export const inboxData = [
     lastMessage: 'Hi last chat here',
     time: '4:14 pm',
     avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-    
+
   },
   {
     id: '2',

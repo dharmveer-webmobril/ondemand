@@ -1,26 +1,31 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '../store';
-import { logout } from '../slices/authSlice';
+// src/redux/services/api.ts
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { RootState } from "../store";
 
-const baseQuery = fetchBaseQuery({
-  baseUrl: 'https://your-api.com/api',
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: process.env.API_URL,
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.token;
-    if (token) headers.set('Authorization', `Bearer ${token}`);
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
     return headers;
   },
 });
 
-const baseQueryWithAuth = async (args: any, api: any, extraOptions: any) => {
-  const result = await baseQuery(args, api, extraOptions);
-  if (result.error?.status === 401) {
-    api.dispatch(logout());
+const baseQueryWithAuth: typeof rawBaseQuery = async (args, api, extraOptions) => {
+  const result: any = await rawBaseQuery(args, api, extraOptions);
+  console.log("API Result:", result);
+
+  if (!result?.data?.succeeded && result?.data?.ResponseCode === 401) {
+    // TODO: Dispatch logout or navigate
   }
+
   return result;
 };
 
 export const api = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery: baseQueryWithAuth,
-  endpoints: () => ({}),
+  endpoints: () => ({}), // will inject endpoints elsewhere
 });

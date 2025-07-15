@@ -14,10 +14,14 @@ import {
 import {
   Colors,
   Fonts,
+  handleApiError,
+  handleApiFailureResponse,
+  handleSuccessToast,
   regex,
   SF,
   SH,
   socialButtons,
+  StorageProvider,
   SW,
   validationMSG,
 } from '../../utils';
@@ -41,6 +45,7 @@ import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import DeviceInfo from 'react-native-device-info';
+import { useRegisterMutation } from '../../redux';
 const SCREEN_WIDTH = Dimensions.get('window').width
 const SocialButton = ({
   icon,
@@ -97,19 +102,50 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
       .oneOf([Yup.ref('password')], t('validation.notMatchConfirmPassword')),
   });
 
+  const [register, { data, isLoading, isError, error }] = useRegisterMutation();
+
   const btnSignup = async (
-    values: { email: string; password: string; cpassword: string; fname: string; mobileno: string; },
-    resetForm: any,
-  ) => {
-    navigation.navigate(RouteName.OTP_VERIFY, {
-      fromScreen: 'signup',
-      userToken: 'response.ResponseBody.token',
+  values: { email: string; password: string; cpassword: string; fname: string; mobileno: string; },
+  resetForm: any,
+) => {
+  try {
+    const fcmToken = await StorageProvider.getItem('fcmToken') || null;
+    const device_id = await DeviceInfo.getUniqueId() || 'device_1';
+    const device_type = Platform.OS === 'android' ? '1' : '2';
+
+    let userData = {
       email: values.email,
-    });
+      password: values.password,
+      fullName: values.fname,
+      mobileNo: values.mobileno,
+      countryCode: "+91",
+      deviceId: device_id,
+      userFcmToken: fcmToken,
+      providerFcmToken: null,
+      roleType: 'user',
+    };
 
-    return false
+    const response = await register(userData).unwrap();
+    console.log('Signup Response:', response);
 
-  };
+    if (response.success) {
+      handleSuccessToast(response.message || 'Registration successful. Please verify your email.');
+
+      const token = response?.data?.accessToken?.accessToken || response?.data?.accessToken;
+
+      navigation.navigate(RouteName.OTP_VERIFY, {
+        fromScreen: 'signup',
+        userToken: token,
+        email: values.email,
+      });
+
+    } else {
+      handleApiFailureResponse(response, 'Signup failed');
+    }
+  } catch (error) {
+    handleApiError(error);
+  }
+};
 
   return (
     <Container
@@ -133,11 +169,11 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
           <View style={styles.gradientContainer}>
             <Formik
               initialValues={{
-                email: '',
-                password: '',
-                cpassword: '',
-                fname: '',
-                mobileno: '',
+                email: 'dharm@mailinator.com',
+                password: 'Qwerty@123',
+                cpassword: 'Qwerty@123',
+                fname: 'Dharm',
+                mobileno: '8817046783',
               }}
               validationSchema={validationSchema}
               onSubmit={(values, { resetForm }) => {
@@ -193,7 +229,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     rightIcon={!passwordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
                     onRightIconPress={() => setpasswordVisibility(!passwordVisibility)}
                     secureTextEntry={passwordVisibility}
-                    keyboardType={'visible-password'}
+                    keyboardType={'default'}
                   />
                   <InputField
                     placeholder={t('placeholders.reEnterPassword')}
@@ -208,7 +244,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     keyboardType={'default'}
                   />
 
-                  
+
                   <Spacing space={SH(10)} />
                   {/* check box==============================    */}
                   <View style={styles.checkBoxContainer}>
@@ -264,7 +300,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                       handleSubmit();
                       Keyboard.dismiss();
                     }}
-                  // isLoading={true}
+                    isLoading={isLoading}
                   />
                   {/* <Image source={imagePaths.face_lock} style={styles.fingerPrintImage} /> */}
 
@@ -298,7 +334,7 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: SF(12),
   },
-  gradientContainer:{ paddingVertical: SH(35), paddingHorizontal: SW(25) },
+  gradientContainer: { paddingVertical: SH(35), paddingHorizontal: SW(25) },
   buttonContainer: { backgroundColor: Colors.bgwhite, width: '93%', alignSelf: 'center' },
   submitButton: {
     color: Colors.textWhite,
@@ -318,12 +354,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 
-  fingerPrintImage: { 
-    height: SF(48), 
-    width: SF(48), 
-    resizeMode: "contain", 
-    alignSelf: "center", 
-    marginVertical: SH(14) 
+  fingerPrintImage: {
+    height: SF(48),
+    width: SF(48),
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginVertical: SH(14)
   },
 
   socialButton: {
@@ -345,7 +381,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.REGULAR,
     fontSize: SF(12),
     textAlign: 'center',
-    marginTop:SH(25)
+    marginTop: SH(25)
   },
   dontHaveAccLogintxt: {
     fontFamily: Fonts.MEDIUM, fontSize: SF(14)

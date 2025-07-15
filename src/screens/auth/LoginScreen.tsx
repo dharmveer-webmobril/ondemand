@@ -3,6 +3,7 @@ import {
   Dimensions,
   Image,
   Keyboard,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -10,10 +11,14 @@ import {
 import {
   Colors,
   Fonts,
+  handleApiError,
+  handleApiFailureResponse,
+  handleSuccessToast,
   regex,
   SF,
   SH,
   socialButtons,
+  StorageProvider,
   SW,
   useDisableGestures,
   useProfileUpdate,
@@ -36,7 +41,10 @@ import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { ChatContext } from '../ChatProvider';
+import DeviceInfo from 'react-native-device-info';
+import { setToken, useLoginMutation } from '../../redux';
 const SCREEN_WIDTH = Dimensions.get('window').width
+// import { API_URL, GOOGLE_API_KEY } from '@env';
 const SocialButton = ({
   icon,
   onPress,
@@ -71,6 +79,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
   useDisableGestures();
 
 
+
   useProfileUpdate();
 
   const validationSchema = Yup.object().shape({
@@ -81,27 +90,64 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
       .required(t('validation.emptyPassword')),
   });
 
-  const chatContext = useContext(ChatContext);
-  if (!chatContext) return null;
-  const { createUser } = chatContext;
+  // const chatContext = useContext(ChatContext);
+  // if (!chatContext) return null;
+  // const { createUser } = chatContext;
 
-  const btnSignIn = async (values: { email: string; password: string }, resetForm: any) => {
- 
-    // createUser(`321321`, {
-    //   name: 'veer',
-    //   email: 'veer@gmail.com',
-    //   image: 'image',
-    //   mobileNo: '9090909090',
-    //   onlineStatus: 'true',
-    //   fcmToken: 'player_id_me',
-    //   userId: '321321',
-    //   userType: 'user',
-    //   notificationStatus: '',
-    //   chat_room_id: 'no',
-    //   loginType: '',
-    // })
-    navigation.navigate(RouteName.HOME, {});
-    return false
+
+  const [login, { isLoading }] = useLoginMutation();
+
+  const btnSignIn = async (
+    values: { email: string; password: string },
+    resetForm: any
+  ) => {
+    try {
+      const fcmToken = await StorageProvider.getItem('fcmToken') || null;
+      const device_id = await DeviceInfo.getUniqueId() || 'device_1';
+      const device_type = Platform.OS === 'android' ? '1' : '2';
+
+      let userData = {
+        email: values.email,
+        password: values.password,
+        // Add optional metadata if needed later
+      };
+
+      const response = await login(userData).unwrap();
+      console.log('Login Response:', response);
+
+      if (response.success) {
+        const token = response.data.accessToken;
+
+        if (response.data.isStatus) {
+          handleSuccessToast(response.message || 'Login successful');
+
+          dispatch(setToken({ token }));
+          StorageProvider.saveItem('token', token);
+          resetForm()
+          setTimeout(() => {
+            navigation.navigate(RouteName.HOME);
+          }, 200);
+
+        } else if (response.data.otp) {
+          handleSuccessToast(response.message || 'OTP sent to email');
+
+          navigation.navigate(RouteName.OTP_VERIFY, {
+            fromScreen: 'signup',
+            userToken: token,
+            email: values.email,
+          });
+
+        } else {
+          handleApiFailureResponse(response, 'Account not verified.');
+        }
+
+      } else {
+        handleApiFailureResponse(response, 'Login failed.');
+      }
+
+    } catch (error) {
+      handleApiError(error);
+    }
   };
 
 
@@ -181,7 +227,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
                       handleSubmit();
                       Keyboard.dismiss();
                     }}
-                  // isLoading={isLoading}
+                    isLoading={isLoading}
                   />
 
 

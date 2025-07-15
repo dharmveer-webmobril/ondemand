@@ -1,95 +1,30 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component'; // Assumes you have a Container component
-import { chatMenuData, Colors, Fonts, imagePaths, messagesData, SF, SH, SW } from '../../utils'; // Update paths if needed
+import { AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
+import { chatMenuData, Colors, Fonts, imagePaths, SF, SH, SW } from '../../utils';
 import ChatDropdownMenu from './component/ChatDropdownMenu';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChatContext, Message, messageUser } from '../ChatProvider';
-import { IMessage } from 'react-native-gifted-chat';
+// import ChatHeader from './component/ChatHeader';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
-
-
-
-
-const ChatHeader = ({ closeMenu, openMenu, isOpenMenu }: any) => {
-
-
-  return (
-    <View style={styles.headerContainer}>
-
-      <TouchableOpacity>
-        <VectoreIcons
-          icon="FontAwesome"
-          name={'angle-left'}
-          size={SF(30)}
-          color={Colors.textHeader}
-        />
-      </TouchableOpacity>
-
-      <View style={styles.headerCenter}>
-        <View style={styles.avatarWrapper}>
-          <ImageLoader
-            source={imagePaths.user1}
-            resizeMode="cover"
-            mainImageStyle={styles.avatarImage}
-          />
-        </View>
-        <View style={styles.nameContainer}>
-          <AppText style={styles.userName}>WM Berber</AppText>
-          <AppText style={styles.lastSeen}>Last seen 5 min ago</AppText>
-        </View>
-      </View>
-
-      <View style={styles.headerRight}>
-        <TouchableOpacity>
-          <VectoreIcons
-            icon="MaterialIcons"
-            name={'call'}
-            size={SF(24)}
-            color={Colors.themeColor}
-          />
-        </TouchableOpacity>
-        <Spacing horizontal space={10} />
-        <View>
-          <TouchableOpacity style={styles.menuButton} onPress={openMenu}>
-            <VectoreIcons
-              icon="MaterialCommunityIcons"
-              name="dots-vertical"
-              size={SF(24)}
-              color={Colors.themeColor}
-            />
-          </TouchableOpacity>
-          {isOpenMenu && (
-            <ChatDropdownMenu menuOptions={chatMenuData} onClose={closeMenu} />
-          )}
-        </View>
-      </View>
-    </View>
-  );
-};
 
 const MessageScreen: React.FC = () => {
   const route = useRoute<any>();
   let { otherDetails, myDetails } = route?.params;
   console.log('myDetails-', myDetails, 'otherDetails-', otherDetails);
 
-  const flatListRef = useRef<FlatList>(null);
   const chatContext = useContext(ChatContext);
   if (!chatContext) return null;
 
-  const { sendMessage, fetchMessages, messages } = chatContext;
+  const { sendMessage, fetchMessages, messages, createUserInbox } = chatContext;
   const navigation = useNavigation();
 
-  // const [/, setMessages] = useState<Message[]>(messagesData);
   const [input, setInput] = useState<string>('');
 
   const currentUser: messageUser = {
@@ -98,8 +33,16 @@ const MessageScreen: React.FC = () => {
 
   useEffect(() => {
     let msgIdForMe = `${myDetails?.userId}_${otherDetails?.userId}`;
-    console.log('msgIdForMe', msgIdForMe);
-    fetchMessages(msgIdForMe, null);
+    let unsubscribe: (() => void) | undefined;
+
+    const loadMessages = async () => {
+      unsubscribe = await fetchMessages(msgIdForMe, null);
+    };
+
+    loadMessages();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const onSend = () => {
@@ -113,29 +56,32 @@ const MessageScreen: React.FC = () => {
     console.log('newMessages12newMessages12', newMessages12);
     let msgIdForMe = `${myDetails?.userId}_${otherDetails?.userId}`;
     let msgIdForOther = `${otherDetails?.userId}_${myDetails?.userId}`;
+
+    // message send=========
     sendMessage(msgIdForMe, newMessages12);
     sendMessage(msgIdForOther, newMessages12);
-    console.log('newMessages12newMessages12', newMessages12);
+
+    // inbox update=========
+    let myInbox = {
+      userId: myDetails?.userId,
+      name: myDetails?.name,
+      lastMessage: newMessages12.text,
+      timestamp: newMessages12.createdAt,
+    }
+    let otherInbox = {
+      userId: otherDetails?.userId,
+      name: otherDetails?.name,
+      lastMessage: newMessages12.text,
+      timestamp: newMessages12.createdAt,
+    }
+    createUserInbox(otherInbox, myDetails?.userId, otherDetails?.userId);
+    createUserInbox(myInbox, otherDetails?.userId, myDetails?.userId);
+
     setInput('');
   }
-  // useCallback(()
-  // []);
 
 
 
-  const sendMessage1 = () => {
-    if (!input.trim()) return;
-
-    const newMessage: Message = {
-      _id: Date.now(),
-      text: input,
-      createdAt: new Date(),
-      user: currentUser,
-    };
-
-    // setMessages(prev => [...prev, newMessage]);
-    setInput('');
-  };
 
   const [isOpenMenu, setIsOpenMenu] = useState(false);
 
@@ -145,11 +91,10 @@ const MessageScreen: React.FC = () => {
 
 
 
-  const renderItem = ({ item }: { item: Message }) => {
+  const renderItem = ({ item, index }: { item: Message, index: number }) => {
     const isMe = item.user.userId === currentUser.userId;
     return (
       <View style={[styles.messageRow, isMe ? styles.rightAlign : styles.leftAlign]}>
-
         <View style={[styles.messageBubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
           <AppText style={[styles.messageText]}>{item.text}</AppText>
         </View>
@@ -165,36 +110,40 @@ const MessageScreen: React.FC = () => {
       {isOpenMenu && (
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={closeMenu} />
       )}
-      <ChatHeader isOpenMenu={isOpenMenu} closeMenu={closeMenu} openMenu={() => setIsOpenMenu(true)} />
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 25 : 0}
-      >
-        <FlatList
-          ref={flatListRef}
-          data={[...messages]}
+     
+{/* 
+ <ChatHeader
+        isOpenMenu={isOpenMenu}
+        closeMenu={closeMenu}
+        openMenu={() => setIsOpenMenu(true)}
+        otherDetails={otherDetails}
+      />
+*/}
+      <>
+        <KeyboardAwareFlatList
+          data={messages}
           renderItem={renderItem}
-          keyExtractor={(item) => item._id.toString()}
-          contentContainerStyle={styles.chatList}
+          keyExtractor={(item, index) => item.createdAt.toString() + index + item.text}
           inverted
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16 }}
+          keyboardShouldPersistTaps="handled"
         />
 
         <View style={styles.inputContainer}>
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            placeholder="Type a message..."
-            style={styles.input}
-            placeholderTextColor="#999"
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={onSend}>
-            <VectoreIcons icon="Ionicons" name="send" size={SF(19)} color={Colors.themeColor} />
-          </TouchableOpacity>
+          <>
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              placeholder="Type a message..."
+              style={styles.input}
+              placeholderTextColor="#999"
+            />
+            <TouchableOpacity style={styles.sendButton} onPress={onSend}>
+              <VectoreIcons icon="Ionicons" name="send" size={SF(19)} color={Colors.themeColor} />
+            </TouchableOpacity>
+          </>
         </View>
-      </KeyboardAvoidingView>
+      </>
     </Container>
   );
 };

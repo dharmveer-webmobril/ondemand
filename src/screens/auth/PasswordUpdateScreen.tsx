@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, regex, SF, SH, SW } from '../../utils';
+import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '../../utils';
 import {
   AppText,
   AuthBottomContainer,
   AuthImgComp,
   Container,
-  // CustomToast,
   InputField,
-  InputIcons,
   Spacing,
   VectoreIcons,
 } from '../../component';
@@ -20,6 +18,7 @@ import Buttons from '../../component/Button';
 import RouteName from '../../navigation/RouteName';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { useResetPasswordMutation } from '../../redux';
 
 type PasswordUpdateProps = {};
 
@@ -42,23 +41,40 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
   });
 
 
+  const [resetPassword, { isLoading }] = useResetPasswordMutation()
 
 
   const btnUpdatePassword = async (values: { password: string; cpassword: string }, resetForm: any) => {
-    navigation.navigate(RouteName.LOGIN);
-    return
-    
-  };
-    const backButton = () => {
-      return <TouchableOpacity style={{ padding: 5, position: 'absolute', top: SF(20), left: SF(20), zIndex: 9999 }} onPress={() => { navigation.goBack() }}>
-        <VectoreIcons
-          icon="FontAwesome"
-          name={'angle-left'}
-          size={SF(30)}
-          color={Colors.textHeader}
-        />
-      </TouchableOpacity>
+    let userData = {
+      token,
+      data: { "password": values.password }
     }
+    try {
+      const response = await resetPassword(userData).unwrap();
+      if (response.success) {
+        handleSuccessToast(response.message);
+        navigation.navigate(RouteName.LOGIN);
+        resetForm()
+      } else {
+        handleApiFailureResponse(response,);
+      }
+    } catch (error: any) {
+      handleApiError(error);
+    }
+  };
+
+
+
+  const backButton = () => {
+    return <TouchableOpacity style={{ padding: 5, position: 'absolute', top: SF(20), left: SF(20), zIndex: 9999 }} onPress={() => { navigation.goBack() }}>
+      <VectoreIcons
+        icon="FontAwesome"
+        name={'angle-left'}
+        size={SF(30)}
+        color={Colors.textHeader}
+      />
+    </TouchableOpacity>
+  }
 
   return (
     <Container
@@ -68,9 +84,9 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
         navigation.goBack();
       }}
       style={styles.container}>
-        {
-          backButton()
-        }
+      {
+        backButton()
+      }
       <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 0 }}
         showsVerticalScrollIndicator={false}
@@ -111,7 +127,7 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
                     secureTextEntry={passwordVisibility}
                     keyboardType={'default'}
                   />
-                  <Spacing space={8}/>
+                  <Spacing space={8} />
 
                   <InputField
                     placeholder={t('placeholders.confirmPassword')}
@@ -134,7 +150,7 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
                     handleSubmit();
                     Keyboard.dismiss();
                   }}
-                  // isLoading={isLoading}
+                  isLoading={isLoading}
                 />
               </View>
             )}

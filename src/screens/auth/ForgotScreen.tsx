@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors, Fonts, regex, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '../../utils';
 import {
   AppText,
   AuthBottomContainer,
@@ -26,6 +26,7 @@ import Buttons from '../../component/Button';
 import RouteName from '../../navigation/RouteName';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { useForgetPasswordMutation } from '../../redux';
 
 type ForgotProps = {};
 
@@ -38,13 +39,28 @@ const ForgotScreen: React.FC<ForgotProps> = ({ }) => {
       .required(t('validation.emptyEmail')),
   });
 
+  const [forgetPassword, { isLoading }] = useForgetPasswordMutation();
+
   const btnForgot = async (values: { email: string }, resetForm: any) => {
     let userData = {
       email: values.email,
     };
+    console.log(userData);
 
-    navigation.navigate(RouteName.OTP_VERIFY, { fromScreen: 'forgotpass', userToken: 'response.ResponseBody.token', email: values.email });
-    return false
+    try {
+      const response = await forgetPassword(userData).unwrap();
+      console.log('Verify OTP Response:', response);
+      if (response.success) {
+        handleSuccessToast(response.message);
+        const token = response?.data?.accessToken?.accessToken || response?.data?.accessToken;
+        navigation.navigate(RouteName.OTP_VERIFY, { fromScreen: 'forgotpass', userToken: token, email: values.email });
+        resetForm()
+      } else {
+        handleApiFailureResponse(response,);
+      }
+    } catch (error: any) {
+      handleApiError(error);
+    }
   };
 
   const backButton = () => {
@@ -116,7 +132,7 @@ const ForgotScreen: React.FC<ForgotProps> = ({ }) => {
                     handleSubmit();
                     Keyboard.dismiss();
                   }}
-                  // isLoading={otpLoader}
+                  isLoading={isLoading}
                 />
               </View>
             )}
