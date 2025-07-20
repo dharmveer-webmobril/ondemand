@@ -13,7 +13,28 @@
           "package_name": "com.ssnap.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "530387899669-dqafi8ru82r3jh39dmf95pns5718vj0s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ssnap.app",
+            "certificate_hash": "94c87c3f8c9a9a566d5246eb7f282f37b940c9be"
+          }
+        },
+        {
+          "client_id": "530387899669-r0l4lpqos4ka4atgibr5bm2p5ttenl0b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ssnap.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "530387899669-iv01qkh17ajtv3sr6vd9k027rmdkkmmn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD0MbH5IOBo3TT4Q5I46l1s9Va6m4BDLz4"
@@ -21,26 +42,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:530387899669:android:9c0a6e8333d9651029451c",
-        "android_client_info": {
-          "package_name": "com.ssnapservicespro.app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD0MbH5IOBo3TT4Q5I46l1s9Va6m4BDLz4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "530387899669-iv01qkh17ajtv3sr6vd9k027rmdkkmmn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "530387899669-36ted9dsmss0e3bhdtirq27l21ubgeb4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ssnapservicespro.app"
+              }
+            }
+          ]
         }
       }
     }

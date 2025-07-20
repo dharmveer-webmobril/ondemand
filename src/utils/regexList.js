@@ -12,6 +12,6 @@ const regex = {
     PAN: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
     PPOSITIVE_INTEGER: /^[1-9]\d*$/,
     ZIP_CODE: /^\d{5}(?:\d{2})?$/,
-    MOBIILE:/^[1-9][0-9]{4,14}$/
+    MOBIILE:/^[1-9][0-9]{6,14}$/
 }
 export default regex

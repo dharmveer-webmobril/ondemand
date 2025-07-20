@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { AppHeader, AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
+import { Pressable, ScrollView, StatusBar, StyleSheet,  TouchableOpacity, View } from 'react-native';
+import {  AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
 import { Colors, Fonts, SF, SH, SW } from '../../utils';
 import imagePaths from '../../assets/images';
-import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import {  useNavigation, useRoute } from '@react-navigation/native';
 import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from './component';
 import RouteName from '../../navigation/RouteName';
 import { ConfirmBookingModal } from '../Bookings/component';
@@ -27,8 +27,15 @@ const ShopDetails: React.FC<shopProps> = () => {
 
      
     const btnBookService = () => {
-        bookingType == 'immediate' ? setModalVisible(true) : setConfirmBookingTypeModal(true)
+        bookingType === 'immediate' ? setModalVisible(true) : setConfirmBookingTypeModal(true)
     }
+
+    const getHeaderContainerStyle = () => {
+        return {
+            ...styles.headerContainer,
+            borderBottomWidth: activeTab === 'details' ? 0.6 : 0,
+        };
+    };
 
     return (
         <Container isAuth>
@@ -58,10 +65,7 @@ const ShopDetails: React.FC<shopProps> = () => {
                 barStyle={'dark-content'}
             />
             <Spacing />
-            <View style={{
-                flexDirection: "row", alignItems: "center", paddingHorizontal: "9%", paddingBottom: SH(10), borderBottomWidth: activeTab === 'details' ? 0.6 : 0,
-                borderColor: '#3D3D3D40',
-            }}>
+            <View style={getHeaderContainerStyle()}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack();
                 }}>
@@ -72,7 +76,7 @@ const ShopDetails: React.FC<shopProps> = () => {
                         color={Colors.textHeader}
                     />
                 </TouchableOpacity>
-                {activeTab === 'details' ? <View style={[styles.shopTextBlock, { marginLeft: 20 }]}>
+                {activeTab === 'details' ? <View style={styles.shopTextBlockDetails}>
                     <AppText style={styles.shopTitle}>
                         WM Barbershop <AppText style={styles.shopCount}>(250)</AppText>
                     </AppText>
@@ -153,6 +157,13 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.bgwhite,
         paddingHorizontal: SW(30),
     },
+    headerContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: "9%",
+        paddingBottom: SH(10),
+        borderColor: '#3D3D3D40',
+    },
     scrollContainer: {
         paddingBottom: SH(30),
     },
@@ -177,6 +188,10 @@ const styles = StyleSheet.create({
     },
     shopTextBlock: {
         width: '66%',
+    },
+    shopTextBlockDetails: {
+        width: '66%',
+        marginLeft: 20,
     },
     shopTitle: {
         fontSize: SF(14),

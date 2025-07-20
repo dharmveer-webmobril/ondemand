@@ -93,6 +93,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('ssnapkeystore.keystore')
+            storePassword 'Ssnap@231'
+            keyAlias 'ssnap-alias'
+            keyPassword 'Ssnap@231'
+        }
     }
     buildTypes {
         debug {

@@ -1,6 +1,6 @@
 import { showAppToast } from "../component";
-
-export const handleApiError = (error: any, defaultMessage = 'Something went wrong. Please try again.') => {
+import i18next from "i18next";
+export const handleApiError = (error: any, defaultMessage = i18next.t('messages.somethingWentWrong')) => {
   console.error('API Error:', error);
 
   const message =
@@ -17,7 +17,7 @@ export const handleApiError = (error: any, defaultMessage = 'Something went wron
   });
 };
 
-export const handleApiFailureResponse = (response: any, fallbackMessage = 'Something went wrong.') => {
+export const handleApiFailureResponse = (response: any, fallbackMessage = i18next.t('messages.somethingWentWrong')) => {
   const message =
     response?.message ||
     response?.error?.message ||
@@ -32,7 +32,7 @@ export const handleApiFailureResponse = (response: any, fallbackMessage = 'Somet
   });
 };
 
-export const handleSuccessToast = (message: string = 'Success!') => {
+export const handleSuccessToast = (message: string = i18next.t('messages.success')) => {
   showAppToast({
     title: 'Success',
     message,

@@ -2,21 +2,17 @@ import React from 'react';
 import {
   Keyboard,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '../../utils';
 import {
   AppText,
+  AuthBackButton,
   AuthBottomContainer,
   AuthImgComp,
   Container,
-  // CustomToast,
   InputField,
-
   Spacing,
-  VectoreIcons,
 } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import imagePaths from '../../assets/images';
@@ -53,7 +49,7 @@ const ForgotScreen: React.FC<ForgotProps> = ({ }) => {
       if (response.success) {
         handleSuccessToast(response.message);
         const token = response?.data?.accessToken?.accessToken || response?.data?.accessToken;
-        navigation.navigate(RouteName.OTP_VERIFY, { fromScreen: 'forgotpass', userToken: token, email: values.email });
+        navigation.navigate(RouteName.OTP_VERIFY, { fromScreen: 'forgotpass', userToken: token, email: values.email, otp: response.data.otp });
         resetForm()
       } else {
         handleApiFailureResponse(response,);
@@ -63,16 +59,7 @@ const ForgotScreen: React.FC<ForgotProps> = ({ }) => {
     }
   };
 
-  const backButton = () => {
-    return <TouchableOpacity style={{ padding: 5, position: 'absolute', top: SF(20), left: SF(20), zIndex: 9999 }} onPress={() => { navigation.goBack() }}>
-      <VectoreIcons
-        icon="FontAwesome"
-        name={'angle-left'}
-        size={SF(30)}
-        color={Colors.textHeader}
-      />
-    </TouchableOpacity>
-  }
+
   return (
     <Container
       isAuth={true}
@@ -81,12 +68,10 @@ const ForgotScreen: React.FC<ForgotProps> = ({ }) => {
         navigation.goBack();
       }}
       style={styles.container}>
-      {
-        backButton()
-      }
+      <AuthBackButton />
       <KeyboardAwareScrollView
         bounces={false}
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 0 }}
+        contentContainerStyle={styles.scrollViewContainer}
         showsVerticalScrollIndicator={false}
         extraScrollHeight={SH(40)}>
         <Spacing space={SH(40)} />
@@ -148,6 +133,10 @@ export default ForgotScreen;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgwhite,
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 0,
   },
   brnContainer: { backgroundColor: Colors.bgwhite, marginTop: SH(160), width: '93%', alignSelf: 'center' },
   subtitile: {

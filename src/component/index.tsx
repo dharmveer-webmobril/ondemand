@@ -21,6 +21,7 @@ export {default as Checkbox} from './Checkbox';
 export {default as SubHeading} from './SubHeading';
 export {default as BottomBar} from './BottomBar';
 export {default as AppText} from './AppText';
+export {default as AuthBackButton} from './AuthBackButton';
 
 export * from './HomeComp';
 export * from './ProfileComp'

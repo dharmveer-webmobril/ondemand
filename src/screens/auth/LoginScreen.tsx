@@ -1,9 +1,8 @@
-import React, { useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
   Keyboard,
-  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -40,10 +39,10 @@ import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { ChatContext } from '../ChatProvider';
-import DeviceInfo from 'react-native-device-info';
 import { setToken, useLoginMutation } from '../../redux';
 const SCREEN_WIDTH = Dimensions.get('window').width
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
 // import { API_URL, GOOGLE_API_KEY } from '@env';
 const SocialButton = ({
   icon,
@@ -78,6 +77,16 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
   const dispatch = useDispatch();
   useDisableGestures();
 
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: '530387899669-iv01qkh17ajtv3sr6vd9k027rmdkkmmn.apps.googleusercontent.com',
+      offlineAccess: false,
+      scopes: [
+        "email",
+        "profile",
+      ],
+    });
+  }, [])
 
 
   useProfileUpdate();
@@ -103,46 +112,47 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
   ) => {
     try {
       const fcmToken = await StorageProvider.getItem('fcmToken') || null;
-      const device_id = await DeviceInfo.getUniqueId() || 'device_1';
-      const device_type = Platform.OS === 'android' ? '1' : '2';
 
       let userData = {
         email: values.email,
         password: values.password,
-        // Add optional metadata if needed later
+        "userFcmToken": fcmToken,
+        "roleType": "user"
       };
 
+      console.log('userDatauserData', userData)
       const response = await login(userData).unwrap();
-      console.log('Login Response:', response);
 
       if (response.success) {
         const token = response.data.accessToken;
 
         if (response.data.isStatus) {
-          handleSuccessToast(response.message || 'Login successful');
 
           dispatch(setToken({ token }));
           StorageProvider.saveItem('token', token);
           resetForm()
-          setTimeout(() => {
-            navigation.navigate(RouteName.HOME);
-          }, 200);
+
+          // setTimeout(() => {
+          navigation.navigate(RouteName.HOME);
+          // }, 200);
+          // handleSuccessToast(response.message || 'Login successful');
 
         } else if (response.data.otp) {
-          handleSuccessToast(response.message || 'OTP sent to email');
+          handleSuccessToast(response.message || t('messages.otpSendTomail'));
 
           navigation.navigate(RouteName.OTP_VERIFY, {
             fromScreen: 'signup',
             userToken: token,
+            otp: response.data.otp,
             email: values.email,
           });
 
         } else {
-          handleApiFailureResponse(response, 'Account not verified.');
+          handleApiFailureResponse(response, t('messages.accNotVerified'));
         }
 
       } else {
-        handleApiFailureResponse(response, 'Login failed.');
+        handleApiFailureResponse(response, t('messages.loginFailed'));
       }
 
     } catch (error) {
@@ -150,11 +160,27 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
     }
   };
 
+  const btnSignup = () => {
+    signInWithGoogle()
+  }
+
+  const signInWithGoogle = async () => {
+    // try {
+    //   // Get Google credentials
+    //   await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    //   const data = await GoogleSignin.signIn();
+    //   console.log('userInfouserInfo--', data);
+
+    // } catch (error) {
+    //   console.error('Google Sign-in error:', error);
+    // }
+  };
+
 
   return (
     <Container isAuth={true} style={styles.container}>
       <KeyboardAwareScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 0 }}
+        contentContainerStyle={styles.scrollViewContainer}
         showsVerticalScrollIndicator={false}
         extraScrollHeight={SH(40)}>
         <Spacing space={SH(40)} />
@@ -165,10 +191,8 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           <View style={{ paddingVertical: SH(35), paddingHorizontal: SW(20) }}>
             <Formik
               initialValues={{
-                email: 'dharm@mailinator.com',
-                password: 'Qwerty@123',
-                // email: '',
-                // password: '',
+                email: '',
+                password: '',
               }}
               validationSchema={validationSchema}
               onSubmit={(values, { resetForm }) => {
@@ -246,8 +270,10 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
                         key={index}
                         icon={button.icon}
                         width={SF(40)}
-                        iconSize={index == 2 ? SF(31) : SF(26)}
-                        onPress={button.onPress}
+                        iconSize={index === 2 ? SF(31) : SF(26)}
+                        onPress={()=>{
+                          btnSignup()
+                        }}
                       />
                     ))}
                   </View>
@@ -261,7 +287,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
                         navigation.navigate(RouteName.SIGNUP);
                       }}
                       style={{ fontFamily: Fonts.SEMI_BOLD, fontSize: SF(14) }}>
-                      {t('login.signUp')}
+                      {" "}{t('login.signUp')}
                     </AppText>
                   </AppText>
                 </>
@@ -279,6 +305,10 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 0,
   },
   errorText: {
     color: 'red',

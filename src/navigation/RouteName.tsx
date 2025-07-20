@@ -36,5 +36,6 @@ const RouteName = {
     MY_ADDRESS:'MyAddress',
     ADD_ADDRESS:'AddAddress',
     SELECT_ADDRESS:'SelectAddress',
+    CHANGE_LANGUGAE:'ChangeLanguage',
 };
 export default RouteName;

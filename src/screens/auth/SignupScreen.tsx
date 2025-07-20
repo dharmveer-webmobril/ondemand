@@ -1,14 +1,8 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Dimensions,
-  Image,
   Keyboard,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import {
@@ -20,10 +14,8 @@ import {
   regex,
   SF,
   SH,
-  socialButtons,
   StorageProvider,
   SW,
-  validationMSG,
 } from '../../utils';
 import {
   AppText,
@@ -31,7 +23,7 @@ import {
   AuthImgComp,
   Container,
   InputField,
-  InputIcons,
+  showAppToast,
   Spacing,
   VectoreIcons,
 } from '../../component';
@@ -43,33 +35,9 @@ import Buttons from '../../component/Button';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+
 import DeviceInfo from 'react-native-device-info';
 import { useRegisterMutation } from '../../redux';
-const SCREEN_WIDTH = Dimensions.get('window').width
-const SocialButton = ({
-  icon,
-  onPress,
-  width = SW(40),
-  iconSize = SH(26),
-  height = SW(40),
-}: {
-  icon: any;
-  onPress: () => void;
-  width?: number;
-  height?: number;
-  iconSize?: number;
-}) => (
-  <TouchableOpacity
-    activeOpacity={0.5}
-    style={[styles.socialButton, { width, height }]}
-    onPress={onPress}>
-    <Image
-      source={icon}
-      style={{ width: iconSize, height: iconSize, resizeMode: 'contain' }}
-    />
-  </TouchableOpacity>
-);
 
 type SignupProps = {};
 
@@ -81,7 +49,6 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
   const [checked, setChecked] = useState(false);
   const toggleCheckbox = () => setChecked(!checked);
 
-  const dispatch = useDispatch();
 
   const validationSchema = Yup.object().shape({
     fname: Yup.string()
@@ -102,50 +69,58 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
       .oneOf([Yup.ref('password')], t('validation.notMatchConfirmPassword')),
   });
 
-  const [register, { data, isLoading, isError, error }] = useRegisterMutation();
+  const [register, {  isLoading }] = useRegisterMutation();
 
   const btnSignup = async (
-  values: { email: string; password: string; cpassword: string; fname: string; mobileno: string; },
-  resetForm: any,
-) => {
-  try {
-    const fcmToken = await StorageProvider.getItem('fcmToken') || null;
-    const device_id = await DeviceInfo.getUniqueId() || 'device_1';
-    const device_type = Platform.OS === 'android' ? '1' : '2';
-
-    let userData = {
-      email: values.email,
-      password: values.password,
-      fullName: values.fname,
-      mobileNo: values.mobileno,
-      countryCode: "+91",
-      deviceId: device_id,
-      userFcmToken: fcmToken,
-      providerFcmToken: null,
-      roleType: 'user',
-    };
-
-    const response = await register(userData).unwrap();
-    console.log('Signup Response:', response);
-
-    if (response.success) {
-      handleSuccessToast(response.message || 'Registration successful. Please verify your email.');
-
-      const token = response?.data?.accessToken?.accessToken || response?.data?.accessToken;
-
-      navigation.navigate(RouteName.OTP_VERIFY, {
-        fromScreen: 'signup',
-        userToken: token,
+    values: { email: string; password: string; cpassword: string; fname: string; mobileno: string; },
+    resetForm: any,
+  ) => {
+    try {
+      const fcmToken = await StorageProvider.getItem('fcmToken') || null;
+      const device_id = await DeviceInfo.getUniqueId() || 'device_1';
+      if (!checked) {
+        showAppToast({
+          title: 'Error',
+          message: 'Please accept term of service',
+          type: 'error',
+          timeout: 2500,
+        });
+        return false
+      };
+      let userData = {
         email: values.email,
-      });
+        password: values.password,
+        fullName: values.fname,
+        mobileNo: values.mobileno,
+        countryCode: "+91",
+        deviceId: device_id,
+        userFcmToken: fcmToken,
+        providerFcmToken: null,
+        roleType: 'user',
+      };
 
-    } else {
-      handleApiFailureResponse(response, 'Signup failed');
+      const response = await register(userData).unwrap();
+      console.log('Signup Response:', response);
+
+      if (response.success) {
+        handleSuccessToast(response.message || t('messages.acceptTermCond'));
+
+        const token = response?.data?.accessToken?.accessToken || response?.data?.accessToken;
+
+        navigation.navigate(RouteName.OTP_VERIFY, {
+          fromScreen: 'signup',
+          userToken: token,
+          otp: response.data.otp,
+          email: values.email,
+        });
+        resetForm();
+      } else {
+        handleApiFailureResponse(response, t('messages.signupFailed'));
+      }
+    } catch (error) {
+      handleApiError(error);
     }
-  } catch (error) {
-    handleApiError(error);
-  }
-};
+  };
 
   return (
     <Container
@@ -156,24 +131,24 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
       isAuth={true}
       style={styles.container}>
       <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContainer}
         enableOnAndroid={true} // Important for Android
         extraScrollHeight={50} // Adjusts scroll height when keyboard appears
         keyboardShouldPersistTaps="handled" // Allows tap on input when keyboard is open
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <Spacing space={SH(10)} />
-        <AuthImgComp icon={imagePaths.signup_img} height={SF(174)} width={SF(150)} />
+        <Spacing space={SH(40)} />
+        <AuthImgComp icon={imagePaths.signup_img} />
         <AuthBottomContainer>
           <View style={styles.gradientContainer}>
             <Formik
               initialValues={{
-                email: 'dharm@mailinator.com',
-                password: 'Qwerty@123',
-                cpassword: 'Qwerty@123',
-                fname: 'Dharm',
-                mobileno: '8817046783',
+                email: '',
+                password: '',
+                cpassword: '',
+                fname: '',
+                mobileno: '',
               }}
               validationSchema={validationSchema}
               onSubmit={(values, { resetForm }) => {
@@ -248,7 +223,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                   <Spacing space={SH(10)} />
                   {/* check box==============================    */}
                   <View style={styles.checkBoxContainer}>
-                    <Pressable onPress={() => { toggleCheckbox() }} style={{ marginRight: 10 }}>
+                    <Pressable onPress={() => { toggleCheckbox() }} style={styles.checkboxPressable}>
                       {
                         !checked ?
                           <VectoreIcons
@@ -267,25 +242,25 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                       }
                     </Pressable>
                     <AppText style={styles.consfirmTxt}>
-                      By signing up you accept the{' '}
+                      {t('signup.acceptTerms')}{' '}
                       <AppText
                         onPress={() => {
-                          navigation.navigate(RouteName.PRIVACY_POLICY, {
-                            title: 'Terms of Service',
-                          });
+                          // navigation.navigate(RouteName.PRIVACY_POLICY, {
+                          //   title: 'Terms of Service',
+                          // });
                         }}
                         style={{ fontSize: SF(12), fontFamily: Fonts.SEMI_BOLD }}>
-                        Terms of Service
+                        {t('signup.termsOfService')}
                       </AppText>{' '}
                       & {'\n'}
                       <AppText
                         onPress={() => {
-                          navigation.navigate(RouteName.PRIVACY_POLICY, {
-                            title: 'Privacy Policy',
-                          });
+                          // navigation.navigate(RouteName.PRIVACY_POLICY, {
+                          //   title: 'Privacy Policy',
+                          // });
                         }}
                         style={{ fontSize: SF(12), fontFamily: Fonts.SEMI_BOLD }}>
-                        Privacy Policy
+                        {t('signup.privacyPolicy')}
                       </AppText>
                     </AppText>
                   </View>
@@ -329,6 +304,12 @@ export default SignupScreen;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgwhite,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
   },
   errorText: {
     color: 'red',
@@ -395,5 +376,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
+  },
+  checkboxPressable: {
+    marginRight: 10,
   },
 });

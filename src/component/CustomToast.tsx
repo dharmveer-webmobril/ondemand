@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { Colors, Fonts, SF, SH, SW, boxShadow } from '../utils';
 import AppText from './AppText';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ToastType = 'success' | 'error' | 'info' | 'exit';
 
@@ -54,7 +55,7 @@ const toastConfig = {
     </View>
   ),
 };
-
+const insets = useSafeAreaInsets();
 export const showAppToast = ({
   title,
   message,
@@ -77,7 +78,7 @@ export const showAppToast = ({
     visibilityTime: timeout,
     autoHide: !onOkPress,
     position,
-    topOffset: position === 'top' ? SH(10) : 0,
+    topOffset: insets.top,
     props: {
       customOnPress: onOkPress,
     },

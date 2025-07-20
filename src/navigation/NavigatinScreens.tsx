@@ -18,6 +18,7 @@ import {
   BookAppointment,
   BookingDetails,
   BookingPrivacyPolicy,
+  ChangeLanguage,
   ChangePassword,
   CustomerSupport,
   FilterScreen,
@@ -104,6 +105,7 @@ export const NavigatinScreens = () => {
         <Stack.Screen name={RouteName.MY_ADDRESS} component={MyAddress} />
         <Stack.Screen name={RouteName.ADD_ADDRESS} component={AddAddress} />
         <Stack.Screen name={RouteName.SELECT_ADDRESS} component={SelectAddress} />
+        <Stack.Screen name={RouteName.CHANGE_LANGUGAE} component={ChangeLanguage} />
       </Stack.Navigator>
     </NavigationContainer>
   );

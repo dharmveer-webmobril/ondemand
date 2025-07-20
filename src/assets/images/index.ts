@@ -57,6 +57,9 @@ const imagePaths = {
   search_h:require('./search_h.png'),
   filter_h:require('./filter_h.png'),
   US_flag:require('./US_flag.png'),
+  portugal:require('./portugal.png'),
+  france:require('./france.png'),
+  spain:require('./spain.png'),
   star_f:require('./star_f.png'),
 
 

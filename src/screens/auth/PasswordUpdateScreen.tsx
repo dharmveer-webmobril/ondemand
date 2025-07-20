@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Keyboard, StyleSheet, View } from 'react-native';
 import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '../../utils';
 import {
   AppText,
+  AuthBackButton,
   AuthBottomContainer,
   AuthImgComp,
   Container,
   InputField,
   Spacing,
-  VectoreIcons,
 } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import imagePaths from '../../assets/images';
@@ -63,19 +63,6 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
     }
   };
 
-
-
-  const backButton = () => {
-    return <TouchableOpacity style={{ padding: 5, position: 'absolute', top: SF(20), left: SF(20), zIndex: 9999 }} onPress={() => { navigation.goBack() }}>
-      <VectoreIcons
-        icon="FontAwesome"
-        name={'angle-left'}
-        size={SF(30)}
-        color={Colors.textHeader}
-      />
-    </TouchableOpacity>
-  }
-
   return (
     <Container
       isAuth={true}
@@ -84,11 +71,9 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
         navigation.goBack();
       }}
       style={styles.container}>
-      {
-        backButton()
-      }
+      <AuthBackButton />
       <KeyboardAwareScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 0 }}
+        contentContainerStyle={styles.scrollViewContainer}
         showsVerticalScrollIndicator={false}
         extraScrollHeight={SH(40)}>
         <Spacing space={SH(40)} />
@@ -102,7 +87,6 @@ const PasswordUpdateScreen: React.FC<PasswordUpdateProps> = ({ }) => {
             }}>
             {({
               handleChange,
-              setFieldTouched,
               handleSubmit,
               setFieldValue,
               values,
@@ -166,6 +150,10 @@ export default PasswordUpdateScreen;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgwhite,
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 0,
   },
   subtitile: {
     color: Colors.textWhite,

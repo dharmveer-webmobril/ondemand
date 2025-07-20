@@ -1,26 +1,27 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import { spanish } from "./spanish";
-import { english } from "./english";
-import { arabic } from "./arabic";
 import { I18nManager } from "react-native";
 
-// Define the type for translation resources
+import { english } from "./english";
+import { frenchCanada } from "./frenchCanada";
+import { portuguese } from "./portuguese";
+import { spanish } from "./spanish";
+
 const resources = {
   en: { translation: english },
   sp: { translation: spanish },
-  ar: { translation: arabic },
+  frcd: { translation: frenchCanada },
+  pt: { translation: portuguese },
 };
 
-// Initialize i18next with TypeScript support
 i18next
   .use(initReactI18next)
   .init({
-    lng: I18nManager.isRTL ? "ar" : "en", // Get device language or default to English
-    fallbackLng: "en", // Default language if translation is missing
-    resources, // Language resources
+    lng: "en",
+    fallbackLng: "en",
+    resources,
     interpolation: {
-      escapeValue: false, // React already escapes text
+      escapeValue: false,
     },
   });
 

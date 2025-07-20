@@ -65,7 +65,7 @@ export const authApi = api.injectEndpoints({
     }),
     getUserProfile: builder.query<any, void>({
       query: () => ({
-        url: "/getprofile",
+        url: ENDPOINTS.GET_PROFILE,
         method: "GET",
       }),
     }),

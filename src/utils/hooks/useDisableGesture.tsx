@@ -3,10 +3,11 @@ import { useCallback, useRef } from 'react';
 import { BackHandler, ToastAndroid } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { showAppToast } from '../../component';
+import { useTranslation } from 'react-i18next';
 const useDisableGestures = () => {
   const navigation = useNavigation();
   const lastBackPress = useRef<number>(0); // Store the last back press timestamp
-
+  const { t } = useTranslation();
   useFocusEffect(
     useCallback(() => {
       // Disable gestures
@@ -30,10 +31,10 @@ const useDisableGestures = () => {
           lastBackPress.current = now;
           // ToastAndroid.show('Double press to exit', ToastAndroid.SHORT);
           showAppToast({
-            title: 'Double press to exit',
+            title: t('messages.doubletab'),
             message: '',
             type: 'exit',
-            position:'bottom',
+            position: 'bottom',
             timeout: 1500,
           });
           return true; // Prevent default back behavior

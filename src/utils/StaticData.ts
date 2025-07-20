@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import imagePaths from "../assets/images";
 
 export const currencyData = [
@@ -28,27 +29,31 @@ export const currencyData = [
   },
 ];
 
-export const languageData = [
+export const getLanguageData = () => [
   {
-    name: 'English',
+    name: i18next.t('languageSetting.languageList.en'),
     id: 1,
     image: imagePaths.US_flag,
+    type: 'en',
   },
   {
-    name: 'French (canada)',
+    name: i18next.t('languageSetting.languageList.frcd'),
     id: 2,
-    image: imagePaths.US_flag,
+    image: imagePaths.france,
+    type: 'frcd',
   },
   {
-    name: 'Spanish',
+    name: i18next.t('languageSetting.languageList.sp'),
     id: 3,
-    image: imagePaths.US_flag,
+    image: imagePaths.spain,
+    type: 'sp',
   },
   {
-    name: 'Portuguese',
+    name: i18next.t('languageSetting.languageList.port'),
     id: 4,
-    image: imagePaths.US_flag,
-  },
+    image: imagePaths.portugal,
+    type: 'pt',
+  }
 ];
 
 export const socialButtons = [

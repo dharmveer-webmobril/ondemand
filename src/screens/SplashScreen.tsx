@@ -1,69 +1,39 @@
-import { Alert, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
-import React, { useEffect } from 'react';
+import {     StyleSheet  } from 'react-native';
+import React from 'react';
 import { Container } from '../component';
-import imagePaths from '../assets/images';
-import { Colors, Fonts, SF, SH } from '../utils';
+import { Colors, Fonts, SF,  } from '../utils';
 import LinearGradient from 'react-native-linear-gradient';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import RouteName from '../navigation/RouteName';
-import ReactNativeBiometrics, { BiometryTypes } from "react-native-biometrics";
-import * as Keychain from 'react-native-keychain';
-import FastImage from 'react-native-fast-image';
+import {  useNavigation } from '@react-navigation/native';
+// import ReactNativeBiometrics, { BiometryTypes } from "react-native-biometrics";
+// import * as Keychain from 'react-native-keychain';
+// import FastImage from 'react-native-fast-image';
 import LottieView from 'lottie-react-native';
+import { useSelector } from 'react-redux';
+import { RootState, useGetUserProfileQuery } from '../redux';
+
 const SplashScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+ const navigation = useNavigation<any>();
 
-  useEffect(() => {
-    navigation.setOptions({
-      gestureEnabled: false,
-    });
-    // setTimeout(() => {
-    //   // navigation.navigate(RouteName.LOGIN);
-    //   biometricLogin();
-    // }, 2500);
-  }, []);
+  const token = useSelector((state: RootState) => state.auth.token);
 
+  const { data: profileData, isSuccess, isError } = useGetUserProfileQuery(undefined, {
+    skip: !token, // fetch only if token exists
+  });
 
-  const rnBiometrics = new ReactNativeBiometrics();
-  // const saveCredentials = async (email:any, password:any) => {
-  //   await Keychain.setGenericPassword(email, password, {
-  //     service: 'biometric_login',
-  //   });
-  // };
-  const biometricLogin = async () => {
-    navigation.navigate(RouteName.LOGIN);
-    // navigation.navigate(RouteName.HOME);
-    return false;
-    try {
-      const { available } = await rnBiometrics.isSensorAvailable();
-      if (!available) {
-        Alert.alert('Biomatric not available')
-        return;
+  console.log('profileDataprofileData', profileData?.data?.user);
+
+  const handleAnimationFinish = () => {
+    if (token) {
+      if (isSuccess && profileData) {
+        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      } else if (isError) {
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       }
-      const { success } = await rnBiometrics.simplePrompt({
-        promptMessage: 'Authenticate to log in',
-      });
-    } catch (error) {
-      console.log('errorerror', error);
-
+    } else {
+      // no token, go to login
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     }
-
-
-    // if (success) {
-    //   const credentials = await Keychain.getGenericPassword({
-    //     service: 'biometric_login',
-    //   });
-
-    //   if (credentials) {
-    //     console.log('Auto Login:', credentials.username, credentials.password);
-    //     // Call your API with stored credentials to log in
-    //   } else {
-    //     console.log('No saved credentials found');
-    //   }
-    // } else {
-    //   console.log('Biometric authentication failed');
-    // }
-  }
+  };
 
 
 
@@ -76,17 +46,12 @@ const SplashScreen: React.FC = () => {
         colors={['#1A434E', '#204f5c']}
       >
         <LottieView
-          source={require('../assets/lottie/loading.json')} // Path to your animation file
-          autoPlay // Automatically plays the animation
-          loop={false} // Loops the animation
+          source={require('../assets/lottie/loading.json')}  
+          autoPlay  
+          loop={false}  
           resizeMode='cover'
-          style={{ position:'absolute',left:0,right:0,top:0,bottom:0,width:'100%',height:'100%' }}
-          // renderMode='AUTOMATIC'
-          onAnimationFinish={() => {
-            setTimeout(() => {
-              biometricLogin();
-            }, 2500);
-          }}
+          style={styles.lottieView}
+          onAnimationFinish={handleAnimationFinish}
         />
 
       </LinearGradient>
@@ -101,6 +66,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  lottieView: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   logo: {
     height: SF(246),

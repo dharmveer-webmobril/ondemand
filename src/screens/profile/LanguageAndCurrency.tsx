@@ -1,70 +1,39 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, {useState} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
 import {
   AppHeader,
   AppText,
   Container,
- 
   LanguageAndCurrencyPopup,
   ProfileList,
   Spacing,
 } from '../../component';
-import { Colors, Fonts, SF, SH, SW } from '../../utils';
-import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
-import { currencyData, languageData } from '../../utils/StaticData';
+import {Colors, Fonts, SF, SH, SW} from '../../utils';
+import {useNavigation} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
+import RouteName from '../../navigation/RouteName';
 
 type LanguageAndCurrencyProps = {};
-const LanguageAndCurrency: React.FC<LanguageAndCurrencyProps> = ({ }) => {
+const LanguageAndCurrency: React.FC<LanguageAndCurrencyProps> = ({}) => {
 
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigation = useNavigation<any>();
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [data, setData] = useState<any>(languageData);
+ 
   const [title, setTitle] = useState<any>(t('profile.languageSettings'));
-  const [type, setType] = useState<any>('');
 
   let languageJson = {
     name: t('languageSetting.language'),
     id: 10,
     onClick: () => {
-      btnPress('language');
+      navigation.navigate(RouteName.CHANGE_LANGUGAE)
     },
   };
 
-  let currencyJson = {
-    name: t('languageSetting.currencySwitcher'),
-    id: 10,
-    onClick: () => {
-      btnPress('currency');
-    },
-  };
-
-  const btnPress = (type: string) => {
-    if (type === 'language') {
-      setType(type)
-      setData(languageData);
-      setTitle(t('profile.languageSettings'));
-      setModalVisible(true);
-    } else {
-      setTitle(t('languageSetting.currencySwitcher'));
-      setData(currencyData);
-      setModalVisible(true);
-      setType(type)
-    }
-  };
+   
 
   return (
     <Container isPadding={true}>
-      <LanguageAndCurrencyPopup
-        title={title}
-        type={type}
-        data={data}
-        clodeModal={() => {
-          setModalVisible(false);
-        }}
-        modalVisible={modalVisible}
-      />
       <AppHeader
         headerTitle={t('profile.languageSettings')}
         onPress={() => {
@@ -73,7 +42,7 @@ const LanguageAndCurrency: React.FC<LanguageAndCurrencyProps> = ({ }) => {
           }
         }}
         Iconname="arrowleft"
-        rightOnPress={() => { }}
+        rightOnPress={() => {}}
         headerStyle={styles.header}
       />
       <View style={styles.container}>
@@ -81,8 +50,8 @@ const LanguageAndCurrency: React.FC<LanguageAndCurrencyProps> = ({ }) => {
           {t('languageSetting.supportSection')}
         </AppText>
         <ProfileList item={languageJson} />
-        <Spacing space={SH(20)} />
-        {/* <AppText style={styles.sectionTitle}>
+        {/* <Spacing space={SH(20)} />
+        <AppText style={styles.sectionTitle}>
           {t('languageSetting.currencyConverter')}
         </AppText>
         <ProfileList item={currencyJson} /> */}
@@ -96,7 +65,7 @@ export default LanguageAndCurrency;
 const styles = StyleSheet.create({
   header: {
     backgroundColor: Colors.bgwhite,
-    paddingHorizontal: SW(35),
+    paddingHorizontal: SW(25),
   },
   container: {
     paddingHorizontal: SW(25),

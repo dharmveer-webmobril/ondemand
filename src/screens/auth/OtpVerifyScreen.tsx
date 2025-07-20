@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Keyboard, StyleSheet, View } from 'react-native';
 import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, SF, SH, SW, useCountdown, useProfileUpdate } from '../../utils';
-import { AppText, AuthBottomContainer, AuthImgComp, Container, showAppToast, Spacing, VectoreIcons } from '../../component';
+import { AppText, AuthBackButton, AuthBottomContainer, AuthImgComp, Container, showAppToast, Spacing } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import imagePaths from '../../assets/images';
 import Buttons from '../../component/Button';
@@ -20,10 +20,10 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
   const { t } = useTranslation();
   const route = useRoute<any>();
   let fromScreen = route?.params?.fromScreen;
-  let email = route?.params?.email;
 
   const [otp, setOtp] = useState<string | number>('');
   const [userToken, setUserToken] = useState<string>(route?.params?.userToken);
+  const [dummyOtp, setDummyOtp] = useState<string>(route?.params?.otp);
 
   const [resendOtp, { isLoading: otpLoader }] = useResendOtpMutation();
   const [verifyOtp, { isLoading: otpVerifyLoader }] = useVerifyOtpMutation();
@@ -46,7 +46,7 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
       console.log('resendOtp Response:', response);
 
       if (response?.success) {
-        handleSuccessToast(response.message || 'OTP resent successfully.');
+        handleSuccessToast(response.message || t('messages.otpResendSucccess'));
 
         const accessToken = typeof response.data?.accessToken === 'string'
           ? response.data.accessToken
@@ -54,12 +54,12 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
 
         if (accessToken) {
           setUserToken(accessToken);
+          setDummyOtp(response.data.otp)
         }
-
         resetCountdown();
         startCountdown(60);
       } else {
-        handleApiFailureResponse(response, 'Failed to resend OTP.');
+        handleApiFailureResponse(response, t('messages.otpResendFailed'));
       }
     } catch (error: any) {
       handleApiError(error);
@@ -69,8 +69,8 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
   const btnVerifyOtp = async () => {
     if (!otp) {
       showAppToast({
-        title: 'Error',
-        message: 'Please Enter OTP',
+        title: t('messages.error'),
+        message: t('validation.emotyOtp'),
         type: 'error',
         timeout: 3000,
       });
@@ -100,7 +100,7 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
         resetCountdown();
 
       } else {
-        handleApiFailureResponse(response, 'Invalid or expired OTP.');
+        handleApiFailureResponse(response, t('messages.invailidOtp'));
       }
 
     } catch (error: any) {
@@ -110,16 +110,7 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
 
 
 
-  const backButton = () => {
-    return <TouchableOpacity style={{ padding: 5, position: 'absolute', top: SF(20), left: SF(20), zIndex: 9999 }} onPress={() => { navigation.goBack() }}>
-      <VectoreIcons
-        icon="FontAwesome"
-        name={'angle-left'}
-        size={SF(30)}
-        color={Colors.textHeader}
-      />
-    </TouchableOpacity>
-  }
+
 
   return (
     <Container
@@ -129,9 +120,7 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
         navigation.goBack();
       }}
       style={styles.container}>
-      {
-        backButton()
-      }
+      <AuthBackButton />
       <KeyboardAwareScrollView
         bounces={false}
         contentContainerStyle={styles.scropllViewContainer}
@@ -167,12 +156,12 @@ const OtpVerifyScreen: React.FC<OtpVerifyScreenProps> = () => {
                       status !== 'running' && btnResendOtp();
                     }}
                     style={styles.resteText}>
-                    {status === 'running' ? formatTime(time) : 'Resend OTP'}
+                    {status === 'running' ? formatTime(time) : t('otpverify.resendOTP')}
                   </AppText>
                 )}
               </View>
             </View>
-
+            {dummyOtp && <AppText style={styles.otpText}>OTP : {dummyOtp}</AppText>}
             <Buttons
               buttonStyle={styles.burronContainer}
               textColor={Colors.themeColor}
@@ -239,6 +228,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.REGULAR,
     fontSize: SF(14),
     textAlign: 'right',
+    marginTop: 8,
+    color: Colors.textWhite
+  },
+  otpText: {
+    fontFamily: Fonts.REGULAR,
+    fontSize: SF(14),
+    textAlign: 'center',
     marginTop: 8,
     color: Colors.textWhite
   },
