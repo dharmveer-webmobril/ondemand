@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import {
   Pressable,
-  Text,
   ActivityIndicator,
   StyleSheet,
   StyleProp,
@@ -9,7 +8,7 @@ import {
   ViewStyle,
   View,
 } from "react-native";
-import { Fonts, SF, SH, SW, Colors, boxShadow, boxShadowlight } from "../utils";
+import { Fonts, SF,  SW, Colors, boxShadow, boxShadowlight } from "../utils";
 import AppText from "./AppText";
 
 type ButtonsProps = {
@@ -35,7 +34,6 @@ const Buttons: React.FC<ButtonsProps> = ({
   buttonTextStyle = {},
   icon,
   spacedImages = false,
-  linearGradientProps,
   textColor = "#ffffff",
   isExtraBoxShadow = true,
 }) => {

@@ -3,7 +3,6 @@ import {
     View,
     StyleSheet,
     TextInput,
-    Text,
     TouchableOpacity,
     Platform,
     TextStyle,
@@ -15,24 +14,25 @@ import {
     I18nManager
 } from "react-native";
 import { Colors, Fonts, SF, SH, SW } from "../utils";
-import { FormikErrors } from "formik";
 import AppText from "./AppText";
 
 interface InputFieldProps extends TextInputProps {
     label?: string;
-    errorMessage?: any;
+    errorMessage?: string;
     leftIcon?: ImageSourcePropType;
     rightIcon?: ImageSourcePropType;
     onRightIconPress?: () => void;
     containerStyle?: ViewStyle;
     inputStyle?: TextStyle;
     errorStyle?: TextStyle;
+    labelStyle?: TextStyle;
     isDisabled?: boolean;
     textColor?: string;
     color?: string;
     marginBottom?: DimensionValue,
     marginTop?: DimensionValue,
     inputContainer?: ViewStyle;
+    withBackground?: boolean;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -50,6 +50,7 @@ const InputField: React.FC<InputFieldProps> = ({
     onRightIconPress,
     containerStyle = {},
     inputStyle = {},
+    labelStyle = {},
     errorStyle = {},
     multiline = false,
     maxLength,
@@ -59,8 +60,9 @@ const InputField: React.FC<InputFieldProps> = ({
     textColor = Colors.white,
     color = Colors.white,
     marginBottom = SH(10),
-    marginTop = SF(5),
+    marginTop = SH(10),
     inputContainer,
+    withBackground = false,
     ...props
 }) => {
     const styles = useMemo(
@@ -76,28 +78,27 @@ const InputField: React.FC<InputFieldProps> = ({
                 label: {
                     fontSize: SF(14),
                     fontFamily: Fonts.MEDIUM,
-                    marginBottom: SH(10),
+                    marginBottom: SH(7),
                     color: color,
+                    ...labelStyle
                 },
                 inputContainer: {
                     flexDirection: "row",
-                    alignItems: "center",
+                    alignItems: multiline ? "flex-start" : "center",
                     borderWidth: 1,
                     borderColor: color,
                     borderRadius: SF(10),
-
-                    paddingHorizontal: 10,
-                    // paddingVertical: SH(3.6),
-                    backgroundColor: isDisabled ? "#f2f2f2" : "transparent",
+                    paddingHorizontal: SF(10),
+                    paddingVertical: SH(3.6),
+                    backgroundColor: withBackground ? "#fff" : "transparent",
                     ...inputContainer
                 },
                 input: {
                     flex: 1,
                     paddingVertical: Platform.OS === "ios" ? SF(10) : SF(8),
                     color: textColor,
-                    fontSize: SF(14),
-                    paddingHorizontal: SF(10),
-                    height: SF(42),
+                    fontSize: SF(14.5),
+                    paddingLeft: SF(10),
                     textAlign: I18nManager.isRTL ? 'right' : 'left',
                     fontFamily: Fonts.REGULAR,
                     ...inputStyle,
@@ -111,6 +112,7 @@ const InputField: React.FC<InputFieldProps> = ({
                     ...errorStyle,
                 },
             }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [containerStyle, inputStyle, errorStyle, errorMessage]
     );
 
@@ -121,7 +123,7 @@ const InputField: React.FC<InputFieldProps> = ({
                 {leftIcon && <View style={{ paddingHorizontal: SF(2) }}>
                     <Image
                         source={leftIcon}
-                        style={{ width: SF(18), height: SF(18), tintColor: color }}
+                        style={{ width: SF(20), height: SF(20), tintColor: color }}
                         resizeMode="contain"
                     />
                 </View>}
@@ -143,10 +145,10 @@ const InputField: React.FC<InputFieldProps> = ({
                     {...props}
                 />
                 {rightIcon && (
-                    <TouchableOpacity onPress={onRightIconPress} style={{ paddingHorizontal: SF(2) }}>
+                    <TouchableOpacity onPress={onRightIconPress}>
                         <Image
                             source={rightIcon}
-                            style={{ width: SF(18), height: SF(18), tintColor: color }}
+                            style={{ width: SF(20), height: SF(20), tintColor: color }}
                             resizeMode="contain"
                         />
                     </TouchableOpacity>

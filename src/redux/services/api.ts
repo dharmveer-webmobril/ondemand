@@ -1,6 +1,6 @@
-// src/redux/services/api.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store";
+import { setInactiveMessage, setUserActiveOrNotModal } from "../slices/appSlice";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: process.env.API_URL,
@@ -15,17 +15,33 @@ const rawBaseQuery = fetchBaseQuery({
 
 const baseQueryWithAuth: typeof rawBaseQuery = async (args, api, extraOptions) => {
   const result: any = await rawBaseQuery(args, api, extraOptions);
-  console.log("API Result:", result);
 
-  if (!result?.data?.succeeded && result?.data?.ResponseCode === 401) {
-    // TODO: Dispatch logout or navigate
+  const isLoginEndpoint =
+    typeof args === "string"
+      ? args.includes("/auth/login")
+      : typeof args === "object" && typeof args.url === "string"
+        ? args.url.includes("/auth/login")
+        : false;
+
+  const responseCode =
+    result?.data?.responseCode ?? result?.error?.data?.responseCode;
+
+  const message =
+    result?.data?.message ??
+    result?.error?.data?.message ??
+    "Something went wrong. Please try again later.";
+
+  // Handle 401 (Unauthorized) or 403 (Forbidden), but NOT for login API
+  if (!isLoginEndpoint && (responseCode === 401 || responseCode === 403)) {
+    api.dispatch(setInactiveMessage({ message }));
+    api.dispatch(setUserActiveOrNotModal({ status: true }));
   }
 
   return result;
 };
-
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithAuth,
-  endpoints: () => ({}), // will inject endpoints elsewhere
+  tagTypes: ['ServiceList','AdressTag'],
+  endpoints: () => ({}), // endpoints injected later
 });

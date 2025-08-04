@@ -1,9 +1,9 @@
-import {     StyleSheet  } from 'react-native';
+import { StyleSheet } from 'react-native';
 import React from 'react';
 import { Container } from '../component';
-import { Colors, Fonts, SF,  } from '../utils';
+import { checkLocationPermission, Colors, Fonts, SF, useProfileUpdate, } from '../utils';
 import LinearGradient from 'react-native-linear-gradient';
-import {  useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 // import ReactNativeBiometrics, { BiometryTypes } from "react-native-biometrics";
 // import * as Keychain from 'react-native-keychain';
 // import FastImage from 'react-native-fast-image';
@@ -12,27 +12,30 @@ import { useSelector } from 'react-redux';
 import { RootState, useGetUserProfileQuery } from '../redux';
 
 const SplashScreen: React.FC = () => {
- const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
 
   const token = useSelector((state: RootState) => state.auth.token);
 
   const { data: profileData, isSuccess, isError } = useGetUserProfileQuery(undefined, {
     skip: !token, // fetch only if token exists
   });
-
+  useProfileUpdate()
   console.log('profileDataprofileData', profileData?.data?.user);
 
-  const handleAnimationFinish = () => {
+  const handleAnimationFinish = async () => {
+    await checkLocationPermission();
     if (token) {
       if (isSuccess && profileData) {
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
       } else if (isError) {
         navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       }
+
     } else {
       // no token, go to login
       navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     }
+
   };
 
 
@@ -46,9 +49,9 @@ const SplashScreen: React.FC = () => {
         colors={['#1A434E', '#204f5c']}
       >
         <LottieView
-          source={require('../assets/lottie/loading.json')}  
-          autoPlay  
-          loop={false}  
+          source={require('../assets/lottie/loading.json')}
+          autoPlay
+          loop={false}
           resizeMode='cover'
           style={styles.lottieView}
           onAnimationFinish={handleAnimationFinish}

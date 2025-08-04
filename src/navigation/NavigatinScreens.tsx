@@ -10,7 +10,7 @@ import {
   PrivacyPolicy,
   SignupScreen,
 } from '../screens/auth';
-import Bottomtab from './BottomTabs';
+// import Bottomtab from './BottomTabs';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   AddAddress,
@@ -18,6 +18,7 @@ import {
   BookAppointment,
   BookingDetails,
   BookingPrivacyPolicy,
+  CategoryList,
   ChangeLanguage,
   ChangePassword,
   CustomerSupport,
@@ -44,7 +45,6 @@ import {
   ShopDetails,
   ShopList,
   SplashScreen,
-  ViewAll,
 } from '../screens';
 
 import AllUsersList from '../screens/AllUsersList';
@@ -78,7 +78,7 @@ export const NavigatinScreens = () => {
         <Stack.Screen name={RouteName.CHANGE_PASSWORD} component={ChangePassword} />
 
 
-        <Stack.Screen name={RouteName.VIEW_ALL} component={ViewAll} />
+        <Stack.Screen name={RouteName.CATEGORY_LIST} component={CategoryList} />
         <Stack.Screen name={RouteName.PRIVACY_POLICY} component={PrivacyPolicy} />
         <Stack.Screen name={RouteName.PASS_UPDATE} component={PasswordUpdateScreen} />
         <Stack.Screen name={RouteName.NOTIFICATION} component={NotificationScreen} />

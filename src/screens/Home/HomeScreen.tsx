@@ -12,11 +12,15 @@ import {
   Spacing,
 } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import imagePaths from '../../assets/images';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import HomeCategory from '../../component/HomeComp/HomeCategoryItem';
+import useLocation from '../../utils/hooks/useLocation';
 const HomeScreen = () => {
+  const { location, error,isLocationEnabled } = useLocation();
+  console.log('locationlocation', location,isLocationEnabled);
+  console.log('errorerror', error);
+
   const navigation = useNavigation<any>();
   useDisableGestures();
   useFocusEffect(
@@ -31,13 +35,6 @@ const HomeScreen = () => {
   );
 
 
-
-  const swiperData = [
-    { imgUrl: imagePaths.banner2, id: 1 },
-    { imgUrl: imagePaths.banner2, id: 2 },
-    { imgUrl: imagePaths.banner2, id: 3 },
-  ];
-
   return (
     <Container isAuth statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
       <HomeHeader />
@@ -51,7 +48,7 @@ const HomeScreen = () => {
           </View>
           <Spacing space={SF(10)} />
           {/* Home swiper ========================= */}
-          <HomeSwiper swiperData={swiperData} />
+          <HomeSwiper/>
           <Spacing space={SF(40)} />
           {/* Category Section========================= */}
           <HomeSubContainerHeader
@@ -59,7 +56,7 @@ const HomeScreen = () => {
             marginHori={'7%'}
             leftText="Browse all categories"
             onClick={() =>
-              navigation.navigate(RouteName.VIEW_ALL, {
+              navigation.navigate(RouteName.CATEGORY_LIST, {
                 title: 'All Categories',
                 type: 'category',
               })

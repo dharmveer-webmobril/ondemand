@@ -7,8 +7,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import { Colors, Fonts, navigate, SF, SH, SW } from '../../utils';
-import VectorIcon from '../VectoreIcons';
+import { Colors, Fonts, navigate, SF } from '../../utils';
 import imagePaths from '../../assets/images';
 import InputField from '../TextInputCustom';
 import RouteName from '../../navigation/RouteName';
@@ -17,44 +16,48 @@ interface HomeSearchBarProps {
   onTextchange?: (text: string) => void;
   showFilterIcon?: boolean;
   bgColor?: string;
-  pageName?: string
+  pageName?: string;
+  value?: any
 }
 
 const HomeSearchBar: React.FC<HomeSearchBarProps> = ({
   showFilterIcon = false, // Default to true
-  bgColor = Colors.lightGray,
+  onTextchange,
+  value
 }) => {
   return (
     <View style={styles.searchContainer}>
-      <View style={{ width: showFilterIcon ? '86%' : '100%' }}>
+      <View style={[styles.inputWrapper, showFilterIcon ? styles.inputWrapperWithFilter : styles.inputWrapperFull]}>
         <InputField
           placeholder={'Search'}
-          inputContainer={{ backgroundColor: Colors.searchBarBG,borderWidth:0 ,height:SF(40)}}
+          inputContainer={{ backgroundColor: Colors.searchBarBG, borderWidth: 0, height: SF(44) }}
           containerStyle={styles.inputContainer}
           inputStyle={styles.inputStyle}
           placeholderTextColor={Colors.searchBarPlac}
           leftIcon={imagePaths.Search}
           color={Colors.searchBarPlac}
+          onChangeText={onTextchange}
+          value={value}
         />
-      
+
       </View>
 
       {/* Render filter icon only if showFilterIcon is true */}
       {showFilterIcon &&
-      <Pressable onPress={()=>{navigate(RouteName.FILTER_SCREEN)}}>
+        <Pressable onPress={() => { navigate(RouteName.FILTER_SCREEN) }}>
 
-        <LinearGradient
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.filterButton}
-          colors={[Colors.themeDarkColor, Colors.themeColor]}
-        >
-          <Image
-            source={imagePaths.filter_icon}
-            style={styles.filterIcon}
-          />
-        </LinearGradient>
-      </Pressable>
+          <LinearGradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.filterButton}
+            colors={[Colors.themeDarkColor, Colors.themeColor]}
+          >
+            <Image
+              source={imagePaths.filter_icon}
+              style={styles.filterIcon}
+            />
+          </LinearGradient>
+        </Pressable>
       }
 
     </View>
@@ -72,16 +75,22 @@ const styles = StyleSheet.create({
   inputWrapper: {
     width: '86%',
   },
+  inputWrapperWithFilter: {
+    width: '86%',
+  },
+  inputWrapperFull: {
+    width: '100%',
+  },
   inputContainer: {
     padding: 0,
   },
   inputStyle: {
     color: Colors.searchBarPlac,
     fontFamily: Fonts.MEDIUM,
-    marginLeft: Platform.OS == 'ios' ? 3 : 0,
+    marginLeft: Platform.OS === 'ios' ? 3 : 0,
     fontSize: SF(16),
   },
- 
+
   filterButton: {
     borderRadius: SF(6.6),
     justifyContent: 'center',

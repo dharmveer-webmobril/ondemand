@@ -1,6 +1,6 @@
 // src/redux/services/authEndpoints.ts
 import { api } from "./api";
-import { ENDPOINTS, LoginRequest, RegisterRequest, ResenOtpReq, VerifyOtpReq } from "../../utils";
+import { ENDPOINTS, LoginRequest, RegisterRequest, VerifyOtpReq } from "../../utils";
 
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -63,15 +63,36 @@ export const authApi = api.injectEndpoints({
         method: "POST",
       }),
     }),
+
+    changePassord: builder.mutation<any, { old_password: string, new_password: string }>({
+      query: (data) => ({
+        url: ENDPOINTS.CHANGE_PASSWORD,
+        method: "POST",
+        body: data,
+      }),
+    }),
     getUserProfile: builder.query<any, void>({
       query: () => ({
         url: ENDPOINTS.GET_PROFILE,
         method: "GET",
       }),
     }),
+    updateProfile: builder.mutation<any, any>({
+      query: (data) => ({
+        url: ENDPOINTS.UPDATE_USER,
+        method: "POST",
+        body: data,
+      }),
+    }),
     getTermAndCond: builder.query<any, void>({
       query: () => ({
-        url: "/gettermsconditions",
+        url: ENDPOINTS.GET_TERMS_CONDITIONS,
+        method: "GET",
+      }),
+    }),
+    getHomeBanner: builder.query<any, void>({
+      query: () => ({
+        url: ENDPOINTS.GET_BANNER,
         method: "GET",
       }),
     }),
@@ -89,4 +110,7 @@ export const {
   useLogoutMutation,
   useGetUserProfileQuery,
   useGetTermAndCondQuery,
+  useUpdateProfileMutation,
+  useChangePassordMutation,
+  useGetHomeBannerQuery,
 } = authApi;

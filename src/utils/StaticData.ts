@@ -200,7 +200,19 @@ export const inboxData = [
     lastMessage: 'Hi last chat here',
     time: '4:14 pm',
     avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-
+    otherUser: {
+      "chat_room_id": "no",
+      "email": "jacks@mailinator.com",
+      "fcmToken": "dVrZp9NvQ72VEfhW3DxcY3:APA91bHwQWG4MjOjS6_HjwNFjLfwcmrG5MfXMSin4_87AvQwY-OwGUDkNhj_wKSby0oXR4CdOyNOm4jseohgG9FdmmCUGbJLM5aCQSxNAVJO76O3JbPsOlw",
+      "image": "",
+      "lastSeen": "2025-07-23T05:15:56.259Z",
+      "mobileNo": "88170496",
+      "name": "jacks",
+      "notificationStatus": "",
+      "onlineStatus": false,
+      "roleType": "provider",
+      "userId": "68778745c9812606585edacc"
+    }
   },
   {
     id: '2',
@@ -208,6 +220,18 @@ export const inboxData = [
     lastMessage: 'Hi last chat here',
     time: '4:14 pm',
     avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+    otherUser: {
+      "chat_room_id": "no",
+      "email": "jack@mailinator.com",
+      "fcmToken": "dVrZp9NvQ72VEfhW3DxcY3:APA91bHwQWG4MjOjS6_HjwNFjLfwcmrG5MfXMSin4_87AvQwY-OwGUDkNhj_wKSby0oXR4CdOyNOm4jseohgG9FdmmCUGbJLM5aCQSxNAVJO76O3JbPsOlw",
+      "image": "",
+      "mobileNo": "9876549",
+      "name": "Jacky",
+      "notificationStatus": true,
+      "onlineStatus": true,
+      "roleType": "provider",
+      "userId": "6878c7578741562243311e8b"
+    }
   },
   {
     id: '3',
@@ -215,6 +239,18 @@ export const inboxData = [
     lastMessage: 'Hi last chat here',
     time: '4:14 pm',
     avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+    otherUser: {
+      "chat_room_id": "no",
+      "email": "jacky@mailinator.com",
+      "fcmToken": "dVrZp9NvQ72VEfhW3DxcY3:APA91bHwQWG4MjOjS6_HjwNFjLfwcmrG5MfXMSin4_87AvQwY-OwGUDkNhj_wKSby0oXR4CdOyNOm4jseohgG9FdmmCUGbJLM5aCQSxNAVJO76O3JbPsOlw",
+      "image": "",
+      "mobileNo": "9876543",
+      "name": "jacky",
+      "notificationStatus": true,
+      "onlineStatus": true,
+      "roleType": "provider",
+      "userId": "687902d18741562243311ed5"
+    }
   },
   {
     id: '4',
@@ -285,19 +321,19 @@ export const inboxMenuData = [
 ];
 export const chatMenuData = [
   {
-    id: 'delete',
+    id: 'mute_notification',
     title: 'Mute Notification',
     icon: imagePaths.mute_icon,
   },
   {
-    id: 'report',
+    id: 'delete',
     title: 'Delete Chat',
     icon: imagePaths.report_icon,
   },
   {
     id: 'block',
-    title: 'Add Feedback',
-    icon: imagePaths.feedback_icon,
+    title: 'Block',
+    icon: imagePaths.block_icon,
   },
 ];
 

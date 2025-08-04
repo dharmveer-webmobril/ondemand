@@ -1,8 +1,5 @@
-import React, {  useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import {
   Colors,
   Fonts,
@@ -15,43 +12,52 @@ import {
   Container,
 } from '../../component';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import RenderHtml from 'react-native-render-html';
-type PrivacyPolicyProps = {};
+import { useGetTermAndCondQuery } from '../../redux';
 
-const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ }) => {
+const PrivacyPolicy: React.FC = () => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const route = useRoute<any>();
-  let title = route?.params?.title
-  const [data, setData] = useState(null)
+  const title = route?.params?.title;
+  const [data, setData] = useState<string | null>(null);
+  const { data: termAndCond, isLoading, isError } = useGetTermAndCondQuery();
 
+  console.log('termAndCond----->', termAndCond);
 
-
-
+  useEffect(() => {
+    if (termAndCond?.data?.length > 0) {
+      const content = title === 'Privacy Policy' ? termAndCond?.data[0]?.content : termAndCond?.data[1]?.content;
+      setData(content);
+    }
+  }, [termAndCond, title]);
 
   return (
     <Container style={styles.container}>
       <AppHeader
-        headerTitle={title}
+        headerTitle={t(`privacyPolicy.header_${title === 'Privacy Policy' ? 'privacy_policy' : 'terms_conditions'}`)}
         onPress={() => navigation.goBack()}
         Iconname="arrowleft"
-        rightOnPress={() => { }}
-        headerStyle={{ backgroundColor: '#ffffff',  }}
-        titleStyle={{ color: '#333', fontSize: SF(18) }}
+        rightOnPress={() => {}}
+        headerStyle={styles.headerStyle}
+        titleStyle={styles.titleStyle}
       />
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-        {
-          data ?
-            <RenderHtml
-              contentWidth={400}
-              source={{
-                html: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`
-                // html: `${data}`
-              }}
-            /> :
-            <AppText style={{ fontFamily: Fonts.REGULAR, lineHeight: SH(20), color: Colors.textAppColor }}>Something went wrong</AppText>
-        }
-        
-       
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {isLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator color={Colors.red} size="large" />
+          </View>
+        ) : isError ? (
+          <AppText style={styles.errorText}>{t('privacyPolicy.error_fetch_failed')}</AppText>
+        ) : data ? (
+          <RenderHtml
+            contentWidth={SF(400)}
+            source={{ html: data }}
+          />
+        ) : (
+          <AppText style={styles.errorText}>{t('privacyPolicy.no_data')}</AppText>
+        )}
       </ScrollView>
     </Container>
   );
@@ -62,5 +68,28 @@ export default PrivacyPolicy;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgwhite,
+  },
+  headerStyle: {
+    backgroundColor: '#ffffff',
+  },
+  titleStyle: {
+    color: '#333',
+    fontSize: SF(18),
+  },
+  scrollContent: {
+    padding: SF(20),
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: SH(200),
+  },
+  errorText: {
+    fontFamily: Fonts.REGULAR,
+    fontSize: SF(16),
+    lineHeight: SH(20),
+    color: Colors.textAppColor,
+    textAlign: 'center',
   },
 });

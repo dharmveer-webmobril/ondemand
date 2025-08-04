@@ -1,5 +1,5 @@
 export { default as SplashScreen } from './SplashScreen';
-export { default as ViewAll } from './ViewAll';
+export { default as CategoryList } from './CategoryList';
 export { default as HomeScreen } from './Home/HomeScreen';
 export { default as FilterScreen } from './Filter/FilterScreen';
 export { default as NotificationScreen } from './NotificationScreen';

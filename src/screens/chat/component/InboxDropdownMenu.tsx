@@ -6,11 +6,12 @@ import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-m
 import { Fonts, imagePaths, SF, SW } from '../../../utils';
 import { AppText, Divider, VectoreIcons } from '../../../component';
 
-interface ChatMenuProps {
+interface InboxDropdownMenuProps {
     onSelect: (value: 'mute' | 'delete' | 'feedback') => void;
+    isBlocked: boolean;
 }
 
-const ChatMenu: React.FC<ChatMenuProps> = ({ onSelect }) => {
+const InboxDropdownMenu: React.FC<InboxDropdownMenuProps> = ({ onSelect, isBlocked }) => {
     return (
         <View style={styles.container}>
             <Menu onSelect={onSelect}>
@@ -22,24 +23,25 @@ const ChatMenu: React.FC<ChatMenuProps> = ({ onSelect }) => {
                     />
                 </MenuTrigger>
                 <MenuOptions customStyles={menuStyles}>
-                    <MenuOption value="mute">
+                    <MenuOption value="edit" >
                         <View style={styles.menuItem}>
-                            <Image source={imagePaths.mute_icon} style={styles.menuIcon} />
-                            <AppText style={styles.menuText}>Mute Notification</AppText>
+                            <Image source={imagePaths.delete_icon} style={styles.menuIcon} />
+                            <AppText style={styles.menuText}>Edit</AppText>
                         </View>
                         <Divider color="#DEDEDE" />
                     </MenuOption>
-                    <MenuOption value="delete" >
+                    <MenuOption value="delete">
                         <View style={styles.menuItem}>
                             <Image source={imagePaths.report_icon} style={styles.menuIcon} />
-                            <AppText style={styles.menuText}>Delete Chat</AppText>
+                            <AppText style={styles.menuText}>Delete</AppText>
                         </View>
                         <Divider color="#DEDEDE" />
                     </MenuOption>
-                    <MenuOption value="feedback">
+                    
+                    <MenuOption value="block">
                         <View style={styles.menuItem}>
                             <Image source={imagePaths.block_icon} style={styles.menuIcon} />
-                            <AppText style={styles.menuText}>Add Feedback</AppText>
+                            <AppText style={styles.menuText}>{ isBlocked ? 'Unblock' : 'Block'}</AppText>
                         </View>
                     </MenuOption>
                 </MenuOptions>
@@ -48,7 +50,7 @@ const ChatMenu: React.FC<ChatMenuProps> = ({ onSelect }) => {
     );
 };
 
-export default ChatMenu;
+export default InboxDropdownMenu;
 
 const styles = StyleSheet.create({
     container: {

@@ -1,7 +1,6 @@
 import React from "react";
 import {
     Modal,
-    Text,
     View,
     StyleSheet,
     Platform,
@@ -15,19 +14,44 @@ interface SweetaelertModalProps {
     visible: boolean;
     message: string;
     onClose?: () => void;
-    onOk?:()=>void;
-    onCancel?:()=>void;
-    isConfirmBox:Boolean
+    onOk?: () => void;
+    onCancel?: () => void;
+    isConfirmType: 'info' | 'confirm' | 'delete',
+    isOkButtonLoading?: boolean
 }
+
+// ...existing code...
 
 const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
     visible,
     message = "Example message",
-    onClose,
     onCancel,
     onOk,
-    isConfirmBox=false
+    isConfirmType = 'info',
+    isOkButtonLoading = false
 }) => {
+    // Show Cancel button only for 'confirm' and 'delete'
+    const isConfirmBox = isConfirmType === 'confirm' || isConfirmType === 'delete';
+
+    // Choose icon and color based on type
+    let iconName = 'checkcircle';
+    let iconColor = Colors.themeColor;
+    let iconSet: 'AntDesign' | 'MaterialIcons' = 'AntDesign';
+
+    if (isConfirmType === 'confirm') {
+        iconName = 'questioncircle';
+        iconColor = Colors.ratingColor; // Use your warning color
+        iconSet = 'AntDesign';
+    } else if (isConfirmType === 'delete') {
+        iconName = 'delete';
+        iconColor = Colors.red; // Use your error color
+        iconSet = 'MaterialIcons';
+    } else if (isConfirmType === 'info') {
+        iconName = 'warning';
+        iconColor = Colors.ratingColor;
+        iconSet = 'AntDesign';
+    }
+
     return (
         <Modal animationType="slide" transparent={true} visible={visible}>
             <View style={styles.setbgcolorgrsay}>
@@ -35,12 +59,12 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
                     <View style={styles.modalView}>
                         {/* Icon Section */}
                         <View style={styles.setroundcenter}>
-                            <View style={styles.checkiconright}>
+                            <View style={[styles.checkiconright, { borderColor: iconColor }]}>
                                 <VectorIcon
-                                    icon="AntDesign"
-                                    style={styles.setbackgroundicon}
-                                    name="checkcircle"
-                                    size={SF(45)}
+                                    icon={iconSet}
+                                    style={[styles.setbackgroundicon, { color: iconColor }]}
+                                    name={iconName}
+                                    size={SF(40)}
                                 />
                             </View>
                         </View>
@@ -50,16 +74,17 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
                             <AppText style={styles.settext}>{message}</AppText>
                         </View>
 
-                    
                         <View style={styles.buttonminview} >
                             <View style={styles.setokbutton}>
                                 <Buttons title={'Ok'}
-                                    onPress={() => {onOk && onOk() }}
+                                    isLoading={isOkButtonLoading}
+                                    onPress={() => { onOk && onOk() }}
                                 />
                             </View>
                             {isConfirmBox && <View style={styles.setokbutton}>
                                 <Buttons title={'Cancel'}
-                                    onPress={() => {onCancel && onCancel() }}
+
+                                    onPress={() => { onCancel && onCancel() }}
                                 />
                             </View>}
                         </View>
@@ -106,9 +131,9 @@ const styles = StyleSheet.create({
     },
     checkiconright: {
         borderWidth: SW(3),
-        height: SW(75),
-        width: SW(75),
-        borderRadius: SW(100),
+        height: SW(60),
+        width: SW(60),
+        borderRadius: SW(30),
         flexDirection: "row",
         borderColor: Colors.themeColor,
         alignItems: "center",
@@ -118,7 +143,8 @@ const styles = StyleSheet.create({
         color: Colors.themeColor,
     },
     registertextset: {
-        paddingTop: SH(25),
+        paddingTop: SH(20),
+        marginBottom: SH(15),
         flexDirection: "row",
         justifyContent: "center",
     },
@@ -139,10 +165,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: SH(40),
         paddingTop: SH(20),
-        alignSelf:'center'
+        alignSelf: 'center'
     },
     setokbutton: {
         width: '47%',
-        marginHorizontal:'1.5%'
+        marginHorizontal: '1.5%'
     },
 });

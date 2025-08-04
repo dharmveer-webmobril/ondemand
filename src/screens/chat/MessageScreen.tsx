@@ -1,102 +1,53 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
-import { chatMenuData, Colors, Fonts, imagePaths, SF, SH, SW } from '../../utils';
-import ChatDropdownMenu from './component/ChatDropdownMenu';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChatContext, Message, messageUser } from '../ChatProvider';
-// import ChatHeader from './component/ChatHeader';
+import { AppText, Container, VectoreIcons } from '../../component';
+import { Colors, Fonts, Message, messageUser, SF, SH, SW } from '../../utils';
+import { useRoute } from '@react-navigation/native';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
-
+import ChatHeader from './component/ChatHeader';
+import { useChatMessages } from './component/useChatMessages';
+import { useSendMessage } from './component/useSendMessage';
 
 const MessageScreen: React.FC = () => {
   const route = useRoute<any>();
-  let { otherDetails, myDetails } = route?.params;
-  console.log('myDetails-', myDetails, 'otherDetails-', otherDetails);
-
-  const chatContext = useContext(ChatContext);
-  if (!chatContext) return null;
-
-  const { sendMessage, fetchMessages, messages, createUserInbox } = chatContext;
-  const navigation = useNavigation();
+  const { otherDetails, myDetails } = route?.params;
 
   const [input, setInput] = useState<string>('');
+  const [isOpenMenu, setIsOpenMenu] = useState(false);
 
   const currentUser: messageUser = {
-    userId: myDetails?.userId, name: myDetails?.name,
+    userId: myDetails?.userId,
+    name: myDetails?.name,
   };
 
-  useEffect(() => {
-    let msgIdForMe = `${myDetails?.userId}_${otherDetails?.userId}`;
-    let unsubscribe: (() => void) | undefined;
+  const chatId = `${myDetails?.userId}_${otherDetails?.userId}`;
 
-    const loadMessages = async () => {
-      unsubscribe = await fetchMessages(msgIdForMe, null);
-    };
+  // ✅ Load messages when chatId changes
+  const { messages, clearMessages } = useChatMessages(chatId);
+  const { sendMessage } = useSendMessage();
 
-    loadMessages();
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
 
   const onSend = () => {
-    if (!input.trim()) return;
-    const newMessages12 = {
-      text: input,
-      _id: new Date().getTime(),
-      createdAt: new Date().getTime(),
-      user: { userId: myDetails?.userId, name: myDetails?.name },
-    };
-    console.log('newMessages12newMessages12', newMessages12);
-    let msgIdForMe = `${myDetails?.userId}_${otherDetails?.userId}`;
-    let msgIdForOther = `${otherDetails?.userId}_${myDetails?.userId}`;
-
-    // message send=========
-    sendMessage(msgIdForMe, newMessages12);
-    sendMessage(msgIdForOther, newMessages12);
-
-    // inbox update=========
-    let myInbox = {
-      userId: myDetails?.userId,
-      name: myDetails?.name,
-      lastMessage: newMessages12.text,
-      timestamp: newMessages12.createdAt,
-    }
-    let otherInbox = {
-      userId: otherDetails?.userId,
-      name: otherDetails?.name,
-      lastMessage: newMessages12.text,
-      timestamp: newMessages12.createdAt,
-    }
-    createUserInbox(otherInbox, myDetails?.userId, otherDetails?.userId);
-    createUserInbox(myInbox, otherDetails?.userId, myDetails?.userId);
-
+    if (!input.trim() || !sendMessage) return;
+    sendMessage(myDetails.userId, otherDetails.userId, input, currentUser);
     setInput('');
-  }
-
-
-
-
-  const [isOpenMenu, setIsOpenMenu] = useState(false);
+  };
 
   const closeMenu = () => {
     setIsOpenMenu(false);
   };
 
-
-
-  const renderItem = ({ item, index }: { item: Message, index: number }) => {
+  const renderItem = ({ item }: { item: Message }) => {
     const isMe = item.user.userId === currentUser.userId;
     return (
       <View style={[styles.messageRow, isMe ? styles.rightAlign : styles.leftAlign]}>
         <View style={[styles.messageBubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
-          <AppText style={[styles.messageText]}>{item.text}</AppText>
+          <AppText style={styles.messageText}>{item.text}</AppText>
         </View>
         <AppText style={styles.timeText}>
           {item.createdAt && new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -105,48 +56,47 @@ const MessageScreen: React.FC = () => {
     );
   };
 
+
   return (
     <Container>
       {isOpenMenu && (
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={closeMenu} />
       )}
-     
-{/* 
- <ChatHeader
+
+      <ChatHeader
         isOpenMenu={isOpenMenu}
         closeMenu={closeMenu}
         openMenu={() => setIsOpenMenu(true)}
         otherDetails={otherDetails}
+        myDetails={myDetails}
+        clearMessages={clearMessages}
       />
-*/}
-      <>
-        <KeyboardAwareFlatList
-          data={messages}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => item.createdAt.toString() + index + item.text}
-          inverted
-          contentContainerStyle={{ padding: 16 }}
-          keyboardShouldPersistTaps="handled"
-        />
+      <KeyboardAwareFlatList
+        data={messages}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => item.createdAt.toString() + index + item.text}
+        inverted
+        contentContainerStyle={styles.flatListContent}
+        keyboardShouldPersistTaps="handled"
+      />
 
-        <View style={styles.inputContainer}>
-          <>
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              placeholder="Type a message..."
-              style={styles.input}
-              placeholderTextColor="#999"
-            />
-            <TouchableOpacity style={styles.sendButton} onPress={onSend}>
-              <VectoreIcons icon="Ionicons" name="send" size={SF(19)} color={Colors.themeColor} />
-            </TouchableOpacity>
-          </>
-        </View>
-      </>
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={input}
+          onChangeText={setInput}
+          placeholder="Type a message..."
+          style={styles.input}
+          placeholderTextColor="#999"
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={onSend}>
+          <VectoreIcons icon="Ionicons" name="send" size={SF(19)} color={Colors.themeColor} />
+        </TouchableOpacity>
+      </View>
     </Container>
   );
 };
+
+
 
 export default MessageScreen;
 
@@ -205,7 +155,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    // backgroundColor: '#f0f0f0',
     borderRadius: 25,
     paddingHorizontal: 15,
     fontSize: 14,
@@ -278,5 +227,8 @@ const styles = StyleSheet.create({
     height: '100%',
     zIndex: 10,
     backgroundColor: 'transparent',
+  },
+  flatListContent: {
+    padding: 16,
   },
 });

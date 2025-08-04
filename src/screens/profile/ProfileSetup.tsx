@@ -1,46 +1,102 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {
   AppHeader,
   Container,
-  ImageLoader,
   Spacing,
   Buttons,
   InputField,
-  AppText
+  AppText,
+  ImagePickerModal,
+  CountryPickerComp,
+  ImageLoader,
 } from '../../component';
-import { Colors, Fonts, regex, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, profileSetupValidationSchema, regex, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import imagePaths from '../../assets/images';
 import { useTranslation } from 'react-i18next';
 import VectorIcon from '../../component/VectoreIcons';
 import { Formik } from 'formik';
-import * as Yup from 'yup';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, setUserProfileData, useUpdateProfileMutation } from '../../redux';
+
+interface ImageType {
+  path: string;
+  name?: string;
+  mime?: string;
+}
 
 type ProfileSetupProps = {};
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
-  const validationSchema = Yup.object().shape({
-    fname: Yup.string()
-      .min(3, t('validation.fullnameMinLength'))
-      .required(t('validation.emptyFullName'))
-      .matches(regex.NAME_REGEX, t('validation.validFullName')),
-    email: Yup.string()
-      .matches(regex.EMAIL_REGEX_WITH_EMPTY, t('validation.validEmail'))
-      .required(t('validation.emptyEmail')),
-    mobileno: Yup.string()
-      .matches(regex.DIGIT_REGEX, t('validation.validMobile'))
-      .min(10, t('validation.mobileMinLen'))
-      .required(t('validation.emptyMobile')),
-  });
+
+  const [imagePickerModal, setImagePickerModal] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState<ImageType | null>(null);
+
+  const userData = useSelector((state: RootState) => state.auth.user);
+  const initialValues = {
+    fname: userData?.fullName || '',
+    mobileno: userData?.mobileNo || '',
+    email: userData?.email || '',
+    countryCode: userData?.countryCode || '',
+  };
+
+  useEffect(() => {
+    console.log("userData.profilePic.split('/').pop()", userData.profilePic.split('/').pop());
+    if (userData?.profilePic && !profileImage) {
+      setProfileImage({ path: userData.profilePic, name: userData.profilePic.split('/').pop() || 'profile.jpg', mime: 'image/jpeg' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData?.profilePic]);
+
+  const [editProfile, { isLoading }] = useUpdateProfileMutation();
+  const dispatch = useDispatch();
+
+  const btnSignup = async (values: { fname: string; mobileno: string; email: string; countryCode: string }, { resetForm }: { resetForm: () => void }) => {
+    Keyboard.dismiss();
+
+    try {
+      const formData = new FormData();
+      profileImage && formData.append('profilePic', {
+        uri: profileImage.path,
+        name: profileImage.name || 'profile.jpg',
+        type: profileImage?.mime || 'image/jpg',
+      } as any);
+
+      formData.append('fullName', values.fname);
+      formData.append('mobileNo', values.mobileno);
+      formData.append('countryCode', values.countryCode);
+      console.log('formDataformData', formData);
+      // return
+      const response = await editProfile(formData).unwrap();
+      console.log('res', response);
+      if (response.success) {
+        handleSuccessToast(response.message || 'Profile edit successfully');
+        dispatch(setUserProfileData(response?.data || {}));
+        resetForm?.();
+        goBack();
+      } else {
+        handleApiFailureResponse(response, 'Error occured in edit profile');
+      }
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  const handleImageSelected = (img: ImageType) => {
+    
+    setProfileImage(img);
+    setImagePickerModal(false);
+  };
+
   return (
     <Container isPadding={false}>
       <AppHeader
@@ -49,22 +105,23 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
           navigation.goBack();
         }}
         Iconname="arrowleft"
-        rightOnPress={() => { }}
+        rightOnPress={() => {}}
         headerStyle={styles.header}
       />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
-        extraScrollHeight={SH(40)}>
+        extraScrollHeight={SH(40)}
+      >
         <View style={styles.container}>
           <View style={styles.profileContainer}>
             <View style={styles.userConImage}>
               <ImageLoader
-                source={imagePaths.user_img}
+                source={profileImage ? { uri: profileImage.path } : imagePaths.user_img}
                 resizeMode="cover"
                 mainImageStyle={styles.userImage}
               />
-              <TouchableOpacity style={styles.editIcon}>
+              <TouchableOpacity style={styles.editIcon} onPress={() => setImagePickerModal(true)}>
                 <VectorIcon
                   color={Colors.textWhite}
                   size={SW(12)}
@@ -74,106 +131,107 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
               </TouchableOpacity>
             </View>
             <View style={styles.userInfo}>
-              <AppText style={styles.userName}>John Kevin</AppText>
-              <AppText style={styles.userPhone}>+91 1234567890</AppText>
+              <AppText style={styles.userName}>{userData?.fullName || 'John Kevin'}</AppText>
+              <AppText style={styles.userPhone}>{userData?.phoneNumber || '+91 1234567890'}</AppText>
             </View>
           </View>
           <Formik
-            initialValues={{
-              fname: '',
-              mobileno: '',
-              email: '',
+            initialValues={initialValues}
+            validationSchema={profileSetupValidationSchema(t, regex)}
+            onSubmit={(values, formikBag) => {
+              btnSignup(values, formikBag);
             }}
-            validationSchema={validationSchema}
-            onSubmit={(values, { resetForm }) => {
-              // btnSignup(values, resetForm);
-            }}>
+          >
             {({
               handleChange,
-              setFieldTouched,
-              handleSubmit,
               setFieldValue,
               values,
               errors,
               touched,
+              handleSubmit,
+              setFieldTouched,
             }) => (
               <>
-
-                <InputField
-                  label={t('placeholders.fullname')}
-                  value={values.fname}
-                  onChangeText={handleChange('fname')}
-                  onBlur={() => setFieldValue('fname', values.fname.trim())}
-                  errorMessage={touched.fname && errors.fname && errors.fname ? errors.fname : ''}
-                  keyboardType="default"
-                  color={Colors.textAppColor}
-                  textColor={Colors.textAppColor}
-                />
-                <InputField
-                  label={t('placeholders.mobileno')}
-                  value={values.mobileno}
-                  onChangeText={handleChange('mobileno')}
-                  onBlur={() => setFieldValue('mobileno', values.mobileno.trim())}
-                  errorMessage={touched.mobileno && errors.mobileno && errors.mobileno ? errors.mobileno : ''}
-                  keyboardType={'number-pad'}
-                  color={Colors.textAppColor}
-                  textColor={Colors.textAppColor}
-                />
-
-                <InputField
-                  label={t('placeholders.emailId')}
-                  value={values.email}
-                  onChangeText={handleChange('email')}
-                  onBlur={() => setFieldValue('email', values.email.trim())}
-                  errorMessage={touched.email && errors.email && errors.email ? errors.email : ''}
-                  keyboardType={'email-address'}
-                  color={Colors.textAppColor}
-                  textColor={Colors.textAppColor}
-                />
-               
-                <Spacing space={SH(20)} />
-                <View style={styles.addressContainer}>
-                  <View style={styles.addressInfo}>
-                    <AppText style={styles.addressName}>Home Address</AppText>
-                    <AppText style={styles.addressDetail}>123 main st, anytown, USA</AppText>
+                <View style={styles.formContainer}>
+                  <InputField
+                    label={t('placeholders.fullname')}
+                    value={values.fname}
+                    onChangeText={handleChange('fname')}
+                    onBlur={() => setFieldValue('fname', values.fname.trim())}
+                    errorMessage={touched.fname && errors.fname ? String(errors.fname) : ''}
+                    keyboardType="default"
+                    color={Colors.textAppColor}
+                    textColor={Colors.textAppColor}
+                  />
+                  <View style={styles.rowContainer}>
+                    <TouchableOpacity
+                      onPress={() => setIsPickerOpen(true)}
+                      style={styles.countryCodeButton}
+                    >
+                      <AppText style={{ color: Colors.textAppColor, fontFamily: Fonts.MEDIUM }}>
+                        {values.countryCode}
+                      </AppText>
+                    </TouchableOpacity>
+                    <View style={styles.phoneInputContainer}>
+                      <InputField
+                        value={values.mobileno}
+                        onChangeText={handleChange('mobileno')}
+                        onBlur={() => setFieldTouched('mobileno')}
+                        keyboardType="phone-pad"
+                        color={Colors.textAppColor}
+                        textColor={Colors.textAppColor}
+                        maxLength={14}
+                      />
+                    </View>
                   </View>
-                  <TouchableOpacity style={styles.addressMoreIcon}>
-                    <VectorIcon
-                      icon="Entypo"
-                      name="dots-three-vertical"
-                      size={SW(20)}
-                      color={Colors.textAppColor}
-                    />
-                  </TouchableOpacity>
+                  {touched.mobileno && errors.mobileno && (
+                    <AppText style={styles.errorText}>
+                      {errors.mobileno ? String(errors.mobileno) : ''}
+                    </AppText>
+                  )}
+                  <CountryPickerComp
+                    isPickerOpen={isPickerOpen}
+                    closeCountryPicker={() => setIsPickerOpen(false)}
+                    openCountryPicker={() => setIsPickerOpen(true)}
+                    inputText={''}
+                    onInputChange={() => {}}
+                    countryCode={values.countryCode}
+                    setCountryCode={(code: string) => setFieldValue('countryCode', code)}
+                  />
+                  <InputField
+                    label={t('placeholders.emailId')}
+                    value={values.email}
+                    editable={false}
+                    onChangeText={handleChange('email')}
+                    onBlur={() => setFieldValue('email', values.email.trim())}
+                    errorMessage={touched.email && errors.email ? String(errors.email) : ''}
+                    keyboardType="email-address"
+                    color={Colors.textAppColor}
+                    textColor={Colors.textAppColor}
+                  />
+                 
+                  <Spacing space={SH(20)} />
                 </View>
-
-                <Buttons
-                  buttonStyle={styles.addAddressButton}
-                  textColor={Colors.textWhite}
-                  buttonTextStyle={styles.addAddressText}
-                  title={t('placeholders.AddNewAddress')}
-                  onPress={() => {
-                    //   handleSubmit();
-                    Keyboard.dismiss();
-                  }}
-                // isLoading={true}
-                />
-
                 <Buttons
                   buttonStyle={styles.submitButton}
                   textColor={Colors.textWhite}
                   title={t('placeholders.save')}
+                  isLoading={isLoading}
                   onPress={() => {
                     handleSubmit();
                     Keyboard.dismiss();
                   }}
-                // isLoading={true}
                 />
               </>
             )}
           </Formik>
         </View>
       </KeyboardAwareScrollView>
+      <ImagePickerModal
+        visible={imagePickerModal}
+        onClose={() => setImagePickerModal(false)}
+        onImageSelected={handleImageSelected}
+      />
     </Container>
   );
 };
@@ -227,11 +285,13 @@ const styles = StyleSheet.create({
   userName: {
     fontFamily: Fonts.MEDIUM,
     fontSize: SF(16),
+    textAlign: 'center',
   },
   userPhone: {
     fontFamily: Fonts.REGULAR,
     fontSize: SF(12),
     marginTop: SH(5),
+    textAlign: 'center',
   },
   inputText: {
     color: Colors.textAppColor,
@@ -240,45 +300,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.textAppColor,
   },
-  addressContainer: {
-    borderRadius: SW(10),
-    paddingVertical: SW(15),
-    paddingHorizontal: SW(15),
-    borderWidth: 1,
-    borderColor: Colors.textAppColor,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  addressInfo: {
-    width: '80%',
-  },
-  addressName: {
-    fontFamily: Fonts.SEMI_BOLD,
-    fontSize: SF(12),
-  },
-  addressDetail: {
-    fontFamily: Fonts.REGULAR,
-    fontSize: SF(12),
-    marginTop:SH(4)
-  },
-  addressMoreIcon: {
-    paddingVertical: 5,
-    paddingLeft: 5,
-  },
-  addAddressButton: {
-    backgroundColor: Colors.themeColor,
-    height: SF(28),
-    width: SF(124),
-    marginTop: 15,
-    alignSelf: 'flex-end',
-    borderRadius: 5,
-  },
-  addAddressText: {
-    fontSize: SF(12),
-  },
   submitButton: {
     backgroundColor: Colors.themeColor,
     marginTop: SH(70),
+  },
+  formContainer: {
+    flex: 1,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  countryCodeButton: {
+    paddingHorizontal: SW(10),
+    paddingVertical: SH(12),
+    borderWidth: 1,
+    borderColor: Colors.textAppColor,
+    borderRadius: SW(10),
+    marginRight: SW(8),
+    justifyContent: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: SF(12),
+    marginBottom: SH(10),
+  },
+  phoneInputContainer: {
+    flex: 1,
   },
 });

@@ -92,5 +92,7 @@ const imagePaths = {
   electric_wire:require('./electric_wire.jpg'),
   mute_icon:require('./mute_icon.png'),
   feedback_icon:require('./feedback_icon.png'),
+  no_image:require('./no_image.jpg'),
+  defaultUser:'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
 };
 export default imagePaths;

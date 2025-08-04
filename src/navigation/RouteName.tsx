@@ -4,7 +4,7 @@ const RouteName = {
     FORGOT_PASS: 'Forgot Password',
     OTP_VERIFY: 'OtpVerify',
     HOME: 'Home',
-    VIEW_ALL: 'View All',
+    CATEGORY_LIST: 'CategoryList',
     MY_BOOKING: 'My Booking',
     MESSAGE_SCREEN: 'MessageScreen',
     INBOX_SCREEN: 'InboxScreen',

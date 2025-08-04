@@ -1,4 +1,49 @@
-// src/types.ts
+export interface Chat {
+  id: string;
+  members: string[];
+  lastMessage?: string;
+  timestamp?: number;
+}
+
+export interface messageUser {
+  userId: string | number;
+  name: string;
+}
+
+export interface Message {
+  _id: any;
+  key?: string;
+  createdAt: Date | number;
+  text: string;
+  user: messageUser;
+}
+ 
+export interface ChatContextType {
+  chats: Chat[];
+  messages: Message[];
+  loading: boolean;
+  allUsers: ChatUser[];
+  inboxUsers: ChatUser[];
+  userData: ChatUser | null;
+  fetchMessages: (chatId: string, timeStamp?: any) => Promise<void>;
+  createUser: (userId: string, userObject: any) => void;
+  createUserInbox: (obj: any, id: any, otherUserId: any) => void;
+  sendMessage: (senderId: string, receiverId: string, message: string, senderInfo: messageUser) => void;
+
+  fetchAllUsers: () => Promise<void>;
+  getInboxUsers: (userId: string) => Promise<void>;
+  deleteChatForBothUsers: (userId: string, otherUserId: string) => Promise<void>;
+  toggleBlockUser: (userId: string, otherUserId: string, block: boolean) => void;
+  muteBlockUser: (userId: string, otherUserId: string, block: boolean) => void;
+  getUserMuteBlockStatus: (userId: string, otherUserId: string) => Promise<{ isBlocked: boolean; isMuted: boolean }>;
+}
+
+// Extend ChatUser to include inbox-related data
+export interface ExtendedChatUser extends ChatUser {
+  lastMessage?: string;
+  timestamp?: number;
+  isBlocked?: boolean;
+}
 export interface User {
   email: string;
   fcmToken: string;
@@ -16,11 +61,11 @@ export interface ChatUser {
   loginType?: string;
   mobileNo?: string;
   name?: string;
-  notificationStatus?: string;
-  onlineStatus?: string;
+  notificationStatus?: boolean;
+  onlineStatus?: boolean;
   fcmToken?: string;
   userId?: string;
-  userType?: string;
+  roleType?: string;
 }
 
 export interface RegisterRequest {

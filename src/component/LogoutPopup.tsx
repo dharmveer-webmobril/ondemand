@@ -1,12 +1,14 @@
 import React from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
-import { Colors, Fonts, navigate, SF, SH, SW } from '../utils';
+import { Modal, StyleSheet, View } from 'react-native';
+import { Colors, Fonts, SF, SH } from '../utils';
 import AuthBottomContainer from './AuthBottomContainer';
 import Buttons from './Button';
 import { useDispatch } from 'react-redux';
-import { logout } from '../redux';
+import { api, logout } from '../redux';
+import { navigate } from '../utils/NavigationService';
 import RouteName from '../navigation/RouteName';
 import AppText from './AppText';
+import { useTranslation } from 'react-i18next';
 
 type LogoutPopupProps = {
   modalVisible: boolean;
@@ -17,44 +19,42 @@ const LogoutPopup: React.FC<LogoutPopupProps> = ({
   closeModal,
 }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
+
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={modalVisible}
       onRequestClose={() => closeModal()}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: '#00000050',
-          justifyContent: 'flex-end',
-        }}>
-        <View style={{ height: '45%' }}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
           <AuthBottomContainer>
-            <View style={{ marginTop: SH(30), justifyContent: "space-between", height: '90%' }}>
+            <View style={styles.contentContainer}>
               <View>
-                <AppText style={styles.heading}>Logout</AppText>
+                <AppText style={styles.heading}>{t('logoutPopup.heading')}</AppText>
                 <AppText style={styles.subtitile}>
-                  Are you sure you want to logout?
+                  {t('logoutPopup.subtitle')}
                 </AppText>
               </View>
               <View>
                 <Buttons
-                  buttonStyle={{ backgroundColor: Colors.bgwhite, width: "80%", alignSelf: 'center' }}
+                  buttonStyle={styles.logoutButton}
                   textColor={Colors.themeColor}
-                  title={'Logout'}
+                  title={t('logoutPopup.logoutButton')}
                   onPress={() => {
                     dispatch(logout());
-                    closeModal()
-                    navigate(RouteName.LOGIN)
+                    closeModal();
+                    navigate(RouteName.LOGIN);
+                    dispatch(api.util.resetApiState());
                   }}
                 />
                 <Buttons
-                  buttonStyle={{ backgroundColor: Colors.themeColor, marginVertical: 20, width: "80%", alignSelf: 'center' }}
+                  buttonStyle={styles.cancelButton}
                   textColor={Colors.textWhite}
-                  title={'Cancel'}
+                  title={t('logoutPopup.cancelButton')}
                   onPress={() => {
-                    closeModal()
+                    closeModal();
                   }}
                 />
               </View>
@@ -69,6 +69,30 @@ const LogoutPopup: React.FC<LogoutPopupProps> = ({
 export default LogoutPopup;
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: '#00000050',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    height: '45%',
+  },
+  contentContainer: {
+    marginTop: SH(30),
+    justifyContent: 'space-between',
+    height: '90%',
+  },
+  logoutButton: {
+    backgroundColor: Colors.bgwhite,
+    width: '80%',
+    alignSelf: 'center',
+  },
+  cancelButton: {
+    backgroundColor: Colors.themeColor,
+    marginVertical: 20,
+    width: '80%',
+    alignSelf: 'center',
+  },
   subtitile: {
     color: Colors.textWhite,
     fontFamily: Fonts.REGULAR,

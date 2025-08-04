@@ -1,18 +1,55 @@
-import { View, StyleSheet } from 'react-native';
-import React from 'react';
-import { boxShadow, boxShadowlight, Colors, Fonts, SF, SH, SW } from '../../utils';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { boxShadowlight, Colors, Fonts, SF, SW } from '../../utils';
 import Swiper from 'react-native-swiper';
 import ImageLoader from '../ImageLoader';
+import { useGetHomeBannerQuery } from '../../redux';
+import AppText from '../AppText'; // Assuming a custom text component for error
 
-interface swiperData {
-  id: number,
-  imgUrl: any
-}
-interface HomeSwiperProps {
-  swiperData: swiperData[]
-}
+const HomeSwiper: React.FC = () => {
+  const { data, isLoading, error } = useGetHomeBannerQuery();
 
-const HomeSwiper: React.FC<HomeSwiperProps> = ({ swiperData }) => {
+  const bannerData = useMemo(() => {
+    if (data?.success && data.data?.length > 0) {
+      return data.data
+        .filter((item: any) => item.title === 'user') // Filter for title === 'user'
+        .flatMap((item: any) =>
+          item.images.map((imgUrl: string, index: number) => ({
+            id: index,
+            imgUrl,
+            title: item.title, // "user"
+          }))
+        );
+    }
+    return [];
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={Colors.themeColor} />
+      </View>
+    );
+  }
+
+  if (error || !data?.success) {
+    return (
+      <View style={styles.errorContainer}>
+        <AppText style={styles.errorText}>
+          {data?.message || 'Failed to load banners. Please try again later.'}
+        </AppText>
+      </View>
+    );
+  }
+
+  if (bannerData.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <AppText style={styles.emptyText}>Banner is empty</AppText>
+      </View>
+    );
+  }
+
   return (
     <Swiper
       showsButtons={false}
@@ -21,20 +58,24 @@ const HomeSwiper: React.FC<HomeSwiperProps> = ({ swiperData }) => {
       autoplay
       dot={<View style={styles.dot} />}
       activeDot={<View style={styles.activeDot} />}
-      paginationStyle={styles.paginationStyle}>
-      {swiperData.map((item: swiperData) => {
-        return (
-          <View style={[styles.slide]} key={item.id}>
-            <View style={[styles.imageBox,boxShadowlight]}>
-              <ImageLoader resizeMode="cover" mainImageStyle={styles.image} source={item.imgUrl} />
-            </View>
+      paginationStyle={styles.paginationStyle}
+    >
+      {bannerData.map((item: { id: number; imgUrl: string; title: string }) => (
+        <View style={[styles.slide]} key={item.id}>
+          <View style={[styles.imageBox, boxShadowlight]}>
+            <ImageLoader
+              resizeMode="contain"
+              mainImageStyle={styles.image}
+              source={{ uri: item.imgUrl }}
+            />
           </View>
-        );
-      })}
+        </View>
+      ))}
     </Swiper>
   );
 };
-export default HomeSwiper;
+
+export default React.memo(HomeSwiper);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -42,9 +83,9 @@ const styles = StyleSheet.create({
   },
   dot: {
     backgroundColor: Colors.gray1,
-    width:SF(10),
-    height:SF(10),
-    borderRadius:SF(10) / 2,
+    width: SF(10),
+    height: SF(10),
+    borderRadius: SF(10) / 2,
     marginLeft: SF(3),
     marginRight: SF(3),
     marginBottom: -SF(35),
@@ -56,7 +97,6 @@ const styles = StyleSheet.create({
     borderRadius: SF(10) / 2,
     marginLeft: SF(3),
     marginRight: SF(3),
-    
     marginBottom: -SF(35),
   },
   paginationStyle: {
@@ -71,9 +111,45 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
   },
-  imageBox:{
+  imageBox: {
     borderRadius: 10,
-    overflow:'hidden',
-    backgroundColor:"red"
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    marginVertical: 2,
+  },
+  loaderContainer: {
+    height: SF(160),
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: SF(10),
+  },
+  errorContainer: {
+    height: SF(160),
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: SF(10),
+    paddingHorizontal: SW(15),
+  },
+  errorText: {
+    fontSize: SF(14),
+    fontFamily: Fonts.MEDIUM,
+    color: Colors.red,
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    height: SF(160),
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: SF(10),
+    paddingHorizontal: SW(15),
+  },
+  emptyText: {
+    fontSize: SF(14),
+    fontFamily: Fonts.MEDIUM,
+    color: Colors.textAppColor,
+    textAlign: 'center',
   },
 });

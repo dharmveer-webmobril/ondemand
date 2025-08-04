@@ -1,72 +1,152 @@
-import React, { useState } from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { AppHeader, AppText, Container, ProfileList, Spacing } from '../../component';
-import { Colors, Fonts, imagePaths, SF, SH, SW } from '../../utils';
+
+import React from 'react';
+import { View, StyleSheet, Keyboard } from 'react-native';
+import { useFormik } from 'formik';
 import { useNavigation } from '@react-navigation/native';
+import {
+  AppHeader,
+  AppText,
+  Buttons,
+  Container,
+  InputField,
+} from '../../component';
+import {
+  Colors,
+  customerSupportValidationSchema,
+  Fonts,
+  handleApiError,
+  handleApiFailureResponse,
+  handleSuccessToast,
+  SF,
+  SH,
+  SW,
+} from '../../utils';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useSelector } from 'react-redux';
+import { RootState, useSubmitCustomerSupportMutation } from '../../redux';
 import { useTranslation } from 'react-i18next';
 
-type CustomerSupportProps = {};
-const CustomerSupport: React.FC<CustomerSupportProps> = ({ }) => {
-  const { t } = useTranslation();
+interface FormValues {
+  name: string;
+  title: string;
+  description: string;
+  email: string;
+}
+
+const CustomerSupport: React.FC = () => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
+  const user = useSelector((state: RootState) => state.auth.user);
+  console.log('-----user-----', user);
 
-  const renderToggleSetting = (
-    type: string,
-    label: string,
-    value: boolean,
-    onToggle: (val: boolean, type: string) => void,
-  ) => {
-    return (
-      <View style={styles.toggleContainer}>
-        <AppText style={styles.toggleLabel}>{label}</AppText>
-        <TouchableOpacity onPress={() => onToggle(!value, type)}>
-          <Image source={value ? imagePaths.switch_on : imagePaths.switch_off} style={{ width: SF(50), height: SF(28), resizeMode: 'contain' }} />
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const [submitCustomerSupport, { isLoading: isSubmitting }] = useSubmitCustomerSupportMutation();
 
-  let helpCenter = { name:t('customerSupport.helpCenter'), id: 10, onClick: () => { } };
-  let contactSupport = { name: t('customerSupport.contactSupport'), id: 10, onClick: () => { } };
-  let assistance = { name: t('customerSupport.assistance'), id: 10, onClick: () => { } };
-  let issueTracking = { name: t('customerSupport.issueTracking'), id: 10, onClick: () => { } };
+  const formik = useFormik<FormValues>({
+    initialValues: {
+      name: user?.fullName || '',
+      title: '',
+      description: '',
+      email: user?.email || '',
+    },
+    validationSchema: customerSupportValidationSchema(t),
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+      Keyboard.dismiss();
+      try {
+        const response = await submitCustomerSupport({
+          data: {
+            name: values.name,
+            title: values.title,
+            query: values.description,
+            email: values.email,
+          },
+        }).unwrap();
 
-  const [supportToggle, setSupportToggle] = useState({
-    booking: true,
-    service: true,
-    promotion: true,
-  })
-  const btnSwitchToglle = (value: boolean, type: string) => {
-    if (type == 'booking') setSupportToggle(prev => { return { ...prev, booking: value } })
-    if (type == 'service') setSupportToggle(prev => { return { ...prev, service: value } })
-    if (type == 'promotion') setSupportToggle(prev => { return { ...prev, promotion: value } })
-  }
+        if (response.success) {
+          handleSuccessToast( t('customerSupport.messages.success'))
+          resetForm();
+          navigation.goBack();
+        } else {
+          handleApiFailureResponse(response, t('customerSupport.messages.error'));
+        }
+      } catch (error) {
+        handleApiError(error, t('customerSupport.messages.error'));
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
   return (
-    <Container isPadding={true}>
+    <Container isPadding={false}>
       <AppHeader
-        headerTitle={t('profile.customerSupport')}
-        onPress={() => {
-          if (navigation.canGoBack()) {
-            navigation.pop();
-          }
-        }}
+        headerTitle={t('customerSupport.header')}
+        onPress={() => navigation.goBack()}
         Iconname="arrowleft"
-        rightOnPress={() => { }}
         headerStyle={styles.header}
       />
-      <View style={styles.container}>
-        
-        <AppText style={styles.sectionTitle}>{t('customerSupport.supportSection')}</AppText>
-        <ProfileList item={helpCenter} />
-        <Spacing space={SH(18)} />
-        <ProfileList item={contactSupport} />
-        <Spacing space={SH(20)} />
-        <AppText style={styles.sectionTitle}>{t('customerSupport.liveChatSupportracking')}</AppText>
-        <ProfileList item={assistance} />
-        <Spacing space={SH(20)} />
-        <AppText style={styles.sectionTitle}>{t('customerSupport.ticketSystem')}</AppText>
-        <ProfileList item={issueTracking} />
-      </View>
+      <KeyboardAwareScrollView
+        style={styles.scrollStyle}
+        contentContainerStyle={styles.container}
+        enableOnAndroid
+        extraScrollHeight={50}
+        keyboardShouldPersistTaps="handled"
+      >
+        <AppText style={styles.formLabel}>{t('customerSupport.formLabel')}</AppText>
+        <View style={styles.inputWrapper}>
+          <InputField
+            placeholder={t('customerSupport.placeholder.name')}
+            value={formik.values.name}
+            onChangeText={(val) => formik.setFieldValue('name', val)}
+            onBlur={() => formik.setFieldTouched('name', true)}
+            errorMessage={formik.touched.name && formik.errors.name ? formik.errors.name : ''}
+            placeholderTextColor={Colors.textAppColor}
+            textColor={Colors.textAppColor}
+            withBackground
+          />
+          <InputField
+            placeholder={t('customerSupport.placeholder.email')}
+            keyboardType="email-address"
+            value={formik.values.email}
+            onChangeText={(val) => formik.setFieldValue('email', val)}
+            onBlur={() => formik.setFieldTouched('email', true)}
+            errorMessage={formik.touched.email && formik.errors.email ? formik.errors.email : ''}
+            placeholderTextColor={Colors.textAppColor}
+            textColor={Colors.textAppColor}
+            withBackground
+          />
+          <InputField
+            placeholder={t('customerSupport.placeholder.title')}
+            value={formik.values.title}
+            onChangeText={(val) => formik.setFieldValue('title', val)}
+            onBlur={() => formik.setFieldTouched('title', true)}
+            errorMessage={formik.touched.title && formik.errors.title ? formik.errors.title : ''}
+            placeholderTextColor={Colors.textAppColor}
+            textColor={Colors.textAppColor}
+            withBackground
+          />
+          <InputField
+            placeholder={t('customerSupport.placeholder.description')}
+            multiline
+            value={formik.values.description}
+            onChangeText={(val) => formik.setFieldValue('description', val)}
+            onBlur={() => formik.setFieldTouched('description', true)}
+            errorMessage={
+              formik.touched.description && formik.errors.description ? formik.errors.description : ''
+            }
+            placeholderTextColor={Colors.textAppColor}
+            textColor={Colors.textAppColor}
+            withBackground
+            inputContainer={styles.descriptionInputContainer}
+          />
+        </View>
+        <Buttons
+          buttonStyle={styles.submitButton}
+          textColor={Colors.textWhite}
+          title={t('customerSupport.button.submit')}
+          onPress={formik.handleSubmit}
+          isLoading={isSubmitting}
+        />
+      </KeyboardAwareScrollView>
     </Container>
   );
 };
@@ -74,33 +154,43 @@ const CustomerSupport: React.FC<CustomerSupportProps> = ({ }) => {
 export default CustomerSupport;
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: Colors.bgwhite,
-    paddingHorizontal: SW(25),
+  scrollStyle: {
+    flexGrow: 1,
   },
   container: {
     paddingHorizontal: SW(25),
-    paddingTop: SH(40),
+    flexGrow: 1,
   },
-  toggleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SH(20),
-
+  header: {
+    backgroundColor: Colors.bgwhite,
+    paddingHorizontal: SW(30),
+    marginTop: SH(10),
   },
-  toggleLabel: {
-    fontFamily: Platform.OS === 'android' ? Fonts.MEDIUM : Fonts.REGULAR,
-    fontSize: SF(14),
-  },
-  sectionTitle: {
-    color: Colors.textAppColor,
-    fontFamily: Fonts.SEMI_BOLD,
+  formLabel: {
     fontSize: SF(16),
-    marginBottom: SH(15),
-    marginTop: SH(5),
+    fontFamily: Fonts.SEMI_BOLD,
+    color: Colors.textAppColor,
+    marginTop: SH(20),
   },
-  toggleWrapper: {
+  inputWrapper: {
+    backgroundColor: Colors.themelight,
+    marginTop: SH(20),
+    borderRadius: SF(10),
     paddingHorizontal: SW(10),
+    paddingTop: SH(10),
+    paddingBottom: SH(20),
   },
-});
+  descriptionInputContainer: {
+    height: SH(100),
+  },
+  submitButton: {
+    backgroundColor: Colors.themeColor,
+    marginTop: SH(50),
+  },
+  errorText: {
+    fontSize: SF(12),
+    color: Colors.red,
+    marginTop: SH(5),
+    fontFamily: Fonts.REGULAR,
+  },
+})

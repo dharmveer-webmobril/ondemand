@@ -23,6 +23,7 @@ interface UseLocationResult {
   location: Location | null;
   error: string | null;
   isLoading: boolean;
+  isLocationEnabled: boolean;
   retry: () => void;
 }
 
@@ -30,6 +31,7 @@ const useLocation = (): UseLocationResult => {
   const [location, setLocation] = useState<Location | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLocationEnabled, setIsLocationEnabled] = useState<boolean>(true);
 
   const permission: Permission | undefined = Platform.select({
     ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
@@ -43,10 +45,12 @@ const useLocation = (): UseLocationResult => {
         const { latitude, longitude } = position.coords;
         setLocation({ latitude, longitude });
         setError(null);
+        setIsLocationEnabled(true);
         setIsLoading(false);
       },
       (err: GeoError) => {
         setError(err.message);
+        setIsLocationEnabled(false); // Most likely GPS is off
         setIsLoading(false);
         Alert.alert('Error', `Failed to get location: ${err.message}`);
       },
@@ -76,6 +80,7 @@ const useLocation = (): UseLocationResult => {
           getLocation();
         } else {
           setIsLoading(false);
+          setIsLocationEnabled(false);
           Alert.alert(
             'Location Permission Denied',
             'Please enable location access in settings to use this feature.',
@@ -87,6 +92,7 @@ const useLocation = (): UseLocationResult => {
         }
       } else if (result === RESULTS.BLOCKED) {
         setIsLoading(false);
+        setIsLocationEnabled(false);
         Alert.alert(
           'Location Permission Blocked',
           'Location access is blocked. Please enable it in your device settings.',
@@ -98,6 +104,7 @@ const useLocation = (): UseLocationResult => {
       }
     } catch (err: any) {
       setError(err.message);
+      setIsLocationEnabled(false);
       setIsLoading(false);
       Alert.alert('Error', `Permission error: ${err.message}`);
     }
@@ -112,7 +119,7 @@ const useLocation = (): UseLocationResult => {
     requestLocationPermission();
   }, [requestLocationPermission]);
 
-  return { location, error, isLoading, retry };
+  return { location, error, isLoading, isLocationEnabled, retry };
 };
 
 export default useLocation;

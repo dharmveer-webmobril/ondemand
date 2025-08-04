@@ -99,10 +99,6 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
       .required(t('validation.emptyPassword')),
   });
 
-  // const chatContext = useContext(ChatContext);
-  // if (!chatContext) return null;
-  // const { createUser } = chatContext;
-
 
   const [login, { isLoading }] = useLoginMutation();
 
@@ -191,8 +187,8 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           <View style={{ paddingVertical: SH(35), paddingHorizontal: SW(20) }}>
             <Formik
               initialValues={{
-                email: '',
-                password: '',
+                email: 'dharm@mailinator.com',
+                password: 'Qwerty@1',
               }}
               validationSchema={validationSchema}
               onSubmit={(values, { resetForm }) => {
@@ -295,6 +291,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
             </Formik>
           </View>
         </AuthBottomContainer>
+       
       </KeyboardAwareScrollView>
     </Container>
   );

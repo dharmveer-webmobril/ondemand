@@ -1,6 +1,13 @@
-import { showAppToast } from "../component";
-import i18next from "i18next";
-export const handleApiError = (error: any, defaultMessage = i18next.t('messages.somethingWentWrong')) => {
+import i18next from 'i18next';
+import { showAppToast } from '../component';
+
+/**
+ * Show error toast on API error (catch block)
+ */
+export const handleApiError = (
+  error: any,
+  defaultMessage: string = i18next.t('messages.somethingWentWrong')
+) => {
   console.error('API Error:', error);
 
   const message =
@@ -10,14 +17,19 @@ export const handleApiError = (error: any, defaultMessage = i18next.t('messages.
     defaultMessage;
 
   showAppToast({
-    title: 'Error',
+    title: i18next.t('messages.error'),
     message,
     type: 'error',
-    timeout: 3000,
   });
 };
 
-export const handleApiFailureResponse = (response: any, fallbackMessage = i18next.t('messages.somethingWentWrong')) => {
+/**
+ * Show error toast on failed API response
+ */
+export const handleApiFailureResponse = (
+  response: any,
+  fallbackMessage: string = i18next.t('messages.somethingWentWrong')
+) => {
   const message =
     response?.message ||
     response?.error?.message ||
@@ -25,18 +37,21 @@ export const handleApiFailureResponse = (response: any, fallbackMessage = i18nex
     fallbackMessage;
 
   showAppToast({
-    title: 'Error',
+    title: i18next.t('messages.error'),
     message,
     type: 'error',
-    timeout: 3000,
   });
 };
 
-export const handleSuccessToast = (message: string = i18next.t('messages.success')) => {
+/**
+ * Show success toast
+ */
+export const handleSuccessToast = (
+  message: string = i18next.t('messages.success')
+) => {
   showAppToast({
-    title: 'Success',
+    title: i18next.t('messages.success'),
     message,
     type: 'success',
-    timeout: 3000,
   });
 };

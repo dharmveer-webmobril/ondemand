@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StatusBar, StyleSheet, View } from 'react-native';
 import { AppHeader, AppText, BottomBar, Container, ImageLoader, LogoutPopup, ProfileList } from '../../component';
-import { Colors, Fonts, SF, SH, SW, useDisableGestures } from '../../utils';
+import { Colors, Fonts, navigate, SF, SH, SW, useDisableGestures } from '../../utils';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import imagePaths from '../../assets/images';
 import { useTranslation } from 'react-i18next';
 import RouteName from '../../navigation/RouteName';
+import { RootState } from '../../redux';
+import { useSelector } from 'react-redux';
 
 type ProfileProps = {};
 const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
@@ -26,6 +28,8 @@ const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
   const navigation = useNavigation<any>();
   const [logoutPopup, setLogoutPopup] = useState<any>(false);
 
+  const user = useSelector((state: RootState) => state.auth.user);
+
   const listData = [
     {
       name: t('profile.profileSetup'),
@@ -45,16 +49,10 @@ const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
       name: t('profile.myAddress'),
       id: 2,
       onClick: () => {
-        navigation.navigate(RouteName.MY_ADDRESS);
+        navigation.navigate(RouteName.MY_ADDRESS, { prevScreen: 'ghh' });
       },
     },
-    // {
-    //   name: t('profile.myCalendar'),
-    //   id: 3,
-    //   onClick: () => {
-    //     navigation.navigate(RouteName.MY_CALENDER);
-    //   },
-    // },
+    
     {
       name: t('profile.paymentHistory1'),
       id: 12,
@@ -95,20 +93,22 @@ const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
         <View style={styles.userInfoContainer}>
           <View style={styles.userConImage}>
             <ImageLoader
-              source={imagePaths.user_img}
+              source={user?.profilePic ? { uri: user?.profilePic } : imagePaths.user_img}
               resizeMode="cover"
               mainImageStyle={styles.userImage}
             />
           </View>
           <View style={styles.userDetailsContainer}>
-            <AppText style={styles.userName}>John Kevin</AppText>
-            <AppText style={styles.userPhone}>+91 1234567890</AppText>
+            <AppText style={styles.userName}>{user?.fullName || ''}</AppText>
+            <AppText style={styles.userPhone}>{user?.countryCode + '-' + user?.mobileNo || ''}</AppText>
           </View>
+          <Pressable onPress={()=>{navigate(RouteName.PROFILE_SETUP)}}>
           <ImageLoader
             source={imagePaths.edit_profile}
             resizeMode="cover"
             mainImageStyle={styles.editProfileIcon}
           />
+          </Pressable>
         </View>
       </View>
       <FlatList

@@ -1,80 +1,119 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import {
   View,
-  Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import { AppText, BottomBar, Container, Divider, ImageLoader, VectoreIcons } from '../../component';
-import { boxShadow, inboxData, Colors, Fonts, imagePaths, SF, SH, SW, inboxMenuData, useDisableGestures } from '../../utils';
+import {
+  AppText,
+  BottomBar,
+  Container,
+  ImageLoader,
+  VectoreIcons,
+} from '../../component';
+import {
+  Colors,
+  Fonts,
+  SF,
+  SH,
+  SW,
+  formatChatTimestamp,
+  imagePaths,
+  useDisableGestures,
+} from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
-import ChatDropdownMenu from './component/ChatDropdownMenu';
-
+import { ChatContext } from '../ChatProvider';
+import InboxDropdownMenu from './component/InboxDropdownMenu';
+import { useInboxUsers } from './component/useInbox';
 
 const { width } = Dimensions.get('window');
 
 const InboxScreen = () => {
-  const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
-  const navigation = useNavigation<any>();
+
 
   useDisableGestures();
+  const navigation = useNavigation<any>();
 
-  const closeMenu = () => setSelectedMenu(null);
+  const {userData, toggleBlockUser } = useContext(ChatContext)!;
+  const { inboxUsers, loading, } = useInboxUsers(userData?.userId || '');
 
 
-  let myDetails = {
-    name: 'dharm',
-    email: 'dharm@gmail.com',
-    image: 'image',
-    mobileNo: '9090909090',
-    onlineStatus: 'true',
-    fcmToken: 'player_id_me',
-    userId: '123234',
-    userType: 'user',
-    notificationStatus: '',
-    chat_room_id: 'no',
-    loginType: '',
-  }
-  let otherDetails = {
-    name: 'lokesh',
-    email: 'lokesh@gmail.com',
-    image: 'image',
-    mobileNo: '9090909090',
-    onlineStatus: 'true',
-    fcmToken: 'player_id_me',
-    userId: '456456',
-    userType: 'provider',
-    notificationStatus: '',
-    chat_room_id: 'no',
-    loginType: '',
+  const btnNavigateMessageScreen = (item: any) => {
+    let otheruser = {
+      "chat_room_id": item?.chat_room_id,
+      "email": item?.email,
+      "fcmToken": item?.fcmToken,
+      "image": item?.image,
+      "mobileNo": item?.mobileNo,
+      "name": item?.name,
+      "notificationStatus": item?.notificationStatus,
+      "onlineStatus": item?.onlineStatus,
+      "roleType": item?.roleType,
+      "userId": item?.userId
+    }
+    navigation.navigate(RouteName.MESSAGE_SCREEN, {
+      otherDetails: otheruser,
+      myDetails: userData,
+    });
   }
 
-  const renderItem = ({ item }: { item: typeof inboxData[0] }) => (
+  console.log('inboxUsers', inboxUsers);
+
+  const onPressMenuOption = (type: string, oUser: any = null) => {
+    console.log(type, 'typetype');
+    switch (type) {
+      case 'delete':
+        // Handle mute
+        break;
+      case 'report':
+        // Handle Report
+        break;
+      case 'block':
+        blockUnblockUser(oUser)
+        break;
+    }
+  }
+
+  const blockUnblockUser = (oUser: any) => {
+    userData?.userId && toggleBlockUser(userData?.userId, oUser.userId, !oUser?.isBlocked || false)
+    // userData?.userId && toggleBlockUser(oUser.userId,userData?.userId,  true)
+  }
+
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.itemRow}>
-      <TouchableOpacity style={styles.itemRow1} onPress={() => {
-        navigation.navigate(RouteName.MESSAGE_SCREEN, {
-          otherDetails: otherDetails,
-          myDetails: myDetails,
-        });
-      }}>
+      <TouchableOpacity
+        style={styles.itemRow1}
+        onPress={() => {
+          btnNavigateMessageScreen(item)
+        }}
+      >
         <View style={styles.avatarContainer}>
-          <ImageLoader source={{ uri: item.avatar }} mainImageStyle={styles.avatar} />
+          <ImageLoader
+            source={{ uri: item.image || imagePaths.defaultUser }}
+            mainImageStyle={styles.avatar}
+          />
         </View>
-        <View style={{ alignItems: "flex-start" }}>
+        <View style={styles.alignStart}>
           <AppText style={styles.name}>{item.name}</AppText>
-          <AppText style={styles.lastMessage}>{item.lastMessage}</AppText>
-          <AppText style={styles.time}><VectoreIcons icon='MaterialCommunityIcons' name="clock-outline" size={SF(12)} color="#787878" /> {item.time}</AppText>
+          <AppText style={styles.lastMessage}>{typeof item.lastMessage === 'string'
+            ? item.lastMessage
+            : item.lastMessage?.text || 'No messages yet'}</AppText>
+          {item.timestamp && <AppText style={styles.time}>
+            <VectoreIcons icon='MaterialCommunityIcons' name="clock-outline" size={SF(12)} color="#787878" /> {formatChatTimestamp(item.timestamp)}
+          </AppText>}
         </View>
       </TouchableOpacity>
+
       <View style={{ marginTop: SH(10) }}>
-        <TouchableOpacity onPress={() => setSelectedMenu(item.id)}>
-          <VectoreIcons icon='MaterialCommunityIcons' name="dots-vertical" size={SF(26)} color={Colors.themeColor} />
-        </TouchableOpacity>
-        {selectedMenu === item.id && <ChatDropdownMenu menuOptions={inboxMenuData} onClose={closeMenu} />}
+        <InboxDropdownMenu
+          isBlocked={item.isBlocked}
+          onSelect={(val) => {
+            onPressMenuOption(val, item)
+          }} />
       </View>
     </View>
   );
@@ -85,27 +124,20 @@ const InboxScreen = () => {
         <View style={styles.headerRow}>
           <AppText style={styles.header}>Chat</AppText>
         </View>
-
-        <FlatList
-          data={inboxData}
-          contentContainerStyle={{
-            paddingBottom: SH(90),
-          }}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          extraData={selectedMenu}
-        />
-        {selectedMenu && (
-          <TouchableOpacity
-            style={styles.overlay}
-            activeOpacity={1}
-            onPress={closeMenu}
+        {loading ? <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.themeColor} />
+        </View>
+          :
+          <FlatList
+            data={inboxUsers || []}
+            contentContainerStyle={{ paddingBottom: SH(90) }}
+            keyExtractor={(item) => item?.userId + 'inbox'}
+            renderItem={renderItem}
+            ListEmptyComponent={<AppText style={styles.header}>No messages yet</AppText>}
           />
-        )}
+        }
       </View>
-      <BottomBar
-        activeTab={RouteName.INBOX_SCREEN}
-      />
+      <BottomBar activeTab={RouteName.INBOX_SCREEN} />
     </Container>
   );
 };
@@ -125,16 +157,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: SF(16),
   },
-  searchIcon: {
-    height: SF(30),
-    width: SF(30),
-  },
   header: {
     fontSize: SF(16),
     textAlign: 'center',
     fontFamily: Fonts.SEMI_BOLD,
     marginVertical: SH(15),
-    marginLeft: SW(18)
+    marginLeft: SW(18),
   },
   itemRow: {
     flexDirection: 'row',
@@ -142,12 +170,11 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     position: 'relative',
     padding: 14,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   itemRow1: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
   },
   avatarContainer: {
     height: SF(60),
@@ -160,9 +187,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  messageInfo: {
-    flex: 1,
-  },
   name: {
     fontSize: SF(14),
     fontFamily: Fonts.MEDIUM,
@@ -174,41 +198,10 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.REGULAR,
     marginTop: 2,
   },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
   time: {
     fontSize: SF(10),
     color: '#787878',
-    marginTop: 2
-  },
-  dropdown: {
-    position: 'absolute',
-    top: SH(25),
-    right: SW(5),
-    backgroundColor: '#fff',
-    borderRadius: SF(6),
-    paddingVertical: 6,
-    width: SW(110),
-    zIndex: 999,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SF(20),
-    paddingVertical: SF(12),
-  },
-  menuIcon: {
-    height: SF(10),
-    width: SF(10),
-  },
-  menuText: {
-    fontSize: SF(8),
-    marginLeft: SF(8),
-    color: '#000',
-    fontFamily: Fonts.Chivo_Medium,
+    marginTop: 2,
   },
   overlay: {
     position: 'absolute',
@@ -217,6 +210,13 @@ const styles = StyleSheet.create({
     width,
     height: '100%',
     zIndex: 10,
-    backgroundColor: ''
+  },
+  alignStart: {
+    alignItems: 'flex-start',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
