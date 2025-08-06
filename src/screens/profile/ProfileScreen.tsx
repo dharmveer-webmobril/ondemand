@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, StatusBar, StyleSheet, View } from 'react-native';
-import { AppHeader, AppText, BottomBar, Container, ImageLoader, LogoutPopup, ProfileList } from '../../component';
+import { FlatList, Image, Pressable, StatusBar, StyleSheet, View } from 'react-native';
+import { AppHeader, AppText, BottomBar, Container, LogoutPopup, ProfileList } from '../../component';
 import { Colors, Fonts, navigate, SF, SH, SW, useDisableGestures } from '../../utils';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import imagePaths from '../../assets/images';
@@ -52,7 +52,7 @@ const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
         navigation.navigate(RouteName.MY_ADDRESS, { prevScreen: 'ghh' });
       },
     },
-    
+
     {
       name: t('profile.paymentHistory1'),
       id: 12,
@@ -92,22 +92,22 @@ const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
       <View style={styles.mainContainer}>
         <View style={styles.userInfoContainer}>
           <View style={styles.userConImage}>
-            <ImageLoader
-              source={user?.profilePic ? { uri: user?.profilePic } : imagePaths.user_img}
+            <Image
+              source={user?.profilePic ? { uri: user?.profilePic } : { uri: imagePaths.defaultUser }}
               resizeMode="cover"
-              mainImageStyle={styles.userImage}
+              style={styles.userImage}
             />
           </View>
           <View style={styles.userDetailsContainer}>
             <AppText style={styles.userName}>{user?.fullName || ''}</AppText>
             <AppText style={styles.userPhone}>{user?.countryCode + '-' + user?.mobileNo || ''}</AppText>
           </View>
-          <Pressable onPress={()=>{navigate(RouteName.PROFILE_SETUP)}}>
-          <ImageLoader
-            source={imagePaths.edit_profile}
-            resizeMode="cover"
-            mainImageStyle={styles.editProfileIcon}
-          />
+          <Pressable onPress={() => { navigate(RouteName.PROFILE_SETUP) }}>
+            <Image
+              source={imagePaths.edit_profile}
+              resizeMode="cover"
+              style={styles.editProfileIcon}
+            />
           </Pressable>
         </View>
       </View>

@@ -30,6 +30,8 @@ const baseQueryWithAuth: typeof rawBaseQuery = async (args, api, extraOptions) =
     result?.data?.message ??
     result?.error?.data?.message ??
     "Something went wrong. Please try again later.";
+  console.log('isLoginEndpointisLoginEndpoint', isLoginEndpoint);
+  console.log('argsargsargs', args);
 
   // Handle 401 (Unauthorized) or 403 (Forbidden), but NOT for login API
   if (!isLoginEndpoint && (responseCode === 401 || responseCode === 403)) {
@@ -42,6 +44,6 @@ const baseQueryWithAuth: typeof rawBaseQuery = async (args, api, extraOptions) =
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['ServiceList','AdressTag'],
+  tagTypes: ['ServiceList', 'AdressTag'],
   endpoints: () => ({}), // endpoints injected later
 });

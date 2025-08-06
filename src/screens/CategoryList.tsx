@@ -7,7 +7,7 @@ import { useGetCategoriesQuery } from '../redux';
 import { Skeleton } from '../component/Skeleton';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
- 
+
 const RenderCategory = ({ item }: { item: any }) => {
   console.log('item?.label', item?.label);
   return (
@@ -41,6 +41,7 @@ const CategoryList: React.FC = () => {
   const { title } = route.params;
   const { t } = useTranslation();
   const { data: categoryData, isFetching, error, refetch } = useGetCategoriesQuery();
+  const [hasFetched, setHasFetched] = useState(false); // Track if API has been called at least once
 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -67,7 +68,8 @@ const CategoryList: React.FC = () => {
   }, [categoryData, searchTerm]);
 
   useEffect(() => {
-    refetch();
+    refetch(); // Trigger the initial API call
+    setHasFetched(true); // Mark as fetched after the first call
     return () => {
       debouncedSearch.cancel(); // Cleanup debounce on unmount
     };
@@ -96,7 +98,7 @@ const CategoryList: React.FC = () => {
           value={searchTerm}
         />
       </View>
-      {error ? (
+      {hasFetched && !isFetching && error ? (
         <View style={styles.errorContainer}>
           <AppText style={styles.errorText}>
             {t('category.error', { defaultValue: 'Failed to load categories. Tap to retry.' })}

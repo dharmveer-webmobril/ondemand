@@ -1,44 +1,75 @@
 import { StyleSheet } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container } from '../component';
-import { checkLocationPermission, Colors, Fonts, SF, useProfileUpdate, } from '../utils';
+import { checkLocationPermission, Colors, ENDPOINTS, Fonts, SF, StorageProvider, useProfileUpdate } from '../utils';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-// import ReactNativeBiometrics, { BiometryTypes } from "react-native-biometrics";
-// import * as Keychain from 'react-native-keychain';
-// import FastImage from 'react-native-fast-image';
 import LottieView from 'lottie-react-native';
-import { useSelector } from 'react-redux';
-import { RootState, useGetUserProfileQuery } from '../redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, setToken } from '../redux';
+import RouteName from '../navigation/RouteName';
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-
   const token = useSelector((state: RootState) => state.auth.token);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  useProfileUpdate();
 
-  const { data: profileData, isSuccess, isError } = useGetUserProfileQuery(undefined, {
-    skip: !token, // fetch only if token exists
-  });
-  useProfileUpdate()
-  console.log('profileDataprofileData', profileData?.data?.user);
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (token) {
+        setLoading(true);
+        try {
+          const response = await fetch(process.env.API_URL + ENDPOINTS.GET_PROFILE, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setProfileData(data);
+            setError(false);
+          } else {
+            throw new Error(data.message || 'Failed to fetch profile');
+          }
+        } catch (err) {
+          setError(true);
+          console.error('Profile fetch error:', err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+        setError(false); // No token, no error, just proceed to login
+      }
+    };
+
+    fetchUserProfile();
+  }, [token]);
+  const dispatch = useDispatch()
 
   const handleAnimationFinish = async () => {
     await checkLocationPermission();
+    if (loading) return; // Wait for fetch to complete
+
     if (token) {
-      if (isSuccess && profileData) {
+      if (!error && profileData) {
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-      } else if (isError) {
-        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      } else if (error) {
+        dispatch(setToken({ token: '' }));
+        StorageProvider.removeItem('token');
+        navigation.reset({ index: 0, routes: [{ name: RouteName.LOGIN }] });
       }
-
     } else {
-      // no token, go to login
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      dispatch(setToken({ token: '' }));
+      StorageProvider.removeItem('token');
+      navigation.reset({ index: 0, routes: [{ name: RouteName.LOGIN }] });
     }
-
   };
-
-
 
   return (
     <Container isAuth={true} statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
@@ -56,7 +87,6 @@ const SplashScreen: React.FC = () => {
           style={styles.lottieView}
           onAnimationFinish={handleAnimationFinish}
         />
-
       </LinearGradient>
     </Container>
   );

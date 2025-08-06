@@ -44,7 +44,8 @@ export const english = {
     "AddNewAddress": "Add New Address",
     "save": "Save",
     "newPassword": "New Password",
-    "update": "Update"
+    "update": "Update",
+    "search": "Search",
   },
   "validation": {
     "fullNameMinLength": "Full name must be at least 3 characters.",
@@ -179,6 +180,12 @@ export const english = {
       "validZipCode": "Please enter a valid zip code",
       "addressTypeEmpty": "Address type is required",
       "stateEmpty": "State type is required"
+    },
+    "addressTypes": {
+      "other": "Other",
+      "home": "Home",
+      "office": "Office",
+      "apartment": "Apartment"
     }
   },
   "imagePickerModal": {
@@ -205,5 +212,17 @@ export const english = {
     "error": "Failed to load categories. Tap to retry.",
     "retry": "Retry",
     "empty": "Category is empty"
+  },
+  "home": {
+    "categoryViewAll": "View All",
+    "browseCategories": "Browse all categories",
+    "allCategories": "All Categories",
+    "serviceViewAll": "View All",
+    "nearbyServices": "Service Provider Near You"
+  },
+  "selectAddress": {
+    "title": "Select Address",
+    "addNewAdd": "Add New Address",
+    "confirm": "Confirm"
   }
 }

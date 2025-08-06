@@ -1,27 +1,26 @@
 import React from 'react';
-import { StyleSheet, View, FlatList, StatusBar } from 'react-native';
-import { categoryData, Colors, SF, SH, SW, useDisableGestures } from '../../utils';
+import { StyleSheet, View, StatusBar } from 'react-native';
+import {  Colors, SF, SH, SW, useDisableGestures } from '../../utils';
 import {
   BottomBar,
   Container,
   HomeHeader,
   HomeNearServiceItem,
   HomeSearchBar,
-  HomeSubContainerHeader,
   HomeSwiper,
   Spacing,
 } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import HomeCategory from '../../component/HomeComp/HomeCategoryItem';
-import useLocation from '../../utils/hooks/useLocation';
-const HomeScreen = () => {
-  const { location, error,isLocationEnabled } = useLocation();
-  console.log('locationlocation', location,isLocationEnabled);
-  console.log('errorerror', error);
+// import useLocation from '../../utils/hooks/useLocation';
 
-  const navigation = useNavigation<any>();
+const HomeScreen = () => {
+  // const { location, error, isLocationEnabled } = useLocation();
+  // console.log('locationlocation', location, isLocationEnabled);
+  // console.log('errorerror', error);
+
   useDisableGestures();
   useFocusEffect(
     React.useCallback(() => {
@@ -34,7 +33,6 @@ const HomeScreen = () => {
     }, []),
   );
 
-
   return (
     <Container isAuth statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
       <HomeHeader />
@@ -44,56 +42,27 @@ const HomeScreen = () => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.mHorizontal}>
-            <HomeSearchBar showFilterIcon={true} />
+          <HomeSearchBar showFilterIcon={true} />
           </View>
           <Spacing space={SF(10)} />
           {/* Home swiper ========================= */}
-          <HomeSwiper/>
+          <HomeSwiper />
           <Spacing space={SF(40)} />
           {/* Category Section========================= */}
-          <HomeSubContainerHeader
-            rightText="View All"
-            marginHori={'7%'}
-            leftText="Browse all categories"
-            onClick={() =>
-              navigation.navigate(RouteName.CATEGORY_LIST, {
-                title: 'All Categories',
-                type: 'category',
-              })
-            }
-          />
-
-          <View style={styles.flatListWrapper}>
-            <HomeCategory categoryData={categoryData} isLoading={false} />
-          </View>
-          {/* Near By Services Section ==========================*/}
-          <HomeSubContainerHeader
-            rightText="View All"
-            leftText="Service Provider Near You"
-            marginHori={'7%'}
-            onClick={() =>
-              navigation.navigate(RouteName.SERVICE_LIST)
-            }
-          />
-
-          <FlatList
-            horizontal
-            contentContainerStyle={styles.flatListContainer}
-            data={categoryData}
-            keyExtractor={(item, index) => item.name + 'near_by' + index}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => <HomeNearServiceItem {...item} />}
-          />
+          {/* <View style={styles.flatListWrapper}> */}
+          <HomeCategory  />
+          <Spacing space={SF(20)} />
+          {/* Near By Services Section ========================== */}
+          <HomeNearServiceItem />
         </View>
       </KeyboardAwareScrollView>
-      <BottomBar
-        activeTab={RouteName.HOME}
-      />
+      <BottomBar activeTab={RouteName.HOME} />
     </Container>
   );
 };
 
 export default HomeScreen;
+
 const commonSpacing = {
   marginTop: SF(17),
   marginBottom: SF(30),
@@ -107,7 +76,7 @@ const styles = StyleSheet.create({
     paddingVertical: SH(17),
   },
   mHorizontal: {
-    paddingHorizontal: '7%',
+    paddingHorizontal: '6.5%',
   },
   swiperContainer: {
     height: SF(180),
@@ -128,5 +97,4 @@ const styles = StyleSheet.create({
     marginHorizontal: SW(25),
     ...commonSpacing,
   },
-
 });

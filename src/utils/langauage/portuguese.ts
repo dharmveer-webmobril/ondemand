@@ -44,7 +44,8 @@ export const portuguese = {
     "AddNewAddress": "Adicionar Novo Endereço",
     "save": "Salvar",
     "newPassword": "Nova Senha",
-    "update": "Atualizar"
+    "update": "Atualizar",
+    "search": "Pesquisa",
   },
   "validation": {
     "fullNameMinLength": "O nome completo deve ter pelo menos 3 caracteres.",
@@ -179,6 +180,12 @@ export const portuguese = {
       "validZipCode": "Por favor, insira um código postal válido",
       "addressTypeEmpty": "O tipo de endereço é obrigatório",
       "stateEmpty": "O estado é obrigatório"
+    },
+    "addressTypes": {
+      "other": "Outro",
+      "home": "Casa",
+      "office": "Escritório",
+      "apartment": "Apartamento"
     }
   },
   "imagePickerModal": {
@@ -205,5 +212,17 @@ export const portuguese = {
     "error": "Falha ao carregar categorias. Toque para tentar novamente.",
     "retry": "Tentar novamente",
     "empty": "A categoria está vazia"
+  },
+  "home": {
+    "categoryViewAll": "Ver tudo",
+    "browseCategories": "Explorar todas as categorias",
+    "allCategories": "Todas as categorias",
+    "serviceViewAll": "Ver tudo",
+    "nearbyServices": "Fornecedores de serviços próximos"
+  },
+  "selectAddress": {
+    "title": "Selecionar Endereço",
+    "addNewAdd": "Adicionar Novo Endereço",
+    "confirm": "Confirmar"
   }
 };

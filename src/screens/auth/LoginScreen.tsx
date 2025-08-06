@@ -128,9 +128,9 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           StorageProvider.saveItem('token', token);
           resetForm()
 
-          // setTimeout(() => {
-          navigation.navigate(RouteName.HOME);
-          // }, 200);
+          setTimeout(() => {
+            navigation.navigate(RouteName.HOME);
+          }, 300);
           // handleSuccessToast(response.message || 'Login successful');
 
         } else if (response.data.otp) {
@@ -267,7 +267,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
                         icon={button.icon}
                         width={SF(40)}
                         iconSize={index === 2 ? SF(31) : SF(26)}
-                        onPress={()=>{
+                        onPress={() => {
                           btnSignup()
                         }}
                       />
@@ -291,7 +291,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
             </Formik>
           </View>
         </AuthBottomContainer>
-       
+
       </KeyboardAwareScrollView>
     </Container>
   );

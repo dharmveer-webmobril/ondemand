@@ -17,4 +17,5 @@ export const ENDPOINTS = {
   UPDATE_USER:`/auth/update-user-profile`,
   DELETE_ADDRESS:`/auth/delete-user-address`,
   UPDATE_ADDRESS:`/auth/update-user-address`,
+  GET_PROVIDER_NEAR_ME:`/auth/provider-near-by-me`,
 };

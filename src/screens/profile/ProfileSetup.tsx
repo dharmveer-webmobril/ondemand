@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Image,
   Keyboard,
   StyleSheet,
   TouchableOpacity,
@@ -14,7 +15,6 @@ import {
   AppText,
   ImagePickerModal,
   CountryPickerComp,
-  ImageLoader,
 } from '../../component';
 import { Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, profileSetupValidationSchema, regex, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
@@ -50,9 +50,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
   };
 
   useEffect(() => {
-    console.log("userData.profilePic.split('/').pop()", userData.profilePic.split('/').pop());
     if (userData?.profilePic && !profileImage) {
-      setProfileImage({ path: userData.profilePic, name: userData.profilePic.split('/').pop() || 'profile.jpg', mime: 'image/jpeg' });
+      setProfileImage({ path: userData.profilePic, name: userData?.profilePic?.split('/')?.pop() || 'profile.jpg', mime: 'image/jpeg' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userData?.profilePic]);
@@ -92,7 +91,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
   };
 
   const handleImageSelected = (img: ImageType) => {
-    
+
     setProfileImage(img);
     setImagePickerModal(false);
   };
@@ -105,7 +104,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
           navigation.goBack();
         }}
         Iconname="arrowleft"
-        rightOnPress={() => {}}
+        rightOnPress={() => { }}
         headerStyle={styles.header}
       />
       <KeyboardAwareScrollView
@@ -116,10 +115,10 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
         <View style={styles.container}>
           <View style={styles.profileContainer}>
             <View style={styles.userConImage}>
-              <ImageLoader
-                source={profileImage ? { uri: profileImage.path } : imagePaths.user_img}
+              <Image
+                source={profileImage ? { uri: profileImage.path } : { uri: imagePaths.defaultUser }}
                 resizeMode="cover"
-                mainImageStyle={styles.userImage}
+                style={styles.userImage}
               />
               <TouchableOpacity style={styles.editIcon} onPress={() => setImagePickerModal(true)}>
                 <VectorIcon
@@ -194,7 +193,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                     closeCountryPicker={() => setIsPickerOpen(false)}
                     openCountryPicker={() => setIsPickerOpen(true)}
                     inputText={''}
-                    onInputChange={() => {}}
+                    onInputChange={() => { }}
                     countryCode={values.countryCode}
                     setCountryCode={(code: string) => setFieldValue('countryCode', code)}
                   />
@@ -209,7 +208,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                     color={Colors.textAppColor}
                     textColor={Colors.textAppColor}
                   />
-                 
+
                   <Spacing space={SH(20)} />
                 </View>
                 <Buttons

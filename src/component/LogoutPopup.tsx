@@ -5,7 +5,7 @@ import AuthBottomContainer from './AuthBottomContainer';
 import Buttons from './Button';
 import { useDispatch } from 'react-redux';
 import { api, logout } from '../redux';
-import { navigate } from '../utils/NavigationService';
+import {  resetNavigation } from '../utils/NavigationService';
 import RouteName from '../navigation/RouteName';
 import AppText from './AppText';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,13 @@ const LogoutPopup: React.FC<LogoutPopupProps> = ({
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(api.util.resetApiState()); // Reset API state
+    closeModal();
+    // Reset navigation stack to ensure previous screens are unmounted
+    resetNavigation(RouteName.LOGIN); // Use resetNavigation instead of navigate
+  };
   return (
     <Modal
       animationType="slide"
@@ -43,10 +49,7 @@ const LogoutPopup: React.FC<LogoutPopupProps> = ({
                   textColor={Colors.themeColor}
                   title={t('logoutPopup.logoutButton')}
                   onPress={() => {
-                    dispatch(logout());
-                    closeModal();
-                    navigate(RouteName.LOGIN);
-                    dispatch(api.util.resetApiState());
+                    handleLogout();
                   }}
                 />
                 <Buttons

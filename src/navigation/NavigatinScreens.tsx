@@ -41,7 +41,7 @@ import {
   ReportShop,
   SelectAddress,
   ServiceDetails,
-  ServiceList,
+  ServiceProviderList,
   ShopDetails,
   ShopList,
   SplashScreen,
@@ -84,7 +84,7 @@ export const NavigatinScreens = () => {
         <Stack.Screen name={RouteName.NOTIFICATION} component={NotificationScreen} />
 
         <Stack.Screen name={RouteName.FORGOT_PASS} component={ForgotScreen} />
-        <Stack.Screen name={RouteName.SERVICE_LIST} component={ServiceList} />
+        <Stack.Screen name={RouteName.SERVICE_PROVIDER_LIST} component={ServiceProviderList} />
         <Stack.Screen name={RouteName.SERVICE_DETAILS} component={ServiceDetails} />
         <Stack.Screen name={RouteName.OTP_VERIFY} component={OtpVerifyScreen} />
         <Stack.Screen name={RouteName.MY_CALENDER} component={MyCalender} />

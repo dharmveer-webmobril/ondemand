@@ -1,13 +1,21 @@
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { boxShadowlight, Colors, Fonts, SF, SW } from '../../utils';
 import Swiper from 'react-native-swiper';
 import ImageLoader from '../ImageLoader';
 import { useGetHomeBannerQuery } from '../../redux';
 import AppText from '../AppText'; // Assuming a custom text component for error
+import { useTranslation } from 'react-i18next';
 
 const HomeSwiper: React.FC = () => {
-  const { data, isLoading, error } = useGetHomeBannerQuery();
+  const { data, isLoading, error, refetch } = useGetHomeBannerQuery();
+  const { t } = useTranslation();
+  const [hasFetched, setHasFetched] = useState(false); // Track if API has been called at least once
+
+  useEffect(() => {
+    refetch(); // Trigger the initial API call
+    setHasFetched(true); // Mark as fetched after the first call
+  }, [refetch]);
 
   const bannerData = useMemo(() => {
     if (data?.success && data.data?.length > 0) {
@@ -32,11 +40,11 @@ const HomeSwiper: React.FC = () => {
     );
   }
 
-  if (error || !data?.success) {
+  if (hasFetched && !isLoading && (error || !data?.success)) {
     return (
       <View style={styles.errorContainer}>
         <AppText style={styles.errorText}>
-          {data?.message || 'Failed to load banners. Please try again later.'}
+          {t('homeSwiper.error', { defaultValue: data?.message || 'Failed to load banners. Please try again later.' })}
         </AppText>
       </View>
     );
@@ -45,7 +53,7 @@ const HomeSwiper: React.FC = () => {
   if (bannerData.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <AppText style={styles.emptyText}>Banner is empty</AppText>
+        <AppText style={styles.emptyText}>{t('homeSwiper.empty', { defaultValue: 'Banner is empty' })}</AppText>
       </View>
     );
   }

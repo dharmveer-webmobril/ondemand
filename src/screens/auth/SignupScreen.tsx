@@ -129,7 +129,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
         deviceId: device_id,
         userFcmToken: fcmToken,
         providerFcmToken: null,
-        roleType: 'provider',
+        roleType: 'user',
       };
 
       const response = await register(userData).unwrap();

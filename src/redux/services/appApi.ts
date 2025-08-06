@@ -76,6 +76,12 @@ export const appApi = api.injectEndpoints({
       },
       invalidatesTags: [{ type: 'AdressTag' }],
     }),
+    getHomeBanner: builder.query<any, void>({
+      query: () => ({
+        url: ENDPOINTS.GET_BANNER,
+        method: "GET",
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -88,4 +94,5 @@ export const {
   useGetAddressQuery,
   useDeleteAddressMutation,
   useUpdateAddressMutation,
+  useGetHomeBannerQuery
 } = appApi;

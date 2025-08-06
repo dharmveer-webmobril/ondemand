@@ -11,6 +11,7 @@ import { Colors, Fonts, navigate, SF } from '../../utils';
 import imagePaths from '../../assets/images';
 import InputField from '../TextInputCustom';
 import RouteName from '../../navigation/RouteName';
+import { useTranslation } from 'react-i18next';
 
 interface HomeSearchBarProps {
   onTextchange?: (text: string) => void;
@@ -25,11 +26,12 @@ const HomeSearchBar: React.FC<HomeSearchBarProps> = ({
   onTextchange,
   value
 }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.searchContainer}>
       <View style={[styles.inputWrapper, showFilterIcon ? styles.inputWrapperWithFilter : styles.inputWrapperFull]}>
         <InputField
-          placeholder={'Search'}
+          placeholder={t('placeholders.search')}
           inputContainer={{ backgroundColor: Colors.searchBarBG, borderWidth: 0, height: SF(44) }}
           containerStyle={styles.inputContainer}
           inputStyle={styles.inputStyle}

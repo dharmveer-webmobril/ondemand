@@ -1,36 +1,32 @@
+import React, { memo, useMemo } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
   FlatList,
 } from 'react-native';
-import React, { memo, useEffect, useMemo } from 'react';
-import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, navigate, SF, SH, SW } from '../../utils';
 import ImageLoader from '../ImageLoader';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import Spacing from '../Spacing';
 import AppText from '../AppText';
-import { useGetCategoriesQuery } from '../../redux';
 import { Skeleton } from '../Skeleton';
 import { useTranslation } from 'react-i18next';
-
-interface HomeCategoryItemProps {
-  name: string;
-  image: any;
-  id: string | number;
-}
-
-interface HomeCategoryProps {
-  categoryData: HomeCategoryItemProps[];
-  isLoading: boolean;
-}
+import { useGetCategoriesQuery } from '../../redux';
+import HomeSubContainerHeader from './HomeSubContainerHeader';
+import Buttons from '../Button';
 
 const SeparatorComponent = () => <Spacing horizontal space={SF(12)} />;
 
-const HomeCategoryItem: React.FC<HomeCategoryItemProps> = memo(({ name, image }) => {
-  console.log('imageimageimage', image);
+const SkeletonHomeCategoryItem = memo(() => (
+  <View style={styles.skeletonContainer}>
+    <Skeleton style={styles.skeletonImage} />
+    <Skeleton style={styles.skeletonText} />
+  </View>
+));
 
+const HomeCategoryItem = memo(({ name, image, }:any) => {
   const navigation = useNavigation<any>();
   return (
     <Pressable
@@ -54,68 +50,96 @@ const HomeCategoryItem: React.FC<HomeCategoryItemProps> = memo(({ name, image })
   );
 });
 
-const SkeletonHomeCategoryItem: React.FC = memo(() => {
-  return (
-    <View style={styles.skeletonContainer}>
-      <Skeleton style={styles.skeletonImage} />
-      <Skeleton style={styles.skeletonText} />
-    </View>
-  );
-});
+const HomeCategory = memo(() => {
+  const {
+    data: categoryData,
+    isLoading,
+    isError,
+    refetch: refetchCategory,
+  } = useGetCategoriesQuery();
 
-const HomeCategory: React.FC<HomeCategoryProps> = memo(() => {
-  const { data: categoryData, isLoading: isCategoryLoading, error: categoryError, refetch: refetchCategory } = useGetCategoriesQuery();
   const { t } = useTranslation();
 
-  const memoizedCategoryData = useMemo(() => categoryData || [], [categoryData]);
-  useEffect(() => {
-    refetchCategory();
-  }, [refetchCategory]);
+  const showSkeleton = isLoading;
+  const showError = !isLoading && isError;
+  const isEmpty = !isLoading && !isError && categoryData?.length === 0;
 
-  const renderItem = ({ item }: { item: any }) => {
-    console.log('iteemmm', item);
-    return <HomeCategoryItem id={item._id} name={item.label} image={{ uri: item.categoryImage }} />;
-  };
-  const renderSkeleton = () => <SkeletonHomeCategoryItem />;
+  const displayData = useMemo(
+    () => (showSkeleton ? Array(6).fill(null) : categoryData),
+    [showSkeleton, categoryData]
+  );
 
-  // Determine the display state
-  if (categoryError) {
-    return (
-      <View style={styles.errorContainer}>
-        <AppText style={styles.errorText}>
-          {t('homeCategory.error', { defaultValue: 'Failed to load categories. Tap to retry.' })}
-        </AppText>
-        <Pressable onPress={refetchCategory} style={styles.retryButton}>
-          <AppText style={styles.retryText}>{t('homeCategory.retry', { defaultValue: 'Retry' })}</AppText>
-        </Pressable>
-      </View>
+  const renderItem = ({ item, index }:any) =>
+    showSkeleton ? (
+      <SkeletonHomeCategoryItem key={`skeleton-${index}`} />
+    ) : (
+      <HomeCategoryItem
+        key={`category-${item?._id ?? index}`}
+        id={item._id}
+        name={item.label}
+        image={{ uri: item.categoryImage }}
+      />
     );
-  }
-
-  if (memoizedCategoryData.length === 0 && !isCategoryLoading) {
-    return (
-      <View style={styles.emptyContainer}>
-        <AppText style={styles.emptyText}>{t('homeCategory.empty', { defaultValue: 'Category is empty' })}</AppText>
-      </View>
-    );
-  }
 
   return (
     <>
-      <FlatList
-        horizontal
-        data={isCategoryLoading ? Array(6).fill({}) : memoizedCategoryData}
-        ItemSeparatorComponent={SeparatorComponent}
-        keyExtractor={(item, index) => (isCategoryLoading ? `skeleton-${index}` : `${item.name}-cat-${index}`)}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (isCategoryLoading ? renderSkeleton() : renderItem({ item }))}
-        contentContainerStyle={styles.flatListContainer}
+      <HomeSubContainerHeader
+        rightText={t('home.categoryViewAll')}
+        marginHori={'7%'}
+        leftText={t('home.browseCategories')}
+        onClick={() =>
+          navigate(RouteName.CATEGORY_LIST, {
+            title: t('home.allCategories'),
+            type: 'category',
+          })
+        }
       />
+
+      <View style={styles.categoryContainer}>
+        <FlatList
+          horizontal
+          data={displayData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `category-${item?._id ?? index}`}
+          contentContainerStyle={[
+            styles.flatListContainer,
+            (showError || isEmpty) && styles.fullWidth,
+          ]}
+          ItemSeparatorComponent={SeparatorComponent}
+          showsHorizontalScrollIndicator={false}
+          ListEmptyComponent={
+            isEmpty ? (
+              <View style={styles.emptyContainer}>
+                <AppText style={styles.emptyText}>
+                  {t('homeCategory.empty', { defaultValue: 'Category is empty' })}
+                </AppText>
+              </View>
+            ) : null
+          }
+          ListFooterComponent={
+            showError ? (
+              <View style={styles.errorContainer}>
+                <AppText style={styles.errorText}>
+                  {t('homeCategory.error', {
+                    defaultValue: 'Failed to load categories. Tap to retry.',
+                  })}
+                </AppText>
+                <Buttons
+                  buttonStyle={styles.retryButton}
+                  buttonTextStyle={styles.viewalltext}
+                  title={t('homeCategory.retry', { defaultValue: 'Retry' })}
+                  onPress={refetchCategory}
+                />
+              </View>
+            ) : null
+          }
+        />
+      </View>
     </>
   );
 });
 
-export default React.memo(HomeCategory);
+export default HomeCategory;
 
 const styles = StyleSheet.create({
   container: {
@@ -142,15 +166,16 @@ const styles = StyleSheet.create({
   },
   skeletonContainer: {
     alignItems: 'center',
+    marginVertical: SH(5),
   },
   skeletonImage: {
-    height: SF(56),
-    width: SF(56),
-    borderRadius: SF(56) / 2,
+    height: SF(58),
+    width: SF(58),
+    borderRadius: SF(58) / 2,
     backgroundColor: '#E0E0E0',
   },
   skeletonText: {
-    height: SF(14),
+    height: SF(12),
     width: SW(80),
     marginTop: 5,
     backgroundColor: '#E0E0E0',
@@ -160,23 +185,28 @@ const styles = StyleSheet.create({
     padding: SW(10),
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    marginLeft: '7%',
   },
   errorText: {
     color: Colors.red,
     fontFamily: Fonts.MEDIUM,
     fontSize: SF(14),
     textAlign: 'center',
+    width: '100%',
   },
   retryButton: {
     padding: SW(10),
     backgroundColor: Colors.themeColor,
     borderRadius: SF(8),
     marginTop: SH(10),
+    width: '40%',
+    height: SH(40),
   },
-  retryText: {
-    color: Colors.textWhite,
+  viewalltext: {
     fontFamily: Fonts.MEDIUM,
     fontSize: SF(14),
+    color: Colors.textWhite,
   },
   mainImage: {
     width: '100%',
@@ -186,12 +216,21 @@ const styles = StyleSheet.create({
     padding: SW(10),
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: SF(70), // Minimum height to match category item height
+    minHeight: SF(70),
+    width: '100%',
   },
   emptyText: {
     color: Colors.textAppColor,
     fontFamily: Fonts.MEDIUM,
     fontSize: SF(14),
     textAlign: 'center',
+    width: '100%',
+  },
+  categoryContainer: {
+    marginHorizontal: '6.5%',
+    marginTop: 20,
+  },
+  fullWidth: {
+    width: '100%',
   },
 });

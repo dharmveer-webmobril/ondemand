@@ -84,18 +84,7 @@ export const authApi = api.injectEndpoints({
         body: data,
       }),
     }),
-    getTermAndCond: builder.query<any, void>({
-      query: () => ({
-        url: ENDPOINTS.GET_TERMS_CONDITIONS,
-        method: "GET",
-      }),
-    }),
-    getHomeBanner: builder.query<any, void>({
-      query: () => ({
-        url: ENDPOINTS.GET_BANNER,
-        method: "GET",
-      }),
-    }),
+   
   }),
   overrideExisting: false,
 });
@@ -109,8 +98,6 @@ export const {
   useResetPasswordMutation,
   useLogoutMutation,
   useGetUserProfileQuery,
-  useGetTermAndCondQuery,
   useUpdateProfileMutation,
   useChangePassordMutation,
-  useGetHomeBannerQuery,
 } = authApi;

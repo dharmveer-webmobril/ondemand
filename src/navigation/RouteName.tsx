@@ -18,7 +18,7 @@ const RouteName = {
     RATING_REVIEW:'RatingRiview',
     NOTIFICATION_ALERT:'NotificationAndAlert',
     LANG_CURRENCY:'LanguageAndCurrency',
-    SERVICE_LIST:'ServiceList',
+    SERVICE_PROVIDER_LIST:'ServiceProviderList',
     SERVICE_DETAILS:'ServiceDetails',
     SHOP_LIST:'ShopList',
     SHOP_DETAILS:'ShopDetails',

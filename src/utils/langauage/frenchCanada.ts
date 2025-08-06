@@ -44,7 +44,8 @@ export const frenchCanada ={
     "AddNewAddress": "Ajouter une nouvelle adresse",
     "save": "Sauvegarder",
     "newPassword": "Nouveau mot de passe",
-    "update": "Mettre à jour"
+    "update": "Mettre à jour",
+    "search": "Rechercher",
   },
   "validation": {
     "fullNameMinLength": "Le nom complet doit comporter au moins 3 caractères.",
@@ -179,6 +180,12 @@ export const frenchCanada ={
       "validZipCode": "Veuillez entrer un code postal valide",
       "addressTypeEmpty": "Le type d’adresse est requis",
       "stateEmpty": "La province est requise"
+    },
+    "addressTypes": {
+      "other": "Autre",
+      "home": "Domicile",
+      "office": "Bureau",
+      "apartment": "Appartement"
     }
   },
   "imagePickerModal": {
@@ -205,5 +212,17 @@ export const frenchCanada ={
     "error": "Échec du chargement des catégories. Touchez pour réessayer.",
     "retry": "Réessayer",
     "empty": "La catégorie est vide"
+  },
+  "home": {
+    "categoryViewAll": "Voir tout",
+    "browseCategories": "Parcourir toutes les catégories",
+    "allCategories": "Toutes les catégories",
+    "serviceViewAll": "Voir tout",
+    "nearbyServices": "Fournisseurs de services près de chez vous"
+  },
+  "selectAddress": {
+    "title": "Sélectionner une adresse",
+    "addNewAdd": "Ajouter une nouvelle adresse",
+    "confirm": "Confirmer"
   }
 }

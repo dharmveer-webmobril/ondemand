@@ -4,7 +4,6 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
-  Keyboard,
 } from 'react-native';
 import {
   AppHeader,
@@ -13,9 +12,8 @@ import {
   Container,
   VectoreIcons,
 } from '../../component'; // Adjust based on your actual paths
-import { addressMenuData, Colors, Fonts, goBack, inboxMenuData, navigate, SF, SH, SW } from '../../utils';
+import {  Colors, Fonts, goBack, navigate, SF, SH, SW } from '../../utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import ChatDropdownMenu from '../chat/component/ChatDropdownMenu';
 import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 
@@ -48,7 +46,7 @@ const addressData = [
 
 const SelectAddress = () => {
   const navigation = useNavigation<any>();
-  const [addresses, setAddresses] = useState(addressData);
+  const [addresses, _setAddresses] = useState(addressData);
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const route = useRoute<any>();
   const { prevType } = route.params;
@@ -68,7 +66,7 @@ const SelectAddress = () => {
             size={SW(13)}
             color={Colors.textHeader}
           />
-          {selectedMenu === item.id && <ChatDropdownMenu menuOptions={addressMenuData} onClose={closeMenu} />}
+          {/* {selectedMenu === item.id && <ChatDropdownMenu menuOptions={addressMenuData} onClose={closeMenu} />} */}
         </TouchableOpacity>
       </View>
       <View style={styles.separator} />

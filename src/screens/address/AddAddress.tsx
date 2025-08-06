@@ -195,7 +195,7 @@ const AddAddress = () => {
                         setFieldValue('addressType', type);
                       }}
                       size={SF(14)}
-                      label={type}
+                      label={t(`addAddress.addressTypes.${type.toLowerCase()}`)}
                     />
                   ))}
                 </View>
