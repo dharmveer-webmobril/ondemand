@@ -3,7 +3,7 @@ const imagePaths = {
   mybooking_tab: require('./mybooking_tab.png'),
   message_tab: require('./message_tab.png'),
   profile_tab: require('./profile_tab.png'),
-
+  user123: require('./user123.png'),
   email_icon: require('./email_icon.png'),
   eye_off_icon: require('./eye_off_icon.png'),
   eye_open:require('./eye_open.png'),

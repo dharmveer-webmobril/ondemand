@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Image, FlatList, StyleSheet, Pressable } from 'react-native';
 import {
-  Colors, SH, SW, Fonts, SF, boxShadow, navigate, goBack,
+  Colors, SH, SW, Fonts, SF, boxShadow, goBack,
 } from '../../utils';
 import imagePaths from '../../assets/images';
 import {
@@ -10,20 +10,18 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '../../component/Skeleton';
 import { useGetNearByServicesQuery } from '../../redux';
-import RouteName from '../../navigation/RouteName';
+// import RouteName from '../../navigation/RouteName';
+import StarRating from 'react-native-star-rating-widget';
 
-const ItemList = ({ item }:any) => {
+const ItemList = ({ item }: any) => {
   const name = item.businessName || 'Unnamed Service';
   const image = item.profilePic ? { uri: item.profilePic } : imagePaths.no_image;
-  const location =
-    item.location?.address ||
-    item.location?.city ||
-    item.location?.state ||
-    'Unknown Location';
+  const location = item?.location;
+  const summary = [location?.address, location?.city, location?.state].filter(Boolean).join(', ') || "Unknown";
 
   return (
     <Pressable
-      onPress={() => navigate(RouteName.SERVICE_DETAILS, { id: item._id })}
+      // onPress={() => navigate(RouteName.SERVICE_DETAILS, { id: item._id })}
       style={styles.serviceContainer}
     >
       <View style={styles.header}>
@@ -37,10 +35,20 @@ const ItemList = ({ item }:any) => {
           </View>
         </View>
       </View>
+      <View style={styles.ratingContainer}>
+        <StarRating
+          starStyle={styles.starStyle}
+          starSize={SF(12)}
+          rating={item.rating || 0}
+          onChange={() => { }}
+          color="#FAAC00"
+        />
+        <AppText style={styles.ratingtxt}>({item.rating || 0})</AppText>
+      </View>
       <Spacing space={10} />
       <View style={styles.locationContainer}>
         <Image source={imagePaths.service_loc} style={styles.icon} />
-        <AppText style={styles.locationText}>{location}</AppText>
+        <AppText style={styles.locationText}>{summary}</AppText>
         <AppText style={styles.dotText}>•</AppText>
         <AppText style={styles.closedText}>Closed</AppText>
       </View>
@@ -79,9 +87,9 @@ const ServiceProviderList = () => {
   const { data: servicesData, isLoading, isError, isFetching, refetch } = useGetNearByServicesQuery();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  // useEffect(() => {
+  //   refetch();
+  // }, [refetch]);
 
   const memoizedData = useMemo(() => servicesData?.data || [], [servicesData]);
 
@@ -90,7 +98,7 @@ const ServiceProviderList = () => {
   return (
     <Container statusBarColor={Colors.white}>
       <AppHeader
-        headerTitle={t('home.services.title', { defaultValue: 'Service Provider' })}
+        headerTitle={t('home.services.title')}
         onPress={goBack}
         Iconname="arrowleft"
         headerStyle={styles.headerStyle}
@@ -107,9 +115,7 @@ const ServiceProviderList = () => {
           memoizedData.length === 0 && !isFetching && !isError ? (
             <View style={styles.emptyContainer}>
               <AppText style={styles.emptyText}>
-                {t('home.services.notFoundasda', {
-                  defaultValue: 'No nearby services available.',
-                })}
+                {t('home.services.notFound')}
               </AppText>
             </View>
           ) : null
@@ -118,14 +124,12 @@ const ServiceProviderList = () => {
           !isLoading && isError && memoizedData.length === 0 ? (
             <View style={styles.errorContainer}>
               <AppText style={styles.errorText}>
-                {t('homeCategory.errorasdas', {
-                  defaultValue: 'Failed to load services. Tap to retry.',
-                })}
+                {t('home.services.errorMessage')}
               </AppText>
               <Buttons
                 buttonStyle={styles.retryButton}
-                buttonTextStyle={styles.viewalltext}
-                title={t('homeCategory.retry', { defaultValue: 'Retry' })}
+                buttonTextStyle={styles.retrybuttontext}
+                title={t('home.services.retry')}
                 onPress={handleRetry}
               />
             </View>
@@ -296,13 +300,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.themeColor,
     borderRadius: SF(8),
     marginTop: SH(10),
-    width: '40%',
+    width: '50%',
     height: SH(40),
+    marginHorizontal:5
+  },
+  retrybuttontext: {
+    fontFamily: Fonts.MEDIUM,
+    fontSize: SF(14),
+    color: Colors.textWhite,
+    textAlign: 'center'
   },
   viewalltext: {
     fontFamily: Fonts.MEDIUM,
     fontSize: SF(14),
     color: Colors.textWhite,
     textAlign: 'center',
+  },
+  starStyle: {
+    marginHorizontal: 2,
+  },
+  ratingtxt: {
+    color: Colors.textAppColor,
+    fontFamily: Fonts.REGULAR,
+    marginLeft: 5,
+    fontSize: SF(12),
   },
 });

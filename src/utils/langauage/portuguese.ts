@@ -218,7 +218,19 @@ export const portuguese = {
     "browseCategories": "Explorar todas as categorias",
     "allCategories": "Todas as categorias",
     "serviceViewAll": "Ver tudo",
-    "nearbyServices": "Fornecedores de serviços próximos"
+    "nearbyServices": "Fornecedores de serviços próximos",
+    "services": {
+      "title": "Fornecedor de Serviços",
+      "notFound": "Nenhum serviço próximo disponível.",
+      "errorMessage": "Falha ao carregar serviços. Toque para tentar novamente",
+      "error": "Falha ao carregar serviços. Toque para tentar novamente",
+      "retry": "Tentar Novamente"
+    },
+    "category": {
+      "empty": "A categoria está vazia",
+      "error": "Falha ao carregar categorias. Toque para tentar novamente",
+      "retry": "Tentar Novamente"
+    }
   },
   "selectAddress": {
     "title": "Selecionar Endereço",

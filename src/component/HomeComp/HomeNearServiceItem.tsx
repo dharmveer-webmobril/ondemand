@@ -26,9 +26,8 @@ const skeletonPlaceholder = [1, 2, 3, 4, 5, 6];
 const ListItem = ({ item }: { item: any }) => {
   const name = item.businessName || 'Unnamed Service';
   const image = item.profilePic ? { uri: item.profilePic } : imagePaths.no_image;
-  const location = item?.location
-
-  const summary = [location.address, location.city, location.state].filter(Boolean).join(', ') || "Unknown";
+  const location = item?.location;
+  const summary = [location?.address, location?.city, location?.state].filter(Boolean).join(', ') || "Unknown";
   return (
     <Pressable
       onPress={() => { }}
@@ -111,10 +110,11 @@ const HomeNearServiceItem = () => {
         rightText={t('home.serviceViewAll')}
         leftText={t('home.nearbyServices')}
         marginHori="7%"
-        onClick={() => navigate(RouteName.SERVICE_PROVIDER_LIST)}
+        onClick={() => {
+          !showSkeleton && !showError && !showEmpty && navigate(RouteName.SERVICE_PROVIDER_LIST)
+        }}
       />
       <View style={styles.backgroundContainer}>
-
         <FlatList
           horizontal
           contentContainerStyle={[
@@ -132,11 +132,8 @@ const HomeNearServiceItem = () => {
             showEmpty ? (
               <View style={styles.messageContainer}>
                 <AppText style={styles.messageText}>
-                  {t('home.services.notFound', {
-                    defaultValue: 'No nearby services available.',
-                  })}
+                  {t('home.services.notFound')}
                 </AppText>
-
               </View>
             ) : null
           }
@@ -144,14 +141,12 @@ const HomeNearServiceItem = () => {
             showError ? (
               <View style={styles.messageContainer}>
                 <AppText style={styles.messageText}>
-                  {t('homeCategory.error', {
-                    defaultValue: 'Failed to load services. Tap to retry.',
-                  })}
+                  {t('home.services.error')}
                 </AppText>
                 <Buttons
                   buttonStyle={styles.retryButton}
-                  buttonTextStyle={styles.viewalltext}
-                  title={t('homeCategory.retry', { defaultValue: 'Retry' })}
+                  buttonTextStyle={styles.retrybuttontext}
+                  title={t('home.services.retry')}
                   onPress={handleRetry}
                 />
               </View>
@@ -277,8 +272,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.themeColor,
     borderRadius: SF(8),
     marginTop: SH(10),
-    width: '40%',
+    width: '50%',
     height: SH(40),
+    paddingHorizontal:5
+  },
+  retrybuttontext: {
+    fontFamily: Fonts.MEDIUM,
+    fontSize: SF(14),
+    color: Colors.textWhite,
+    textAlign:'center'
   },
   viewalltext: {
     fontFamily: Fonts.MEDIUM,

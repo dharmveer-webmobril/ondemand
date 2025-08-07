@@ -1,4 +1,4 @@
-export const frenchCanada ={
+export const frenchCanada = {
   "login": {
     "forgotPassword": "Mot de passe oublié ?",
     "loginButton": "Se connecter",
@@ -218,7 +218,19 @@ export const frenchCanada ={
     "browseCategories": "Parcourir toutes les catégories",
     "allCategories": "Toutes les catégories",
     "serviceViewAll": "Voir tout",
-    "nearbyServices": "Fournisseurs de services près de chez vous"
+    "nearbyServices": "Fournisseurs de services près de chez vous",
+    "services": {
+      "title": "Fournisseur de Services",
+      "notFound": "Aucun service à proximité disponible.",
+      "errorMessage": "Échec du chargement des services. Touchez pour réessayer",
+      "error": "Échec du chargement des services. Touchez pour réessayer",
+      "retry": "Réessayer"
+    },
+    "category": {
+      "empty": "La catégorie est vide",
+      "error": "Échec du chargement des catégories. Touchez pour réessayer",
+      "retry": "Réessayer"
+    }
   },
   "selectAddress": {
     "title": "Sélectionner une adresse",

@@ -8,6 +8,8 @@ const guidelineBaseHeight = 812;
 const getScreenWidth = () => Dimensions.get('window').width;
 const getScreenHeight = () => Dimensions.get('window').height;
 
+export const SCREEN_HEGIHT = getScreenHeight;
+export const SCREEN_WIDTH = getScreenWidth;
 // Width scaled value
 export const SW = (size: number): number => {
   return (getScreenWidth() / guidelineBaseWidth) * size;

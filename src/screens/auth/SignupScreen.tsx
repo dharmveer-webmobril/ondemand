@@ -203,7 +203,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     value={values.fname}
                     onChangeText={handleChange('fname')}
                     onBlur={() => setFieldValue('fname', values.fname.trim())}
-                    leftIcon={imagePaths.mobile_icon}
+                    leftIcon={imagePaths.user123}
                     errorMessage={touched.fname && errors.fname && errors.fname ? errors.fname : ''}
                     keyboardType="default"
                   />

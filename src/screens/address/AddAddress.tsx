@@ -179,7 +179,7 @@ const AddAddress = () => {
                   onChangeText={handleChange('zipCode')}
                   onBlur={handleBlur('zipCode')}
                   errorMessage={touched.zipCode && errors.zipCode ? String(errors.zipCode) : ''}
-                  keyboardType="default"
+                  keyboardType="number-pad"
                   color={Colors.textAppColor}
                   inputStyle={styles.inputFieldStyle}
                   textColor={Colors.textAppColor}

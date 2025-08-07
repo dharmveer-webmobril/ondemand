@@ -26,7 +26,7 @@ const SkeletonHomeCategoryItem = memo(() => (
   </View>
 ));
 
-const HomeCategoryItem = memo(({ name, image, }:any) => {
+const HomeCategoryItem = memo(({ name, image }: any) => {
   const navigation = useNavigation<any>();
   return (
     <Pressable
@@ -69,7 +69,7 @@ const HomeCategory = memo(() => {
     [showSkeleton, categoryData]
   );
 
-  const renderItem = ({ item, index }:any) =>
+  const renderItem = ({ item, index }: any) =>
     showSkeleton ? (
       <SkeletonHomeCategoryItem key={`skeleton-${index}`} />
     ) : (
@@ -87,11 +87,12 @@ const HomeCategory = memo(() => {
         rightText={t('home.categoryViewAll')}
         marginHori={'7%'}
         leftText={t('home.browseCategories')}
-        onClick={() =>
-          navigate(RouteName.CATEGORY_LIST, {
+        onClick={() => {
+          !showSkeleton && !showError && !isEmpty && navigate(RouteName.CATEGORY_LIST, {
             title: t('home.allCategories'),
             type: 'category',
           })
+        }
         }
       />
 
@@ -111,7 +112,7 @@ const HomeCategory = memo(() => {
             isEmpty ? (
               <View style={styles.emptyContainer}>
                 <AppText style={styles.emptyText}>
-                  {t('homeCategory.empty', { defaultValue: 'Category is empty' })}
+                  {t('home.category.empty')}
                 </AppText>
               </View>
             ) : null
@@ -120,14 +121,12 @@ const HomeCategory = memo(() => {
             showError ? (
               <View style={styles.errorContainer}>
                 <AppText style={styles.errorText}>
-                  {t('homeCategory.error', {
-                    defaultValue: 'Failed to load categories. Tap to retry.',
-                  })}
+                  {t('home.category.error')}
                 </AppText>
                 <Buttons
                   buttonStyle={styles.retryButton}
-                  buttonTextStyle={styles.viewalltext}
-                  title={t('homeCategory.retry', { defaultValue: 'Retry' })}
+                  buttonTextStyle={styles.retrybuttontext}
+                  title={t('home.category.retry')}
                   onPress={refetchCategory}
                 />
               </View>
@@ -195,13 +194,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+
   retryButton: {
     padding: SW(10),
     backgroundColor: Colors.themeColor,
     borderRadius: SF(8),
     marginTop: SH(10),
-    width: '40%',
+    width: '50%',
     height: SH(40),
+    marginHorizontal: 5
+  },
+
+  retrybuttontext: {
+    fontFamily: Fonts.MEDIUM,
+    fontSize: SF(14),
+    color: Colors.textWhite,
+    textAlign: 'center'
   },
   viewalltext: {
     fontFamily: Fonts.MEDIUM,

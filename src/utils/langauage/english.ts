@@ -218,7 +218,19 @@ export const english = {
     "browseCategories": "Browse all categories",
     "allCategories": "All Categories",
     "serviceViewAll": "View All",
-    "nearbyServices": "Service Provider Near You"
+    "nearbyServices": "Service Provider Near You",
+    "services": {
+      "title": "Service Provider",
+      "notFound": "No nearby services available.",
+      "errorMessage": "Failed to load services. Tap to retry",
+      "error": "Failed to load services. Tap to retry",
+      "retry": "Retry"
+    },
+    "category": {
+      "empty": "Category is empty",
+      "error": "Failed to load categories. Tap to retry",
+      "retry": "Retry"
+    }
   },
   "selectAddress": {
     "title": "Select Address",

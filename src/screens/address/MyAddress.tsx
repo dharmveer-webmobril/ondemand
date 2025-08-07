@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FlatList,
   StyleSheet,
   View,
   TouchableOpacity,
-  Pressable,
 } from 'react-native';
 import {
   AppHeader,
@@ -26,15 +25,21 @@ const MyAddressScreen = () => {
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const { t } = useTranslation();
 
-  const {
-    data: addressData = [],
-    isFetching,
-    error,
-    refetch,
-  } = useGetAddressQuery();
 
-  const [showError, setShowError] = useState(false); // Track error display after API call
-  const [addresses, setAddresses] = useState(addressData?.data || []); // Sync with API data
+  const { data: addressData = [], isError, refetch, isFetching } = useGetAddressQuery();
+
+  const memoizedData = useMemo(() => addressData?.data || [], [addressData]);
+  console.log('addressDataaddressData', addressData);
+  // useState
+  const handleRetry = () => refetch();
+
+  const showSkeleton = isFetching && !isError;
+  const showError = !isFetching && isError;
+  const showEmpty = !isFetching && !isError && memoizedData.length === 0;
+
+
+
+
   const [isDeletePopup, setIsDeletePopup] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<any>(null);
 
@@ -42,23 +47,14 @@ const MyAddressScreen = () => {
     refetch();
   }, [refetch]);
 
-  useEffect(() => {
-    setAddresses(addressData?.data || []);
-  }, [addressData]);
 
-  useEffect(() => {
-    // Show error only after initial load or refetch fails
-    if (error && !isFetching) {
-      setShowError(true);
-    }
-  }, [error, isFetching]);
+
 
   const renderSkeleton = () => (
     <View style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.cardContent}>
-          <Skeleton style={styles.skeletonLine} />
-          <Skeleton style={styles.skeletonLine} />
+          <Skeleton style={styles.skeletonLine1} />
           <Skeleton style={styles.skeletonLine} />
         </View>
       </View>
@@ -66,8 +62,10 @@ const MyAddressScreen = () => {
     </View>
   );
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
+  const renderItem = ({ item }: { item: any }) => {
+    console.log('item', item);
+
+    return <View style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.cardContent}>
           <AppText style={styles.cardTitle}>{item?.type || ''}</AppText>
@@ -86,14 +84,10 @@ const MyAddressScreen = () => {
       </View>
       <View style={styles.separator} />
     </View>
-  );
+  };
 
   const closeMenu = () => setSelectedMenu(null);
 
-  const handleRetry = () => {
-    setShowError(false); // Reset error before retry
-    refetch();
-  };
 
   const [deleteAddress, { isLoading: isDeleteLoading }] = useDeleteAddressMutation();
 
@@ -151,50 +145,50 @@ const MyAddressScreen = () => {
         Iconname="arrowleft"
         headerStyle={styles.header}
       />
-      {isFetching && !showError ? (
-        <FlatList
-          data={[1, 2, 3, 4]} // Simulate 4 skeleton items
-          keyExtractor={(item) => `skeleton-${item}`}
-          renderItem={renderSkeleton}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : showError ? (
-        <View style={styles.errorContainer}>
-          <AppText style={styles.errorText}>{t('myAddress.error', { defaultValue: 'Error loading addresses' })}</AppText>
-          <Buttons
-            title={t('myAddress.retry', { defaultValue: 'Retry' })}
-            onPress={handleRetry}
-            buttonStyle={styles.retryButton}
-            textColor={Colors.textWhite}
-          />
-        </View>
-      ) : addresses.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <AppText style={styles.emptyText}>{t('myAddress.notFound', { defaultValue: 'No addresses found' })}</AppText>
-        </View>
-      ) : (
-        <FlatList
-          data={addresses}
-          keyExtractor={(item) => item._id || item.id} // Use _id or id
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
+
+
+
+      <FlatList
+        contentContainerStyle={styles.listContent}
+        data={showSkeleton ? [1, 3, 4, 5, 6] : memoizedData}
+        renderItem={({ item }) =>
+          showSkeleton ? renderSkeleton() : renderItem({ item })
+        }
+        keyExtractor={(item, index) =>
+          `servicenear-${item?._id ?? index}`
+        }
+        ListEmptyComponent={
+          showEmpty ? (
             <View style={styles.emptyContainer}>
               <AppText style={styles.emptyText}>{t('myAddress.notFound', { defaultValue: 'No addresses found' })}</AppText>
             </View>
-          }
-        />
-      )}
-      <View style={styles.buttonContainer}>
+          ) : null
+        }
+        ListFooterComponent={
+          showError ? (
+            <View style={styles.errorContainer}>
+              <AppText style={styles.errorText}>{t('myAddress.error', { defaultValue: 'Error loading addresses' })}</AppText>
+              <Buttons
+                title={t('myAddress.retry', { defaultValue: 'Retry' })}
+                onPress={handleRetry}
+                buttonStyle={styles.retryButton}
+                textColor={Colors.textWhite}
+              />
+            </View>
+          ) : null
+        }
+        showsHorizontalScrollIndicator={false}
+      />
+
+
+      {!showSkeleton && <View style={styles.buttonContainer}>
         <Buttons
           title={t('myAddress.addNewAddress', { defaultValue: 'Add New Address' })}
           onPress={() => navigate(RouteName.ADD_ADDRESS, { prevScreen: 'my-address' })}
           buttonStyle={styles.addButton}
           textColor={Colors.textWhite}
         />
-      </View>
+      </View>}
       {selectedMenu && (
         <TouchableOpacity
           style={styles.overlay}
@@ -220,6 +214,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: SH(15),
+    width: '100%',
   },
   cardTop: {
     flexDirection: 'row',
@@ -276,6 +271,13 @@ const styles = StyleSheet.create({
     borderRadius: SW(4),
     width: '100%',
   },
+  skeletonLine1: {
+    height: SH(15),
+    backgroundColor: '#E0E0E0',
+    marginBottom: SH(5),
+    borderRadius: SW(4),
+    width: '50%',
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -302,6 +304,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SW(25),
     paddingVertical: SH(20),
+    marginTop:70,
   },
   emptyText: {
     fontSize: SF(16),

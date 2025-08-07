@@ -11,7 +11,7 @@ const regex = {
     GST: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
     PAN: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
     PPOSITIVE_INTEGER: /^[1-9]\d*$/,
-    ZIP_CODE: /^\d{5}(?:\d{2})?$/,
+    ZIP_CODE: /^\d{4,7}$/,
     MOBIILE:/^[1-9][0-9]{6,14}$/
 }
 export default regex

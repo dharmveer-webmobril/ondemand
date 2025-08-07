@@ -218,7 +218,19 @@ export const spanish = {
     "browseCategories": "Explorar todas las categorías",
     "allCategories": "Todas las categorías",
     "serviceViewAll": "Ver todo",
-    "nearbyServices": "Proveedores de servicios cercanos"
+    "nearbyServices": "Proveedores de servicios cercanos",
+    "services": {
+      "title": "Proveedor de Servicios",
+      "notFound": "No hay servicios cercanos disponibles.",
+      "errorMessage": "No se pudieron cargar los servicios. Toca para reintentar",
+      "error": "No se pudieron cargar los servicios. Toca para reintentar",
+      "retry": "Reintentar"
+    },
+    "category": {
+      "empty": "La categoría está vacía",
+      "error": "No se pudieron cargar las categorías. Toca para reintentar",
+      "retry": "Reintentar"
+    }
   },
   "selectAddress": {
     "title": "Seleccionar Dirección",
