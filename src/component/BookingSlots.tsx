@@ -7,34 +7,47 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Colors, Fonts, SF, SW } from '../utils';
- 
+
 import Spacing from './Spacing';
 import AppText from './AppText';
 
 type BookingSlotsProps = {
   slots: any[];
-  selectedSlot:number;
+  selectedSlot: number;
   onSelect: (val: any) => void;
+  isFetching?: boolean;
 };
 
 const seperatorComponent = () => <Spacing horizontal space={SW(10)} />;
-
-const BookingSlots: React.FC<BookingSlotsProps> = ({ slots,selectedSlot=0,onSelect }) => {
+const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, onSelect, isFetching = false }) => {
   return (
-    <FlatList
-      data={slots}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      ItemSeparatorComponent={seperatorComponent}
-
-      renderItem={({ item, index }) => {
-        return <TouchableOpacity onPress={()=>{onSelect(item.id)}} style={selectedSlot==item.id?styles.slotsselected:styles.slots}>
-          <AppText  style={selectedSlot==item.id?styles.selectedtxt:styles.txt}>{item.time}</AppText>
-        </TouchableOpacity>
-      }}
-    />
+    <>
+      {
+        isFetching ? <>
+          <ActivityIndicator size={'large'} />
+        </> :
+          <FlatList
+            data={slots || []}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            ItemSeparatorComponent={seperatorComponent}
+            contentContainerStyle={slots?.length <= 0 ? {flex:1} : {}}
+            renderItem={({ item, index }) => {
+              return <TouchableOpacity onPress={() => { onSelect(index) }} style={index === selectedSlot ? styles.slotsselected : styles.slots}>
+                <AppText style={index == selectedSlot ? styles.selectedtxt : styles.txt}>{item?.time?.slot}</AppText>
+              </TouchableOpacity>
+            }}
+            ListEmptyComponent={
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 4 }}>
+                <AppText style={{ color: Colors.textAppColor, textAlign: "center" }}>No Slots Available</AppText>
+              </View>
+            }
+          />
+      }
+    </>
 
   );
 };

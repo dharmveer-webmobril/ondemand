@@ -1,34 +1,28 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
 import React, { FC } from 'react';
 import { Colors, Fonts, SF, SH, SW } from '../../../utils';
 import { AppText, Buttons } from '../../../component';
 import AvailTeamMember from './AvailTeamMember';
 import { useNavigation } from '@react-navigation/native';
-import RouteName from '../../../navigation/RouteName';
 
-const services = [
-    { id: 1, name: 'Haircut + Beard ✈️', price: '$55.00', time: '30m' },
-    { id: 2, name: 'Haircut + Beard ✂', price: '$55.00', time: '30m' },
-    { id: 3, name: 'Razor', price: '$55.00', time: '25m' },
-    { id: 4, name: 'Kids Haircut', price: '$30.00', time: '15m' },
-    { id: 5, name: 'Enchantments', price: '$15.00', time: '10m' },
-];
+
 interface servicesInterface {
-    onClick:()=>void
+    onClick: (value: any) => void;
+    data: any[];
 }
 const SeparatorComponent = () => <View style={styles.itemSepearator} />;
-const Services: FC<servicesInterface> = ({onClick }) => {
+const Services: FC<servicesInterface> = ({ onClick, data }) => {
     const navigation = useNavigation<any>();
     const renderItem = ({ item }: any) => (
         <View style={styles.serviceItem}>
             <View>
-                <AppText style={styles.serviceTitle}>{item.name}</AppText>
+                <AppText style={styles.serviceTitle}>{item?.serviceName || ''}</AppText>
                 <AppText style={styles.serviceSub}>Popular Service</AppText>
             </View>
             <View style={styles.flexDir}>
                 <View style={styles.rightBlock}>
-                    <AppText style={styles.price}>{item.price}</AppText>
-                    <AppText style={styles.duration}>{item.time}</AppText>
+                    <AppText style={styles.price}>${item.price}</AppText>
+                    {/* <AppText style={styles.duration}>{item.time}</AppText> */}
                 </View>
                 <Buttons
                     buttonStyle={styles.bookBtn}
@@ -36,25 +30,33 @@ const Services: FC<servicesInterface> = ({onClick }) => {
                     isExtraBoxShadow={false}
                     title={'Book'}
                     buttonTextStyle={styles.bookText}
-                    onPress={() => {onClick()}}
+                    onPress={() => { onClick(item) }}
                 />
             </View>
         </View>
     );
     return (
         <>
-            <FlatList
-                data={services}
-                keyExtractor={item => item.id.toString()}
-                renderItem={renderItem}
-                contentContainerStyle={styles.listContent}
-                ItemSeparatorComponent={SeparatorComponent}
-                showsVerticalScrollIndicator={false}
-            />
-            <View style={styles.paddingHoriTeamMeme}>
+            {
+                data && data?.length > 0 ? (
+                    <FlatList
+                        data={data}
+                        keyExtractor={item => item?._id?.toString()}
+                        renderItem={renderItem}
+                        contentContainerStyle={styles.listContent}
+                        ItemSeparatorComponent={SeparatorComponent}
+                        showsVerticalScrollIndicator={false}
+                    />
+                ) : (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: SH(200) }}>
+                        <AppText style={{ color: Colors.textHeader }}>No Services Available</AppText>
+                    </View>
+                )
+            }
 
+            {/* <View style={styles.paddingHoriTeamMeme}>
                 <AvailTeamMember />
-            </View>
+            </View> */}
         </>
     );
 };
@@ -118,5 +120,5 @@ const styles = StyleSheet.create({
         height: 0.6,
         backgroundColor: '#3D3D3D40',
     },
-    paddingHoriTeamMeme:{ paddingHorizontal: SW(30) }
+    paddingHoriTeamMeme: { paddingHorizontal: SW(30) }
 });

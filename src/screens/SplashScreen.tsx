@@ -29,15 +29,20 @@ const SplashScreen: React.FC = () => {
               'Content-Type': 'application/json',
             },
           });
+          console.log('responseresponse',response);
+          
           const data = await response.json();
-          if (response.ok) {
+          if (response?.ok) {
             setProfileData(data);
             setError(false);
           } else {
+            console.error('Failed to fetch profile:', data);
             throw new Error(data.message || 'Failed to fetch profile');
           }
         } catch (err) {
-          setError(true);
+          dispatch(setToken({ token: '' }));
+          StorageProvider.removeItem('token');
+          navigation.reset({ index: 0, routes: [{ name: RouteName.LOGIN }] });
           console.error('Profile fetch error:', err);
         } finally {
           setLoading(false);
@@ -50,6 +55,7 @@ const SplashScreen: React.FC = () => {
 
     fetchUserProfile();
   }, [token]);
+  
   const dispatch = useDispatch()
 
   const handleAnimationFinish = async () => {

@@ -1,20 +1,22 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, FlatList, StyleSheet, Pressable } from 'react-native';
-import { Colors, SH, SW, Fonts, SF, boxShadowlight } from '../utils';
-import { AppHeader, AppText, Container, HomeSearchBar, ImageLoader } from '../component';
+import { View, FlatList, StyleSheet, Pressable, TouchableOpacity } from 'react-native';
+import { Colors, SH, SW, Fonts, SF, boxShadowlight, imagePaths, navigate } from '../../utils';
+import { AppHeader, AppText, Container, HomeSearchBar, ImageLoader } from '../../component';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useGetCategoriesQuery } from '../redux';
-import { Skeleton } from '../component/Skeleton';
+import { useGetCategoriesQuery } from '../../redux';
+import { Skeleton } from '../../component/Skeleton';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
+import RouteName from '../../navigation/RouteName';
 
 const RenderCategory = ({ item }: { item: any }) => {
-  console.log('item?.label', item?.label);
+  console.log('item?.label---', item);
+
   return (
-    <View style={[styles.itemContainer, boxShadowlight]}>
+    <TouchableOpacity activeOpacity={0.7} onPress={() => { navigate(RouteName.SHOP_LIST, { subCats: item?.category?.subcategories || [], catId: item?.value, catName: item.item?.label }) }} style={[styles.itemContainer, boxShadowlight]}>
       <View style={styles.imageContainer}>
         <ImageLoader
-          source={{ uri: item?.categoryImage }}
+          source={item?.categoryImage ? { uri: item?.categoryImage } : imagePaths.no_image}
           resizeMode="cover"
           mainImageStyle={styles.image}
         />
@@ -22,7 +24,7 @@ const RenderCategory = ({ item }: { item: any }) => {
       <AppText style={styles.text}>
         {item?.label ? item.label.trim().charAt(0).toUpperCase() + item.label.trim().slice(1) : ''}
       </AppText>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -87,7 +89,7 @@ const CategoryList: React.FC = () => {
           }
         }}
         Iconname="arrowleft"
-        rightOnPress={() => {}}
+        rightOnPress={() => { }}
         headerStyle={{ backgroundColor: Colors.bgwhite }}
         titleStyle={{ color: Colors.textHeader, fontSize: SF(18) }}
       />

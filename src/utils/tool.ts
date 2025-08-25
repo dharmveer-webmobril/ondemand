@@ -6,7 +6,7 @@ import {
   openSettings,
   Permission,
 } from 'react-native-permissions';
-import {Platform, Alert} from 'react-native';
+import { Platform, Alert } from 'react-native';
 
 export const requestCameraAccess = async (): Promise<boolean> => {
   const permission =
@@ -28,8 +28,8 @@ export const requestCameraAccess = async (): Promise<boolean> => {
       'Permission Blocked',
       'Camera permission is blocked. Please enable it from settings.',
       [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'Open Settings', onPress: () => openSettings()},
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => openSettings() },
       ],
     );
   } else {
@@ -37,8 +37,8 @@ export const requestCameraAccess = async (): Promise<boolean> => {
       'Permission Denied',
       'Camera access is required to take pictures.',
       [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'Try Again', onPress: () => requestCameraAccess()},
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Try Again', onPress: () => requestCameraAccess() },
       ],
     );
   }
@@ -89,6 +89,14 @@ export const checkLocationPermission = async (): Promise<boolean> => {
   return requestResult === RESULTS.GRANTED;
 };
 
+export const arrangePrice = (price: number, priceType: string): any => {
+  if (priceType === 'fixed') {
+    return '$' + price.toFixed(2) + '/hr';
+  } else {
+    return '$' + price.toFixed(2) + '/hr';
+  }
+}
 
-export const userImage ='http://15.157.235.216:3000/v1/auth/uploads/'
-export const serviceImage ='http://15.157.235.216:3000/v1/service/uploads/'
+
+export const userImage = 'http://15.157.235.216:3000/v1/auth/uploads/'
+export const serviceImage = 'http://15.157.235.216:3000/v1/service/uploads/'

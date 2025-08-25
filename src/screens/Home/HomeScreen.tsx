@@ -14,11 +14,11 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useFocusEffect } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import HomeCategory from '../../component/HomeComp/HomeCategoryItem';
-// import useLocation from '../../utils/hooks/useLocation';
+import useLocation from '../../utils/hooks/useLocation';
 
 const HomeScreen = () => {
-  // const { location, error, isLocationEnabled } = useLocation();
-  // console.log('locationlocation', location, isLocationEnabled);
+  const { location, error, isLocationEnabled } = useLocation();
+  console.log('locationlocation', location, isLocationEnabled);
   // console.log('errorerror', error);
 
   useDisableGestures();

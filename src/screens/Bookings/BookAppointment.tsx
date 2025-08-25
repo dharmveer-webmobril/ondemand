@@ -1,35 +1,87 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { AppHeader, AppText, BookingSlots, Buttons, Calender, Container, Divider, ImageLoader, Spacing, UserprofileView, VectoreIcons } from '../../component';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, showAppToast, Spacing, UserprofileView, VectoreIcons } from '../../component';
 import { Colors, Fonts, SF, SH, SW } from '../../utils';
-import imagePaths from '../../assets/images';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { ConfirmBookingModal } from './component';
 import RouteName from '../../navigation/RouteName';
-
+import { RootState, setBookingJson, useGetServiceSlotsQuery } from '../../redux';
+import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
+import { Calendar } from 'react-native-calendars';
+import { date } from 'yup';
 interface BookAppointmentProps { }
-const timeSlots = [
-    { id: 1, time: '8:00 am' },
-    { id: 2, time: '8:30 am' },
-    { id: 3, time: '9:00 am' },
-    { id: 4, time: '9:30 am' },
-    { id: 5, time: '10:00 am' },
-    { id: 6, time: '10:30 am' },
-    { id: 7, time: '11:00 am' },
-];
+
 
 const BookAppointment: React.FC<BookAppointmentProps> = () => {
-    const route = useRoute<any>();
-    let bookingType = route?.params?.bookingType;
+
     const navigation = useNavigation<any>();
-    const [selectedSlot, setSelectedSlot] = useState<any>(1)
+    const [selectedSlot, setSelectedSlot] = useState<any>(null)
     const [modalVisible, setModalVisible] = useState<boolean>(false)
-    const [forwhomCheck, setForwhomCheck] = useState(false)
+    const [forwhomCheck, setForwhomCheck] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<any>(moment().format('YYYY-MM-DD'));
+    // let bookingType = route?.params;
+
+    const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
+    const { service, selectedTeamMember, providerDetails } = bookingJson || {};
+    console.log('bookingJson--', bookingJson);
+
+
+
+    const { data: serviceSlots = [], isFetching, refetch: refetchSlots, } = useGetServiceSlotsQuery({ date: selectedDate, serviceId: bookingJson?.service?._id }, {
+        skip: !selectedDate || !bookingJson?.service?._id, // ✅ skip until date + serviceId available
+    });
+
+    console.log('serviceSlots--', serviceSlots);
+
+    useEffect(() => {
+        refetchSlots()
+    }, [selectedDate]);
+    const dispatch = useDispatch();
+
+    const btnGo = () => {
+        let slots = serviceSlots[selectedSlot];
+        let bookingData = { ...bookingJson, slots };
+        if (forwhomCheck) {
+            bookingData = { ...bookingData, bookingFor: 'other',date: selectedDate };
+            dispatch(setBookingJson(bookingData));
+            setTimeout(() => {
+                navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
+            }, 200);
+        } else {
+            bookingData = { ...bookingData, bookingFor: 'self',date: selectedDate };
+            dispatch(setBookingJson(bookingData));
+            setTimeout(() => {
+                navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' })
+            }, 200);
+        }
+    };
+
+    const btnBook = () => {
+        if (selectedSlot === null) {
+            showAppToast({
+                title: 'Error',
+                message: 'Please select a slot',
+                type: 'error',
+            });
+            return;
+        }
+        setModalVisible(true);
+    }
+
+    const addressData = providerDetails?.location || {};
+    const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
 
     return (
         <Container isPadding={false}>
             <ConfirmBookingModal
                 forwhomCheck={forwhomCheck}
+                selectedDate={selectedDate}
+                shopAddress={addressSummery || ''}
+                shopName={selectedTeamMember?.businessName || ''}
+                agentName={selectedTeamMember?.fullName || ''}
+                service={service}
+                selectedSlot={serviceSlots[selectedSlot]}
                 setForwhomCheck={() => { setForwhomCheck(!forwhomCheck) }}
                 modalVisible={modalVisible}
                 closeModal={() => {
@@ -37,16 +89,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 }}
                 btnSubmit={() => {
                     setModalVisible(false);
-                    if (forwhomCheck) {
-                        setTimeout(() => {
-                            navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
-                        }, 200);
-                    } else {
-                        setTimeout(() => {
-                            // navigation.navigate(RouteName.PAYMENT_SCREEN)
-                            navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' })
-                        }, 200);
-                    }
+                    btnGo();
                 }}
             />
 
@@ -65,47 +108,68 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 contentContainerStyle={styles.scrollContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <Calender
+                {/* <Calender
                     minDate={new Date(2025, 3, 16)}
                     maxDate={new Date(2026, 6, 15)}
+                /> */}
+                <Calendar
+                    current={moment().format('YYYY-MM-DD')}
+                    minDate={moment().format('YYYY-MM-DD')}
+                    onDayPress={(day) => {
+                        setSelectedDate(day.dateString);
+                    }}
+                    markedDates={{
+                        [selectedDate]: {
+                            selected: true,
+                            selectedColor: Colors.themeColor,
+                            selectedTextColor: '#fff',
+                        },
+                    }}
+                    theme={{
+                        selectedDayBackgroundColor: Colors.themeColor,
+                        // todayTextColor: '#22C55E',
+                        arrowColor: '#000',
+                    }}
                 />
+
                 <View style={{ paddingHorizontal: "7%" }}>
                     <Divider contStyle={{ marginVertical: SW(10) }} color='#3D3D3D50' height={0.7} />
-                    <BookingSlots slots={timeSlots} selectedSlot={selectedSlot} onSelect={(val: any) => { setSelectedSlot(val) }} />
-
+                    {
+                        <BookingSlots slots={serviceSlots} isFetching={isFetching} selectedSlot={selectedSlot} onSelect={(val: any) => { setSelectedSlot(val) }} />
+                    }
 
                     {
-                        bookingType != 'immediate' &&
+
                         <>
                             <Divider marginTop={SF(10)} color='#3D3D3D50' height={0.7} />
-                            <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>Your Barber</AppText>
+                            <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>Selected Member</AppText>
                             <Spacing space={SH(15)} />
                             <View style={{ marginLeft: -SW(15) }}>
-                                <UserprofileView />
+                                <UserprofileView imageSource={{ uri: selectedTeamMember?.profilePic }} title={selectedTeamMember?.fullName} />
                             </View>
                             <Divider contStyle={{ marginVertical: SW(10) }} color='#3D3D3D50' height={0.7} />
 
                             <Spacing />
                             <View style={styles.serviceItem}>
-                                <TouchableOpacity style={styles.crossIcon}>
+                                {/* <TouchableOpacity style={styles.crossIcon}>
                                     <VectoreIcons
                                         icon='AntDesign'
                                         name='closecircle'
                                         color='#BBBBBB'
                                         size={SF(16)}
                                     />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <View>
-                                    <AppText style={styles.serviceTitle}>{'Only Haircut'}</AppText>
+                                    <AppText style={styles.serviceTitle}>{service?.serviceName}</AppText>
                                     <AppText style={styles.serviceSub}>Popular Service</AppText>
                                 </View>
                                 <View style={styles.rightBlock}>
-                                    <AppText style={styles.price}>$55.00</AppText>
-                                    <AppText style={styles.duration}>25m</AppText>
+                                    <AppText style={styles.price}>${service?.price}</AppText>
+                                    {/* <AppText style={styles.duration}>25m</AppText> */}
                                 </View>
                             </View>
                             {/* add another button========= */}
-                            <TouchableOpacity style={styles.addAnotoherButton}>
+                            {/* <TouchableOpacity style={styles.addAnotoherButton}>
                                 <AppText style={styles.addAnotoherButtonTxt}>
                                     <VectoreIcons
                                         icon='Entypo'
@@ -113,18 +177,18 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                                         color={Colors.themeColor}
                                         size={SF(14)}
                                     /> Add another service</AppText>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
 
                             <Divider contStyle={{ marginTop: SH(30) }} color='#3D3D3D50' height={0.7} />
                             <View style={styles.bookingContainer}>
                                 <View>
-                                    <AppText style={styles.price1}>$55.00</AppText>
-                                    <AppText style={styles.duration1}>25m</AppText>
+                                    <AppText style={styles.price1}>${service?.price}</AppText>
+                                    {/* <AppText style={styles.duration1}>25m</AppText> */}
                                 </View>
                                 <Buttons
                                     buttonStyle={{ width: '65%' }}
                                     title='Book'
-                                    onPress={() => setModalVisible(true)}
+                                    onPress={() => { btnBook() }}
                                     buttonTextStyle={{ color: Colors.white }}
                                 />
                             </View>
@@ -133,12 +197,12 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 
                 </View>
             </ScrollView>
-            {bookingType == 'immediate' && <Buttons
+            {/* {bookingType == 'immediate' && <Buttons
                 buttonStyle={{ width: '80%', alignSelf: "center", marginBottom: 10 }}
                 title='Continue'
                 onPress={() => navigation.navigate(RouteName.SHOP_LIST, { bookingType: bookingType })}
                 buttonTextStyle={{ color: Colors.white }}
-            />}
+            />} */}
         </Container>
     );
 };
@@ -220,5 +284,5 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.MEDIUM,
         marginTop: 2,
     },
-    bookingContainer: { flexDirection: 'row', justifyContent: "space-between", marginTop: SH(20) }
+    bookingContainer: { flexDirection: 'row', alignItems: "center", justifyContent: "space-between", marginTop: SH(20) }
 });

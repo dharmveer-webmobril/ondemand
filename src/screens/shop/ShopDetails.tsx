@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StatusBar, StyleSheet,  TouchableOpacity, View } from 'react-native';
-import {  AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
+import { Image, Pressable, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
 import { Colors, Fonts, SF, SH, SW } from '../../utils';
 import imagePaths from '../../assets/images';
-import {  useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from './component';
 import RouteName from '../../navigation/RouteName';
 import { ConfirmBookingModal } from '../Bookings/component';
+import { setBookingJson } from '../../redux';
+import { useDispatch } from 'react-redux';
 
 interface shopProps { }
 const shopDetailTabs = [
@@ -23,11 +25,20 @@ const ShopDetails: React.FC<shopProps> = () => {
     const [forwhomCheck, setForwhomCheck] = useState(false)
     const [modalVisible, setModalVisible] = useState<boolean>(false)
     const route = useRoute<any>();
-    let bookingType = route?.params?.bookingType;
 
-     
-    const btnBookService = () => {
-        bookingType === 'immediate' ? setModalVisible(true) : setConfirmBookingTypeModal(true)
+    const { providerDetails } = route?.params;
+
+    const { services = [], location, portfolios } = providerDetails || {};
+    console.log('providerDetails--', providerDetails);
+    const addressData = providerDetails?.location || {};
+    const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
+    const [selectedService, setSelectedService] = useState<any>(null);
+
+    const btnBookService = (value: any) => {
+        // bookingType === 'immediate' ? setModalVisible(true) : setConfirmBookingTypeModal(true);
+        console.log('value--', value);
+        setSelectedService(value);
+        setConfirmBookingTypeModal(true)
     }
 
     const getHeaderContainerStyle = () => {
@@ -37,10 +48,35 @@ const ShopDetails: React.FC<shopProps> = () => {
         };
     };
 
+    // const { data: services = [], isFetching: isServiceFeating, isError: isServiceError, refetch: refetchService } = useGetServicesByProviderIdQuery({ providerId: providerDetails?._id });
+    console.log('services--', services);
+
+
+
+    const dispatch = useDispatch();
+    const brnSubmit = (value: any) => {
+        console.log('value--', value);
+        let bookingJson = {
+            service: selectedService,
+            selectedTeamMember: providerDetails,
+            providerDetails:providerDetails,
+            "promoCode": "",
+            bookingType: value === 'current' ? "current" : 'other'
+        };
+        dispatch(setBookingJson(bookingJson));
+        if (value === 'current') navigation.navigate(RouteName.BOOK_APPOINT)
+        else navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
+    }
+
     return (
         <Container isAuth>
-            <Spacing space={SH(20)}/>
-            <ConfirmBookingModal
+            <Spacing space={SH(20)} />
+            <ConfirmBookingTypeModal
+                modalVisible={confirmBookingTypeModal}
+                brnSubmit={(value: any) => { brnSubmit(value) }}
+                closeModal={() => { setConfirmBookingTypeModal(false) }}
+            />
+            {/* <ConfirmBookingModal
                 forwhomCheck={forwhomCheck}
                 setForwhomCheck={() => { setForwhomCheck(!forwhomCheck) }}
                 modalVisible={modalVisible}
@@ -51,16 +87,16 @@ const ShopDetails: React.FC<shopProps> = () => {
                     setModalVisible(false);
                     if (forwhomCheck) {
                         setTimeout(() => {
-                            navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
+                            btnClickForCureentTab()
                         }, 200);
                     } else {
                         setTimeout(() => {
                             // navigation.navigate(RouteName.PAYMENT_SCREEN)
-                            navigation.navigate(RouteName.SELECT_ADDRESS,{prevType:'forSelf'})
+                            navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' })
                         }, 200);
                     }
                 }}
-            />
+            /> */}
             <StatusBar
                 barStyle={'dark-content'}
             />
@@ -78,7 +114,7 @@ const ShopDetails: React.FC<shopProps> = () => {
                 </TouchableOpacity>
                 {activeTab === 'details' ? <View style={styles.shopTextBlockDetails}>
                     <AppText style={styles.shopTitle}>
-                        WM Barbershop <AppText style={styles.shopCount}>(250)</AppText>
+                        {providerDetails?.businessName} <AppText style={styles.shopCount}>({services ? services?.length : 0})</AppText>
                     </AppText>
                 </View> : ''}
             </View>
@@ -91,19 +127,26 @@ const ShopDetails: React.FC<shopProps> = () => {
                 {activeTab !== 'details' && <>
                     <View style={styles.bannerContainer}>
                         <ImageLoader
-                            source={imagePaths.barber5}
+                            source={providerDetails?.bannerImage ? { uri: providerDetails.bannerImage } : null}
                             mainImageStyle={styles.bannerImage}
-                            resizeMode="contain"
+                            resizeMode="contain" // best for banners
                         />
                     </View>
+                    {/* <View style={styles.bannerContainer}>
+                        <Image
+                            source={providerDetails?.bannerImage ? { uri: providerDetails?.bannerImage } : imagePaths.no_image}
+                            style={styles.bannerImage}
+                            resizeMode='contain'
+                        />
+                    </View> */}
 
                     <View style={styles.shopInfoContainer}>
                         <View style={styles.shopTextBlock}>
                             <AppText style={styles.shopTitle}>
-                                WM Barbershop <AppText style={styles.shopCount}>(250)</AppText>
+                                {providerDetails?.businessName} <AppText style={styles.shopCount}>({services ? services?.length : 0})</AppText>
                             </AppText>
                             <AppText style={styles.shopAddress}>
-                                1893 Cheshire Bridge Rd Ne, 30325 {'\n'}Home Service
+                                {addressSummery}
                             </AppText>
                         </View>
                         <View style={styles.iconsBlock}>
@@ -134,18 +177,14 @@ const ShopDetails: React.FC<shopProps> = () => {
                     }
                 </View>
                 {activeTab !== 'details' && <Spacing />}
-                {activeTab === 'services' && <Services onClick={() => btnBookService()} />}
+                {activeTab === 'services' && <Services data={services} onClick={(value) => btnBookService(value)} />}
                 {activeTab === 'reviews' && <Reviews />}
-                {activeTab === 'portfolio' && <Portfolio />}
-                {activeTab === 'details' && <Details />}
+                {activeTab === 'portfolio' && <Portfolio data={providerDetails?.portfolios || []} />}
+                {activeTab === 'details' && <Details data={providerDetails} />}
                 {/* pages=========== */}
 
             </ScrollView>
-            <ConfirmBookingTypeModal
-                modalVisible={confirmBookingTypeModal}
-                submitButton={() => { }}
-                closeModal={() => { setConfirmBookingTypeModal(false) }}
-            />
+
         </Container>
     );
 };
@@ -167,13 +206,25 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingBottom: SH(30),
     },
+    // bannerContainer: {
+    //     width: '90%',
+    //     height: SF(200),
+    //     alignItems: 'center',
+    //     justifyContent: 'center',
+    //     alignSelf: 'center',
+    //     marginTop: -20,
+    // },
+    // bannerImage: {
+    //     width: '100%',
+    //     height: '100%',
+    // },
     bannerContainer: {
         width: '90%',
         height: SF(200),
-        alignItems: 'center',
-        justifyContent: 'center',
+        borderRadius: 10,
+        overflow: 'hidden',
         alignSelf: 'center',
-        marginTop: -20,
+        marginBottom: 20,
     },
     bannerImage: {
         width: '100%',

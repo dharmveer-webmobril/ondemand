@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use, useEffect } from 'react';
 import {
   Keyboard,
   StyleSheet,
@@ -15,7 +15,7 @@ import {
   InputField,
   AppText
 } from '../../component';
-import { Colors, Fonts, regex, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, navigate, regex, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import imagePaths from '../../assets/images';
 import { useTranslation } from 'react-i18next';
@@ -24,24 +24,76 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RouteName from '../../navigation/RouteName';
+import { useRoute } from '@react-navigation/native'; // Import useRoute to get params
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, setBookingJson, useSubmitOtherUserAddressMutation } from '../../redux';
 
 type ProfileSetupProps = {};
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>(); // Get route params
+  const addressFromPreviousPage = route.params?.address || ''; // Default to empty if not provided
+  const [address, setAddress] = React.useState<any>(null);
   const validationSchema = Yup.object().shape({
-    fname: Yup.string()
+    fname: Yup.string().trim()
       .min(3, t('validation.fullnameMinLength'))
       .required(t('validation.emptyFullName'))
       .matches(regex.NAME_REGEX, t('validation.validFullName')),
-    email: Yup.string()
+    email: Yup.string().trim()
       .matches(regex.EMAIL_REGEX_WITH_EMPTY, t('validation.validEmail'))
       .required(t('validation.emptyEmail')),
-    mobileno: Yup.string()
+    mobileno: Yup.string().trim()
       .matches(regex.DIGIT_REGEX, t('validation.validMobile'))
       .min(10, t('validation.mobileMinLen'))
       .required(t('validation.emptyMobile')),
+    address: Yup.string().trim()
+      .required('Address is required')
+      .min(5, 'Minimum length 5'), // Minimum length of 5 characters
   });
+  const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
+  const [submitData, { isLoading: isSubmitLoading }] = useSubmitOtherUserAddressMutation()
+  const dispatch = useDispatch();
+
+  const btnSubmit = async (values: any) => {
+    console.log('Form Values:', values);
+    let data = {
+      "name": values.fname,
+      "email": values.email,
+      "phone": values.mobileno,
+      "address": {
+        "type": "Home",
+        "streetAddress": address?.type || "",
+        "apartment": address?.apartment || "",
+        "city": address?.city || "",
+        "state": address?.state || "",
+        "zip": address?.zip || "",
+        "country": address?.country || "",
+        "location": address?.location
+      }
+    };
+    try {
+      const response = await submitData({ data }).unwrap();
+      console.log('Response---:', response);
+      if (response.success) {
+        let bookingData = {...bookingJson,otherUserAddress:response.data,otherUserAddressId:response.data._id};
+        dispatch(setBookingJson(bookingData));
+        navigation.navigate(RouteName.PAYMENT_SCREEN);
+        // goBack();
+      } else {
+        // handleApiFailureResponse(response, '');
+      }
+    } catch (error) {
+      console.log('errorerror', error);
+    }
+
+    // Here you can handle the form submission, e.g., save to database or navigate
+    // navigation.navigate(RouteName.PAYMENT_SCREEN);
+  };
+
+  const otherUserAddress = useSelector((state: RootState) => state.service.otherUserAddress);
+  console.log('otherUserAddress:', otherUserAddress);
+
   return (
     <Container isPadding={false}>
       <AppHeader
@@ -84,22 +136,31 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
               fname: '',
               mobileno: '',
               email: '',
+              address: addressFromPreviousPage, // Pre-fill with address from previous page
             }}
-            // validationSchema={validationSchema}
+            validationSchema={validationSchema}
             onSubmit={(values, { resetForm }) => {
-                navigation.navigate(RouteName.PAYMENT_SCREEN)
+              btnSubmit(values);
+              // navigation.navigate(RouteName.PAYMENT_SCREEN)
             }}>
-            {({
-              handleChange,
-              setFieldTouched,
-              handleSubmit,
-              setFieldValue,
-              values,
-              errors,
-              touched,
-            }) => (
-              <>
+            {({ handleChange, handleSubmit, handleBlur, values, errors, touched, setFieldTouched, setFieldValue }) => {
 
+              useEffect(() => {
+                if (otherUserAddress) {
+                  setFieldValue('address', otherUserAddress.streetAddress || '');
+                  setAddress(otherUserAddress);
+                }
+              }, [otherUserAddress, setFieldValue]);
+              // {({
+              //   handleChange,
+              //   setFieldTouched,
+              //   handleSubmit,
+              //   setFieldValue,
+              //   values,
+              //   errors,
+              //   touched,
+              // }) => (
+              return <>
                 <InputField
                   label={t('placeholders.fullname')}
                   value={values.fname}
@@ -131,12 +192,12 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
                 />
-               
+
                 <Spacing space={SH(20)} />
-                <View style={styles.addressContainer}>
+                {/* <View style={styles.addressContainer}>
                   <View style={styles.addressInfo}>
                     <AppText style={styles.addressName}>Home Address</AppText>
-                    <AppText style={styles.addressDetail}>123 main st, anytown, USA</AppText>
+                    <AppText style={styles.addressDetail}>{values.address || 'No address set'}</AppText>
                   </View>
                   <TouchableOpacity style={styles.addressMoreIcon}>
                     <VectorIcon
@@ -146,9 +207,22 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                       color={Colors.textAppColor}
                     />
                   </TouchableOpacity>
-                </View>
+                </View> */}
 
-                
+                <TouchableOpacity onPress={() => { navigate(RouteName.ADD_ADDRESS, { prevScreen: 'other_user' }) }}>
+                  <InputField
+                    label={"Select Address"}
+                    value={values.address}
+                    editable={false}
+                    // onChangeText={handleChange('address')}
+                    // onBlur={() => setFieldValue('address', values.address.trim())}
+                    errorMessage={touched.address && errors.address && errors.address ? errors.address : ''}
+                    keyboardType="default"
+                    color={Colors.textAppColor}
+                    textColor={Colors.textAppColor}
+                  />
+                </TouchableOpacity>
+                {/* <AppText>{touched.address && errors.address && errors.address ? errors.address : ''}</AppText> */}
 
                 <Buttons
                   buttonStyle={styles.submitButton}
@@ -161,7 +235,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                 // isLoading={true}
                 />
               </>
-            )}
+            }}
           </Formik>
         </View>
       </KeyboardAwareScrollView>
@@ -251,7 +325,7 @@ const styles = StyleSheet.create({
   addressDetail: {
     fontFamily: Fonts.REGULAR,
     fontSize: SF(12),
-    marginTop:SH(4)
+    marginTop: SH(4)
   },
   addressMoreIcon: {
     paddingVertical: 5,

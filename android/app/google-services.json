@@ -1,29 +1,21 @@
 {
   "project_info": {
-    "project_number": "530387899669",
-    "firebase_url": "https://ssnap-69f09-default-rtdb.firebaseio.com",
-    "project_id": "ssnap-69f09",
-    "storage_bucket": "ssnap-69f09.firebasestorage.app"
+    "project_number": "892821136177",
+    "firebase_url": "https://ssnap-d80b4-default-rtdb.firebaseio.com",
+    "project_id": "ssnap-d80b4",
+    "storage_bucket": "ssnap-d80b4.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:530387899669:android:0b28b8c14203605b29451c",
+        "mobilesdk_app_id": "1:892821136177:android:0532ab06cef16413b1c610",
         "android_client_info": {
           "package_name": "com.ssnap.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "530387899669-dqafi8ru82r3jh39dmf95pns5718vj0s.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.ssnap.app",
-            "certificate_hash": "94c87c3f8c9a9a566d5246eb7f282f37b940c9be"
-          }
-        },
-        {
-          "client_id": "530387899669-r0l4lpqos4ka4atgibr5bm2p5ttenl0b.apps.googleusercontent.com",
+          "client_id": "892821136177-fmjgva1gs0ohnnoh6pr2q3e2h1ljpsf5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.ssnap.app",
@@ -31,28 +23,58 @@
           }
         },
         {
-          "client_id": "530387899669-iv01qkh17ajtv3sr6vd9k027rmdkkmmn.apps.googleusercontent.com",
+          "client_id": "892821136177-ibf9ssrdfiacat3nfthjvh3jq2s8ofm6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD0MbH5IOBo3TT4Q5I46l1s9Va6m4BDLz4"
+          "current_key": "AIzaSyDhrCz9naj4x-rLT7hvhJZPy3-MH_PpkBY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "530387899669-iv01qkh17ajtv3sr6vd9k027rmdkkmmn.apps.googleusercontent.com",
+              "client_id": "892821136177-ibf9ssrdfiacat3nfthjvh3jq2s8ofm6.apps.googleusercontent.com",
               "client_type": 3
-            },
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892821136177:android:bffef02a7e1ae009b1c610",
+        "android_client_info": {
+          "package_name": "com.ssnapservicespro.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "892821136177-no0pjojh9832951cnptf86q9rugbn234.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ssnapservicespro.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "892821136177-ibf9ssrdfiacat3nfthjvh3jq2s8ofm6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhrCz9naj4x-rLT7hvhJZPy3-MH_PpkBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
             {
-              "client_id": "530387899669-36ted9dsmss0e3bhdtirq27l21ubgeb4.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.ssnapservicespro.app"
-              }
+              "client_id": "892821136177-ibf9ssrdfiacat3nfthjvh3jq2s8ofm6.apps.googleusercontent.com",
+              "client_type": 3
             }
           ]
         }

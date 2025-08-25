@@ -11,13 +11,18 @@ type SucessBookingModalProps = {
     modalVisible: boolean;
     closeModal: () => void;
     submitButton: () => void;
+    bookingJson: any;
 };
 const SucessBookingModal: React.FC<SucessBookingModalProps> = ({
     modalVisible = true,
     closeModal,
-    submitButton
+    submitButton,
+    bookingJson
 }) => {
     const navigation = useNavigation<any>();
+
+    const { slots, service, selectedTeamMember } = bookingJson;
+
     return (
         <Modal
             animationType="slide"
@@ -48,13 +53,13 @@ const SucessBookingModal: React.FC<SucessBookingModalProps> = ({
                     <Pressable style={styles.serviceContainer}>
                         <View style={styles.header}>
                             <View style={[styles.imageWrapper, boxShadow]}>
-                                <ImageLoader source={imagePaths.user} resizeMode="cover" mainImageStyle={styles.logo} />
+                                <ImageLoader source={service?.servicesImage && service?.servicesImage?.length > 0 ? { uri: service?.servicesImage[0] } : imagePaths.user} resizeMode="cover" mainImageStyle={styles.logo} />
                             </View>
                             <View style={styles.infoContainer}>
-                                <AppText style={styles.text}>Haircut + Beard </AppText>
-                                <AppText style={styles.price}>{`$1893`}</AppText>
-                                <AppText style={styles.dateTime}>{`8:00 am - 8:30 am`}</AppText>
-                                <AppText style={styles.withText}>{`With Juana`}</AppText>
+                                <AppText style={styles.text}>{service?.serviceName}</AppText>
+                                <AppText style={styles.price}>${service?.price}</AppText>
+                                <AppText style={styles.dateTime}>{slots?.time?.slot}</AppText>
+                                <AppText style={styles.withText}>{`With ${selectedTeamMember?.fullName}`}</AppText>
                             </View>
                         </View>
                     </Pressable>
@@ -101,8 +106,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 4,
         top: 4,
-        padding:5,
-        zIndex:99999,
+        padding: 5,
+        zIndex: 99999,
     },
 
     serviceContainer: {

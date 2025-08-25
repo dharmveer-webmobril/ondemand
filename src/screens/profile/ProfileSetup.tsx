@@ -91,7 +91,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
   };
 
   const handleImageSelected = (img: ImageType) => {
-
     setProfileImage(img);
     setImagePickerModal(false);
   };

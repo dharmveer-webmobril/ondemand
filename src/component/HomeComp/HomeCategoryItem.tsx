@@ -5,7 +5,7 @@ import {
   Pressable,
   FlatList,
 } from 'react-native';
-import { Colors, Fonts, navigate, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, imagePaths, navigate, SF, SH, SW } from '../../utils';
 import ImageLoader from '../ImageLoader';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
@@ -26,11 +26,11 @@ const SkeletonHomeCategoryItem = memo(() => (
   </View>
 ));
 
-const HomeCategoryItem = memo(({ name, image }: any) => {
+const HomeCategoryItem = memo(({ name, image, catId, subCat }: any) => {
   const navigation = useNavigation<any>();
   return (
     <Pressable
-      onPress={() => navigation.navigate(RouteName.SHOP_LIST)}
+      onPress={() => navigation.navigate(RouteName.SHOP_LIST, { subCats: subCat || [], catId, catName: name })}
       style={({ pressed }) => [
         styles.container,
         pressed && { opacity: 0.8 },
@@ -38,7 +38,7 @@ const HomeCategoryItem = memo(({ name, image }: any) => {
     >
       <View style={styles.imageLoader}>
         <ImageLoader
-          source={image}
+          source={image ? { uri: image } : imagePaths.no_image}
           resizeMode="cover"
           mainImageStyle={styles.mainImage}
         />
@@ -69,18 +69,21 @@ const HomeCategory = memo(() => {
     [showSkeleton, categoryData]
   );
 
-  const renderItem = ({ item, index }: any) =>
-    showSkeleton ? (
+  const renderItem = ({ item, index }: any) => {
+    return showSkeleton ? (
       <SkeletonHomeCategoryItem key={`skeleton-${index}`} />
     ) : (
       <HomeCategoryItem
         key={`category-${item?._id ?? index}`}
         id={item._id}
         name={item.label}
-        image={{ uri: item.categoryImage }}
+        image={item.categoryImage}
+        subCat={item?.category?.subcategories || []}
+        catId={item?.value}
       />
     );
 
+  }
   return (
     <>
       <HomeSubContainerHeader

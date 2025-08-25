@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 interface servicesInterface {
-
+    data: any
 }
 interface ListRowItemProps {
     title: string;
@@ -30,21 +30,21 @@ const ListRowItem: React.FC<ListRowItemProps> = ({ title, onPress }) => {
         </TouchableOpacity>
     );
 };
-const Details: FC<servicesInterface> = ({ }) => {
+const Details: FC<servicesInterface> = ({ data }) => {
     const navigation = useNavigation<any>();
     return (
         <View style={styles.container}>
             <ImageLoader source={imagePaths.map_img} mainImageStyle={styles.mapImage} resizeMode='contain' />
             <View style={styles.boottomView}>
                 <AppText style={styles.subHeader}>About Us</AppText>
-                <AppText style={styles.abouttxt}>Viverra lobortis bibendum gravida tortor nulla dolor pharetra. Erat parturient vel eu lectus sit. Suspendisse scelerisque egetnon iaculis consectetur dolor. Uteget malesuada est gravida Mattis justo tincidunt mi felis. Aquis nulla eget neque. Adipiscingeu ultrices sodales luctus. Lorem mauris sem sollicitudin semest non mi. Nuncaugue egestas duis habitasse molestie sedet. Amet ultricies nunc tellus lectus dolorvel.</AppText>
-                <Spacing space={SH(20)}/>
+                <AppText style={styles.abouttxt}>{data?.description || ''}</AppText>
+                <Spacing space={SH(20)} />
                 <AppText style={styles.subHeader}>Contact & Business Hours</AppText>
                 <Divider color='#3D3D3D40' marginTop={SH(5)} height={0.5} />
                 <View style={styles.contaictUsView}>
                     <View style={styles.phoneimg_phonenumberView}>
                         <Image source={imagePaths.phone_img} style={styles.phoneimg} />
-                        <AppText style={[styles.subHeader]}> (3945687456)</AppText>
+                        <AppText style={[styles.subHeader]}> ({data?.countryCode}-{data?.mobileNo})</AppText>
                     </View>
                     <Buttons
                         buttonStyle={styles.callbutton}
@@ -59,12 +59,12 @@ const Details: FC<servicesInterface> = ({ }) => {
                 </View>
                 <Spacing space={SH(25)} />
                 <AppText style={[styles.subHeader]}>Available Team Member</AppText>
-                <AvailTeamMember selectedId={1} />
+                {/* <AvailTeamMember selectedId={1} /> */}
                 <Spacing space={SH(10)} />
                 <ListRowItem title="Service Fee & Policy" onPress={() => navigation.navigate(RouteName.BOOKING_PRI_POLI, { title: "Service Fee & Policy" })} />
                 <ListRowItem title="Payment & Cancellation Policy" onPress={() => navigation.navigate(RouteName.BOOKING_PRI_POLI, { title: "Payment & Cancellation Policy" })} />
                 <ListRowItem title="Report" onPress={() => navigation.navigate(RouteName.REPORT_SHOP)} />
-       
+
             </View>
         </View>
     );

@@ -57,6 +57,8 @@ export const NavigatinScreens = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* <Stack.Screen name={'PromotionCreation'} component={PromotionCreation} /> */}
+
         <Stack.Screen name={'SplashScreen'} component={SplashScreen} />
         <Stack.Screen name={RouteName.LOGIN} component={LoginScreen} />
         {/* <Stack.Screen name={RouteName.HOME} component={Bottomtab} /> */}

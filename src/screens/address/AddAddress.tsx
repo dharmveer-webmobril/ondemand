@@ -3,6 +3,8 @@ import {
   Keyboard,
   StyleSheet,
   View,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
 import {
   AppHeader,
@@ -16,82 +18,151 @@ import {
 import { addAddressSchema, Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '../../utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Formik } from 'formik';
 import { useTranslation } from 'react-i18next';
-import { useSubmitAddressMutation, useUpdateAddressMutation } from '../../redux';
+import { setOtherUserAddress, useSubmitAddressMutation, useUpdateAddressMutation } from '../../redux';
+import AddressSearch, { ParsedAddress } from './AddressSearch';
+import { useDispatch } from 'react-redux';
+import useLocation from '../../utils/hooks/useLocation';
+import { useFormik } from 'formik';
+import Geocoder from 'react-native-geocoding';
 
-const AddAddress = () => {
+interface FormValues {
+  address: string;
+  appartment: string;
+  city: string;
+  zipCode: string;
+  state: string;
+  addressType: string;
+  location: { coordinates: [number, number] };
+}
+
+const AddAddress: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { addData } = route.params || {};
+  const { addData, prevScreen = '' } = route.params || {};
   const addressTypes = ['Other', 'Home', 'Office', 'Apartment'];
   const [selectedAddressType, setSelectedAddressType] = useState<string>('Other');
+  const { location, retry, isLoading: isLocationLoading } = useLocation();
   const [isDefault, setIsDefault] = useState<boolean>(false);
 
-  // Prefill initial values with addData if editing
-  const initialValues = {
-    address: addData?.streetAddress || '',
-    appartment: addData?.apartment || '',
-    city: addData?.city || '',
-    zipCode: addData?.zip || '',
-    state: addData?.state || '',
-    addressType: addData?.type || 'Other', // Prefill with existing type
-  };
+  const [submitAddress, { isLoading: isSubmitLoading }] = useSubmitAddressMutation();
+  const [updateAddress, { isLoading: isUpdateLoading }] = useUpdateAddressMutation();
+  const dispatch = useDispatch();
+
+  // Initialize formik
+  const formik = useFormik<FormValues>({
+    initialValues: {
+      address: addData?.streetAddress || '',
+      appartment: addData?.apartment || '',
+      city: addData?.city || '',
+      zipCode: addData?.zip || '',
+      state: addData?.state || '',
+      addressType: addData?.type || 'Other',
+      location: addData?.location || { coordinates: [0, 0] },
+    },
+    validationSchema: addAddressSchema(t, regex),
+    onSubmit: async (values, { setSubmitting }) => {
+      Keyboard.dismiss();
+      try {
+        const data: any = {
+          type: selectedAddressType,
+          streetAddress: values.address,
+          apartment: values.appartment,
+          city: values.city,
+          state: values.state,
+          zip: values.zipCode,
+          country: 'NA',
+          isDefault,
+          location: values.location,
+        };
+
+        if (prevScreen === 'other_user') {
+          dispatch(setOtherUserAddress(data));
+          goBack();
+          return;
+        }
+
+        let response;
+        if (addData?._id) {
+          data.id = addData._id;
+          response = await updateAddress({ data }).unwrap();
+        } else {
+          response = await submitAddress({ data }).unwrap();
+        }
+
+        if (response.success) {
+          handleSuccessToast(response.message || (addData?._id ? t("addAddress.editAddaddressSuccess") : t("addAddress.addaddressSuccess")));
+          goBack();
+        } else {
+          handleApiFailureResponse(response, '');
+        }
+      } catch (error) {
+        handleApiError(error);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   useEffect(() => {
     if (addData) {
       setSelectedAddressType(addData.type || 'Other');
-      setIsDefault(!!addData?.isDefault); // Convert to boolean
+      setIsDefault(!!addData?.isDefault);
+      formik.setValues({
+        address: addData.streetAddress || '',
+        appartment: addData.apartment || '',
+        city: addData.city || '',
+        zipCode: addData.zip || '',
+        state: addData.state || '',
+        addressType: addData.type || 'Other',
+        location: addData.location || { coordinates: [0, 0] },
+      });
     }
   }, [addData]);
 
-  const [submitAddress, { isLoading: isSubmitLoading }] = useSubmitAddressMutation();
-  const [updateAddress, { isLoading: isUpdateLoading }] = useUpdateAddressMutation();
-
-  const onSubmit = async (values: typeof initialValues) => {
-    Keyboard.dismiss();
-    let data: any = {
-      type: selectedAddressType,
-      streetAddress: values.address,
-      apartment: values.appartment,
-      city: values.city,
-      state: values.state,
-      zip: values.zipCode,
-      country: 'NA',
-      isDefault,
-      location: {
-        coordinates: [72.8777, 19.0760], // [longitude, latitude]
-      },
-    };
-    console.log(data, '------data');
+  const handleUseCurrentLocation = async () => {
+    if (!location) {
+      retry();
+      return;
+    }
 
     try {
-      let response;
-      if (addData?._id) {
-        data.id = addData._id;
-        // Edit mode: use update mutation with _id
-        response = await updateAddress({ data }).unwrap();
-      } else {
-        // Add mode: use submit mutation
-        response = await submitAddress({ data }).unwrap();
+      const response = await Geocoder.from(location.latitude, location.longitude);
+      console.log('Geocoder response:', response);
+
+      if (response.results.length > 0) {
+        const result = response.results[0];
+        const components = result.address_components;
+
+        const getComp = (types: string[]) => components.find((c: any) => types.every(t => c.types.includes(t)))?.long_name || "";
+
+        console.log('Parsed address components:', components);
+
+        const street = getComp(["route"]);
+        const city = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
+        const state = getComp(["administrative_area_level_1"]);
+        const postalCode = getComp(["postal_code"]);
+
+        formik.setValues({
+          ...formik.values,
+          address: result.formatted_address || street,
+          city,
+          state,
+          zipCode: postalCode,
+          location: { coordinates: [location.latitude,location.longitude] },
+        });
       }
-      console.log('res', response);
-      if (response.success) {
-        handleSuccessToast(response.message || (addData?._id ? t("addAddress.editAddaddressSuccess") : t("addAddress.addaddressSuccess")));
-        goBack();
-      } else {
-        handleApiFailureResponse(response, '');
-      }
-    } catch (error) {
-      handleApiError(error);
+    } catch (err) {
+      console.error("Geocoding error:", err);
+      handleApiError(err);
     }
   };
 
   return (
     <Container isPadding={false}>
       <AppHeader
-        headerTitle={addData?._id ? t('addAddress.edittitle'):t('addAddress.title')}
+        headerTitle={addData?._id ? t('addAddress.edittitle') : t('addAddress.title')}
         onPress={() => navigation.goBack()}
         Iconname="arrowleft"
         headerStyle={styles.header}
@@ -100,130 +171,132 @@ const AddAddress = () => {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
         extraScrollHeight={SH(40)}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
-          <View style={styles.locationRow}>
-            <AppText style={styles.locationText}>
-              <VectoreIcons size={SF(14)} color={Colors.themeColor} icon='FontAwesome6' name='location-dot' /> {t('addAddress.useMyCurrentLocation')}
-            </AppText>
-            <VectoreIcons size={SF(26)} color={Colors.themeColor} icon='Feather' name='chevron-right' />
-          </View>
-          <Formik
-            initialValues={initialValues}
-            validationSchema={addAddressSchema(t, regex)}
-            onSubmit={onSubmit}
-          >
-            {({
-              handleChange,
-              handleBlur,
-              values,
-              errors,
-              touched,
-              handleSubmit,
-              setFieldValue,
-            }) => (
-              <>
-                <InputField
-                  label={t('addAddress.placeholders.streetAddress')}
-                  value={values.address}
-                  onChangeText={handleChange('address')}
-                  onBlur={handleBlur('address')}
-                  errorMessage={touched.address && errors.address ? String(errors.address) : ''}
-                  keyboardType="default"
-                  inputStyle={styles.inputFieldStyle}
-                  color={Colors.textAppColor}
-                  textColor={Colors.textAppColor}
-                />
-                <InputField
-                  label={t('addAddress.placeholders.apartment')}
-                  value={values.appartment}
-                  onChangeText={handleChange('appartment')}
-                  onBlur={handleBlur('appartment')}
-                  inputStyle={styles.inputFieldStyle}
-                  errorMessage={touched.appartment && errors.appartment ? String(errors.appartment) : ''}
-                  keyboardType="default"
-                  color={Colors.textAppColor}
-                  textColor={Colors.textAppColor}
-                />
-                <View style={styles.rowContainer}>
-                  <View style={styles.halfWidth}>
-                    <InputField
-                      label={t('addAddress.placeholders.city')}
-                      value={values.city}
-                      onChangeText={handleChange('city')}
-                      inputStyle={styles.inputFieldStyle}
-                      onBlur={handleBlur('city')}
-                      errorMessage={touched.city && errors.city ? String(errors.city) : ''}
-                      keyboardType="default"
-                      color={Colors.textAppColor}
-                      textColor={Colors.textAppColor}
-                    />
-                  </View>
-                  <View style={styles.halfWidth}>
-                    <InputField
-                      label={t('addAddress.placeholders.state')}
-                      value={values.state}
-                      inputStyle={styles.inputFieldStyle}
-                      onChangeText={handleChange('state')}
-                      onBlur={handleBlur('state')}
-                      errorMessage={touched.state && errors.state ? String(errors.state) : ''}
-                      keyboardType="default"
-                      color={Colors.textAppColor}
-                      textColor={Colors.textAppColor}
-                    />
-                  </View>
-                </View>
-                <InputField
-                  label={t('addAddress.placeholders.zipCode')}
-                  value={values.zipCode}
-                  onChangeText={handleChange('zipCode')}
-                  onBlur={handleBlur('zipCode')}
-                  errorMessage={touched.zipCode && errors.zipCode ? String(errors.zipCode) : ''}
-                  keyboardType="number-pad"
-                  color={Colors.textAppColor}
-                  inputStyle={styles.inputFieldStyle}
-                  textColor={Colors.textAppColor}
-                />
-                <AppText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType')}</AppText>
-                <View style={styles.addressTypeContainer}>
-                  {addressTypes.map((type) => (
-                    <Checkbox
-                      key={type}
-                      checked={selectedAddressType === type}
-                      onChange={() => {
-                        setSelectedAddressType(type);
-                        setFieldValue('addressType', type);
-                      }}
-                      size={SF(14)}
-                      label={t(`addAddress.addressTypes.${type.toLowerCase()}`)}
-                    />
-                  ))}
-                </View>
-                <View style={styles.checkboxContainer}>
-                  <Checkbox
-                    checked={isDefault}
-                    onChange={() => setIsDefault(!isDefault)} // Toggle state
-                    size={SF(14)}
-                    label={t('addAddress.makeThisDefault')}
-                  />
-                </View>
-                <Buttons
-                  buttonStyle={styles.submitButton}
-                  textColor={Colors.textWhite}
-                  title={t('addAddress.placeholders.save')}
-                  onPress={handleSubmit}
-                  isLoading={isSubmitLoading || isUpdateLoading} // Combine loading states
-                />
-              </>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.container}>
+            <TouchableOpacity onPress={handleUseCurrentLocation} style={styles.locationRow}>
+              <AppText style={styles.locationText}>
+                <VectoreIcons size={SF(14)} color={Colors.themeColor} icon='FontAwesome6' name='location-dot' /> {t('addAddress.useMyCurrentLocation')}
+              </AppText>
+              <VectoreIcons size={SF(26)} color={Colors.themeColor} icon='Feather' name='chevron-right' />
+            </TouchableOpacity>
+            <AppText style={styles.addressTypeLabel}>{t('addAddress.placeholders.streetAddress')}</AppText>
+            <AddressSearch
+              inputStyle={{ borderColor: Colors.textAppColor, height: SF(45), borderWidth: 1, color: Colors.textAppColor, marginTop: SH(10), paddingVertical: 4 }}
+              placeholderTextColor={Colors.textAppColor}
+              countryCode="in"
+              value={formik.values.address}
+              placeholder={""}
+              onSelect={(parsed: ParsedAddress) => {
+                formik.setValues({
+                  ...formik.values,
+                  address: parsed.formattedAddress,
+                  city: parsed.city,
+                  state: parsed.state,
+                  zipCode: parsed.postalCode,
+                  appartment: '',
+                  location: { coordinates: [parsed.lng, parsed.lat] },
+                });
+                formik.setFieldTouched('address', true);
+                formik.setFieldTouched('city', true);
+                formik.setFieldTouched('state', true);
+                formik.setFieldTouched('zipCode', true);
+              }}
+            />
+            {formik.touched.address && formik.errors.address && (
+              <AppText style={styles.errorText}>{formik.errors.address}</AppText>
             )}
-          </Formik>
-        </View>
+            <InputField
+              label={t('addAddress.placeholders.apartment')}
+              value={formik.values.appartment}
+              onChangeText={(val) => formik.setFieldValue('appartment', val)}
+              onBlur={() => formik.setFieldTouched('appartment', true)}
+              inputStyle={styles.inputFieldStyle}
+              errorMessage={formik.touched.appartment && formik.errors.appartment ? formik.errors.appartment : ''}
+              keyboardType="default"
+              color={Colors.textAppColor}
+              textColor={Colors.textAppColor}
+            />
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <InputField
+                  label={t('addAddress.placeholders.city')}
+                  value={formik.values.city}
+                  onChangeText={(val) => formik.setFieldValue('city', val)}
+                  onBlur={() => formik.setFieldTouched('city', true)}
+                  inputStyle={styles.inputFieldStyle}
+                  errorMessage={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
+                  keyboardType="default"
+                  color={Colors.textAppColor}
+                  textColor={Colors.textAppColor}
+                />
+              </View>
+              <View style={styles.halfWidth}>
+                <InputField
+                  label={t('addAddress.placeholders.state')}
+                  value={formik.values.state}
+                  onChangeText={(val) => formik.setFieldValue('state', val)}
+                  onBlur={() => formik.setFieldTouched('state', true)}
+                  inputStyle={styles.inputFieldStyle}
+                  errorMessage={formik.touched.state && formik.errors.state ? formik.errors.state : ''}
+                  keyboardType="default"
+                  color={Colors.textAppColor}
+                  textColor={Colors.textAppColor}
+                />
+              </View>
+            </View>
+            <InputField
+              label={t('addAddress.placeholders.zipCode')}
+              value={formik.values.zipCode}
+              onChangeText={(val) => formik.setFieldValue('zipCode', val)}
+              onBlur={() => formik.setFieldTouched('zipCode', true)}
+              errorMessage={formik.touched.zipCode && formik.errors.zipCode ? formik.errors.zipCode : ''}
+              keyboardType="number-pad"
+              color={Colors.textAppColor}
+              inputStyle={styles.inputFieldStyle}
+              textColor={Colors.textAppColor}
+            />
+            <AppText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType')}</AppText>
+            <View style={styles.addressTypeContainer}>
+              {addressTypes.map((type) => (
+                <Checkbox
+                  key={type}
+                  checked={selectedAddressType === type}
+                  onChange={() => {
+                    setSelectedAddressType(type);
+                    formik.setFieldValue('addressType', type);
+                    formik.setFieldTouched('addressType', true);
+                  }}
+                  size={SF(14)}
+                  label={t(`addAddress.addressTypes.${type.toLowerCase()}`)}
+                />
+              ))}
+            </View>
+            {formik.touched.addressType && formik.errors.addressType && (
+              <AppText style={styles.errorText}>{formik.errors.addressType}</AppText>
+            )}
+            <View style={styles.checkboxContainer}>
+              <Checkbox
+                checked={isDefault}
+                onChange={() => setIsDefault(!isDefault)}
+                size={SF(14)}
+                label={t('addAddress.makeThisDefault')}
+              />
+            </View>
+            <Buttons
+              buttonStyle={styles.submitButton}
+              textColor={Colors.textWhite}
+              title={t('addAddress.placeholders.save')}
+              onPress={formik.handleSubmit}
+              isLoading={isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading}
+            />
+          </View>
+        </TouchableWithoutFeedback>
       </KeyboardAwareScrollView>
     </Container>
   );
 };
-
-export default AddAddress;
 
 const styles = StyleSheet.create({
   header: {
@@ -239,87 +312,6 @@ const styles = StyleSheet.create({
     paddingVertical: SH(20),
     flex: 1,
   },
-  profileContainer: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SH(20),
-  },
-  userConImage: {
-    width: SF(70),
-    height: SF(70),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.borderColor,
-    borderRadius: SF(35),
-  },
-  userImage: {
-    width: SF(66),
-    height: SF(66),
-    borderRadius: SF(33),
-  },
-  editIcon: {
-    position: 'absolute',
-    zIndex: 99,
-    padding: 5,
-    right: -5,
-    bottom: 0,
-    borderRadius: 6,
-    backgroundColor: Colors.themeColor,
-  },
-  userInfo: {
-    marginTop: 10,
-  },
-  userName: {
-    fontFamily: Fonts.MEDIUM,
-    fontSize: SF(16),
-  },
-  userPhone: {
-    fontFamily: Fonts.REGULAR,
-    fontSize: SF(12),
-    marginTop: SH(5),
-  },
-  addressContainer: {
-    borderRadius: SW(10),
-    paddingVertical: SW(15),
-    paddingHorizontal: SW(15),
-    borderWidth: 1,
-    borderColor: Colors.textAppColor,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  addressInfo: {
-    width: '80%',
-  },
-  addressName: {
-    fontFamily: Fonts.SEMI_BOLD,
-    fontSize: SF(12),
-  },
-  addressDetail: {
-    fontFamily: Fonts.REGULAR,
-    fontSize: SF(12),
-    marginTop: SH(4),
-  },
-  addressMoreIcon: {
-    paddingVertical: 5,
-    paddingLeft: 5,
-  },
-  addAddressButton: {
-    backgroundColor: Colors.themeColor,
-    height: SF(28),
-    width: SF(124),
-    marginTop: 15,
-    alignSelf: 'flex-end',
-    borderRadius: 5,
-  },
-  addAddressText: {
-    fontSize: SF(12),
-  },
-  submitButton: {
-    backgroundColor: Colors.themeColor,
-    marginTop: SH(30),
-  },
   locationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -330,18 +322,9 @@ const styles = StyleSheet.create({
     color: Colors.themeColor,
     fontFamily: Fonts.SEMI_BOLD,
   },
-  bottomContainer: {
-    paddingHorizontal: SW(25),
-    paddingVertical: SH(20),
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    marginTop: 20,
-    marginBottom: 10,
-    backgroundColor: '#F2F2F2',
-    padding: 8,
-    borderRadius: 10,
-    paddingLeft: SW(15),
+  submitButton: {
+    backgroundColor: Colors.themeColor,
+    marginTop: SH(30),
   },
   addressTypeLabel: {
     fontSize: SF(14),
@@ -367,4 +350,21 @@ const styles = StyleSheet.create({
   halfWidth: {
     width: '48%',
   },
+  errorText: {
+    fontSize: SF(12),
+    color: Colors.red,
+    marginTop: SH(5),
+    fontFamily: Fonts.REGULAR,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    marginBottom: 10,
+    backgroundColor: '#F2F2F2',
+    padding: 8,
+    borderRadius: 10,
+    paddingLeft: SW(15),
+  },
 });
+
+export default AddAddress;

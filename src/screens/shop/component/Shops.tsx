@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, View, Pressable, Image } from 'react-native';
 import React from 'react';
 import { boxShadowlight, Colors, Fonts, SF, SH, SW } from '../../../utils';
 import { AppText, ImageLoader } from '../../../component';
@@ -12,39 +12,41 @@ interface ShopsProps {
     bookingType?: string
 }
 
-const Shops: React.FC<ShopsProps> = ({ index, bookingType = null }) => {
+const Shops: React.FC<ShopsProps> = ({ item, index, bookingType = null }) => {
     const navigation = useNavigation<any>();
+    console.log('item?.bannerImage', item?.bannerImage);
+    const addressData = item?.location || {};
+    const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
     return (
         <Pressable
-            onPress={() => { 
-                navigation.navigate(RouteName.SHOP_DETAILS,{bookingType:bookingType}); 
+            onPress={() => {
+                navigation.navigate(RouteName.SHOP_DETAILS, { bookingType: bookingType, providerDetails: item });
             }}
-            key={index + 'item-shop'} style={styles.itemContainer}
         >
             <View style={styles.topImagesWrapper}>
                 <View style={[styles.topImageContainer, boxShadowlight]}>
-                    <ImageLoader source={imagePaths.barber} resizeMode="contain" mainImageStyle={styles.topImage} />
+                    <Image source={{ uri: item?.bannerImage }} resizeMode='cover' style={styles.topImage} />
                 </View>
-                <View style={styles.smallImagesRow}>
+                {/* <View style={styles.smallImagesRow}>
                     {[imagePaths.barber3, imagePaths.barber4, imagePaths.barber3, imagePaths.barber4].map((img, idx) => (
                         <View key={idx.toString() + 'img'} style={[styles.topImagesmallContainer, boxShadowlight]}>
                             <ImageLoader source={img} resizeMode="contain" mainImageStyle={styles.bottomImg} />
                         </View>
                     ))}
-                </View>
+                </View> */}
             </View>
 
             <View style={styles.textInfoRow}>
                 <View style={styles.textBlock}>
-                    <AppText style={styles.shopName}>WM BarberShop</AppText>
+                    <AppText style={styles.shopName}>{item?.businessName || ''}</AppText>
                     <AppText style={styles.shopAddress}>
-                        1893 Cheshire Bridge Rd Ne, 30325{'\n'}Home Service
+                        {addressSummery ? addressSummery.trim().charAt(0).toUpperCase() + addressSummery.trim().slice(1) : ''} {'\n'}
                     </AppText>
                 </View>
                 <View style={styles.reviewBlock}>
-                    <AppText style={styles.reviewText}>
+                    {/* <AppText style={styles.reviewText}>
                         4.5{'\n'}<AppText style={{ fontSize: SF(10), color: Colors.textAppColor, }}>140 Reviews</AppText>
-                    </AppText>
+                    </AppText> */}
                 </View>
             </View>
         </Pressable>
@@ -81,7 +83,7 @@ const styles = StyleSheet.create({
         color: Colors.textAppColor,
     },
     topImage: {
-        height: '190%',
+        height: '100%',
         width: '100%',
     },
     bottomImg: {
@@ -89,7 +91,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     topImageContainer: {
-        height: SF(90),
+        height: SF(190),
         borderRadius: SF(10),
         justifyContent: 'center',
         alignItems: 'center',

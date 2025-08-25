@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -10,124 +10,178 @@ import {
   AppText,
   Buttons,
   Container,
+  SweetaelertModal,
   VectoreIcons,
 } from '../../component'; // Adjust based on your actual paths
-import {  Colors, Fonts, goBack, navigate, SF, SH, SW } from '../../utils';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, navigate, SF, SH, SW } from '../../utils';
+import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
+import AddressMenu from './AddressMenu';
+import { RootState, setBookingJson, useDeleteAddressMutation, useGetAddressQuery } from '../../redux';
+import { Skeleton } from '../../component/Skeleton';
+import VectorIcon from '../../component/VectoreIcons';
+import { useDispatch, useSelector } from 'react-redux';
 
-const addressData = [
-  {
-    id: '1',
-    title: 'My Home',
-    address: 'Sophie Nowakowska, Netherlands 12/2231-234 crowkon.poloe',
-    phone: '+31 6387 7355',
-  },
-  {
-    id: '2',
-    title: 'My Office',
-    address: 'Sophie Nowakowska, Netherlands 12/2231-234 crowkon.poloe',
-    phone: '+31 6387 7355',
-  },
-  {
-    id: '3',
-    title: 'Lorem Ipsum',
-    address: 'Sophie Nowakowska, Netherlands 12/2231-234 crowkon.poloe',
-    phone: '+31 6387 7355',
-  },
-  {
-    id: '4',
-    title: 'Lorem Ipsum',
-    address: 'Sophie Nowakowska, Netherlands 12/2231-234 crowkon.poloe',
-    phone: '+31 6387 7355',
-  },
-];
-
-const SelectAddress = () => {
+const MyAddressScreen = () => {
   const navigation = useNavigation<any>();
-  const [addresses, _setAddresses] = useState(addressData);
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
-  const route = useRoute<any>();
-  const { prevType } = route.params;
+  const { t } = useTranslation();
 
-  const renderItem = ({ item }: { item: typeof addressData[0] }) => (
+
+  const { data: addressData = [], isError, refetch, isFetching } = useGetAddressQuery();
+
+  const memoizedData = useMemo(() => addressData?.data || [], [addressData]);
+  console.log('addressDataaddressData', addressData);
+  // useState
+  const handleRetry = () => refetch();
+
+  const showSkeleton = isFetching && !isError;
+  const showError = !isFetching && isError;
+  const showEmpty = !isFetching && !isError && memoizedData.length === 0;
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+
+
+
+  const renderSkeleton = () => (
     <View style={styles.card}>
       <View style={styles.cardTop}>
-        <View style={{ flex: 1 }}>
-          <AppText style={styles.cardTitle}>{item.title}</AppText>
-          <AppText style={styles.cardSubtitle}>{item.address}</AppText>
-          <AppText style={styles.cardSubtitle}>{item.phone}</AppText>
+        <View style={styles.cardContent}>
+          <Skeleton style={styles.skeletonLine1} />
+          <Skeleton style={styles.skeletonLine} />
         </View>
-        <TouchableOpacity style={styles.dotMenu} onPress={() => setSelectedMenu(item.id)}>
-          <VectoreIcons
-            icon="Entypo"
-            name="dots-three-vertical"
-            size={SW(13)}
-            color={Colors.textHeader}
-          />
-          {/* {selectedMenu === item.id && <ChatDropdownMenu menuOptions={addressMenuData} onClose={closeMenu} />} */}
-        </TouchableOpacity>
       </View>
       <View style={styles.separator} />
     </View>
   );
-  const closeMenu = () => setSelectedMenu(null);
-  const { t } = useTranslation();
+
+  const renderItem = ({ item }: { item: any }) => {
+    console.log('item', item);
+
+    return <TouchableOpacity style={styles.card} onPress={() => setSelectedAddress(item?._id)}>
+      <View style={styles.cardTop}>
+        <View style={styles.cardContent}>
+          <AppText style={styles.cardTitle}>{item?.type || ''}</AppText>
+          <AppText style={styles.cardSubtitle}>
+            {`${item?.apartment || ''}, ${item?.streetAddress || ''}, ${item?.city || ''}, ${item?.state || ''}, ${item?.zip || ''}`}
+          </AppText>
+        </View>
+        <View style={styles.dotMenu}>
+          {selectedAddress !== item?._id ? <VectoreIcons
+            name="radio-button-unchecked"
+            icon='MaterialIcons'
+            size={SF(20)}
+            color={Colors.textAppColor}
+          />
+            :
+            <VectoreIcons
+              name="radio-button-checked"
+              icon='MaterialIcons'
+              size={SF(20)}
+              color={Colors.textAppColor}
+            />
+          }
+        </View>
+      </View>
+      <View style={styles.separator} />
+    </TouchableOpacity>
+  };
+
+
+  const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
+  const dispatch = useDispatch();
+
+  const btnConfirmButton = () => {
+    if (selectedAddress) {
+      const addjson = memoizedData.find((item: any) => item._id === selectedAddress);
+      let bookingData = { ...bookingJson, myAddId: selectedAddress, myAdd: addjson };
+      dispatch(setBookingJson(bookingData));
+      navigation.navigate(RouteName.PAYMENT_SCREEN);
+      // navigation.navigate(RouteName.SELECT_ADDRESS, { selectedAddress });
+    } else {
+      handleApiFailureResponse('', 'Please select an address');
+    }
+  }
+
+
   return (
     <Container>
+
       <AppHeader
-        headerTitle={t("selectAddress.title")}
+        headerTitle={t('myAddress.title', { defaultValue: 'My Address' })}
         onPress={() => navigation.goBack()}
         Iconname="arrowleft"
         headerStyle={styles.header}
       />
-      <Buttons
-        isExtraBoxShadow={false}
-        buttonStyle={styles.addAddressButton}
-        textColor={Colors.textWhite}
-        buttonTextStyle={styles.addAddressText}
-        title={t('selectAddress.addNewAdd')}
-        onPress={() => {
-          navigate(RouteName.ADD_ADDRESS, { prevScreen: 'booking' })
-        }}
-      />
-      <FlatList
-        data={addresses}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
-      <View style={styles.buttonContainer}>
+      <View style={{ width: '40%', marginLeft: 'auto', marginRight: '6%', marginBottom: 20 }}>
         <Buttons
-          title={t("selectAddress.confirm")}
+          title={'Add New Address'}
+          onPress={() => navigate(RouteName.ADD_ADDRESS, { prevScreen: 'my-address' })}
+          buttonStyle={styles.addButton1}
+          buttonTextStyle={styles.addButtonText}
+          textColor={Colors.textWhite}
+        />
+      </View>
+      <FlatList
+        contentContainerStyle={styles.listContent}
+        data={showSkeleton ? [1, 3, 4, 5, 6] : memoizedData}
+        renderItem={({ item }) =>
+          showSkeleton ? renderSkeleton() : renderItem({ item })
+        }
+        keyExtractor={(item, index) =>
+          `servicenear-${item?._id ?? index}`
+        }
+        ListEmptyComponent={
+          showEmpty ? (
+            <View style={styles.emptyContainer}>
+              <AppText style={styles.emptyText}>{t('myAddress.notFound', { defaultValue: 'No addresses found' })}</AppText>
+            </View>
+          ) : null
+        }
+        ListFooterComponent={
+          showError ? (
+            <View style={styles.errorContainer}>
+              <AppText style={styles.errorText}>{t('myAddress.error', { defaultValue: 'Error loading addresses' })}</AppText>
+              <Buttons
+                title={t('myAddress.retry', { defaultValue: 'Retry' })}
+                onPress={handleRetry}
+                buttonStyle={styles.retryButton}
+                textColor={Colors.textWhite}
+              />
+            </View>
+          ) : null
+        }
+        showsHorizontalScrollIndicator={false}
+      />
+
+
+      {!showSkeleton && <View style={styles.buttonContainer}>
+        <Buttons
+          title={'Confirm'}
           onPress={() => {
-            // navigation.navigate(RouteName.BOOK_APPOINT)
-            prevType == 'forSelf' ? navigation.navigate(RouteName.PAYMENT_SCREEN) : goBack()
+            btnConfirmButton()
           }}
           buttonStyle={styles.addButton}
           textColor={Colors.textWhite}
         />
-      </View>
-      {selectedMenu && (
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={closeMenu}
-        />
-      )}
+      </View>}
+
     </Container>
   );
 };
 
-export default SelectAddress;
+export default MyAddressScreen;
 
 const styles = StyleSheet.create({
   header: {
     backgroundColor: Colors.bgwhite,
     paddingHorizontal: SW(25),
-    marginVertical: SW(15)
+    marginVertical: SW(15),
   },
   listContent: {
     paddingHorizontal: SW(25),
@@ -135,6 +189,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: SH(15),
+    width: '100%',
   },
   cardTop: {
     flexDirection: 'row',
@@ -151,11 +206,10 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.MEDIUM,
     color: Colors.textHeader,
   },
-
   dotMenu: {
     paddingLeft: SW(10),
     paddingTop: SH(5),
-    zIndex: 10
+    zIndex: 10,
   },
   separator: {
     borderBottomWidth: 1,
@@ -168,9 +222,18 @@ const styles = StyleSheet.create({
     left: SW(25),
     right: SW(25),
   },
+  addButtonText: {
+    fontSize: SF(12),
+    fontFamily: Fonts.MEDIUM,
+  },
   addButton: {
     height: SH(48),
     borderRadius: SW(8),
+    backgroundColor: Colors.themeColor,
+  },
+  addButton1: {
+    height: SH(30),
+    borderRadius: SW(4),
     backgroundColor: Colors.themeColor,
   },
   overlay: {
@@ -180,19 +243,57 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     zIndex: 10,
-    backgroundColor: ''
+    backgroundColor: '',
   },
-  addAddressButton: {
+  cardContent: {
+    flex: 1,
+  },
+  skeletonLine: {
+    height: SH(15),
+    backgroundColor: '#E0E0E0',
+    marginBottom: SH(5),
+    borderRadius: SW(4),
+    width: '100%',
+  },
+  skeletonLine1: {
+    height: SH(15),
+    backgroundColor: '#E0E0E0',
+    marginBottom: SH(5),
+    borderRadius: SW(4),
+    width: '50%',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SW(25),
+    paddingVertical: SH(20),
+  },
+  errorText: {
+    fontSize: SF(16),
+    fontFamily: Fonts.MEDIUM,
+    color: Colors.red,
+    textAlign: 'center',
+    marginBottom: SH(15),
+  },
+  retryButton: {
+    height: SH(40),
+    borderRadius: SW(8),
     backgroundColor: Colors.themeColor,
-    height: SF(28),
-    width: SF(124),
-    marginTop: 15,
-    alignSelf: 'flex-end',
-    marginRight: SW(25),
-    borderRadius: 5,
-    marginBottom: 25
+    width: SW(120),
   },
-  addAddressText: {
-    fontSize: SF(12),
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SW(25),
+    paddingVertical: SH(20),
+    marginTop: 70,
+  },
+  emptyText: {
+    fontSize: SF(16),
+    fontFamily: Fonts.MEDIUM,
+    color: Colors.textAppColor,
+    textAlign: 'center',
   },
 });

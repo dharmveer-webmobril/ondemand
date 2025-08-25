@@ -1,35 +1,42 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { AppText, Container, HomeRecommendedItems, Spacing } from '../../component';
-import { Colors, Fonts, recommendedData, SF, SH, subCatDdata, SW } from '../../utils';
+import { Colors, Fonts, recommendedData, SF, SH, SW } from '../../utils';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ShopHeader, Shops, SubCatList } from './component';
 import { useRoute } from '@react-navigation/native';
+import { getProvidersByCatAndSubcat, useGetProviderCatSubcatQuery } from '../../redux';
+import { useDispatch } from 'react-redux';
 
 interface shopProps { }
-
-
 
 const SeparatorComponent = () => <Spacing space={SH(10)} />;
 const SeparatorComponentSpecialOffer = () => <Spacing horizontal space={SH(15)} />;
 
 const ShopList: React.FC<shopProps> = () => {
-    // immidiate
     const route = useRoute<any>();
-    let bookingType = route?.params?.bookingType;
+    const { subCats = [], catName = '', catId } = route?.params;
+
+    const [selectedSubCatId, setSelectedSubCatId] = React.useState<string | null>('all');
+
+    const { data, isFetching, isError, refetch, } = useGetProviderCatSubcatQuery({ catId: catId, subCat: selectedSubCatId === 'all' ? null : selectedSubCatId });
+    const memoizedData = useMemo(() => data?.data || [], [data]);
+    console.log('shopDatashopData', memoizedData);
+
+
+
+    React.useEffect(() => {
+        if (catId) {
+            refetch();
+        }
+    }, [selectedSubCatId, catId, refetch]);
+
     const listHeader = () => (
-        <AppText style={styles.listHeaderText}>Barber shop (250)</AppText>
+        <AppText style={styles.listHeaderText}>
+            {catName ? catName.trim().charAt(0).toUpperCase() + catName.trim().slice(1) : ''}
+        </AppText>
     );
-    // useFocusEffect(
-    //     React.useCallback(() => {
-    //         StatusBar.setBackgroundColor(Colors.themeDarkColor);
-    //         StatusBar.setBarStyle('light-content');
-    //         return () => {
-    //             StatusBar.setBackgroundColor('#ffffff');
-    //             StatusBar.setBarStyle('dark-content');
-    //         };
-    //     }, []),
-    // );
+
     return (
         <Container isAuth statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
             <ShopHeader />
@@ -40,37 +47,52 @@ const ShopList: React.FC<shopProps> = () => {
             >
                 <Spacing />
                 <View style={styles.paddHori}>
-                    <SubCatList data={subCatDdata} />
+                    {subCats && (
+                        <SubCatList
+                            setSelectedSubCatId={setSelectedSubCatId}
+                            selectedSubCatId={selectedSubCatId}
+                            data={[{ _id: 'all', name: 'All' }, ...subCats]} // add "All" at start
+                        />
+                    )}
                 </View>
-                {
-                    bookingType === 'immidiate' && <Spacing space={SH(20)} />
-                }
-                {bookingType !== 'immidiate' &&
-                    <>
-                        <AppText style={[styles.specialOffersText, styles.marHori]}>Special Offers</AppText>
-                        <View style={[styles.specialOfferConatiner, {}]}>
-                            <FlatList
-                                horizontal
-                                data={recommendedData}
-                                keyExtractor={(item, index) => item.name + 'recomded' + index}
-                                contentContainerStyle={styles.flatListRecommended}
-                                ItemSeparatorComponent={SeparatorComponentSpecialOffer}
-                                showsHorizontalScrollIndicator={false}
-                                renderItem={({ item }) => <HomeRecommendedItems {...item} />}
-                            />
-                        </View>
-                    </>
-                }
+
+                <>
+                    <AppText style={[styles.specialOffersText, styles.marHori]}>Special Offers</AppText>
+                    <View style={styles.specialOfferConatiner}>
+                        <FlatList
+                            horizontal
+                            data={recommendedData}
+                            keyExtractor={(item, index) => item.name + 'recomded' + index}
+                            contentContainerStyle={styles.flatListRecommended}
+                            ItemSeparatorComponent={SeparatorComponentSpecialOffer}
+                            showsHorizontalScrollIndicator={false}
+                            renderItem={({ item }) => <HomeRecommendedItems {...item} />}
+                        />
+                    </View>
+                </>
+
+
                 <FlatList
-                    data={recommendedData}
-                    keyExtractor={(item, index) => item.name + 'baber-shop' + index}
+                    data={memoizedData || []}
+                    keyExtractor={(item, index) => item?.businessName + 'baber-shop' + index}
                     showsHorizontalScrollIndicator={false}
                     ItemSeparatorComponent={SeparatorComponent}
+                    contentContainerStyle={styles.flatListRecommended}
                     ListHeaderComponent={listHeader}
                     renderItem={({ item, index }) => (
-                        <Shops item={item} index={index} bookingType={bookingType} />
+                        <Shops item={item} index={index} bookingType={'bookingType'} />
                     )}
+                    ListEmptyComponent={
+                        !isFetching ? (
+                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 70 }}>
+                                <AppText style={{ color: Colors.lightGraytext }}>
+                                    {isError ? "Something went wrong!" : "No shops found"}
+                                </AppText>
+                            </View>
+                        ) : null
+                    }
                 />
+
             </KeyboardAwareScrollView>
         </Container>
     );
@@ -95,87 +117,20 @@ const styles = StyleSheet.create({
     flatListRecommended: {
         marginBottom: SH(35),
         marginTop: SH(15),
-        marginHorizontal: '2%'
+        marginHorizontal: '3%',
     },
     specialOffersText: {
         marginTop: SF(15),
         marginHorizontal: SW(25),
         fontFamily: Fonts.SEMI_BOLD,
         color: Colors.textAppColor,
-        fontSize: SF(14)
+        fontSize: SF(14),
     },
     listHeaderText: {
         marginHorizontal: '5%',
         marginBottom: SH(20),
         fontFamily: Fonts.SEMI_BOLD,
         color: Colors.textAppColor,
-        fontSize: SF(14)
-    },
-    topImage: {
-        height: '190%',
-        width: '100%',
-    },
-    bottomImg: {
-        height: '100%',
-        width: '100%',
-    },
-    topImageContainer: {
-        height: SH(90),
-        borderRadius: SW(10),
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.bgwhite,
-        overflow: 'hidden',
-    },
-    topImagesmallContainer: {
-        height: SH(82),
-        width: '23.5%',
-        borderRadius: SW(10),
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.bgwhite,
-        marginTop: SH(7),
-        overflow: 'hidden',
-    },
-    itemContainer: {
-        marginHorizontal: SW(25),
-    },
-    topImagesWrapper: {
-        backgroundColor: '#0000001A',
-        paddingHorizontal: 4,
-        paddingVertical: 6,
-        borderRadius: SW(10),
-    },
-    smallImagesRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    textInfoRow: {
-        margin: 5,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    textBlock: {
-        width: '72%',
-    },
-    shopName: {
-        fontFamily: Fonts.MEDIUM,
-        color: Colors.textAppColor,
-        fontSize: SF(12),
-    },
-    shopAddress: {
-        fontFamily: Fonts.MEDIUM,
-        color: Colors.lightGraytext,
-        fontSize: SF(10),
-    },
-    reviewBlock: {
-        width: '26%',
-    },
-    reviewText: {
-        fontFamily: Fonts.MEDIUM,
-        color: Colors.textAppColor,
         fontSize: SF(14),
-        textAlign: 'center',
-        lineHeight: SH(17),
     },
 });

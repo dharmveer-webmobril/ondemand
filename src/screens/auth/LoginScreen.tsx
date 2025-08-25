@@ -79,7 +79,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: '530387899669-iv01qkh17ajtv3sr6vd9k027rmdkkmmn.apps.googleusercontent.com',
+      webClientId: '892821136177-ibf9ssrdfiacat3nfthjvh3jq2s8ofm6.apps.googleusercontent.com',
       offlineAccess: false,
       scopes: [
         "email",
@@ -118,12 +118,52 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
 
       console.log('userDatauserData', userData)
       const response = await login(userData).unwrap();
+      console.log('responseresponse', response);
+
+      // if (response.success) {
+      //   const token = response.data.accessToken;
+
+      //   if (response.data.isStatus) {
+
+      //     dispatch(setToken({ token }));
+      //     StorageProvider.saveItem('token', token);
+      //     resetForm()
+
+      //     setTimeout(() => {
+      //       navigation.navigate(RouteName.HOME);
+      //     }, 300);
+      //     // handleSuccessToast(response.message || 'Login successful');
+
+      //   } else if (response.data.otp) {
+      //     handleSuccessToast(response.message || t('messages.otpSendTomail'));
+
+      //     navigation.navigate(RouteName.OTP_VERIFY, {
+      //       fromScreen: 'signup',
+      //       userToken: token,
+      //       otp: response.data.otp,
+      //       email: values.email,
+      //     });
+
+      //   } else {
+      //     handleApiFailureResponse(response, t('messages.accNotVerified'));
+      //   }
+
+      // } else {
+      //   handleApiFailureResponse(response, t('messages.loginFailed'));
+      // }
 
       if (response.success) {
         const token = response.data.accessToken;
 
-        if (response.data.isStatus) {
-
+        if (response.data.otp) {
+          handleSuccessToast(response.message || t('messages.otpSendTomail'));
+          navigation.navigate(RouteName.OTP_VERIFY, {
+            fromScreen: 'signup',
+            userToken: token,
+            otp: response.data.otp,
+            email: values.email,
+          });
+        } else if (response.data.user.status === 'active') {
           dispatch(setToken({ token }));
           StorageProvider.saveItem('token', token);
           resetForm()
@@ -131,22 +171,10 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           setTimeout(() => {
             navigation.navigate(RouteName.HOME);
           }, 300);
-          // handleSuccessToast(response.message || 'Login successful');
-
-        } else if (response.data.otp) {
-          handleSuccessToast(response.message || t('messages.otpSendTomail'));
-
-          navigation.navigate(RouteName.OTP_VERIFY, {
-            fromScreen: 'signup',
-            userToken: token,
-            otp: response.data.otp,
-            email: values.email,
-          });
 
         } else {
-          handleApiFailureResponse(response, t('messages.accNotVerified'));
+          handleApiFailureResponse(response, t('messages.loginFailed'));
         }
-
       } else {
         handleApiFailureResponse(response, t('messages.loginFailed'));
       }
@@ -187,8 +215,10 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           <View style={{ paddingVertical: SH(35), paddingHorizontal: SW(20) }}>
             <Formik
               initialValues={{
-                email: '',
-                password: '',
+                email: 'dharm@mailinator.com',
+                password: 'Qwerty@1',
+                // email: '',
+                // password: '',
               }}
               validationSchema={validationSchema}
               onSubmit={(values, { resetForm }) => {

@@ -12,15 +12,15 @@ const teamMember = [
     { id: 4, name: 'Scoutc', img: imagePaths.barber1 },
 ];
 interface servicesInterface {
-
+    data: any[];
 }
 const SeparatorComponent = () => <View style={styles.itemSepearator} />;
-const Portfolio: FC<servicesInterface> = ({ }) => {
+const Portfolio: FC<servicesInterface> = ({ data }) => {
 
     const renderItem = (item: any, index: number) => (
         <View style={[styles.portfolioItem, boxShadowlight]}>
-            <ImageLoader source={item.img} resizeMode='contain' mainImageStyle={styles.img} />
-            <LinearGradient
+            <ImageLoader source={item.img} resizeMode='cover' mainImageStyle={styles.img} />
+            {/* <LinearGradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 style={styles.showdowView}
@@ -30,17 +30,21 @@ const Portfolio: FC<servicesInterface> = ({ }) => {
                 ]}
             >
                 <AppText style={styles.heartCount}>
-                   <VectoreIcons name='hearto' icon='AntDesign' size={SF(11)} color={Colors.bgwhite} />  5
+                    <VectoreIcons name='hearto' icon='AntDesign' size={SF(11)} color={Colors.bgwhite} />  5
                 </AppText>
-            </LinearGradient>
+            </LinearGradient> */}
         </View>
     );
     return (
         <View style={styles.container}>
             {
-                teamMember.map((item, index) => {
+                data && data?.length > 0 ? data.map((item: any, index: any) => {
                     return renderItem(item, index)
                 })
+                    :
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: SH(200) }}>
+                        <AppText style={{ color: Colors.textHeader }}>No Portfolio Available</AppText>
+                    </View>
             }
         </View>
     );
@@ -62,7 +66,8 @@ const styles = StyleSheet.create({
         width: '49%',
         height: SF(155),
         marginBottom: '2%',
-        borderRadius: SW(10)
+        borderRadius: SW(10),
+        backgroundColor: Colors.white,
     },
     img: {
         height: '100%',
@@ -88,8 +93,8 @@ const styles = StyleSheet.create({
         fontSize: SF(10),
         color: '#ffffff',
         fontFamily: Fonts.REGULAR,
-        position:"absolute",
-        bottom:10,
-        left:10
+        position: "absolute",
+        bottom: 10,
+        left: 10
     }
 });

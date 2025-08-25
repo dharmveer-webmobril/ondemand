@@ -1,77 +1,69 @@
-import React, { useState } from "react";
-import { View, StyleProp, ImageStyle as RNImageStyle, StyleSheet } from "react-native";
-import FastImage, {
-  Source,
-  ResizeMode,
-  ImageStyle,
-} from "react-native-fast-image";
-import { Skeleton } from "./Skeleton";
+import React, { useState } from 'react';
+import { View, StyleSheet, ImageSourcePropType } from 'react-native';
+import FastImage, { Source } from 'react-native-fast-image';
+import { imagePaths } from '../utils';
+import { Skeleton } from './Skeleton/Skeleton';
 
-// Replace with your local fallback image path
-const fallbackImage = require("../assets/images/no_image.jpg");
-
-interface ImageLoaderProps {
-  mainImageStyle: StyleProp<ImageStyle>;
-  source: Source;
-  resizeMode?: ResizeMode;
-}
+type ImageLoaderProps = {
+  source?: Source | ImageSourcePropType | null;
+  fallbackImage?: Source | ImageSourcePropType;
+  mainImageStyle?: object;
+  resizeMode?: 'cover' | 'contain' | 'stretch' | 'center';
+};
 
 const ImageLoader: React.FC<ImageLoaderProps> = ({
-  mainImageStyle = {},
-  resizeMode = "cover",
   source,
+  fallbackImage = imagePaths.no_image, // ✅ default fallback
+  mainImageStyle,
+  resizeMode = 'cover',
 }) => {
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  // console.log('sourcesourcesource',source);
 
-  const handleLoadStart = () => {
-    // only start loading if not already failed
-    if (!hasError) setLoading(true);
-  };
+  // ✅ Check if source is local (require) or remote (uri)
+  const isRemote = (src: any): src is Source =>
+    src && typeof src === 'object' && 'uri' in src;
 
-  const handleLoadEnd = () => {
-    setLoading(false);
-  };
+  let imageToShow: Source | ImageSourcePropType = fallbackImage;
 
-  const handleError = () => {
-    setHasError(true);
-    setLoading(false);
-  };
-
-  // Use fallback image only if load failed
-  const imageToShow: Source = hasError ? fallbackImage : source;
+  if (!hasError && source) {
+    if (isRemote(source)) {
+      // remote image (uri)
+      imageToShow = source.uri ? source : fallbackImage;
+    } else {
+      // local image (require)
+      imageToShow = source;
+    }
+  }
 
   return (
-    <View>
-      {/* Skeleton shown only while loading and not errored */}
-      {loading && !hasError && (
-        <View
-          style={[
-            styles.skeletonContainer,
-            mainImageStyle as RNImageStyle,
-          ]}
-        >
-          <Skeleton animation="wave" style={[mainImageStyle,{backgroundColor:'#E0E0E0'}]} />
-        </View>
+    <View style={[styles.container, mainImageStyle]}>
+      {loading && (
+        <Skeleton
+          style={[StyleSheet.absoluteFill, mainImageStyle]}
+          borderRadius={8}
+        />
       )}
 
       <FastImage
-        source={imageToShow}
-        style={mainImageStyle}
+        source={imageToShow as Source}
+        style={[styles.image, mainImageStyle]}
         resizeMode={resizeMode}
-        onLoadStart={handleLoadStart}
-        onLoadEnd={handleLoadEnd}
-        onError={handleError}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setHasError(true)}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  skeletonContainer: {
-    position: "absolute",
-    zIndex: 1,
+  container: {
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
 });
 

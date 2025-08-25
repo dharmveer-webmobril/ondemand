@@ -8,17 +8,33 @@ import BookingServiceItem from './BookingServiceItem';
 type ConfirmBookingModalProps = {
     modalVisible: boolean;
     forwhomCheck?: boolean;
-    setForwhomCheck?:  () => void;
+    setForwhomCheck?: () => void;
     closeModal: () => void;
     btnSubmit: () => void;
+    selectedDate?: string;
+    service?: any;
+    selectedSlot?: any;
+    shopName?: string;
+    shopAddress?: string;
+    agentName?: string;
 };
 const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
     modalVisible = true,
     closeModal,
     forwhomCheck=false,
     setForwhomCheck,
-    btnSubmit
+    btnSubmit,
+    selectedDate,
+    service,
+    selectedSlot,
+    shopName='',
+    shopAddress='',
+    agentName='',
 }) => {
+    console.log('service--', service);
+    console.log('selectedSlot--', selectedSlot);
+    console.log('selectedDate--', selectedDate);
+    
     return (
         <Modal
             animationType="slide"
@@ -38,24 +54,24 @@ const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
                     <Spacing space={SH(20)} />
                     <AppText style={styles.heading}>Confirmation</AppText>
                     <Spacing space={SH(20)} />
-                    <AppText style={styles.dateorshopbame}>06-March-2025</AppText>
-                    <AppText style={styles.dateorshopbame}>WM Barbershop</AppText>
-                    <AppText style={styles.shopaddress}>1893 Cheshire Bridge Rd Ne, 30325</AppText>
+                    <AppText style={styles.dateorshopbame}>{selectedDate}</AppText>
+                    <AppText style={styles.dateorshopbame}>{shopName}</AppText>
+                    <AppText style={styles.shopaddress}>{shopAddress}</AppText>
                     <Spacing space={SH(20)} />
 
                     <BookingServiceItem
-                        subtitles='With Juana'
-                        time='8:00 am - 8:30 am'
-                        title='Only Haircut'
-                        price='$8989'
+                        subtitles={`With ${agentName}`}
+                        time={selectedSlot?.time?.slot || '10:00 AM'}
+                        title={service?.serviceName || 'Haircut'}
+                        price={`$${service?.price || '0.00'}`}
                     />
                     <Spacing space={SH(8)} />
                     <BookingServiceItem
                         title='Subtotal'
-                        price='$8989'
+                        price={`$${service?.price || '0.00'}`}
                     />
                     <View style={{ marginTop: 10, marginLeft: 2 }}>
-                        <Checkbox size={SF(14)} lebelFontSize={SF(14)} color={Colors.themeColor} label='Booking for Other' checked={forwhomCheck} onChange={()=>{setForwhomCheck && setForwhomCheck()}} />
+                        <Checkbox size={SF(14)} lebelFontSize={SF(14)} color={Colors.themeColor} label='Booking for Other' checked={forwhomCheck} onChange={() => { setForwhomCheck && setForwhomCheck() }} />
                     </View>
                     <Spacing space={SH(70)} />
                     <Buttons
@@ -106,7 +122,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 4,
         top: 4,
-        padding:5,
-        zIndex:99999,
+        padding: 5,
+        zIndex: 99999,
     },
 });

@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store";
 import { setInactiveMessage, setUserActiveOrNotModal } from "../slices/appSlice";
-
+import axios from 'axios'
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: process.env.API_URL,
   prepareHeaders: (headers, { getState }) => {
@@ -47,3 +47,13 @@ export const api = createApi({
   tagTypes: ['ServiceList', 'AdressTag'],
   endpoints: () => ({}), // endpoints injected later
 });
+
+
+export const axiosApi = axios.create({
+  baseURL: process.env.API_URL, // your API base
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+ 

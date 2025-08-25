@@ -92,7 +92,6 @@ const HomeNearServiceItem = () => {
   const { t } = useTranslation();
 
   const memoizedData = useMemo(() => servicesData?.data || [], [servicesData]);
-  console.log('servicesDataservicesData', servicesData);
   // useState
   const handleRetry = () => refetch();
   useFocusEffect(

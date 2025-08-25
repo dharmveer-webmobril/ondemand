@@ -15,7 +15,7 @@ const data = [
 type ConfirmBookingTypeModalProps = {
     modalVisible: boolean;
     closeModal: () => void;
-    submitButton: () => void;
+    brnSubmit: (value:any) => void;
 };
 
 
@@ -23,6 +23,7 @@ type ConfirmBookingTypeModalProps = {
 const ConfirmBookingTypeModal: React.FC<ConfirmBookingTypeModalProps> = ({
     modalVisible = true,
     closeModal,
+    brnSubmit
 }) => {
     const navigation = useNavigation<any>();
     const [checkServiceType, setcheckServiceType] = useState('current')
@@ -33,15 +34,15 @@ const ConfirmBookingTypeModal: React.FC<ConfirmBookingTypeModalProps> = ({
 
     }
 
-    const brnSubmit = () => {
-        closeModal();
-        if (checkServiceType == 'current') {
-            navigation.navigate(RouteName.BOOK_APPOINT)
-        } else {
-            navigation.navigate(RouteName.BOOK_APPOINT)
-        }
-        // navigation.navigate(RouteName.SELECT_ADDRESS)
-    }
+    // const brnSubmit = () => {
+    //     closeModal();
+    //     if (checkServiceType == 'current') {
+    //         navigation.navigate(RouteName.BOOK_APPOINT)
+    //     } else {
+    //         navigation.navigate(RouteName.BOOK_APPOINT)
+    //     }
+    //     // navigation.navigate(RouteName.SELECT_ADDRESS)
+    // }
 
     return (
         <Modal
@@ -93,7 +94,7 @@ const ConfirmBookingTypeModal: React.FC<ConfirmBookingTypeModalProps> = ({
 
                     <Buttons
                         onPress={() => {
-                            brnSubmit()
+                            brnSubmit(checkServiceType)
                         }}
                         title='Confirm'
                     />
