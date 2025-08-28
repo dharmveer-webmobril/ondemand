@@ -34,10 +34,11 @@ const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, on
             horizontal
             showsHorizontalScrollIndicator={false}
             ItemSeparatorComponent={seperatorComponent}
-            contentContainerStyle={slots?.length <= 0 ? {flex:1} : {}}
+            contentContainerStyle={slots?.length <= 0 ? { flex: 1 } : {}}
+            keyExtractor={(item, index) => `${index}-appointment-slots`}
             renderItem={({ item, index }) => {
               return <TouchableOpacity onPress={() => { onSelect(index) }} style={index === selectedSlot ? styles.slotsselected : styles.slots}>
-                <AppText style={index == selectedSlot ? styles.selectedtxt : styles.txt}>{item?.time?.slot}</AppText>
+                <AppText style={index == selectedSlot ? styles.selectedtxt : styles.txt}>{`${item?.start}-${item?.end}`}</AppText>
               </TouchableOpacity>
             }}
             ListEmptyComponent={

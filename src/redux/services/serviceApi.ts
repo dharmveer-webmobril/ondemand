@@ -34,6 +34,30 @@ export const serviceApi = api.injectEndpoints({
     //     method: "GET",
     //   }),
     // }),
+    getProviderMember: builder.query<any, { providerId: any }>({
+      query: ({ providerId }) => {
+        console.log('providerIdproviderIdproviderId',providerId);
+        
+        let url = `${ENDPOINTS.GET_PROVIDER_MEMBER}`;
+        if (providerId) {
+          url = `${url}?providerId=${providerId}`
+        }
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
+    getMemberSlots: builder.query<any, { memberId: any }>({
+      query: ({ memberId }) => {
+        let url = `${ENDPOINTS.GET_MEMBER_SLOTS}`;
+        if (memberId)`${url}?memberId=${memberId}`
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
     getServiceSlots: builder.query<any[], { serviceId: string; date: string }>({
       query: ({ serviceId, date }) => {
         let url = `${ENDPOINTS.GET_SERVICES_SLOTS}${serviceId}/slots?date=${date}`;
@@ -89,6 +113,8 @@ export const serviceApi = api.injectEndpoints({
         return [];
       },
     }),
+
+
   }),
 
   overrideExisting: false,
@@ -102,4 +128,6 @@ export const {
   useCreateBookingMutation,
   useCheckoutBookingMutation,
   useGetUserBookingsByTabQuery,
+  useGetMemberSlotsQuery,
+  useGetProviderMemberQuery
 } = serviceApi;

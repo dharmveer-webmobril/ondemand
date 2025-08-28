@@ -25,4 +25,7 @@ export const ENDPOINTS = {
   CREATE_BOOKING: `/booking/create-booking`,
   CHECKOUT_BOOKING: `/booking/service/checkout`,
   GET_USER_BOOKING_BY_TAB: `/booking/get-booking`,
+
+  GET_MEMBER_SLOTS:"/auth/get-member-slot",
+  GET_PROVIDER_MEMBER:"/auth/get-provider-members",
 };

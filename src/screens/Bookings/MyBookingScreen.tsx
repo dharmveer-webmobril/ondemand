@@ -14,7 +14,7 @@ const MyBookingScreen: React.FC = () => {
 
   const { data: bookingData = [], isFetching, isError, refetch, } = useGetUserBookingsByTabQuery({ tab: activeTab === 1 ? 'mybooking' : 'otherbooking' });
 
-  // console.log('bookingData--', bookingData);
+  console.log('bookingData--', bookingData);
   useEffect(() => { refetch() }, [activeTab, refetch]);
 
   return (

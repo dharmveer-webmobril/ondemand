@@ -7,6 +7,7 @@ import { SucessBookingModal } from './component';
 import RouteName from '../../navigation/RouteName';
 import { useSelector } from 'react-redux';
 import { RootState, useCheckoutBookingMutation, useCreateBookingMutation } from '../../redux';
+import moment from 'moment';
 
 const PaymentScreen = () => {
     const [selectedPayment, setSelectedPayment] = useState('Online');
@@ -29,14 +30,20 @@ const PaymentScreen = () => {
     const handleBooking = async () => {
         try {
             // Format slot
-            const slotdata = slots?.time || '';
-            const [start, end] = slotdata && slotdata.slot.split(' - ');
-            const formattedData = {
-                date: slotdata?.date || '',
-                day: slotdata?.day || '',
-                start,
-                end,
+              let dayName = moment(date, "YYYY-MM-DD").format("dddd");
+            const slotdata = {
+                ...slots,
+                date,
+                day:dayName
             };
+            // return
+            // const [start, end] = slotdata && slotdata.slot.split(' - ');
+            // const formattedData = {
+            //     date: slotdata?.date || '',
+            //     day: slotdata?.day || '',
+            //     start,
+            //     end,
+            // };
 
             // Booking payload
             const bookingData = {
@@ -47,7 +54,7 @@ const PaymentScreen = () => {
                 bookingFor: bookingFor,
                 providerId: providerDetails._id,
                 bookingDetails: {
-                    slotTime: formattedData,
+                    slotTime: slotdata,
                     address: bookingFor === 'other' ? null : bookingJson?.myAddId,
                 },
                 otherUserId: bookingFor === 'other' ? bookingJson?.otherUserAddressId : null,
@@ -64,8 +71,8 @@ const PaymentScreen = () => {
                 setBookingId(newBookingId);
 
                 let data = { bookingId: newBookingId, "paymentMethod": "card" }
-                console.log('submitCheckout data',data);
-                
+                console.log('submitCheckout data', data);
+
                 // Step 2: Call checkout API
                 const checkoutResponse = await submitCheckout({ data }).unwrap();
                 console.log('Checkout Response:', checkoutResponse);
@@ -83,7 +90,7 @@ const PaymentScreen = () => {
         <Container>
             <SucessBookingModal
                 bookingJson={bookingJson}
-                submitButton={()=>successModalButton()}
+                submitButton={() => successModalButton()}
                 modalVisible={succesModalVisible}
                 closeModal={() => setSuccesModalVisible(false)}
             />

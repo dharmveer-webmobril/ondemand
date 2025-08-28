@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, showAppToast, Spacing, UserprofileView, VectoreIcons } from '../../component';
-import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet,  View } from 'react-native';
+import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, LoadingComponent, showAppToast, Spacing } from '../../component';
+import { Colors, Fonts, imagePaths, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
-import { ConfirmBookingModal } from './component';
+import { ConfirmBookingModal, TeamMemberProfile } from './component';
 import RouteName from '../../navigation/RouteName';
-import { RootState, setBookingJson, useGetServiceSlotsQuery } from '../../redux';
+import { RootState, setBookingJson, useGetMemberSlotsQuery, useGetProviderMemberQuery } from '../../redux';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { Calendar } from 'react-native-calendars';
-import { date } from 'yup';
+
 interface BookAppointmentProps { }
 
 
@@ -17,39 +17,62 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 
     const navigation = useNavigation<any>();
     const [selectedSlot, setSelectedSlot] = useState<any>(null)
+    const [slotArr, setSlotArr] = useState<any>(null)
+    const [selectedMember, setSelectedMember] = useState<any>(null)
     const [modalVisible, setModalVisible] = useState<boolean>(false)
     const [forwhomCheck, setForwhomCheck] = useState(false);
     const [selectedDate, setSelectedDate] = useState<any>(moment().format('YYYY-MM-DD'));
-    // let bookingType = route?.params;
+    const dispatch = useDispatch();
 
     const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
     const { service, selectedTeamMember, providerDetails } = bookingJson || {};
     console.log('bookingJson--', bookingJson);
 
 
-
-    const { data: serviceSlots = [], isFetching, refetch: refetchSlots, } = useGetServiceSlotsQuery({ date: selectedDate, serviceId: bookingJson?.service?._id }, {
-        skip: !selectedDate || !bookingJson?.service?._id, // ✅ skip until date + serviceId available
-    });
+    let serviceSlots: any[] = []
 
     console.log('serviceSlots--', serviceSlots);
 
+    const { data: membersList, isFetching: isProviderMemberLoading, refetch: refetchProviderMemberSlots, } = useGetProviderMemberQuery({ providerId: providerDetails?._id });
+    const membersListData = useMemo(() => membersList?.data || [], [membersList])
+
+    console.log('membersListmembersList--', membersList);
+
+    const { data: slots, isFetching: isSlots, refetch: refetchSlots, } = useGetMemberSlotsQuery({ memberId: selectedMember });
+    console.log('slotsslotsslots--', slots);
+
+    const slotsData = useMemo(() => slots?.data || [], [slots])
+
+    useEffect(() => {
+        let dayName = moment(selectedDate, "YYYY-MM-DD").format("dddd");
+        console.log('dayName--', dayName); // Output: "Wednesday"
+        if (slotsData && dayName) {
+            let slotsFind = slotsData[dayName]
+            setSlotArr(slotsFind)
+            setSelectedSlot(null)
+            console.log('slotsFindslotsFind', slotsFind);
+        }
+    }, [slots, selectedDate]);
+
     useEffect(() => {
         refetchSlots()
-    }, [selectedDate]);
-    const dispatch = useDispatch();
+    }, [selectedMember])
 
     const btnGo = () => {
-        let slots = serviceSlots[selectedSlot];
-        let bookingData = { ...bookingJson, slots };
+        let slots = slotArr[selectedSlot];
+        let selectedTeamMember = membersListData?.find((item: any) => item?._id === selectedMember)
+        let bookingData = { ...bookingJson, slots, selectedDate, selectedTeamMember };
+
+        console.log('-----bookingData-----', bookingData);
+
         if (forwhomCheck) {
-            bookingData = { ...bookingData, bookingFor: 'other',date: selectedDate };
+            bookingData = { ...bookingData, bookingFor: 'other', date: selectedDate };
             dispatch(setBookingJson(bookingData));
             setTimeout(() => {
                 navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
             }, 200);
         } else {
-            bookingData = { ...bookingData, bookingFor: 'self',date: selectedDate };
+            bookingData = { ...bookingData, bookingFor: 'self', date: selectedDate };
             dispatch(setBookingJson(bookingData));
             setTimeout(() => {
                 navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' })
@@ -108,10 +131,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 contentContainerStyle={styles.scrollContainer}
                 showsVerticalScrollIndicator={false}
             >
-                {/* <Calender
-                    minDate={new Date(2025, 3, 16)}
-                    maxDate={new Date(2026, 6, 15)}
-                /> */}
+                <LoadingComponent visible={isProviderMemberLoading || isSlots} />
+                
                 <Calendar
                     current={moment().format('YYYY-MM-DD')}
                     minDate={moment().format('YYYY-MM-DD')}
@@ -127,7 +148,6 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                     }}
                     theme={{
                         selectedDayBackgroundColor: Colors.themeColor,
-                        // todayTextColor: '#22C55E',
                         arrowColor: '#000',
                     }}
                 />
@@ -135,17 +155,28 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 <View style={{ paddingHorizontal: "7%" }}>
                     <Divider contStyle={{ marginVertical: SW(10) }} color='#3D3D3D50' height={0.7} />
                     {
-                        <BookingSlots slots={serviceSlots} isFetching={isFetching} selectedSlot={selectedSlot} onSelect={(val: any) => { setSelectedSlot(val) }} />
+                        <BookingSlots slots={slotArr} isFetching={false} selectedSlot={selectedSlot} onSelect={(val: any) => { setSelectedSlot(val) }} />
                     }
 
                     {
-
                         <>
                             <Divider marginTop={SF(10)} color='#3D3D3D50' height={0.7} />
                             <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>Selected Member</AppText>
                             <Spacing space={SH(15)} />
-                            <View style={{ marginLeft: -SW(15) }}>
-                                <UserprofileView imageSource={{ uri: selectedTeamMember?.profilePic }} title={selectedTeamMember?.fullName} />
+                            <View style={{ marginLeft: -SW(15), flexDirection: "row" }}>
+                                {
+                                    membersListData?.map((item: any) => {
+                                        return <View key={item?._id+'team-member'} style={{ minWidth: SW(90), alignItems: "center", justifyContent: "center" }}>
+                                            <TeamMemberProfile
+                                                selectedMember={selectedMember}
+                                                onClick={() => { setSelectedMember(item?._id) }}
+                                                imageSource={item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
+                                                title={item?.fullName}
+                                                item={item}
+                                            />
+                                        </View>
+                                    })
+                                }
                             </View>
                             <Divider contStyle={{ marginVertical: SW(10) }} color='#3D3D3D50' height={0.7} />
 
@@ -197,12 +228,6 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 
                 </View>
             </ScrollView>
-            {/* {bookingType == 'immediate' && <Buttons
-                buttonStyle={{ width: '80%', alignSelf: "center", marginBottom: 10 }}
-                title='Continue'
-                onPress={() => navigation.navigate(RouteName.SHOP_LIST, { bookingType: bookingType })}
-                buttonTextStyle={{ color: Colors.white }}
-            />} */}
         </Container>
     );
 };

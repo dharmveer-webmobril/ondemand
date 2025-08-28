@@ -58,7 +58,6 @@ const ShopDetails: React.FC<shopProps> = () => {
         console.log('value--', value);
         let bookingJson = {
             service: selectedService,
-            selectedTeamMember: providerDetails,
             providerDetails:providerDetails,
             "promoCode": "",
             bookingType: value === 'current' ? "current" : 'other'

@@ -42,6 +42,7 @@ const useProfileUpdate = () => {
         mobileno: user.mobileNo,
         roleType: user.roleType,
         fcmToken: fcmToken,
+        image: user?.profilePic
       };
 
       createUser(user._id, userData);
