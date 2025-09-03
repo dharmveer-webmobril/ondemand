@@ -10,6 +10,7 @@ import {
   AppText,
   Buttons,
   Container,
+  Shimmer,
   SweetaelertModal,
 } from '../../component'; // Adjust based on your actual paths
 import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, navigate, SF, SH, SW } from '../../utils';
@@ -18,7 +19,6 @@ import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 import AddressMenu from './AddressMenu';
 import { useDeleteAddressMutation, useGetAddressQuery } from '../../redux';
-import { Skeleton } from '../../component/Skeleton';
 
 const MyAddressScreen = () => {
   const navigation = useNavigation<any>();
@@ -54,8 +54,8 @@ const MyAddressScreen = () => {
     <View style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.cardContent}>
-          <Skeleton style={styles.skeletonLine1} />
-          <Skeleton style={styles.skeletonLine} />
+          <Shimmer style={styles.skeletonLine1} />
+          <Shimmer style={styles.skeletonLine} />
         </View>
       </View>
       <View style={styles.separator} />

@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, FlatList, StyleSheet, Pressable, TouchableOpacity } from 'react-native';
 import { Colors, SH, SW, Fonts, SF, boxShadowlight, imagePaths, navigate } from '../../utils';
-import { AppHeader, AppText, Container, HomeSearchBar, ImageLoader } from '../../component';
+import { AppHeader, AppText, Container, HomeSearchBar, ImageLoader, Shimmer } from '../../component';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useGetCategoriesQuery } from '../../redux';
-import { Skeleton } from '../../component/Skeleton';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
 import RouteName from '../../navigation/RouteName';
@@ -31,8 +30,8 @@ const RenderCategory = ({ item }: { item: any }) => {
 const SkeletonTwoColumnItem: React.FC = () => {
   return (
     <View style={[styles.itemContainer, styles.skeletonContainer, boxShadowlight]}>
-      <Skeleton animation="wave" style={styles.skeletonImage} />
-      <Skeleton animation="wave" style={styles.skeletonText} />
+      <Shimmer style={styles.skeletonImage} />
+      <Shimmer style={styles.skeletonText} />
     </View>
   );
 };

@@ -4,6 +4,7 @@ import { boxShadowlight, Colors, Fonts, SF, SH, SW } from '../../utils';
 import { AppText } from '../../component';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
+import Shimmer from '../Shimmer';
 
 interface ShopsProps {
     item: any;
@@ -11,7 +12,7 @@ interface ShopsProps {
     bookingType?: string
 }
 
-const Shops: React.FC<ShopsProps> = ({ item,  bookingType = null }) => {
+const Shops: React.FC<ShopsProps> = ({ item, bookingType = null }) => {
     const navigation = useNavigation<any>();
     console.log('item?.bannerImage', item?.bannerImage);
     const addressData = item?.location || {};
@@ -43,22 +44,58 @@ const Shops: React.FC<ShopsProps> = ({ item,  bookingType = null }) => {
                     </AppText>
                 </View>
                 <View style={styles.reviewBlock}>
-                    {/* <AppText style={styles.reviewText}>
-                        4.5{'\n'}<AppText style={{ fontSize: SF(10), color: Colors.textAppColor, }}>140 Reviews</AppText>
-                    </AppText> */}
+                    {
+                        item.avgRating ?
+                            <AppText style={styles.reviewText}>
+                                {item.avgRating}{'\n'}<AppText style={{ fontSize: SF(10), color: Colors.textAppColor, }}>
+                                    {/* 140 Reviews */}
+                                </AppText>
+                            </AppText>
+                            : null
+                    }
                 </View>
             </View>
         </Pressable>
     );
 };
 
+export const ShopsSkeleton: React.FC = React.memo(() => {
+    return (
+        <View>
+            <View style={styles.topImagesWrapper}>
+                <View style={[styles.topImageContainer, boxShadowlight]}>
+                    <Shimmer style={styles.topImage} />
+                </View>
+                {/* <View style={styles.smallImagesRow}>
+                    {[1, 2, 3, 4].map((_, idx) => (
+                        <View key={idx.toString() + 'skel'} style={[styles.topImagesmallContainer, boxShadowlight]}>
+                            <Shimmer style={styles.bottomImg} />
+                        </View>
+                    ))}
+                </View> */}
+            </View>
+
+            <View style={styles.textInfoRow}>
+                <View style={styles.textBlock}>
+                    <Shimmer style={styles.shopNameSkeleton} />
+                    <Shimmer style={styles.shopAddressSkeleton} />
+                </View>
+                <View style={styles.reviewBlock}>
+                    <Shimmer style={styles.reviewTextSkeleton} />
+                </View>
+            </View>
+        </View>
+    );
+});
+
+
 export default Shops;
+
 
 const styles = StyleSheet.create({
     scrollContainer: {
         paddingBottom: SH(30),
     },
-
 
     specialOfferConatiner: {
         paddingLeft: 10,
@@ -133,10 +170,23 @@ const styles = StyleSheet.create({
         color: Colors.textAppColor,
         fontSize: SF(12),
     },
+    shopNameSkeleton: {
+        height: SF(12),
+        width: SF(100),
+        borderRadius: 4,
+        backgroundColor: '#E0E0E0',
+    },
     shopAddress: {
         fontFamily: Fonts.MEDIUM,
         color: Colors.lightGraytext,
         fontSize: SF(10),
+    },
+    shopAddressSkeleton: {
+        height: SF(10),
+        width: SF(120),
+        borderRadius: 4,
+        backgroundColor: '#E0E0E0',
+        marginTop: 4,
     },
     reviewBlock: {
         width: '26%',
@@ -147,5 +197,11 @@ const styles = StyleSheet.create({
         fontSize: SF(14),
         textAlign: 'center',
         // lineHeight: SH(17),
+    },
+    reviewTextSkeleton: {
+        height: SF(14),
+        width: SF(40),
+        borderRadius: 4,
+        backgroundColor: '#E0E0E0',
     },
 });

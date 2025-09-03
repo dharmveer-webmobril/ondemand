@@ -9,7 +9,7 @@ import imagePaths from '../../assets/images';
 
 const BookingDetails: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [activeTab, setActiveTabs] = useState<number>(1);
+ 
 
 
 

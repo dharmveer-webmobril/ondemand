@@ -20,8 +20,8 @@ const BookingItems: React.FC<BookingItemsProps> = ({ item }) => {
     let servicePrice = item?.service?.price || 0;
 
 
-    const addressData = provider?.location || {};
-    const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
+    const addressData = item?.userActvieAddress || {};
+    const addressSummery = addressData?.streetAddress || [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
 
 
     return (
@@ -37,7 +37,7 @@ const BookingItems: React.FC<BookingItemsProps> = ({ item }) => {
                     </AppText>
                     <AppText style={styles.dateTime}>{`${bookingDate} ${'\n'}${bookingTime}`}</AppText>
                     <AppText style={styles.dateTime}>{provider?.businessName}</AppText>
-                    <AppText style={styles.dateTime}>{addressSummery}</AppText>
+                    <AppText style={styles.dateTime} numberOfLines={2}>{addressSummery}</AppText>
                     <View style={[commonStyles.rowSpaceBetweenCss, { marginTop: SF(7) }]}>
                         <AppText style={styles.price}>{`$${servicePrice}`}</AppText>
                         <Buttons

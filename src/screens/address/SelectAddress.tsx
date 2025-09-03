@@ -10,6 +10,7 @@ import {
   AppText,
   Buttons,
   Container,
+  Shimmer,
   SweetaelertModal,
   VectoreIcons,
 } from '../../component'; // Adjust based on your actual paths
@@ -19,7 +20,6 @@ import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 import AddressMenu from './AddressMenu';
 import { RootState, setBookingJson, useDeleteAddressMutation, useGetAddressQuery } from '../../redux';
-import { Skeleton } from '../../component/Skeleton';
 import VectorIcon from '../../component/VectoreIcons';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -52,8 +52,8 @@ const MyAddressScreen = () => {
     <View style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.cardContent}>
-          <Skeleton style={styles.skeletonLine1} />
-          <Skeleton style={styles.skeletonLine} />
+          <Shimmer style={styles.skeletonLine1} />
+          <Shimmer style={styles.skeletonLine} />
         </View>
       </View>
       <View style={styles.separator} />

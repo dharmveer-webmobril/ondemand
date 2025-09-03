@@ -1,24 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { Colors, SH, SW, SF, useDisableGestures } from '../../utils';
-import { AppHeader, AppText, BottomBar, Container } from '../../component';
+import { AppHeader, AppText, BottomBar, Container, LoadingComponent } from '../../component';
 import RouteName from '../../navigation/RouteName';
 import { BookingItems, TabTop } from '../../component';
-import { useGetUserBookingsByTabQuery } from '../../redux';
+import { fetchBookings, useGetUserBookingsByTabQuery } from '../../redux';
+import { useDispatch } from 'react-redux';
 
 
 
 const MyBookingScreen: React.FC = () => {
   const [activeTab, setActiveTabs] = useState<number>(1);
   useDisableGestures();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<any>(null);
+  const [bookingData, setBookingData] = useState([])
+  const dispatch = useDispatch<any>()
 
-  const { data: bookingData = [], isFetching, isError, refetch, } = useGetUserBookingsByTabQuery({ tab: activeTab === 1 ? 'mybooking' : 'otherbooking' });
+  useEffect(() => {
+    getData()
+  }, [activeTab])
 
-  console.log('bookingData--', bookingData);
-  useEffect(() => { refetch() }, [activeTab, refetch]);
+  function getData() {
+    setIsLoading(true)
+    const tabs = activeTab === 1 ? 'mybooking' : 'otherbooking';
+
+    dispatch(fetchBookings({ type: tabs }))
+      .then((result: any) => {
+        console.log('resultresultresult', result?.payload?.data);
+        let res = result?.payload?.data
+        if (res && res?.data?.length >= 0) {
+          res?.data && res?.data?.length > 0 ? setBookingData(res?.data) : setBookingData([])
+          setIsError(null)
+        } else {
+          setIsError('Something went wrong');
+          setBookingData([])
+        }
+      })
+      .catch((err: any) => {
+        setIsError('Something went wrong')
+        console.log('errerrerr', err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+  // const { data: bookingData = [], isFetching, isError, refetch, } = useGetUserBookingsByTabQuery({ tab: activeTab === 1 ? 'mybooking' : 'otherbooking' });
+
+  // console.log('bookingData--', bookingData);
+  // console.log('activeTab--', activeTab);
+  // useEffect(() => { refetch() }, [activeTab, refetch]);
 
   return (
     <Container statusBarColor={Colors.white}>
+      <LoadingComponent visible={isLoading} />
       <AppHeader
         headerTitle='Appointment'
         onPress={() => { }}
@@ -34,7 +69,7 @@ const MyBookingScreen: React.FC = () => {
           <FlatList
             contentContainerStyle={styles.flatListContainer}
             data={bookingData}
-            keyExtractor={(item) => `${item._id}-appointment-list-${activeTab}`}
+            keyExtractor={(item: any) => `${item?._id}-appointment-list-${activeTab}`}
             renderItem={({ item }) => { return <BookingItems item={item} /> }}
             ItemSeparatorComponent={BookingListSeparator}
             showsHorizontalScrollIndicator={false}
@@ -42,10 +77,10 @@ const MyBookingScreen: React.FC = () => {
         ) : (
           <View style={styles.emptyContainer}>
             <AppText style={styles.emptyText}>
-              {isFetching
+              {isLoading
                 ? 'Loading...'
                 : isError
-                  ? 'Something went wrong!'
+                  ? 'No booking found.'
                   : 'No booking found.'}
             </AppText>
           </View>

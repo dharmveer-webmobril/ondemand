@@ -8,7 +8,7 @@ import { boxShadow, Colors, Fonts, SF, SH, SW } from '../../utils';
 import AppText from '../AppText';
 import ImageLoader from '../ImageLoader';
 import { Source } from 'react-native-fast-image';
-import { Skeleton } from '../Skeleton'; // Assuming Skeleton component exists
+import Shimmer from '../Shimmer';
 
 interface SpecialItemsProps {
   name: string;
@@ -36,9 +36,9 @@ const SpecialItemsSkeleton: React.FC = () => {
   return (
     <View>
       <View style={[styles.imageContainer, boxShadow]}>
-        <Skeleton style={styles.imageLoader} />
+        <Shimmer style={styles.imageLoader} />
       </View>
-      <Skeleton style={styles.textSkeleton} />
+      <Shimmer style={styles.textSkeleton} />
     </View>
   );
 };

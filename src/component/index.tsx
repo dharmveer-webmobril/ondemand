@@ -25,6 +25,7 @@ export {default as ImagePickerModal} from './ImagePickerModal';
 export {default as AuthBackButton} from './AuthBackButton';
 export {default as CountryPickerComp} from './CountryPickerComp';
 export {default as LoadingComponent} from './LoadingComponent';
+export {default as Shimmer} from './Shimmer';
 export * from './HomeComp';
 export * from './ProfileComp'
 export * from './CustomToast'

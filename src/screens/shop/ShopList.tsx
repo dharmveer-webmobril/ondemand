@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { AppText, Container, SpecialItems, Spacing, SpecialItemsSkeleton } from '../../component';
+import { AppText, Container, SpecialItems, Spacing, SpecialItemsSkeleton, ShopsSkeleton } from '../../component';
 import { Colors, Fonts, imagePaths, navigate, SF, SH, SW } from '../../utils';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ShopHeader, Shops, SubCatList } from '../../component';
@@ -101,15 +101,15 @@ const ShopList: React.FC<shopProps> = () => {
 
 
                 <FlatList
-                    data={memoizedData || []}
+                    data={isFetching ? ['33', '44', '66', '77'] : memoizedData}
                     keyExtractor={(item, index) => item?.businessName + 'baber-shop' + index}
                     showsHorizontalScrollIndicator={false}
                     ItemSeparatorComponent={SeparatorComponent}
                     contentContainerStyle={styles.flatListRecommended}
                     ListHeaderComponent={listHeader}
-                    renderItem={({ item, index }) => (
-                        <Shops item={item} index={index} bookingType={'bookingType'} />
-                    )}
+                    renderItem={({ item, index }) => {
+                        return isFetching ? <ShopsSkeleton /> : <Shops item={item} index={index} bookingType={'bookingType'} />
+                    }}
                     ListEmptyComponent={
                         !isFetching ? (
                             <View style={styles.emptyContainer}>
@@ -117,11 +117,7 @@ const ShopList: React.FC<shopProps> = () => {
                                     {isError ? "Something went wrong!" : "No shops found"}
                                 </AppText>
                             </View>
-                        ) : <View style={styles.emptyContainer}>
-                            <AppText style={styles.emptyText}>
-                                {"Loading......."}
-                            </AppText>
-                        </View>
+                        ) : null
                     }
                 />
 

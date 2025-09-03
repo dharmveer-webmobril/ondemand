@@ -3,6 +3,7 @@ import { View, StyleSheet, ImageSourcePropType } from 'react-native';
 import FastImage, { Source } from 'react-native-fast-image';
 import { imagePaths } from '../utils';
 import { Skeleton } from './Skeleton/Skeleton';
+import Shimmer from './Shimmer';
 
 type ImageLoaderProps = {
   source?: Source | ImageSourcePropType | null;
@@ -39,7 +40,7 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
   return (
     <View style={[styles.container, mainImageStyle]}>
       {loading && (
-        <Skeleton
+        <Shimmer
           style={[StyleSheet.absoluteFill, mainImageStyle]}
           borderRadius={8}
         />

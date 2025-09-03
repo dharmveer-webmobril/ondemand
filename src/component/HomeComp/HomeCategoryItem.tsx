@@ -10,19 +10,19 @@ import ImageLoader from '../ImageLoader';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import Spacing from '../Spacing';
-import AppText from '../AppText';
-import { Skeleton } from '../Skeleton';
+import AppText from '../AppText'; 
 import { useTranslation } from 'react-i18next';
 import { useGetCategoriesQuery } from '../../redux';
 import HomeSubContainerHeader from './HomeSubContainerHeader';
 import Buttons from '../Button';
+import Shimmer from '../Shimmer';
 
 const SeparatorComponent = () => <Spacing horizontal space={SF(12)} />;
 
 const SkeletonHomeCategoryItem = memo(() => (
   <View style={styles.skeletonContainer}>
-    <Skeleton style={styles.skeletonImage} />
-    <Skeleton style={styles.skeletonText} />
+    <Shimmer style={styles.skeletonImage} />
+    <Shimmer style={styles.skeletonText} />
   </View>
 ));
 

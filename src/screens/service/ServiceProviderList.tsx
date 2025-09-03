@@ -5,12 +5,10 @@ import {
 } from '../../utils';
 import imagePaths from '../../assets/images';
 import {
-  AppHeader, AppText, Buttons, Container, ImageLoader, Spacing,
+  AppHeader, AppText, Buttons, Container, ImageLoader, Shimmer, Spacing,
 } from '../../component';
 import { useTranslation } from 'react-i18next';
-import { Skeleton } from '../../component/Skeleton';
 import { useGetNearByServicesQuery } from '../../redux';
-// import RouteName from '../../navigation/RouteName';
 import StarRating from 'react-native-star-rating-widget';
 
 const ItemList = ({ item }: any) => {
@@ -60,23 +58,23 @@ const SkeletonItemList = () => (
   <View style={styles.serviceContainer}>
     <View style={styles.header}>
       <View style={[styles.imageWrapper, boxShadow]}>
-        <Skeleton style={styles.logo} />
+        <Shimmer style={styles.logo} />
       </View>
       <View style={styles.infoContainer}>
         <View style={styles.titleContainer}>
-          <Skeleton style={styles.textSkeleton} />
+          <Shimmer style={styles.textSkeleton} />
         </View>
         <View style={styles.ratingContainer}>
-          <Skeleton style={styles.ratingSkeleton} />
+          <Shimmer style={styles.ratingSkeleton} />
         </View>
       </View>
     </View>
     <Spacing space={10} />
     <View style={styles.locationContainer}>
-      <Skeleton style={styles.iconSkeleton} />
-      <Skeleton style={styles.locationTextSkeleton} />
-      <Skeleton style={styles.dotTextSkeleton} />
-      <Skeleton style={styles.closedTextSkeleton} />
+      <Shimmer style={styles.iconSkeleton} />
+      <Shimmer style={styles.locationTextSkeleton} />
+      <Shimmer style={styles.dotTextSkeleton} />
+      <Shimmer style={styles.closedTextSkeleton} />
     </View>
   </View>
 );
@@ -86,10 +84,6 @@ const ItemSeparator = () => <View style={styles.separator} />;
 const ServiceProviderList = () => {
   const { data: servicesData, isLoading, isError, isFetching, refetch } = useGetNearByServicesQuery();
   const { t } = useTranslation();
-
-  // useEffect(() => {
-  //   refetch();
-  // }, [refetch]);
 
   const memoizedData = useMemo(() => servicesData?.data || [], [servicesData]);
 
@@ -302,7 +296,7 @@ const styles = StyleSheet.create({
     marginTop: SH(10),
     width: '50%',
     height: SH(40),
-    marginHorizontal:5
+    marginHorizontal: 5
   },
   retrybuttontext: {
     fontFamily: Fonts.MEDIUM,

@@ -14,12 +14,12 @@ import imagePaths from '../../assets/images';
 import AppText from '../AppText';
 import Spacing from '../Spacing';
 import Buttons from '../Button';
-import { Skeleton } from '../../component/Skeleton';
 import HomeSubContainerHeader from './HomeSubContainerHeader';
 import RouteName from '../../navigation/RouteName';
 import StarRating from 'react-native-star-rating-widget';
 import ImageLoader from '../ImageLoader';
 import { useFocusEffect } from '@react-navigation/native';
+import Shimmer from '../Shimmer';
 
 const skeletonPlaceholder = [1, 2, 3, 4, 5, 6];
 
@@ -69,20 +69,20 @@ const ListItem = ({ item }: { item: any }) => {
 const ListItemSkeleton = () => (
   <View style={styles.container}>
     <View style={styles.header}>
-      <Skeleton style={styles.logo} />
-      <Skeleton style={styles.textSkeleton} />
+      <Shimmer style={styles.logo} />
+      <Shimmer style={styles.textSkeleton} />
     </View>
 
     <Spacing space={10} />
 
     <View style={styles.ratingContainer}>
-      <Skeleton style={styles.ratingSkeleton} />
+      <Shimmer style={styles.ratingSkeleton} />
     </View>
 
     <Spacing space={7} />
 
     <View style={{ width: SW(140) }}>
-      <Skeleton style={styles.locationIconskelton} />
+      <Shimmer style={styles.locationIconskelton} />
     </View>
   </View>
 );
