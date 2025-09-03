@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle, Pressable, Keyboard } from 'react-native';
-import { boxShadow, Colors, commonStyles, Fonts, navigate, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, ImageLoader } from '../../../component';
-import RouteName from '../../../navigation/RouteName';
+import { boxShadow, Colors, commonStyles, Fonts, navigate, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, ImageLoader } from '../../component';
+import RouteName from '../../navigation/RouteName';
 import moment from 'moment';
 
 interface BookingItemsProps {

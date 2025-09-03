@@ -1,10 +1,9 @@
 import { StyleSheet, View, Pressable, Image } from 'react-native';
 import React from 'react';
-import { boxShadowlight, Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, ImageLoader } from '../../../component';
-import imagePaths from '../../../assets/images';
+import { boxShadowlight, Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText } from '../../component';
 import { useNavigation } from '@react-navigation/native';
-import RouteName from '../../../navigation/RouteName';
+import RouteName from '../../navigation/RouteName';
 
 interface ShopsProps {
     item: any;
@@ -12,7 +11,7 @@ interface ShopsProps {
     bookingType?: string
 }
 
-const Shops: React.FC<ShopsProps> = ({ item, index, bookingType = null }) => {
+const Shops: React.FC<ShopsProps> = ({ item,  bookingType = null }) => {
     const navigation = useNavigation<any>();
     console.log('item?.bannerImage', item?.bannerImage);
     const addressData = item?.location || {};

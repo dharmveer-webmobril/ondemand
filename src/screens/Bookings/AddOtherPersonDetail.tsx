@@ -1,8 +1,7 @@
-import React, { use, useEffect } from 'react';
+import React from 'react';
 import {
   Keyboard,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -52,7 +51,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
       .min(5, 'Minimum length 5'), // Minimum length of 5 characters
   });
   const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
-  const [submitData, { isLoading: isSubmitLoading }] = useSubmitOtherUserAddressMutation()
+  const [submitData,] = useSubmitOtherUserAddressMutation()
   const dispatch = useDispatch();
 
   const btnSubmit = async (values: any) => {
@@ -93,6 +92,12 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
 
   const otherUserAddress = useSelector((state: RootState) => state.service.otherUserAddress);
   console.log('otherUserAddress:', otherUserAddress);
+
+  React.useEffect(() => {
+    if (otherUserAddress) {
+      setAddress(otherUserAddress);
+    }
+  }, [otherUserAddress]);
 
   return (
     <Container isPadding={false}>
@@ -139,18 +144,16 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
               address: addressFromPreviousPage, // Pre-fill with address from previous page
             }}
             validationSchema={validationSchema}
-            onSubmit={(values, { resetForm }) => {
+            onSubmit={(values) => {
               btnSubmit(values);
               // navigation.navigate(RouteName.PAYMENT_SCREEN)
             }}>
-            {({ handleChange, handleSubmit, handleBlur, values, errors, touched, setFieldTouched, setFieldValue }) => {
+            {({ handleChange, handleSubmit, values, errors, touched, setFieldValue }) => {
 
-              useEffect(() => {
-                if (otherUserAddress) {
-                  setFieldValue('address', otherUserAddress.streetAddress || '');
-                  setAddress(otherUserAddress);
-                }
-              }, [otherUserAddress, setFieldValue]);
+              // Set address value when otherUserAddress changes
+              if (otherUserAddress && otherUserAddress.streetAddress) {
+                setFieldValue('address', otherUserAddress.streetAddress);
+              }
               // {({
               //   handleChange,
               //   setFieldTouched,
@@ -166,7 +169,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   value={values.fname}
                   onChangeText={handleChange('fname')}
                   onBlur={() => setFieldValue('fname', values.fname.trim())}
-                  errorMessage={touched.fname && errors.fname && errors.fname ? errors.fname : ''}
+                  errorMessage={touched.fname && errors.fname ? String(errors.fname) : ''}
                   keyboardType="default"
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
@@ -176,7 +179,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   value={values.mobileno}
                   onChangeText={handleChange('mobileno')}
                   onBlur={() => setFieldValue('mobileno', values.mobileno.trim())}
-                  errorMessage={touched.mobileno && errors.mobileno && errors.mobileno ? errors.mobileno : ''}
+                  errorMessage={touched.mobileno && errors.mobileno ? String(errors.mobileno) : ''}
                   keyboardType={'number-pad'}
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
@@ -187,7 +190,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   value={values.email}
                   onChangeText={handleChange('email')}
                   onBlur={() => setFieldValue('email', values.email.trim())}
-                  errorMessage={touched.email && errors.email && errors.email ? errors.email : ''}
+                  errorMessage={touched.email && errors.email ? String(errors.email) : ''}
                   keyboardType={'email-address'}
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
@@ -216,7 +219,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                     editable={false}
                     // onChangeText={handleChange('address')}
                     // onBlur={() => setFieldValue('address', values.address.trim())}
-                    errorMessage={touched.address && errors.address && errors.address ? errors.address : ''}
+                    errorMessage={touched.address && errors.address ? String(errors.address) : ''}
                     keyboardType="default"
                     color={Colors.textAppColor}
                     textColor={Colors.textAppColor}

@@ -1,10 +1,7 @@
 import React from 'react';
 import {
   View,
-  Image,
-  ImageProps,
   StyleSheet,
-  Text,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
@@ -23,6 +20,8 @@ type BookingSlotsProps = {
 
 const seperatorComponent = () => <Spacing horizontal space={SW(10)} />;
 const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, onSelect, isFetching = false }) => {
+  console.log('BookingSlots slotsslots-', slots);
+
   return (
     <>
       {
@@ -34,16 +33,16 @@ const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, on
             horizontal
             showsHorizontalScrollIndicator={false}
             ItemSeparatorComponent={seperatorComponent}
-            contentContainerStyle={slots?.length <= 0 ? { flex: 1 } : {}}
+            contentContainerStyle={slots?.length <= 0 ? styles.fullWidth : {}}
             keyExtractor={(item, index) => `${index}-appointment-slots`}
             renderItem={({ item, index }) => {
               return <TouchableOpacity onPress={() => { onSelect(index) }} style={index === selectedSlot ? styles.slotsselected : styles.slots}>
-                <AppText style={index == selectedSlot ? styles.selectedtxt : styles.txt}>{`${item?.start}-${item?.end}`}</AppText>
+                <AppText style={index === selectedSlot ? styles.selectedtxt : styles.txt}>{`${item?.start}-${item?.end}`}</AppText>
               </TouchableOpacity>
             }}
             ListEmptyComponent={
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 4 }}>
-                <AppText style={{ color: Colors.textAppColor, textAlign: "center" }}>No Slots Available</AppText>
+              <View style={styles.emptyContainer}>
+                <AppText style={styles.emptyText}>No Slots Available</AppText>
               </View>
             }
           />
@@ -77,4 +76,8 @@ const styles = StyleSheet.create({
     fontSize: SF(12),
     fontFamily: Fonts.SEMI_BOLD
   },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 4 },
+  emptyText: { color: Colors.textAppColor, textAlign: 'center' },
+  flex1: { flex: 1 },
+  fullWidth: { width: '100%' },
 })

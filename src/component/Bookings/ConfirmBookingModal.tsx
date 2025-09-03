@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, Checkbox, Spacing, VectoreIcons } from '../../../component';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, Checkbox, Spacing, VectoreIcons } from '../../component';
 import BookingServiceItem from './BookingServiceItem';
 
 

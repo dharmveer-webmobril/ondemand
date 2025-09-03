@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import React, { FC } from 'react';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, ImageLoader, VectoreIcons } from '../../../component';
-import imagePaths from '../../../assets/images';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, ImageLoader, VectoreIcons } from '../../component';
+import imagePaths from '../../assets/images';
 
 const teamMember = [
     { id: 1, name: 'Juana', img: imagePaths.electrical, activeStatus: true },
@@ -25,7 +25,7 @@ const AvailTeamMember: FC<servicesInterface> = ({ selectedId }) => {
                 <ImageLoader source={item.img} resizeMode='cover' mainImageStyle={[styles.img,{opacity:!item.activeStatus?0.4:1}]} />
             </View>
             <AppText numberOfLines={2} style={styles.serviceTitle}>{item.name}</AppText>
-            {selectedId == item.id && <View style={styles.tickIcon}><VectoreIcons icon='AntDesign' name='checkcircle' color='green' size={SF(18)} /></View>}
+            {selectedId === item.id && <View style={styles.tickIcon}><VectoreIcons icon='AntDesign' name='checkcircle' color='green' size={SF(18)} /></View>}
         </View>
     );
     return (

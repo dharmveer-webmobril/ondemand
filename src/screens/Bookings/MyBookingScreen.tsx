@@ -3,7 +3,7 @@ import { View, FlatList, StyleSheet } from 'react-native';
 import { Colors, SH, SW, SF, useDisableGestures } from '../../utils';
 import { AppHeader, AppText, BottomBar, Container } from '../../component';
 import RouteName from '../../navigation/RouteName';
-import { BookingItems, TabTop } from './component';
+import { BookingItems, TabTop } from '../../component';
 import { useGetUserBookingsByTabQuery } from '../../redux';
 
 
@@ -36,12 +36,12 @@ const MyBookingScreen: React.FC = () => {
             data={bookingData}
             keyExtractor={(item) => `${item._id}-appointment-list-${activeTab}`}
             renderItem={({ item }) => { return <BookingItems item={item} /> }}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ItemSeparatorComponent={BookingListSeparator}
             showsHorizontalScrollIndicator={false}
           />
         ) : (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <AppText style={{ color: Colors.lightGraytext }}>
+          <View style={styles.emptyContainer}>
+            <AppText style={styles.emptyText}>
               {isFetching
                 ? 'Loading...'
                 : isError
@@ -81,6 +81,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SW(20),
     marginBottom: SH(30)
   },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyText: { color: Colors.lightGraytext },
 });
 
 export default MyBookingScreen;
+
+const BookingListSeparator = React.memo(() => <View style={styles.separator} />);

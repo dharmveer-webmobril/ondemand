@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, Checkbox, DropdownComponent, Spacing, VectoreIcons } from '../../../component';
-import { useNavigation } from '@react-navigation/native';
-import RouteName from '../../../navigation/RouteName';
+import { Modal, StyleSheet,  TouchableOpacity, View } from 'react-native';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, Checkbox, DropdownComponent, Spacing, VectoreIcons } from '../../component';
 
 const data = [
     { label: '$ 25 / Monthly Routine', value: '1' },
@@ -25,12 +23,11 @@ const ConfirmBookingTypeModal: React.FC<ConfirmBookingTypeModalProps> = ({
     closeModal,
     brnSubmit
 }) => {
-    const navigation = useNavigation<any>();
     const [checkServiceType, setcheckServiceType] = useState('current')
     const btnCheckServiceType = (type: string) => {
-        if (type == checkServiceType) return;
-        if (type == 'current') setcheckServiceType(type);
-        if (type == 'routine') setcheckServiceType(type);
+        if (type === checkServiceType) return;
+        if (type === 'current') setcheckServiceType(type);
+        if (type === 'routine') setcheckServiceType(type);
 
     }
 

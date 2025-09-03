@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Colors, SH, SW, Fonts, SF, } from '../../utils';
 import { AppHeader, AppText, Buttons, Container, ImageLoader, VectoreIcons } from '../../component';
 import { useNavigation } from '@react-navigation/native';
-import { BookingServiceItem, TabTop } from './component';
+import { BookingServiceItem, TabTop } from '../../component';
 import imagePaths from '../../assets/images';
 
 

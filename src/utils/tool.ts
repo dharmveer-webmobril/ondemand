@@ -6,7 +6,7 @@ import {
   openSettings,
   Permission,
 } from 'react-native-permissions';
-import { Platform, Alert } from 'react-native';
+import { Platform, Alert, Linking } from 'react-native';
 
 export const requestCameraAccess = async (): Promise<boolean> => {
   const permission =
@@ -97,6 +97,26 @@ export const arrangePrice = (price: number, priceType: string): any => {
   }
 }
 
+
+export const makeCall = async (phoneNumber: string): Promise<void> => {
+  // Ensure the number starts with "+" (international format)
+  const formattedNumber = phoneNumber.startsWith("+")
+    ? phoneNumber
+    : `+${phoneNumber}`;
+
+  const url = `tel:${formattedNumber}`;
+
+  try {
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      Alert.alert("Error", "Phone call is not supported on this device");
+    } else {
+      await Linking.openURL(url);
+    }
+  } catch (error) {
+    console.error("Error opening dialer:", error);
+  }
+};
 
 export const userImage = 'http://15.157.235.216:3000/v1/auth/uploads/'
 export const serviceImage = 'http://15.157.235.216:3000/v1/service/uploads/'

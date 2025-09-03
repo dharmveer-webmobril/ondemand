@@ -1,10 +1,10 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { boxShadow, Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, ImageLoader, Spacing, VectoreIcons } from '../../../component';
-import imagePaths from '../../../assets/images';
+import { boxShadow, Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, ImageLoader, Spacing, VectoreIcons } from '../../component';
+import imagePaths from '../../assets/images';
 import { useNavigation } from '@react-navigation/native';
-import RouteName from '../../../navigation/RouteName';
+import RouteName from '../../navigation/RouteName';
 
 
 type SucessBookingModalProps = {

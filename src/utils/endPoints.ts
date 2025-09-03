@@ -28,4 +28,5 @@ export const ENDPOINTS = {
 
   GET_MEMBER_SLOTS:"/auth/get-member-slot",
   GET_PROVIDER_MEMBER:"/auth/get-provider-members",
+  GET_SEPECIAL_OFFER:"/service/get-marketing-provider",
 };

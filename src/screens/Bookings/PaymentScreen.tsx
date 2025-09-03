@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-nat
 import { Colors, Fonts, SF, SH, SW, imagePaths } from '../../utils';
 import { AppHeader, AppText, Buttons, Container, UserprofileView } from '../../component';
 import { useNavigation } from '@react-navigation/native';
-import { SucessBookingModal } from './component';
+import { SucessBookingModal } from '../../component';
 import RouteName from '../../navigation/RouteName';
 import { useSelector } from 'react-redux';
 import { RootState, useCheckoutBookingMutation, useCreateBookingMutation } from '../../redux';
@@ -16,7 +16,7 @@ const PaymentScreen = () => {
     const navigation = useNavigation<any>();
     const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
 
-    const { service, providerDetails, selectedTeamMember, date, bookingType, bookingFor, myAddId, myAdd, slots } =
+    const { service, providerDetails, selectedTeamMember, date, bookingType, bookingFor,  slots } =
         bookingJson || {};
 
     const [submitBooking, { isLoading: isSubmitLoading }] = useCreateBookingMutation();
@@ -107,7 +107,7 @@ const PaymentScreen = () => {
 
                 {/* Shop Info */}
                 <View style={styles.shopInfo}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={styles.rowBetween}>
                         <AppText style={styles.shopName}>{providerDetails?.businessName}</AppText>
                         <AppText style={styles.shopName}>{date}</AppText>
                     </View>
@@ -181,7 +181,7 @@ const PaymentScreen = () => {
                         <AppText style={styles.price1}>${service?.price}</AppText>
                     </View>
                     <Buttons
-                        buttonStyle={{ width: '65%' }}
+                        buttonStyle={styles.w65}
                         title={isSubmitLoading || isCheckoutLoading ? 'Processing...' : 'Book'}
                         onPress={handleBooking}
                         buttonTextStyle={{ color: Colors.white }}
@@ -297,4 +297,6 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.REGULAR,
     },
     bookingContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SH(40), marginBottom: 20, alignItems: 'center' },
+    rowBetween: { flexDirection: 'row', justifyContent: 'space-between' },
+    w65: { width: '65%' },
 });

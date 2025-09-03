@@ -28,4 +28,6 @@ export {default as LoadingComponent} from './LoadingComponent';
 export * from './HomeComp';
 export * from './ProfileComp'
 export * from './CustomToast'
+export * from './shop'
+export * from './Bookings'
 

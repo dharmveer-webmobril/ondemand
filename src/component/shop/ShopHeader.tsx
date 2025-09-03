@@ -1,10 +1,10 @@
 import { View, StyleSheet, TouchableOpacity, Image, Platform, Pressable } from 'react-native';
 import React, { useMemo } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import { Colors, Fonts, goBack, SF, SH, SW, useIsPortrait } from '../../../utils';
-import { InputField, } from '../../../component';
-import imagePaths from '../../../assets/images';
-import VectorIcon from '../../../component/VectoreIcons';
+import { Colors, Fonts, goBack, SF, useIsPortrait } from '../../utils';
+import { InputField, } from '../../component';
+import imagePaths from '../../assets/images';
+import VectorIcon from '../../component/VectoreIcons';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +24,6 @@ const ShopHeader: React.FC<HeaderProps> = ({
     // onclicNotification = () => { },
 }) => {
     const insets = useSafeAreaInsets();
-    const navigation = useNavigation<any>();
     const isPortrait = useIsPortrait();
     const getHeaderHeight = () => {
         const statusBarHeight = getStatusBarHeight();

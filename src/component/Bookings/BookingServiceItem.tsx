@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { Colors, Fonts, SF, SH } from '../../../utils';
-import { AppText } from '../../../component';
+import { Colors, Fonts, SF, SH } from '../../utils';
+import { AppText } from '../../component';
 
 interface BookingServiceItemProps {
     title?: string;

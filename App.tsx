@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { StyleSheet, View, } from 'react-native';
+import { LogBox, StyleSheet, View, } from 'react-native';
 import AppRoute from './src/navigation/AppRoute';
 import './src/utils/langauage/i18n';
 import { ChatProvider } from './src/screens/ChatProvider';
@@ -14,6 +14,9 @@ import i18next from 'i18next';
 import FastImage from 'react-native-fast-image';
 import Geocoder from "react-native-geocoding";
 
+LogBox.ignoreLogs([
+  'VirtualizedLists should never be nested', // 👈 hides the warning
+]);
 Geocoder.init("AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s"); // replace with your key
 const App = () => {
 console.log(process.env.GOOGLE_MAP_KEY,'process.env.GOOGLE_MAP_KEY');

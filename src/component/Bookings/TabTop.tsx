@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, Spacing, VectoreIcons } from '../../../component';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, Spacing, VectoreIcons } from '../../component';
 
 
 type TabTopProps = {

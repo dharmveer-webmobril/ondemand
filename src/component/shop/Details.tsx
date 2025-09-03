@@ -1,10 +1,9 @@
-import { View, Text, StyleSheet, Keyboard, Image, TouchableOpacity } from 'react-native';
+import { View,  StyleSheet, Keyboard, Image, TouchableOpacity } from 'react-native';
 import React, { FC } from 'react';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons, Divider, ImageLoader, Spacing, VectoreIcons } from '../../../component';
-import imagePaths from '../../../assets/images';
-import AvailTeamMember from './AvailTeamMember';
-import RouteName from '../../../navigation/RouteName';
+import { Colors, Fonts, makeCall, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, Divider, ImageLoader, Spacing, VectoreIcons } from '../../component';
+import imagePaths from '../../assets/images';
+import RouteName from '../../navigation/RouteName';
 import { useNavigation } from '@react-navigation/native';
 
 
@@ -53,6 +52,8 @@ const Details: FC<servicesInterface> = ({ data }) => {
                         isExtraBoxShadow={false}
                         title={'Call'}
                         onPress={() => {
+                            const userphone = data?.countryCode + data?.mobileNo;
+                            makeCall(userphone)
                             Keyboard.dismiss();
                         }}
                     />

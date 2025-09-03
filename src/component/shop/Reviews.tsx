@@ -1,21 +1,19 @@
 import React from 'react';
 import {
     View,
-    Text,
     FlatList,
     StyleSheet,
     Image,
     TouchableOpacity,
-    DimensionValue,
 } from 'react-native';
-import imagePaths from '../../../assets/images';
+import imagePaths from '../../assets/images';
 import StarRating from 'react-native-star-rating-widget';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, VectoreIcons } from '../../../component';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, VectoreIcons } from '../../component';
 
 interface RatingBreakdown {
     star: number;
-    percent: string | number | DimensionValue;
+    percent: string;
 }
 
 interface Review {
@@ -161,7 +159,7 @@ const Reviews: React.FC = () => {
                             />
                             <AppText style={{ marginHorizontal: SW(10), fontSize: SF(9), color: "#1D2026", fontFamily: Fonts.MEDIUM }}>{item.star}</AppText>
                             <View style={styles.barBackground}>
-                                <View style={[styles.barFill, { width: item.percent }]} />
+                                <View style={[styles.barFill, { width: item.percent as any }]} />
                             </View>
                             <AppText style={{ marginLeft: SW(10), fontSize: SF(9), color: "#1D2026", fontFamily: Fonts.MEDIUM }}>{item.percent}</AppText>
                         </View>

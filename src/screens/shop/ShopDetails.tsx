@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { Image, Pressable, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {  Pressable, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
 import { Colors, Fonts, SF, SH, SW } from '../../utils';
-import imagePaths from '../../assets/images';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from './component';
+import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from '../../component';
 import RouteName from '../../navigation/RouteName';
-import { ConfirmBookingModal } from '../Bookings/component';
 import { setBookingJson } from '../../redux';
 import { useDispatch } from 'react-redux';
 
@@ -22,13 +20,11 @@ const ShopDetails: React.FC<shopProps> = () => {
     const navigation = useNavigation<any>();
     const [activeTab, setActiveTabs] = useState<string>('services');
     const [confirmBookingTypeModal, setConfirmBookingTypeModal] = useState<boolean>(false);
-    const [forwhomCheck, setForwhomCheck] = useState(false)
-    const [modalVisible, setModalVisible] = useState<boolean>(false)
     const route = useRoute<any>();
 
     const { providerDetails } = route?.params;
 
-    const { services = [], location, portfolios } = providerDetails || {};
+    const { services = [] } = providerDetails || {};
     console.log('providerDetails--', providerDetails);
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');

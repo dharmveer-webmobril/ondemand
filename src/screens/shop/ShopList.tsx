@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { AppText, Container, HomeRecommendedItems, Spacing } from '../../component';
-import { Colors, Fonts, recommendedData, SF, SH, SW } from '../../utils';
+import { AppText, Container, SpecialItems, Spacing, SpecialItemsSkeleton } from '../../component';
+import { Colors, Fonts, imagePaths, navigate, SF, SH, SW } from '../../utils';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { ShopHeader, Shops, SubCatList } from './component';
+import { ShopHeader, Shops, SubCatList } from '../../component';
 import { useRoute } from '@react-navigation/native';
-import { getProvidersByCatAndSubcat, useGetProviderCatSubcatQuery } from '../../redux';
-import { useDispatch } from 'react-redux';
+import { useGetProviderCatSubcatQuery, useGetSpecialOffersQuery } from '../../redux';
+import RouteName from '../../navigation/RouteName';
 
 interface shopProps { }
 
@@ -23,7 +23,15 @@ const ShopList: React.FC<shopProps> = () => {
     const memoizedData = useMemo(() => data?.data || [], [data]);
     console.log('shopDatashopData', memoizedData);
 
+    const { data: specialData,
+        isFetching: isFeatingSpecialOffer, isError: isErrorSpecialOffer, refetch: refetchSpecialOffer,
+    } = useGetSpecialOffersQuery();
+    const specialOffers = useMemo(() => specialData?.data || [], [specialData]);
+    console.log('specialOffersspecialOffers', specialOffers);
 
+    useEffect(() => {
+        refetchSpecialOffer()
+    }, [refetchSpecialOffer])
 
     React.useEffect(() => {
         if (catId) {
@@ -61,12 +69,32 @@ const ShopList: React.FC<shopProps> = () => {
                     <View style={styles.specialOfferConatiner}>
                         <FlatList
                             horizontal
-                            data={recommendedData}
-                            keyExtractor={(item, index) => item.name + 'recomded' + index}
-                            contentContainerStyle={styles.flatListRecommended}
+                            data={isFeatingSpecialOffer ? [12, 23, 34, 45, 23] : specialOffers}
+                            keyExtractor={(item, index) => item?.fullName + 'special-offer' + index}
+                            contentContainerStyle={[styles.flatListRecommended, specialOffers?.length <= 0 ? styles.fullWidth : {}]}
                             ItemSeparatorComponent={SeparatorComponentSpecialOffer}
                             showsHorizontalScrollIndicator={false}
-                            renderItem={({ item }) => <HomeRecommendedItems {...item} />}
+                            renderItem={({ item }) => {
+                                return isFeatingSpecialOffer ?
+                                    <SpecialItemsSkeleton />
+                                    :
+                                    <SpecialItems
+                                        id={item?._id}
+                                        image={item?.bannerImage ? { uri: item?.bannerImage } : imagePaths?.no_image}
+                                        name={item?.fullName}
+                                        onClick={() => {
+                                            navigate(RouteName.SHOP_DETAILS, { bookingType: 'bookingType', providerDetails: item });
+                                        }}
+                                    />
+                            }}
+                            ListEmptyComponent={
+                                !isFeatingSpecialOffer ?
+                                    <View style={styles.emptyContainer1}>
+                                        <AppText style={styles.emptyText1}>{isErrorSpecialOffer ? "Something went wrong!" : 'No Offer Available'}</AppText>
+                                    </View>
+                                    : null
+                            }
+
                         />
                     </View>
                 </>
@@ -84,12 +112,16 @@ const ShopList: React.FC<shopProps> = () => {
                     )}
                     ListEmptyComponent={
                         !isFetching ? (
-                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 70 }}>
-                                <AppText style={{ color: Colors.lightGraytext }}>
+                            <View style={styles.emptyContainer}>
+                                <AppText style={styles.emptyText}>
                                     {isError ? "Something went wrong!" : "No shops found"}
                                 </AppText>
                             </View>
-                        ) : null
+                        ) : <View style={styles.emptyContainer}>
+                            <AppText style={styles.emptyText}>
+                                {"Loading......."}
+                            </AppText>
+                        </View>
                     }
                 />
 
@@ -133,4 +165,10 @@ const styles = StyleSheet.create({
         color: Colors.textAppColor,
         fontSize: SF(14),
     },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 70 },
+    emptyText: { color: Colors.lightGraytext },
+    emptyContainer1: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 4 },
+    emptyText1: { color: Colors.textAppColor, textAlign: 'center' },
+    flex1: { flex: 1 },
+    fullWidth: { width: '100%' },
 });

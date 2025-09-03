@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { AppText, ImageLoader, VectoreIcons } from '../../../component';
-import { Colors, Fonts, imagePaths, SF, SH, SW } from '../../../utils';
+import { AppText, ImageLoader, VectoreIcons } from '../../component';
+import { Colors, Fonts,   SF, SH, SW } from '../../utils';
 
 interface Props {
   title?: string;

@@ -1,7 +1,6 @@
 import { Pressable, FlatList, StyleSheet } from 'react-native';
-import React, { useState, useMemo } from 'react';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText } from '../../../component';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText } from '../../component';
 
 interface HeaderProps {
   data: any;

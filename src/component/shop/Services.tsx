@@ -1,9 +1,7 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View,  StyleSheet, FlatList } from 'react-native';
 import React, { FC } from 'react';
-import { Colors, Fonts, SF, SH, SW } from '../../../utils';
-import { AppText, Buttons } from '../../../component';
-import AvailTeamMember from './AvailTeamMember';
-import { useNavigation } from '@react-navigation/native';
+import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { AppText, Buttons } from '../../component';
 
 
 interface servicesInterface {
@@ -12,7 +10,6 @@ interface servicesInterface {
 }
 const SeparatorComponent = () => <View style={styles.itemSepearator} />;
 const Services: FC<servicesInterface> = ({ onClick, data }) => {
-    const navigation = useNavigation<any>();
     const renderItem = ({ item }: any) => (
         <View style={styles.serviceItem}>
             <View>

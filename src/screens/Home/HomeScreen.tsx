@@ -17,7 +17,7 @@ import HomeCategory from '../../component/HomeComp/HomeCategoryItem';
 import useLocation from '../../utils/hooks/useLocation';
 
 const HomeScreen = () => {
-  const { location, error, isLocationEnabled } = useLocation();
+  const { location, isLocationEnabled } = useLocation();
   console.log('locationlocation', location, isLocationEnabled);
   // console.log('errorerror', error);
 

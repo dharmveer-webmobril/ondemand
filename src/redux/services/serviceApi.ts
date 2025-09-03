@@ -1,4 +1,3 @@
-import { get } from "@react-native-firebase/database";
 import { ENDPOINTS } from "../../utils";
 import { api } from "./api";
 
@@ -10,7 +9,7 @@ export const serviceApi = api.injectEndpoints({
         method: "GET",
       }),
     }),
-    getProviderCatSubcat: builder.query<any[], { catId: string; subCat?: string | null }>({
+    getProviderCatSubcat: builder.query<any, { catId: string; subCat?: string | null }>({
       query: ({ catId, subCat }) => {
         console.log('catId-', catId, 'subcatid-', subCat);
 
@@ -36,8 +35,7 @@ export const serviceApi = api.injectEndpoints({
     // }),
     getProviderMember: builder.query<any, { providerId: any }>({
       query: ({ providerId }) => {
-        console.log('providerIdproviderIdproviderId',providerId);
-        
+        console.log('providerIdproviderIdproviderId', providerId);
         let url = `${ENDPOINTS.GET_PROVIDER_MEMBER}`;
         if (providerId) {
           url = `${url}?providerId=${providerId}`
@@ -51,7 +49,12 @@ export const serviceApi = api.injectEndpoints({
     getMemberSlots: builder.query<any, { memberId: any }>({
       query: ({ memberId }) => {
         let url = `${ENDPOINTS.GET_MEMBER_SLOTS}`;
-        if (memberId)`${url}?memberId=${memberId}`
+        if (memberId) {
+          url = `${url}?memberId=${memberId}`
+        }
+        console.log('memberIdmemberId-', memberId);
+        console.log('urlurlurl-', url);
+
         return {
           url,
           method: "GET",
@@ -113,6 +116,15 @@ export const serviceApi = api.injectEndpoints({
         return [];
       },
     }),
+    getSpecialOffers: builder.query<any, void>({
+      query: () => {
+        let url = ENDPOINTS.GET_SEPECIAL_OFFER;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
 
 
   }),
@@ -129,5 +141,6 @@ export const {
   useCheckoutBookingMutation,
   useGetUserBookingsByTabQuery,
   useGetMemberSlotsQuery,
-  useGetProviderMemberQuery
+  useGetProviderMemberQuery,
+  useGetSpecialOffersQuery
 } = serviceApi;
