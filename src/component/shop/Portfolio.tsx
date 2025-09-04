@@ -5,7 +5,7 @@ import { AppText, ImageLoader } from '../../component';
 
 
 interface servicesInterface {
-    data: any[];
+    data: any;
 }
 const Portfolio: FC<servicesInterface> = ({ data }) => {
 

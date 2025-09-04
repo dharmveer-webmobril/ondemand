@@ -19,6 +19,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     const [selectedSlot, setSelectedSlot] = useState<any>(null)
     const [slotArr, setSlotArr] = useState<any>(null)
     const [selectedMember, setSelectedMember] = useState<any>('anyone')
+    const [anyOneMeberId, setAnyOneMeberId] = useState<any>(null)
     const [modalVisible, setModalVisible] = useState<boolean>(false)
     const [forwhomCheck, setForwhomCheck] = useState(false);
     const [selectedDate, setSelectedDate] = useState<any>(moment().format('YYYY-MM-DD'));
@@ -37,10 +38,14 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     const membersListData = useMemo(() => {
         const data = membersList?.data || [];
         if (data.length > 0) {
+            setSelectedMember('anyone')
             return [{ _id: 'anyone', fullName: 'Anyone', profilePic: imagePaths.no_user_img }, ...data];
+        } else {
+            setSelectedMember(providerDetails?._id)
+            return [providerDetails];
         }
-        return data;
-    }, [membersList]);
+        // return data;
+    }, [membersList, providerDetails]);
 
     console.log('membersListmembersList--', membersList);
 
@@ -54,6 +59,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
         console.log('dayName--', dayName); // Output: "Wednesday"
         if (slotsData && dayName) {
             let slotsFind = slotsData[dayName]
+            setAnyOneMeberId(slots?.memberId)
             setSlotArr(slotsFind)
             setSelectedSlot(null)
             console.log('slotsFindslotsFind', slotsFind);
@@ -66,13 +72,14 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 
     const btnGo = () => {
         let selectedSlotInfo = slotArr[selectedSlot];
-        let selTeamMember = selectedMember === 'anyone' ? slots?.memberId : selectedMember;
 
-        let chosenTeamMember = membersListData?.find((item: any) => item?._id === selTeamMember)
+        let chosenTeamMember = membersListData?.find((item: any) => item?._id === anyOneMeberId) || providerDetails;
+        // console.log('anyOneMeberId-----', anyOneMeberId);
+
         let bookingData = { ...bookingJson, slots: selectedSlotInfo, selectedDate, selectedTeamMember: chosenTeamMember };
 
         console.log('-----bookingData-----', bookingData);
-
+        // return
         if (forwhomCheck) {
             bookingData = { ...bookingData, bookingFor: 'other', date: selectedDate };
             dispatch(setBookingJson(bookingData));
@@ -169,21 +176,34 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                     {
                         <>
                             <Divider marginTop={SF(10)} color='#3D3D3D50' height={0.7} />
-                            <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>Selected Member</AppText>
+                            <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>Select Member</AppText>
                             <Spacing space={SH(15)} />
                             <View style={styles.memberRow}>
                                 {
-                                    membersListData?.map((item: any) => {
-                                        return <View key={item?._id + 'team-member'} style={[styles.memberItem, { minWidth: SW(90) }]}>
+                                    membersListData?.length > 0
+                                        ?
+                                        membersListData?.map((item: any) => {
+                                            return <View key={item?._id + 'team-member'} style={[styles.memberItem, { minWidth: SW(90) }]}>
+                                                <TeamMemberProfile
+                                                    selectedMember={selectedMember}
+                                                    onClick={() => { setSelectedMember(item?._id) }}
+                                                    imageSource={item?._id === 'anyone' ? imagePaths?.no_user_img : item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
+                                                    title={item?.fullName}
+                                                    item={item}
+                                                />
+                                            </View>
+                                        })
+                                        :
+                                        <View key={'team-member' + providerDetails?._id} style={[styles.memberItem, { minWidth: SW(90) }]}>
                                             <TeamMemberProfile
                                                 selectedMember={selectedMember}
-                                                onClick={() => { setSelectedMember(item?._id) }}
-                                                imageSource={item?._id === 'anyone' ? imagePaths?.no_user_img : item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
-                                                title={item?.fullName}
-                                                item={item}
+                                                onClick={() => { setSelectedMember(providerDetails?._id) }}
+                                                imageSource={providerDetails?.profilePic ? { uri: providerDetails?.profilePic } : imagePaths?.no_user_img}
+                                                title={providerDetails?.fullName}
+                                                item={providerDetails}
                                             />
                                         </View>
-                                    })
+
                                 }
                             </View>
                             <Divider contStyle={{ marginVertical: SW(10) }} color='#3D3D3D50' height={0.7} />

@@ -26,7 +26,14 @@ export const ENDPOINTS = {
   CHECKOUT_BOOKING: `/booking/service/checkout`,
   GET_USER_BOOKING_BY_TAB: `/booking/get-booking`,
 
-  GET_MEMBER_SLOTS:"/auth/get-member-slot",
-  GET_PROVIDER_MEMBER:"/auth/get-provider-members",
-  GET_SEPECIAL_OFFER:"/service/get-marketing-provider",
+  GET_MEMBER_SLOTS: "/auth/get-member-slot",
+  GET_PROVIDER_MEMBER: "/auth/get-provider-members",
+  GET_SEPECIAL_OFFER: "/service/get-marketing-provider",
+  ADD_SERVICE_RATING: "/booking/review",
+  ADD_PROVIDER_RATING: "/auth/provider-review-rating",
+  GET_RATING_FOR_SERVICE: "/booking/get-service-by-booking-id",
+  GET_RATING_FOR_PROVIDER: "/auth/get-provider-rating-by-booking",
+  GET_PROVIDER_PORTFOLIO: "/auth/get-portfolio",
+  GET_PROVIDER_SERVICES: "/service/get-services-by-providerId",
+  GET_ALL_RATING_PROVIDER: "/auth/provider-review-rating",
 };

@@ -1,6 +1,6 @@
 import { StyleSheet, View, Pressable, Image } from 'react-native';
 import React from 'react';
-import { boxShadowlight, Colors, Fonts, SF, SH, SW } from '../../utils';
+import { boxShadowlight, Colors, Fonts, formatRating, SF, SH, SW } from '../../utils';
 import { AppText } from '../../component';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
@@ -47,8 +47,8 @@ const Shops: React.FC<ShopsProps> = ({ item, bookingType = null }) => {
                     {
                         item.avgRating ?
                             <AppText style={styles.reviewText}>
-                                {item.avgRating}{'\n'}<AppText style={{ fontSize: SF(10), color: Colors.textAppColor, }}>
-                                    {/* 140 Reviews */}
+                                {formatRating(item.avgRating)}{'\n'}<AppText style={{ fontSize: SF(10), color: Colors.textAppColor, }}>
+                                    {item?.reviewCount} Reviews
                                 </AppText>
                             </AppText>
                             : null

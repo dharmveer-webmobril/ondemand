@@ -8,171 +8,178 @@ import {
 } from 'react-native';
 import imagePaths from '../../assets/images';
 import StarRating from 'react-native-star-rating-widget';
-import { Colors, Fonts, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, SF, SH, SW, formatChatTimestamp } from '../../utils';
 import { AppText, VectoreIcons } from '../../component';
 
 interface RatingBreakdown {
     star: number;
-    percent: string;
+    count: number;
+    percentage: string;
 }
 
 interface Review {
-    id: number;
+    id: string;
     name: string;
     date: string;
     rating: number;
     comment: string;
-    likes: number;
-    replies: number;
-    verified: boolean;
+    likes?: number;
+    replies?: number;
+    verified?: boolean;
     reply?: string;
+    profilePic?: string;
 }
 
-const ratingsBreakdown: RatingBreakdown[] = [
-    { star: 5, percent: '75%' },
-    { star: 4, percent: '21%' },
-    { star: 3, percent: '2%' },
-    { star: 2, percent: '1%' },
-    { star: 1, percent: '<1%' },
-];
+interface ReviewInterface {
+    ratingData: any;
+}
 
-const reviews: Review[] = [
-    {
-        id: 1,
-        name: 'Guy Hawkins',
-        date: '1 week ago',
-        rating: 4,
-        comment:
-            "Lorem ipsum dolor sit amet consectetur. Gravida nulla quis ultrices in nununc aliquam lacus. Nunc lorem nulla ullamcorper nunc pulvinar erat mi tempor facilisi. Egestas consectetur orci libero faucibus in platea habitant etiam.. Arcu etiam ornare bibendum ornare duis enim..",
-        likes: 10,
-        replies: 2,
-        verified: true,
-        reply: 'Thank you so much! 🤍',
-    },
-    {
-        id: 2,
-        name: 'Guy Hawkins',
-        date: '1 week ago',
-        rating: 5,
-        comment:
-            "Lorem ipsum dolor sit amet consectetur. Gravida nulla quis ultrices in nununc aliquam lacus. Nunc lorem nulla ullamcorper nunc pulvinar erat mi tempor facilisi. Egestas consectetur orci libero faucibus in platea habitant etiam.. Arcu etiam ornare bibendum ornare duis enim..",
-        likes: 4,
-        replies: 1,
-        verified: true,
-    },
-    {
-        id: 3,
-        name: 'Guy Hawkins',
-        date: '1 week ago',
-        rating: 5,
-        comment:
-            "Lorem ipsum dolor sit amet consectetur. Gravida nulla quis ultrices in nununc aliquam lacus. Nunc lorem nulla ullamcorper nunc pulvinar erat mi tempor facilisi. Egestas consectetur orci libero faucibus in platea habitant etiam.. Arcu etiam ornare bibendum ornare duis enim..",
-        likes: 4,
-        replies: 1,
-        verified: true,
-    },
-];
+const Reviews: React.FC<ReviewInterface> = ({ ratingData }) => {
+    console.log('ratingDataratingData', ratingData);
 
-const Reviews: React.FC = () => {
+    // Transform ratingBreakdown from ratingData
+    const ratingsBreakdown: RatingBreakdown[] = ratingData?.ratingBreakdown?.map((item: any) => ({
+        star: item.star,
+        count: item.count,
+        percentage: item.percentage,
+    })) || [
+            { star: 5, count: 0, percentage: '0%' },
+            { star: 4, count: 0, percentage: '0%' },
+            { star: 3, count: 0, percentage: '0%' },
+            { star: 2, count: 0, percentage: '0%' },
+            { star: 1, count: 0, percentage: '0%' },
+        ];
 
-    const renderItem = ({ item }: { item: Review }) => (
-        <View style={styles.reviewItem}>
-            <View style={styles.userRow}>
-                <Image
-                    source={imagePaths.barber2}
-                    style={styles.avatar}
-                />
-                <View style={styles.nameRow}>
-                    <View style={styles.usrNameDateContainer}>
-                        <AppText style={styles.userName}>{item.name}</AppText>
-                        <AppText style={styles.dotText}> . </AppText>
-                        <AppText style={styles.dateText}>{item.date}</AppText>
-                    </View>
-                    <StarRating
-                        starStyle={styles.starStyleForUser}
-                        onChange={() => { }}
-                        color={Colors.ratingColor1}
-                        starSize={SF(10)}
-                        rating={3.5}
+    console.log('ratingsBreakdownratingsBreakdown', ratingsBreakdown);
+
+    // Transform reviews from ratingData
+    const reviews: Review[] = ratingData?.reviews?.map((item: any, index: number) => ({
+        id: item._id || index.toString(),
+        name: item.userId?.fullName || 'Unknown User',
+        date: item.createdAt ? formatChatTimestamp(item.createdAt) : 'Unknown Date',
+        rating: item.rating || 0,
+        comment: item.comment || '',
+        profilePic: item?.userId?.profilePic,
+        likes: 0, // No likes data in JSON, default to 0
+        replies: 0, // No replies data in JSON, default to 0
+        verified: true, // Assuming all users are verified for now
+        reply: undefined, // No reply data in JSON
+    })) || [];
+
+    if (!ratingData || ratingData?.reviews?.length <= 0) {
+        return (
+            <View style={styles.noDataContainer}>
+                <Image source={imagePaths.no_user_img} style={styles.noDataImage} />
+                <AppText style={styles.noDataText}>No Reviews Available</AppText>
+                <AppText style={styles.noDataSubText}>
+                    Be the first to share your experience!
+                </AppText>
+            </View>
+        );
+    }
+
+    const renderItem = ({ item }: { item: Review }) => {
+        console.log('item?.userId?.profilePicitem?.userId?.profilePic', item);
+
+        return (
+            <View style={styles.reviewItem}>
+                <View style={styles.userRow}>
+                    <Image
+                        source={item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
+                        style={styles.avatar}
                     />
+                    <View style={styles.nameRow}>
+                        <View style={styles.usrNameDateContainer}>
+                            <AppText style={styles.userName}>{item.name}</AppText>
+                            <AppText style={styles.dotText}> . </AppText>
+                            <AppText style={styles.dateText}>{item.date}</AppText>
+                        </View>
+                        <StarRating
+                            starStyle={styles.starStyleForUser}
+                            onChange={() => { }}
+                            color={Colors.ratingColor1}
+                            starSize={SF(10)}
+                            rating={item.rating}
+                        />
+                    </View>
+                    {item.verified && (
+                        <AppText style={styles.verifiedUser}>
+                            Verified User ✅
+                        </AppText>
+                    )}
                 </View>
-                {item.verified && (
-                    <AppText style={styles.verifiedUser}>
-                        Verified User ✅
+
+                <AppText style={styles.comment}>{item.comment}</AppText>
+
+                <View style={styles.actionRow}>
+                    {/* <AppText style={styles.actionText}>
+                        <VectoreIcons name="thumbs-up" icon="Feather" size={SF(9)} /> {item.likes}
                     </AppText>
-                )}
-            </View>
-
-
-            <AppText style={styles.comment}>{item.comment}</AppText>
-
-            <View style={styles.actionRow}>
-                <AppText style={styles.actionText}>
-                    <VectoreIcons name='thumbs-up' icon='Feather' size={SF(9)} />  {item.likes}
-                </AppText>
-                <AppText style={[styles.actionText, { marginLeft: 16 }]}>
-                    <VectoreIcons name='thumbs-down' icon='Feather' size={SF(9)} />  {item.replies}
-                </AppText>
-                <TouchableOpacity style={{ marginLeft: 'auto' }}>
-                    <AppText style={styles.reportText}>Report <AppText style={{ fontSize: SF(12) }}>⚑</AppText></AppText>
-                </TouchableOpacity>
-            </View>
-
-            {item.reply && (
-                <View style={styles.replyBox}>
-                    <View>
-                        <Image style={{height:SF(10),width:SF(12)}} source={imagePaths.return_up_back} />
-                    </View>
-                    <View style={{marginLeft:10}}>
-                        <AppText style={styles.replyTitle}>WM Barbershop</AppText>
-                        <AppText style={styles.replyDate}>on March 20th</AppText>
-                        <AppText style={styles.replyText}>Thank you so much! 🤝</AppText>
-                    </View>
+                    <AppText style={styles.actionTextWithMargin}>
+                        <VectoreIcons name="thumbs-down" icon="Feather" size={SF(9)} /> {item.replies}
+                    </AppText> */}
+                    {/* <TouchableOpacity style={styles.reportButton}>
+                        <AppText style={styles.reportText}>
+                            Report <AppText style={styles.reportIcon}>⚑</AppText>
+                        </AppText>
+                    </TouchableOpacity> */}
                 </View>
-            )}
-        </View>
-    );
+
+                {/* {item.reply && (
+                    <View style={styles.replyBox}>
+                        <View>
+                            <Image style={styles.replyArrow} source={imagePaths.return_up_back} />
+                        </View>
+                        <View style={styles.replyContent}>
+                            <AppText style={styles.replyTitle}>WM Barbershop</AppText>
+                            <AppText style={styles.replyDate}>on March 20th</AppText>
+                            <AppText style={styles.replyText}>{item.reply}</AppText>
+                        </View>
+                    </View>
+                )} */}
+            </View>
+        );
+    };
 
     return (
         <View style={styles.container}>
-            <View style={{ flexDirection: 'row', justifyContent: "space-between", alignItems: "center" }}>
+            <View style={styles.ratingSummaryRow}>
                 <View style={styles.ratingSummary}>
-                    <AppText style={styles.ratingNumber}>4.8</AppText>
+                    <AppText style={styles.ratingNumber}>{ratingData?.averageRating?.toFixed(1) || '0.0'}</AppText>
                     <StarRating
                         starStyle={styles.starStyle}
                         color={Colors.ratingColor1}
                         onChange={() => { }}
                         starSize={SF(12)}
-                        rating={3.5}
+                        rating={ratingData?.averageRating || 0}
                     />
-                    <AppText style={styles.averageText}>Coarse Rating</AppText>
+                    <AppText style={styles.averageText}>Average Rating</AppText>
                 </View>
                 <View style={styles.breakdownContainer}>
                     {ratingsBreakdown.map((item, index) => (
                         <View key={index} style={styles.breakdownRow}>
                             <StarRating
-                                starStyle={{ marginHorizontal: 0.5 }}
+                                starStyle={styles.breakdownStarStyle}
                                 onChange={() => { }}
                                 starSize={SF(14)}
                                 color={Colors.ratingColor1}
                                 rating={item.star}
                             />
-                            <AppText style={{ marginHorizontal: SW(10), fontSize: SF(9), color: "#1D2026", fontFamily: Fonts.MEDIUM }}>{item.star}</AppText>
+                            <AppText style={styles.breakdownStarText}>{item.star}</AppText>
                             <View style={styles.barBackground}>
-                                <View style={[styles.barFill, { width: item.percent as any }]} />
+                                <View style={[styles.barFill, { width: `${item.percentage}%` }]} />
                             </View>
-                            <AppText style={{ marginLeft: SW(10), fontSize: SF(9), color: "#1D2026", fontFamily: Fonts.MEDIUM }}>{item.percent}</AppText>
+                            <AppText style={styles.breakdownPercentageText}>{item.percentage}%</AppText>
                         </View>
                     ))}
                 </View>
             </View>
 
-
             <FlatList
                 data={reviews}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={{ paddingBottom: 30 }}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.flatListContent}
             />
         </View>
     );
@@ -185,11 +192,36 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: SH(25),
     },
-    leftSideRatingContaine: {
+    noDataContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: SH(20),
+        backgroundColor: '#F9F9F9',
+        borderRadius: SF(10),
+        marginTop: SH(20),
+    },
+    noDataImage: {
+        width: SW(100),
+        height: SH(100),
+        resizeMode: 'contain',
+    },
+    noDataText: {
+        fontSize: SF(16),
+        fontFamily: Fonts.SEMI_BOLD,
+        color: Colors.textAppColor,
+        marginTop: SH(10),
+    },
+    noDataSubText: {
+        fontSize: SF(12),
+        fontFamily: Fonts.REGULAR,
+        color: Colors.lightGraytext,
+        textAlign: 'center',
+        marginTop: SH(5),
     },
     starStyle: {
         marginHorizontal: 0,
-        marginTop: 6
+        marginTop: 6,
     },
     ratingSummary: {
         alignItems: 'center',
@@ -198,7 +230,7 @@ const styles = StyleSheet.create({
         borderWidth: 0.6,
         borderColor: '#C4C4C450',
         paddingVertical: SW(12),
-        paddingHorizontal: SW(15)
+        paddingHorizontal: SW(15),
     },
     ratingNumber: {
         fontSize: SF(18.8),
@@ -211,6 +243,11 @@ const styles = StyleSheet.create({
         marginTop: 4,
         fontFamily: Fonts.MEDIUM,
     },
+    ratingSummaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     breakdownContainer: {
         marginBottom: 20,
         marginLeft: SW(10),
@@ -219,7 +256,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 2,
-        paddingRight: SW(80)
+        paddingRight: SW(80),
+    },
+    breakdownStarStyle: {
+        marginHorizontal: 0.5,
+    },
+    breakdownStarText: {
+        marginHorizontal: SW(10),
+        fontSize: SF(9),
+        color: '#1D2026',
+        fontFamily: Fonts.MEDIUM,
     },
     barBackground: {
         height: 6,
@@ -230,6 +276,12 @@ const styles = StyleSheet.create({
     barFill: {
         height: 6,
         backgroundColor: '#378CA4',
+    },
+    breakdownPercentageText: {
+        marginLeft: SW(10),
+        fontSize: SF(9),
+        color: '#1D2026',
+        fontFamily: Fonts.MEDIUM,
     },
     reviewItem: {
         paddingVertical: 12,
@@ -250,7 +302,10 @@ const styles = StyleSheet.create({
     nameRow: {
         flex: 1,
     },
-    usrNameDateContainer: { flexDirection: "row", alignItems: "center" },
+    usrNameDateContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     userName: {
         fontFamily: Fonts.MEDIUM,
         fontSize: SF(12),
@@ -258,7 +313,7 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: SF(8),
         color: '#6E7485',
-        fontFamily: Fonts.REGULAR
+        fontFamily: Fonts.REGULAR,
     },
     verifiedUser: {
         fontSize: SF(8),
@@ -269,25 +324,20 @@ const styles = StyleSheet.create({
         fontSize: SF(14),
         color: '#6E7485',
         fontFamily: Fonts.BOLD,
-        marginTop: -SH(5)
+        marginTop: -SH(5),
     },
     starStyleForUser: {
         marginHorizontal: 0,
     },
-
-    starRow: {
-        flexDirection: 'row',
-        marginVertical: 4,
-    },
     comment: {
         fontSize: SF(8),
         marginVertical: SH(4),
-        color: '#4E5566'
+        color: '#4E5566',
     },
     actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 5
+        marginTop: 5,
     },
     actionText: {
         fontSize: SF(9),
@@ -295,12 +345,27 @@ const styles = StyleSheet.create({
         backgroundColor: '#F0F0F0',
         paddingHorizontal: SW(7),
         paddingVertical: SH(4),
-        borderRadius: 4
+        borderRadius: 4,
+    },
+    actionTextWithMargin: {
+        fontSize: SF(9),
+        color: '#3D3D3D',
+        backgroundColor: '#F0F0F0',
+        paddingHorizontal: SW(7),
+        paddingVertical: SH(4),
+        borderRadius: 4,
+        marginLeft: 16,
+    },
+    reportButton: {
+        marginLeft: 'auto',
     },
     reportText: {
         fontSize: SF(9),
         fontFamily: Fonts.REGULAR,
         color: '#4E5566',
+    },
+    reportIcon: {
+        fontSize: SF(12),
     },
     replyBox: {
         flexDirection: 'row',
@@ -310,21 +375,30 @@ const styles = StyleSheet.create({
         marginTop: 8,
         borderRadius: 6,
     },
-
+    replyArrow: {
+        height: SF(10),
+        width: SF(12),
+    },
+    replyContent: {
+        marginLeft: 10,
+    },
     replyTitle: {
         fontFamily: Fonts.MEDIUM,
         fontSize: SF(8),
-        color:Colors.lightGraytext
+        color: Colors.lightGraytext,
     },
     replyDate: {
         fontFamily: Fonts.REGULAR,
-        fontSize:SF(6),
-        color:Colors.lightGraytext
+        fontSize: SF(6),
+        color: Colors.lightGraytext,
     },
     replyText: {
         fontFamily: Fonts.SEMI_BOLD,
-        fontSize:SF(8),
-        color:Colors.lightGraytext,
-        marginTop:8
+        fontSize: SF(8),
+        color: Colors.lightGraytext,
+        marginTop: 8,
+    },
+    flatListContent: {
+        paddingBottom: 30,
     },
 });

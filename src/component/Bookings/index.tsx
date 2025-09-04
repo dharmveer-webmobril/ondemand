@@ -4,3 +4,5 @@ export {default as TabTop} from './TabTop';
 export {default as BookingServiceItem} from './BookingServiceItem';
 export {default as BookingItems} from './BookingItems';
 export {default as TeamMemberProfile} from './TeamMemberProfile';
+export {default as SubmitRatingReviewModal} from './SubmitRatingReviewModal';
+export {default as RatingReviewComponent} from './RatingReviewComponent';

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
-import { Colors, SH, SW, SF, useDisableGestures } from '../../utils';
+import { Colors, SH, SW, SF, useDisableGestures, navigate } from '../../utils';
 import { AppHeader, AppText, BottomBar, Container, LoadingComponent } from '../../component';
 import RouteName from '../../navigation/RouteName';
 import { BookingItems, TabTop } from '../../component';
-import { fetchBookings, useGetUserBookingsByTabQuery } from '../../redux';
+import { fetchBookings, } from '../../redux';
 import { useDispatch } from 'react-redux';
 
 
@@ -19,6 +19,7 @@ const MyBookingScreen: React.FC = () => {
 
   useEffect(() => {
     getData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab])
 
   function getData() {
@@ -62,7 +63,7 @@ const MyBookingScreen: React.FC = () => {
         titleStyle={styles.headerTitleStyle}
       />
       <View style={styles.tabView}>
-        <TabTop activeTab={activeTab} changeTab={(val) => setActiveTabs(val)} />
+        <TabTop activeTab={activeTab} changeTab={(val) => setActiveTabs(val)} height={SH(45)} />
       </View>
       {
         bookingData && bookingData.length > 0 ? (
@@ -70,7 +71,7 @@ const MyBookingScreen: React.FC = () => {
             contentContainerStyle={styles.flatListContainer}
             data={bookingData}
             keyExtractor={(item: any) => `${item?._id}-appointment-list-${activeTab}`}
-            renderItem={({ item }) => { return <BookingItems item={item} /> }}
+            renderItem={({ item }) => { return <BookingItems item={item} onClick={() => { navigate(RouteName.BOOK_DETAILS, { bookingDetail: item }) }} /> }}
             ItemSeparatorComponent={BookingListSeparator}
             showsHorizontalScrollIndicator={false}
           />

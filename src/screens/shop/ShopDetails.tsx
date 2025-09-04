@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import {  Pressable, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { AppText, Container, ImageLoader, Spacing, VectoreIcons } from '../../component';
+import React, { useMemo, useState } from 'react';
+import { Pressable, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppText, Container, ImageLoader, LoadingComponent, Spacing, VectoreIcons } from '../../component';
 import { Colors, Fonts, SF, SH, SW } from '../../utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from '../../component';
 import RouteName from '../../navigation/RouteName';
-import { setBookingJson } from '../../redux';
+import { setBookingJson, useGetAllProviderRatingsQuery, useGetProviderPortfolioQuery, useGetProviderServicesQuery, } from '../../redux';
 import { useDispatch } from 'react-redux';
 
 interface shopProps { }
@@ -24,8 +24,23 @@ const ShopDetails: React.FC<shopProps> = () => {
 
     const { providerDetails } = route?.params;
 
-    const { services = [] } = providerDetails || {};
-    console.log('providerDetails--', providerDetails);
+    const { _id: providerId, } = providerDetails;
+
+    const { data: portFolio, isFetching: isFetchingPortfolio } = useGetProviderPortfolioQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    const portFolioData = useMemo(() => portFolio?.data || [], [portFolio])
+    console.log('portFolioDataportFolioData', portFolioData);
+
+    const { data: serviceData, isFetching: isFetchingService } = useGetProviderServicesQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    const services = useMemo(() => serviceData?.data || [], [serviceData])
+    console.log('servicesservices', services);
+
+
+    const { data: ratingData, isFetching: isFetchingRatings } = useGetAllProviderRatingsQuery({ providerId }, { refetchOnMountOrArgChange: true })
+
+
+    // const { services = [] } = providerDetails || {};
+    console.log('providerDetails--', providerDetails, isFetchingService, isFetchingPortfolio, isFetchingRatings);
+
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
     const [selectedService, setSelectedService] = useState<any>(null);
@@ -44,8 +59,6 @@ const ShopDetails: React.FC<shopProps> = () => {
         };
     };
 
-    // const { data: services = [], isFetching: isServiceFeating, isError: isServiceError, refetch: refetchService } = useGetServicesByProviderIdQuery({ providerId: providerDetails?._id });
-    console.log('services--', services);
 
 
 
@@ -54,17 +67,19 @@ const ShopDetails: React.FC<shopProps> = () => {
         console.log('value--', value);
         let bookingJson = {
             service: selectedService,
-            providerDetails:providerDetails,
+            providerDetails: providerDetails,
             "promoCode": "",
             bookingType: value === 'current' ? "current" : 'other'
         };
         dispatch(setBookingJson(bookingJson));
+        setConfirmBookingTypeModal(false)
         if (value === 'current') navigation.navigate(RouteName.BOOK_APPOINT)
         else navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
     }
 
     return (
         <Container isAuth>
+            <LoadingComponent visible={isFetchingService || isFetchingPortfolio || isFetchingRatings} />
             <Spacing space={SH(20)} />
             <ConfirmBookingTypeModal
                 modalVisible={confirmBookingTypeModal}
@@ -173,8 +188,8 @@ const ShopDetails: React.FC<shopProps> = () => {
                 </View>
                 {activeTab !== 'details' && <Spacing />}
                 {activeTab === 'services' && <Services data={services} onClick={(value) => btnBookService(value)} />}
-                {activeTab === 'reviews' && <Reviews />}
-                {activeTab === 'portfolio' && <Portfolio data={providerDetails?.portfolios || []} />}
+                {activeTab === 'reviews' && <Reviews ratingData={ratingData?.data} />}
+                {activeTab === 'portfolio' && <Portfolio data={portFolioData} />}
                 {activeTab === 'details' && <Details data={providerDetails} />}
                 {/* pages=========== */}
 

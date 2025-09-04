@@ -97,6 +97,19 @@ export const arrangePrice = (price: number, priceType: string): any => {
   }
 }
 
+export const formatRating = (value: number | string | null | undefined): string => {
+  if (value === null || value === undefined || value === '') {
+    return '0.00';
+  }
+
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+
+  if (isNaN(num)) {
+    return '0.00';
+  }
+
+  return num.toFixed(2); // always returns 2 decimals
+};
 
 export const makeCall = async (phoneNumber: string): Promise<void> => {
   // Ensure the number starts with "+" (international format)

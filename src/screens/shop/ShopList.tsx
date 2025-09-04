@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { AppText, Container, SpecialItems, Spacing, SpecialItemsSkeleton, ShopsSkeleton } from '../../component';
 import { Colors, Fonts, imagePaths, navigate, SF, SH, SW } from '../../utils';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ShopHeader, Shops, SubCatList } from '../../component';
 import { useRoute } from '@react-navigation/native';
-import { useGetProviderCatSubcatQuery, useGetSpecialOffersQuery } from '../../redux';
+import { getProvidersByCatAndSubcat, getSpecialOffers, useGetSpecialOffersQuery } from '../../redux';
 import RouteName from '../../navigation/RouteName';
+import { useDispatch } from 'react-redux';
 
 interface shopProps { }
 
@@ -19,25 +20,76 @@ const ShopList: React.FC<shopProps> = () => {
 
     const [selectedSubCatId, setSelectedSubCatId] = React.useState<string | null>('all');
 
-    const { data, isFetching, isError, refetch, } = useGetProviderCatSubcatQuery({ catId: catId, subCat: selectedSubCatId === 'all' ? null : selectedSubCatId });
-    const memoizedData = useMemo(() => data?.data || [], [data]);
-    console.log('shopDatashopData', memoizedData);
 
-    const { data: specialData,
-        isFetching: isFeatingSpecialOffer, isError: isErrorSpecialOffer, refetch: refetchSpecialOffer,
-    } = useGetSpecialOffersQuery();
-    const specialOffers = useMemo(() => specialData?.data || [], [specialData]);
-    console.log('specialOffersspecialOffers', specialOffers);
+    const dispatch = useDispatch<any>();
+
+    const [isShopLoading, setIsShopLoading] = useState<boolean>(true);
+    const [shopList, setShopList] = useState<any>(null);
+    const [isShopError, setIsshopError] = useState<any>(null);
+
 
     useEffect(() => {
-        refetchSpecialOffer()
-    }, [refetchSpecialOffer])
+        getProviderList()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedSubCatId, catId])
 
-    React.useEffect(() => {
-        if (catId) {
-            refetch();
-        }
-    }, [selectedSubCatId, catId, refetch]);
+    function getProviderList() {
+        setIsShopLoading(true)
+        dispatch(getProvidersByCatAndSubcat({ catId: catId, subcatId: selectedSubCatId === 'all' ? null : selectedSubCatId }))
+            .then((result: any) => {
+                console.log('getProviderList result', result?.payload?.data);
+                let res = result?.payload?.data
+                if (res && res?.data?.length >= 0) {
+                    res?.data && res?.data?.length > 0 ? setShopList(res?.data) : setShopList([])
+                    setIsshopError(null)
+                } else {
+                    setIsshopError('Something went wrong');
+                    setShopList([])
+                }
+            })
+            .catch((err: any) => {
+                setShopList([])
+                setIsshopError('Something went wrong')
+                console.log('errerrerr', err);
+            })
+            .finally(() => {
+                setIsShopLoading(false);
+            });
+    }
+
+
+    const [isSpecialLoading, setIsSpecialLoading] = useState<boolean>(true);
+    const [specialOfferList, setSpecialOfferList] = useState<any>(null);
+    const [isSpecialOfferError, setISpecialOfferError] = useState<any>(null);
+
+    useEffect(() => {
+        getSppecialOffer()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    function getSppecialOffer() {
+        setIsSpecialLoading(true)
+        dispatch(getSpecialOffers())
+            .then((result: any) => {
+                console.log('getSpecialOffers result', result?.payload?.data);
+                let res = result?.payload?.data
+                if (res && res?.data?.length >= 0) {
+                    res?.data && res?.data?.length > 0 ? setSpecialOfferList(res?.data) : setSpecialOfferList([])
+                    setISpecialOfferError(null)
+                } else {
+                    setISpecialOfferError('Something went wrong');
+                    setSpecialOfferList([])
+                }
+            })
+            .catch((err: any) => {
+                setSpecialOfferList([])
+                setISpecialOfferError('Something went wrong')
+                console.log('errerrerr', err);
+            })
+            .finally(() => {
+                setIsSpecialLoading(false);
+            });
+    }
 
     const listHeader = () => (
         <AppText style={styles.listHeaderText}>
@@ -69,13 +121,13 @@ const ShopList: React.FC<shopProps> = () => {
                     <View style={styles.specialOfferConatiner}>
                         <FlatList
                             horizontal
-                            data={isFeatingSpecialOffer ? [12, 23, 34, 45, 23] : specialOffers}
+                            data={isSpecialLoading ? [12, 23, 34, 45, 23] : specialOfferList}
                             keyExtractor={(item, index) => item?.fullName + 'special-offer' + index}
-                            contentContainerStyle={[styles.flatListRecommended, specialOffers?.length <= 0 ? styles.fullWidth : {}]}
+                            contentContainerStyle={[styles.flatListRecommended, specialOfferList?.length <= 0 ? styles.fullWidth : {}]}
                             ItemSeparatorComponent={SeparatorComponentSpecialOffer}
                             showsHorizontalScrollIndicator={false}
                             renderItem={({ item }) => {
-                                return isFeatingSpecialOffer ?
+                                return isSpecialLoading ?
                                     <SpecialItemsSkeleton />
                                     :
                                     <SpecialItems
@@ -88,9 +140,9 @@ const ShopList: React.FC<shopProps> = () => {
                                     />
                             }}
                             ListEmptyComponent={
-                                !isFeatingSpecialOffer ?
+                                !isSpecialLoading ?
                                     <View style={styles.emptyContainer1}>
-                                        <AppText style={styles.emptyText1}>{isErrorSpecialOffer ? "Something went wrong!" : 'No Offer Available'}</AppText>
+                                        <AppText style={styles.emptyText1}>{isSpecialOfferError ? isSpecialOfferError : 'No Offer Available'}</AppText>
                                     </View>
                                     : null
                             }
@@ -101,20 +153,20 @@ const ShopList: React.FC<shopProps> = () => {
 
 
                 <FlatList
-                    data={isFetching ? ['33', '44', '66', '77'] : memoizedData}
+                    data={isShopLoading ? ['33', '44', '66', '77'] : shopList}
                     keyExtractor={(item, index) => item?.businessName + 'baber-shop' + index}
                     showsHorizontalScrollIndicator={false}
                     ItemSeparatorComponent={SeparatorComponent}
                     contentContainerStyle={styles.flatListRecommended}
                     ListHeaderComponent={listHeader}
                     renderItem={({ item, index }) => {
-                        return isFetching ? <ShopsSkeleton /> : <Shops item={item} index={index} bookingType={'bookingType'} />
+                        return isShopLoading ? <ShopsSkeleton /> : <Shops item={item} index={index} bookingType={'bookingType'} />
                     }}
                     ListEmptyComponent={
-                        !isFetching ? (
+                        !isShopLoading ? (
                             <View style={styles.emptyContainer}>
                                 <AppText style={styles.emptyText}>
-                                    {isError ? "Something went wrong!" : "No shops found"}
+                                    {isShopError ? isShopError : "No shops found"}
                                 </AppText>
                             </View>
                         ) : null

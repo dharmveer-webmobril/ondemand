@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle, TextStyle, Pressable, Keyboard } from 'react-native';
-import { boxShadow, Colors, commonStyles, Fonts, navigate, SF, SH, SW } from '../../utils';
+import { View, StyleSheet, Pressable, Keyboard } from 'react-native';
+import { boxShadow, Colors, commonStyles, Fonts, SF, SH, SW } from '../../utils';
 import { AppText, Buttons, ImageLoader } from '../../component';
-import RouteName from '../../navigation/RouteName';
 import moment from 'moment';
 
 interface BookingItemsProps {
     item?: any;
+    onClick?: () => void
 }
 
-const BookingItems: React.FC<BookingItemsProps> = ({ item }) => {
+const BookingItems: React.FC<BookingItemsProps> = ({ item, onClick }) => {
     let serviceName = item?.service?.serviceName || '';
     let serviceImage = item?.service?.servicesImage?.length > 0 ? item?.service?.servicesImage[0] : 'no-image';
     let provider = item?.provider || '';
@@ -25,7 +25,7 @@ const BookingItems: React.FC<BookingItemsProps> = ({ item }) => {
 
 
     return (
-        <Pressable onPress={() => navigate(RouteName.BOOK_DETAILS)} style={styles.serviceContainer}>
+        <Pressable onPress={onClick} style={styles.serviceContainer}>
             <View style={styles.header}>
                 <View style={[styles.imageWrapper, boxShadow]}>
                     <ImageLoader source={{ uri: serviceImage }} resizeMode="cover" mainImageStyle={styles.logo} />
@@ -33,8 +33,8 @@ const BookingItems: React.FC<BookingItemsProps> = ({ item }) => {
                 <View style={styles.infoContainer}>
                     <AppText style={styles.text}>
                         {serviceName}
-                        <AppText style={{ color: Colors.lightGraytext }}>  with {fromService}</AppText>
                     </AppText>
+                    <AppText style={{ color: Colors.lightGraytext }}>with {fromService}</AppText>
                     <AppText style={styles.dateTime}>{`${bookingDate} ${'\n'}${bookingTime}`}</AppText>
                     <AppText style={styles.dateTime}>{provider?.businessName}</AppText>
                     <AppText style={styles.dateTime} numberOfLines={2}>{addressSummery}</AppText>

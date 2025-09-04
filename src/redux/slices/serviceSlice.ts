@@ -15,7 +15,7 @@ const initialState: AuthState = {
 };
 
 // Thunk for fetching users
-export const getProvidersByCatAndSubcat = createAsyncThunk(
+export const getProvidersByCatAndSubcat12 = createAsyncThunk(
     "service/getShopList",
     async (params: { catId: string; subcatId: string | null }, { rejectWithValue }) => {
         try {
@@ -37,14 +37,68 @@ export const getProvidersByCatAndSubcat = createAsyncThunk(
     }
 );
 
+export const getProvidersByCatAndSubcat = createAsyncThunk<any, { catId: any, subcatId: any }, { rejectValue: string }>(
+    'service/getShopList',
+    async ({ catId, subcatId }, { rejectWithValue }) => {
+        try {
+            const token = (getAppState() as RootState).auth.token;
+            console.log('tokentoken', token, 'type', 'subcatId', subcatId, 'catId', catId);
+
+            let enfPoint = `${ENDPOINTS.GET_PROVIDER_BY_CAT_SUBCAT}?catId=${catId}`
+            if (subcatId) {
+                enfPoint += `&subCat=${subcatId}`;
+            }
+
+            const response = await axios.get(enfPoint, {
+                baseURL: process.env.API_URL,
+                headers: {
+                    Authorization: `Bearer ${token}`, // ✅ add token here
+                },
+            });
+
+            console.log(`getProvidersByCatAndSubcat API called for cat: ${catId} and subcat= ${subcatId}`, response.data);
+            return {  data: response.data };
+        } catch (error) {
+            const axiosError = error as AxiosError;
+            console.error(`getProvidersByCatAndSubcat error for type:`, axiosError.message);
+            return rejectWithValue(axiosError.message);
+        }
+    }
+);
+
+export const getSpecialOffers = createAsyncThunk<
+  any,               // return type
+  void,              // no argument
+  { rejectValue: string }
+>('service/getSpecialOffers',async (_, { rejectWithValue }) => {
+    try {
+      const token = (getAppState() as RootState).auth.token;
+
+      const response = await axios.get(ENDPOINTS.GET_SEPECIAL_OFFER, {
+        baseURL: process.env.API_URL,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('getSpecialOffers API called', response.data);
+      return { data: response.data };
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      console.error('getSpecialOffers error:', axiosError.message);
+      return rejectWithValue(axiosError.message);
+    }
+  }
+);
+
 export const fetchBookings = createAsyncThunk<any, { type: any }, { rejectValue: string }>(
     'service/fetchBookings',
     async ({ type }, { rejectWithValue }) => {
         try {
             const token = (getAppState() as RootState).auth.token;
-            console.log('tokentoken', token,'type',type);
+            console.log('tokentoken', token, 'type', type);
 
-            const response = await axios.get(`/booking/get-booking?tab=${type}`, {
+            const response = await axios.get(`${ENDPOINTS.GET_USER_BOOKING_BY_TAB}?tab=${type}`, {
                 baseURL: process.env.API_URL,
                 headers: {
                     Authorization: `Bearer ${token}`, // ✅ add token here

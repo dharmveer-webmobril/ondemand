@@ -55,7 +55,7 @@ const PaymentScreen = () => {
                 providerId: providerDetails._id,
                 bookingDetails: {
                     slotTime: slotdata,
-                    address: bookingFor === 'other' ? null : bookingJson?.myAddId,
+                    address: bookingFor === 'other' ? '' : bookingJson?.myAddId,
                 },
                 otherUserId: bookingFor === 'other' ? bookingJson?.otherUserAddressId : null,
             };
@@ -201,11 +201,7 @@ const styles = StyleSheet.create({
     shopInfo: { marginTop: SH(20) },
     shopName: { fontSize: SF(14), fontFamily: Fonts.MEDIUM, color: Colors.textAppColor },
     address: { fontSize: SF(12), color: Colors.lightGraytext, marginTop: 8 },
-    subHeader: {
-        color: Colors.textAppColor,
-        fontFamily: Fonts.MEDIUM,
-        fontSize: SF(12),
-    },
+    subHeader: {color: Colors.textAppColor,fontFamily: Fonts.MEDIUM,fontSize: SF(12),},
     barberSection: { marginVertical: SH(10), borderBottomWidth: 1, borderBottomColor: Colors.textAppColor + '20' },
     serviceItem: {
         backgroundColor: '#0000000D',

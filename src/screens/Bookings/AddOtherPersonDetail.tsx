@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { use, useEffect } from 'react';
 import {
   Keyboard,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -43,15 +44,14 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
       .matches(regex.EMAIL_REGEX_WITH_EMPTY, t('validation.validEmail'))
       .required(t('validation.emptyEmail')),
     mobileno: Yup.string().trim()
-      .matches(regex.DIGIT_REGEX, t('validation.validMobile'))
-      .min(10, t('validation.mobileMinLen'))
+      .matches(regex.MOBIILE, t('validation.validMobile'))
       .required(t('validation.emptyMobile')),
     address: Yup.string().trim()
       .required('Address is required')
       .min(5, 'Minimum length 5'), // Minimum length of 5 characters
   });
   const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
-  const [submitData,] = useSubmitOtherUserAddressMutation()
+  const [submitData] = useSubmitOtherUserAddressMutation()
   const dispatch = useDispatch();
 
   const btnSubmit = async (values: any) => {
@@ -75,7 +75,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
       const response = await submitData({ data }).unwrap();
       console.log('Response---:', response);
       if (response.success) {
-        let bookingData = {...bookingJson,otherUserAddress:response.data,otherUserAddressId:response.data._id};
+        let bookingData = { ...bookingJson, otherUserAddress: response.data, otherUserAddressId: response.data._id };
         dispatch(setBookingJson(bookingData));
         navigation.navigate(RouteName.PAYMENT_SCREEN);
         // goBack();
@@ -92,12 +92,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
 
   const otherUserAddress = useSelector((state: RootState) => state.service.otherUserAddress);
   console.log('otherUserAddress:', otherUserAddress);
-
-  React.useEffect(() => {
-    if (otherUserAddress) {
-      setAddress(otherUserAddress);
-    }
-  }, [otherUserAddress]);
 
   return (
     <Container isPadding={false}>
@@ -144,16 +138,18 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
               address: addressFromPreviousPage, // Pre-fill with address from previous page
             }}
             validationSchema={validationSchema}
-            onSubmit={(values) => {
+            onSubmit={(values, { resetForm }) => {
               btnSubmit(values);
               // navigation.navigate(RouteName.PAYMENT_SCREEN)
             }}>
-            {({ handleChange, handleSubmit, values, errors, touched, setFieldValue }) => {
+            {({ handleChange, handleSubmit, handleBlur, values, errors, touched, setFieldTouched, setFieldValue }) => {
 
-              // Set address value when otherUserAddress changes
-              if (otherUserAddress && otherUserAddress.streetAddress) {
-                setFieldValue('address', otherUserAddress.streetAddress);
-              }
+              useEffect(() => {
+                if (otherUserAddress) {
+                  setFieldValue('address', otherUserAddress.streetAddress || '');
+                  setAddress(otherUserAddress);
+                }
+              }, [otherUserAddress, setFieldValue]);
               // {({
               //   handleChange,
               //   setFieldTouched,
@@ -169,7 +165,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   value={values.fname}
                   onChangeText={handleChange('fname')}
                   onBlur={() => setFieldValue('fname', values.fname.trim())}
-                  errorMessage={touched.fname && errors.fname ? String(errors.fname) : ''}
+                  errorMessage={touched.fname && errors.fname && errors.fname ? errors.fname : ''}
                   keyboardType="default"
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
@@ -179,7 +175,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   value={values.mobileno}
                   onChangeText={handleChange('mobileno')}
                   onBlur={() => setFieldValue('mobileno', values.mobileno.trim())}
-                  errorMessage={touched.mobileno && errors.mobileno ? String(errors.mobileno) : ''}
+                  errorMessage={touched.mobileno && errors.mobileno && errors.mobileno ? errors.mobileno : ''}
                   keyboardType={'number-pad'}
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
@@ -190,7 +186,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   value={values.email}
                   onChangeText={handleChange('email')}
                   onBlur={() => setFieldValue('email', values.email.trim())}
-                  errorMessage={touched.email && errors.email ? String(errors.email) : ''}
+                  errorMessage={touched.email && errors.email && errors.email ? errors.email : ''}
                   keyboardType={'email-address'}
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
@@ -219,6 +215,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                     editable={false}
                     // onChangeText={handleChange('address')}
                     // onBlur={() => setFieldValue('address', values.address.trim())}
+                    // errorMessage={touched.address && errors.address && errors.address ? errors.address : ''}
                     errorMessage={touched.address && errors.address ? String(errors.address) : ''}
                     keyboardType="default"
                     color={Colors.textAppColor}

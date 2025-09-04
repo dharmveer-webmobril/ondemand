@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Keyboard,
   StyleSheet,
@@ -14,6 +14,7 @@ import {
   AppText,
   VectoreIcons,
   Checkbox,
+  LoadingComponent,
 } from '../../component';
 import { addAddressSchema, Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '../../utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -25,7 +26,8 @@ import { useDispatch } from 'react-redux';
 import useLocation from '../../utils/hooks/useLocation';
 import { useFormik } from 'formik';
 import Geocoder from 'react-native-geocoding';
-
+import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s';
 interface FormValues {
   address: string;
   appartment: string;
@@ -46,6 +48,7 @@ const AddAddress: React.FC = () => {
   const { location, retry, isLoading: isLocationLoading } = useLocation();
   const [isDefault, setIsDefault] = useState<boolean>(false);
 
+  const [isLoading, setIsLoading] = useState(false)
   const [submitAddress, { isLoading: isSubmitLoading }] = useSubmitAddressMutation();
   const [updateAddress, { isLoading: isUpdateLoading }] = useUpdateAddressMutation();
   const dispatch = useDispatch();
@@ -121,12 +124,55 @@ const AddAddress: React.FC = () => {
     }
   }, [addData]);
 
+  // const handleUseCurrentLocation = async () => {
+  //   if (!location) {
+  //     retry();
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await Geocoder.from(location.latitude, location.longitude);
+  //     console.log('Geocoder response:', response);
+
+  //     if (response.results.length > 0) {
+  //       const result = response.results[0];
+  //       const components = result.address_components;
+
+  //       const getComp = (types: string[]) => components.find((c: any) => types.every(t => c.types.includes(t)))?.long_name || "";
+
+  //       console.log('Parsed address components:', components);
+
+  //       const street = getComp(["route"]);
+  //       const city = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
+  //       const state = getComp(["administrative_area_level_1"]);
+  //       const postalCode = getComp(["postal_code"]);
+
+  //       formik.setValues({
+  //         ...formik.values,
+  //         address: result.formatted_address || street,
+  //         city,
+  //         state,
+  //         zipCode: postalCode,
+  //         location: { coordinates: [location.latitude, location.longitude] },
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Geocoding error:", err);
+  //     handleApiError(err);
+  //   }
+  // };
+
+  const placesRef = useRef<GooglePlacesAutocompleteRef>(null);
+  useEffect(() => {
+    placesRef?.current?.setAddressText(addData?.streetAddress || '');
+  }, []);
+
   const handleUseCurrentLocation = async () => {
     if (!location) {
       retry();
       return;
     }
-
+    setIsLoading(true)
     try {
       const response = await Geocoder.from(location.latitude, location.longitude);
       console.log('Geocoder response:', response);
@@ -143,24 +189,30 @@ const AddAddress: React.FC = () => {
         const city = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
         const state = getComp(["administrative_area_level_1"]);
         const postalCode = getComp(["postal_code"]);
+        console.log('result.formatted_address', result.formatted_address);
 
         formik.setValues({
           ...formik.values,
-          address: result.formatted_address || street,
+          address: result?.formatted_address || street,
           city,
           state,
+          // landmark: street,
           zipCode: postalCode,
-          location: { coordinates: [location.latitude,location.longitude] },
+          location: { coordinates: [location.latitude, location.longitude] },
         });
+        placesRef?.current?.setAddressText(result?.formatted_address || street);
+        setIsLoading(false)
       }
     } catch (err) {
       console.error("Geocoding error:", err);
+      setIsLoading(false)
       handleApiError(err);
     }
   };
 
   return (
     <Container isPadding={false}>
+                <LoadingComponent visible={isLoading || isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading} />
       <AppHeader
         headerTitle={addData?._id ? t('addAddress.edittitle') : t('addAddress.title')}
         onPress={() => navigation.goBack()}
@@ -171,7 +223,7 @@ const AddAddress: React.FC = () => {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
         extraScrollHeight={SH(40)}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
@@ -182,7 +234,7 @@ const AddAddress: React.FC = () => {
               <VectoreIcons size={SF(26)} color={Colors.themeColor} icon='Feather' name='chevron-right' />
             </TouchableOpacity>
             <AppText style={styles.addressTypeLabel}>{t('addAddress.placeholders.streetAddress')}</AppText>
-            <AddressSearch
+            {/* <AddressSearch
               inputStyle={{ borderColor: Colors.textAppColor, height: SF(45), borderWidth: 1, color: Colors.textAppColor, marginTop: SH(10), paddingVertical: 4 }}
               placeholderTextColor={Colors.textAppColor}
               countryCode="in"
@@ -202,6 +254,92 @@ const AddAddress: React.FC = () => {
                 formik.setFieldTouched('city', true);
                 formik.setFieldTouched('state', true);
                 formik.setFieldTouched('zipCode', true);
+              }}
+            /> */}
+            <GooglePlacesAutocomplete
+              ref={placesRef}
+              placeholder="Search"
+              fetchDetails={true}
+              keyboardShouldPersistTaps="handled"
+              onPress={(data:any, details:any = null) => {
+                if (!details) {
+                  console.log('❌ No details found');
+                  return;
+                }
+
+                console.log('📍 Full Data:', data);
+                console.log('📍 Details:', details);
+
+                // Extract lat/lng
+                const { lat, lng } = details.geometry.location;
+
+                // Extract address components
+                const components: any[] = details.address_components || [];
+                const city = components.find((c) => c.types.includes('locality'))?.long_name;
+                const state = components.find((c) =>
+                  c.types.includes('administrative_area_level_1')
+                )?.long_name;
+                const postalCode = components.find((c) => c.types.includes('postal_code'))?.long_name;
+
+                formik.setFieldValue('address', data.description);
+                formik.setFieldValue('city', city || '');
+                formik.setFieldValue('state', state || '');
+                formik.setFieldValue('zipCode', postalCode || '');
+                formik.setFieldValue('location', { coordinates: [lat.toString(), lng.toString()] });
+                
+                // formik.setFieldValue('lat', lat.toString());
+                // formik.setFieldValue('lng', lng.toString());
+                console.log('✅ Latitude:', lat);
+                console.log('✅ Longitude:', lng);
+                console.log('🏙️ City:', city);
+                console.log('🌎 State:', state);
+                console.log('📮 Postal Code:', postalCode);
+              }}
+              query={{
+                key: GOOGLE_MAPS_API_KEY,
+                language: 'en',
+              }}
+              GooglePlacesDetailsQuery={{
+                fields: 'geometry,address_components',
+              }}
+              onFail={(error:any) => console.error('❌ API Error:', error)}
+              onNotFound={() => console.log('⚠️ No results found')}
+              styles={{
+                textInput: styles.input,
+                container: styles.autocompleteContainer,
+                listView: {
+                  backgroundColor: 'white',
+                  position: 'absolute',
+                  zIndex: 999,
+                  width: '100%',
+                  top: SH(58),
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                  elevation: 5,
+                  borderRadius: 5,
+                },
+                separator: {
+                  height: 0.5,
+                  backgroundColor: 'gray',
+                },
+              }}
+              debounce={200}
+              timeout={20000}
+              minLength={3}
+              predefinedPlaces={[]}
+
+
+              textInputProps={{
+                onFocus: () => console.log('✏️ Input Focused'),
+                onBlur: () => {
+                  console.warn('Blur');
+                },
+                // defaultValue: initialAddress,
               }}
             />
             {formik.touched.address && formik.errors.address && (
@@ -257,39 +395,45 @@ const AddAddress: React.FC = () => {
               inputStyle={styles.inputFieldStyle}
               textColor={Colors.textAppColor}
             />
-            <AppText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType')}</AppText>
-            <View style={styles.addressTypeContainer}>
-              {addressTypes.map((type) => (
-                <Checkbox
-                  key={type}
-                  checked={selectedAddressType === type}
-                  onChange={() => {
-                    setSelectedAddressType(type);
-                    formik.setFieldValue('addressType', type);
-                    formik.setFieldTouched('addressType', true);
-                  }}
-                  size={SF(14)}
-                  label={t(`addAddress.addressTypes.${type.toLowerCase()}`)}
-                />
-              ))}
-            </View>
-            {formik.touched.addressType && formik.errors.addressType && (
-              <AppText style={styles.errorText}>{formik.errors.addressType}</AppText>
-            )}
-            <View style={styles.checkboxContainer}>
-              <Checkbox
-                checked={isDefault}
-                onChange={() => setIsDefault(!isDefault)}
-                size={SF(14)}
-                label={t('addAddress.makeThisDefault')}
-              />
-            </View>
+            {
+              prevScreen !== 'other_user' &&
+              <>
+
+                <AppText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType')}</AppText>
+                <View style={styles.addressTypeContainer}>
+                  {addressTypes.map((type) => (
+                    <Checkbox
+                      key={type}
+                      checked={selectedAddressType === type}
+                      onChange={() => {
+                        setSelectedAddressType(type);
+                        formik.setFieldValue('addressType', type);
+                        formik.setFieldTouched('addressType', true);
+                      }}
+                      size={SF(14)}
+                      label={t(`addAddress.addressTypes.${type.toLowerCase()}`)}
+                    />
+                  ))}
+                </View>
+                {formik.touched.addressType && formik.errors.addressType && (
+                  <AppText style={styles.errorText}>{formik.errors.addressType}</AppText>
+                )}
+                <View style={styles.checkboxContainer}>
+                  <Checkbox
+                    checked={isDefault}
+                    onChange={() => setIsDefault(!isDefault)}
+                    size={SF(14)}
+                    label={t('addAddress.makeThisDefault')}
+                  />
+                </View>
+              </>
+            }
             <Buttons
               buttonStyle={styles.submitButton}
               textColor={Colors.textWhite}
               title={t('addAddress.placeholders.save')}
               onPress={formik.handleSubmit}
-              isLoading={isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading}
+              // isLoading={isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading}
             />
           </View>
         </TouchableWithoutFeedback>
@@ -312,6 +456,20 @@ const styles = StyleSheet.create({
     paddingVertical: SH(20),
     flex: 1,
   },
+  input: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    marginVertical: 5,
+  },
+  error: {
+    color: Colors.red,
+    fontSize: 12,
+    marginBottom: 5,
+    marginLeft: 5,
+  },
+  autocompleteContainer: { flex: 0 },
   locationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

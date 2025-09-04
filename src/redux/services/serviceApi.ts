@@ -126,6 +126,66 @@ export const serviceApi = api.injectEndpoints({
       },
     }),
 
+    addRatingReviewForService: builder.mutation<any, { formData: any, bookingId: string }>({
+      query: ({ formData, bookingId }) => ({
+        url: `${ENDPOINTS.ADD_SERVICE_RATING}/${bookingId}`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
+    addRatingReviewForProvider: builder.mutation<any, { data: any }>({
+      query: ({ data }) => ({
+        url: ENDPOINTS.ADD_PROVIDER_RATING,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    getRatingForService: builder.query<any, { bookingId: string }>({
+      query: ({ bookingId }) => {
+        let url = `${ENDPOINTS.GET_RATING_FOR_SERVICE}/${bookingId}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
+    getRatingForProvider: builder.query<any, { bookingId: string }>({
+      query: ({ bookingId }) => {
+        let url = `${ENDPOINTS.GET_RATING_FOR_PROVIDER}/${bookingId}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
+    getProviderPortfolio: builder.query<any, { providerId: string }>({
+      query: ({ providerId }) => {
+        let url = `${ENDPOINTS.GET_PROVIDER_PORTFOLIO}?providerId=${providerId}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
+    getProviderServices: builder.query<any, { providerId: string }>({
+      query: ({ providerId }) => {
+        let url = `${ENDPOINTS.GET_PROVIDER_SERVICES}/${providerId}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
+    getAllProviderRatings: builder.query<any, { providerId: string }>({
+      query: ({ providerId }) => {
+        let url = `${ENDPOINTS.GET_ALL_RATING_PROVIDER}/${providerId}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
 
   }),
 
@@ -142,5 +202,12 @@ export const {
   useGetUserBookingsByTabQuery,
   useGetMemberSlotsQuery,
   useGetProviderMemberQuery,
-  useGetSpecialOffersQuery
+  useGetSpecialOffersQuery,
+  useAddRatingReviewForServiceMutation,
+  useAddRatingReviewForProviderMutation,
+  useGetRatingForProviderQuery,
+  useGetRatingForServiceQuery,
+  useGetProviderPortfolioQuery,
+  useGetProviderServicesQuery,
+  useGetAllProviderRatingsQuery
 } = serviceApi;
