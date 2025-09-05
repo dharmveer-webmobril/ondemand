@@ -1,26 +1,29 @@
-import { View, StyleSheet, FlatList } from 'react-native';
-import React, { FC } from 'react';
-import { arrangePrice, Colors, Fonts, getPriceDetails, SF, SH, SW } from '../../utils';
-import { AppText, Buttons } from '../../component';
+import React from 'react';
+import { View, StyleSheet, Pressable, Keyboard } from 'react-native';
+import { arrangePrice, boxShadow, Colors, commonStyles, Fonts, getPriceDetails, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, ImageLoader } from '../../component';
+import moment from 'moment';
 
-interface servicesInterface {
-    onClick: (value: any) => void;
-    data: any[];
+interface ServiceItemProps {
+    item?: any;
+    onClick?: () => void;
+    title?: string;
+    subtitles?: string;
+    time?: string;
+    price?: string;
+    type?: string;
 }
 
-const SeparatorComponent = () => <View style={styles.itemSeparator} />;
+const ServiceItem: React.FC<ServiceItemProps> = ({ item, onClick, type = 'service-item', time, price, title, subtitles }) => {
+    // Common function to get price details
 
-// Common function to get price details
+    const { displayPrice, originalPrice, showDiscountedPrice, discountLabel } = getPriceDetails(item);
 
-
-const Services: FC<servicesInterface> = ({ onClick, data }) => {
-    const renderItem = ({ item }: any) => {
-        const { displayPrice, originalPrice, showDiscountedPrice, discountLabel } = getPriceDetails(item);
-
+    if (type === 'service-item') {
         return (
             <View style={styles.serviceItem}>
                 <View>
-                    <AppText style={styles.serviceTitle}>{item?.serviceName || ''}</AppText>
+                    <AppText style={styles.serviceTitle}>{item?.serviceName}</AppText>
                     <AppText style={styles.serviceSub}>Popular Service</AppText>
                 </View>
                 <View style={styles.flexDir}>
@@ -35,62 +38,49 @@ const Services: FC<servicesInterface> = ({ onClick, data }) => {
                                         {originalPrice || arrangePrice(0, item?.priceType || 'fixed')}
                                     </AppText>
                                 </AppText>
-                                {/* <AppText style={styles.discountText}>
+                                <AppText style={styles.discountText}>
                                     Save {discountLabel} Off
-                                </AppText> */}
+                                </AppText>
                             </>
                         )}
                     </View>
-                    <Buttons
+                    {/* <Buttons
                         buttonStyle={styles.bookBtn}
                         textColor={Colors.textWhite}
                         isExtraBoxShadow={false}
                         title={'Book'}
                         buttonTextStyle={styles.bookText}
-                        onPress={() => { onClick(item); }}
-                    />
+                        onPress={onClick}
+                    /> */}
                 </View>
             </View>
         );
-    };
+    }
 
     return (
-        <>
-            {data && data?.length > 0 ? (
-                <FlatList
-                    data={data}
-                    keyExtractor={item => item?._id?.toString()}
-                    renderItem={renderItem}
-                    contentContainerStyle={styles.listContent}
-                    ItemSeparatorComponent={SeparatorComponent}
-                    showsVerticalScrollIndicator={false}
-                />
-            ) : (
-                <View style={styles.noServicesContainer}>
-                    <AppText style={styles.noServicesText}>No Services Available</AppText>
-                </View>
-            )}
-        </>
+        <View style={styles.serviceItem}>
+            <View>
+                <AppText style={styles.serviceTitle}>{title}</AppText>
+                {subtitles && <AppText style={styles.serviceSub}>{subtitles}</AppText>}
+                {time && <AppText style={styles.serviceSub}>{time}</AppText>}
+            </View>
+            <AppText style={styles.price}>{displayPrice || arrangePrice(0, item?.priceType || 'fixed')}</AppText>
+        </View>
     );
 };
 
-export default Services;
+export default ServiceItem;
 
 const styles = StyleSheet.create({
-    listContent: {
-        paddingVertical: SH(10),
-        paddingHorizontal: SH(25),
-    },
-    flexDir: { flexDirection: 'row' },
     serviceItem: {
-        backgroundColor: Colors.white,
+        backgroundColor: '#0000000D',
         borderRadius: 10,
         paddingVertical: SH(15),
-        paddingHorizontal: '3%',
         marginBottom: SH(10),
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        paddingHorizontal: '3%',
     },
     serviceTitle: {
         fontSize: SF(10),
@@ -101,6 +91,7 @@ const styles = StyleSheet.create({
         fontSize: SF(8),
         color: Colors.lightGraytext,
         fontFamily: Fonts.MEDIUM,
+        marginTop: 3,
     },
     rightBlock: {
         alignItems: 'flex-end',
@@ -111,7 +102,7 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.SEMI_BOLD,
         color: Colors.lightGraytext,
     },
-    originalPrice: {
+    duration: {
         fontSize: SF(8),
         color: Colors.lightGraytext,
         fontFamily: Fonts.MEDIUM,
@@ -129,31 +120,11 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.MEDIUM,
         marginTop: 2,
     },
-    bookBtn: {
-        backgroundColor: Colors.themeColor,
-        alignSelf: 'center',
-        width: SF(45),
-        height: SF(22),
-        borderRadius: SF(5),
-        paddingHorizontal: SF(5),
-    },
-    bookText: {
-        color: Colors.white,
-        fontSize: SF(10),
+    originalPrice: {
+        fontSize: SF(8),
+        color: Colors.lightGraytext,
         fontFamily: Fonts.MEDIUM,
+        marginTop: 2,
     },
-    itemSeparator: {
-        height: 0.6,
-        backgroundColor: '#3D3D3D40',
-    },
-    noServicesContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: SH(200),
-    },
-    noServicesText: {
-        color: Colors.textHeader,
-    },
-    paddingHoriTeamMeme: { paddingHorizontal: SW(30) },
+    flexDir: { flexDirection: 'row' },
 });

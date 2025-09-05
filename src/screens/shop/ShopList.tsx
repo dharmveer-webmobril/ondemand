@@ -135,7 +135,7 @@ const ShopList: React.FC<shopProps> = () => {
                                         image={item?.bannerImage ? { uri: item?.bannerImage } : imagePaths?.no_image}
                                         name={item?.fullName}
                                         onClick={() => {
-                                            navigate(RouteName.SHOP_DETAILS, { bookingType: 'bookingType', providerDetails: item });
+                                            navigate(RouteName.SHOP_DETAILS, { bookingType: 'special', providerDetails: item });
                                         }}
                                     />
                             }}

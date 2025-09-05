@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { Colors, Fonts, SF, SH, SW, imagePaths } from '../../utils';
+import { Colors, Fonts, SF, SH, SW, getPriceDetails, imagePaths } from '../../utils';
 import { AppHeader, AppText, Buttons, Container, UserprofileView } from '../../component';
 import { useNavigation } from '@react-navigation/native';
 import { SucessBookingModal } from '../../component';
@@ -16,12 +16,12 @@ const PaymentScreen = () => {
     const navigation = useNavigation<any>();
     const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
 
-    const { service, providerDetails, selectedTeamMember, date, bookingType, bookingFor,  slots } =
+    const { service, providerDetails, selectedTeamMember, date, bookingType, bookingFor, slots } =
         bookingJson || {};
 
     const [submitBooking, { isLoading: isSubmitLoading }] = useCreateBookingMutation();
     const [submitCheckout, { isLoading: isCheckoutLoading }] = useCheckoutBookingMutation();
-
+    const { displayPrice, originalPrice, showDiscountedPrice, discountLabel, discountedPrice } = getPriceDetails(service, 'fixed');
     const successModalButton = () => {
         setSuccesModalVisible(false);
         navigation.navigate(RouteName.MY_BOOKING, { id: bookingId });
@@ -30,11 +30,11 @@ const PaymentScreen = () => {
     const handleBooking = async () => {
         try {
             // Format slot
-              let dayName = moment(date, "YYYY-MM-DD").format("dddd");
+            let dayName = moment(date, "YYYY-MM-DD").format("dddd");
             const slotdata = {
                 ...slots,
                 date,
-                day:dayName
+                day: dayName
             };
             // return
             // const [start, end] = slotdata && slotdata.slot.split(' - ');
@@ -136,7 +136,7 @@ const PaymentScreen = () => {
                         <AppText style={styles.serviceSub}>Popular Service</AppText>
                     </View>
                     <View style={styles.rightBlock}>
-                        <AppText style={styles.price}>${service?.price}</AppText>
+                        <AppText style={styles.price}>{displayPrice}</AppText>
                     </View>
                 </View>
 
@@ -160,11 +160,11 @@ const PaymentScreen = () => {
                 <AppText style={styles.sectionTitle}>Payment Summary</AppText>
                 <View style={styles.summaryRow}>
                     <AppText style={styles.valuetxt}>Item Total</AppText>
-                    <AppText style={styles.valuetxt}>${service?.price}</AppText>
+                    <AppText style={styles.valuetxt}>{originalPrice || 0}</AppText>
                 </View>
                 <View style={styles.summaryRow}>
                     <AppText style={styles.valuetxt}>Item Discount</AppText>
-                    <AppText style={styles.valuetxtdeducted}>0</AppText>
+                    <AppText style={styles.valuetxtdeducted}>{discountedPrice || 0}</AppText>
                 </View>
                 <View style={styles.summaryRow}>
                     <AppText style={styles.valuetxt}>Service Fee</AppText>
@@ -172,13 +172,13 @@ const PaymentScreen = () => {
                 </View>
                 <View style={styles.summaryRow}>
                     <AppText style={styles.valuetxt}>Grand Total</AppText>
-                    <AppText style={[styles.valuetxt, { fontFamily: Fonts.BOLD }]}>${service?.price}</AppText>
+                    <AppText style={[styles.valuetxt, { fontFamily: Fonts.BOLD }]}>{displayPrice || 0}</AppText>
                 </View>
 
                 {/* Footer */}
                 <View style={styles.bookingContainer}>
                     <View>
-                        <AppText style={styles.price1}>${service?.price}</AppText>
+                        <AppText style={styles.price1}>{displayPrice}</AppText>
                     </View>
                     <Buttons
                         buttonStyle={styles.w65}
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     shopInfo: { marginTop: SH(20) },
     shopName: { fontSize: SF(14), fontFamily: Fonts.MEDIUM, color: Colors.textAppColor },
     address: { fontSize: SF(12), color: Colors.lightGraytext, marginTop: 8 },
-    subHeader: {color: Colors.textAppColor,fontFamily: Fonts.MEDIUM,fontSize: SF(12),},
+    subHeader: { color: Colors.textAppColor, fontFamily: Fonts.MEDIUM, fontSize: SF(12), },
     barberSection: { marginVertical: SH(10), borderBottomWidth: 1, borderBottomColor: Colors.textAppColor + '20' },
     serviceItem: {
         backgroundColor: '#0000000D',

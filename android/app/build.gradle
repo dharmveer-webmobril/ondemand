@@ -87,6 +87,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         // enableHermes: false
     }
     signingConfigs {
@@ -120,6 +121,9 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation "com.google.android.gms:play-services-maps:$playServicesMapsVersion"
+    implementation "com.google.android.gms:play-services-location:$googlePlayServicesVersion"
+    implementation "androidx.multidex:multidex:2.0.1"
     configurations.all {
         exclude group: 'com.android.support'
     }

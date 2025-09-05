@@ -89,13 +89,35 @@ export const checkLocationPermission = async (): Promise<boolean> => {
   return requestResult === RESULTS.GRANTED;
 };
 
-export const arrangePrice = (price: number, priceType: string): any => {
-  if (priceType === 'fixed') {
-    return '$' + price.toFixed(2) + '/hr';
-  } else {
-    return '$' + price.toFixed(2) + '/hr';
-  }
-}
+export const arrangePrice = (price: number, priceType: string): string => {
+  // If integer → no decimals, else → show up to 2 decimals
+  const formatted = Number.isInteger(price) ? price.toString() : price.toFixed(2);
+
+  return priceType === 'fixed' ? `$${formatted}` : `$${formatted}/hr`;
+};
+
+export const getPriceDetails = (item: any, type: any = null) => {
+  const hasMarketOffer = item.marketOffer && item.marketOffer.discountType;
+  const originalPrice = item.actualPrice || item.price || 0;
+  const discountValue = item.marketOffer?.discountValue || 0;
+  const discountType = item.marketOffer?.discountType || '';
+  const priceType = type ? type : item.priceType || 'fixed'; // Default to 'fixed' if not provided
+  const discountedPrice = item.discountedPrice || (hasMarketOffer && discountType === 'percentage'
+    ? originalPrice * (1 - discountValue / 100)
+    : originalPrice);
+  const displayPrice = hasMarketOffer ? discountedPrice : originalPrice;
+  const discountLabel = hasMarketOffer
+    ? (discountType === 'percentage' ? `${discountValue}%` : `$${discountValue.toFixed(2)}`)
+    : null;
+
+  return {
+    displayPrice: arrangePrice(displayPrice, priceType),
+    originalPrice: arrangePrice(originalPrice, priceType),
+    discountedPrice: arrangePrice(discountedPrice, 'fixed'), // Added raw discountedPrice
+    showDiscountedPrice: hasMarketOffer,
+    discountLabel,
+  };
+};
 
 export const formatRating = (value: number | string | null | undefined): string => {
   if (value === null || value === undefined || value === '') {

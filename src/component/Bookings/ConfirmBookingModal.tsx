@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, SF, SH, SW } from '../../utils';
-import { AppText, Buttons, Checkbox, Spacing, VectoreIcons } from '../../component';
+import { Colors, Fonts, getPriceDetails, SF, SH, SW } from '../../utils';
+import { AppText, Buttons, Checkbox, ServiceItem, Spacing, VectoreIcons } from '../../component';
 import BookingServiceItem from './BookingServiceItem';
 
 
@@ -21,20 +21,20 @@ type ConfirmBookingModalProps = {
 const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
     modalVisible = true,
     closeModal,
-    forwhomCheck=false,
+    forwhomCheck = false,
     setForwhomCheck,
     btnSubmit,
     selectedDate,
     service,
     selectedSlot,
-    shopName='',
-    shopAddress='',
-    agentName='',
+    shopName = '',
+    shopAddress = '',
+    agentName = '',
 }) => {
     console.log('service--', service);
     console.log('selectedSlot--', selectedSlot);
     console.log('selectedDate--', selectedDate);
-    
+    const { displayPrice } = getPriceDetails(service);
     return (
         <Modal
             animationType="slide"
@@ -59,16 +59,21 @@ const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
                     <AppText style={styles.shopaddress}>{shopAddress}</AppText>
                     <Spacing space={SH(20)} />
 
-                    <BookingServiceItem
+                    <ServiceItem
+                        type='modal-view'
                         subtitles={`With ${agentName}`}
                         time={selectedSlot?.time?.slot || '10:00 AM'}
                         title={service?.serviceName || 'Haircut'}
                         price={`$${service?.price || '0.00'}`}
+                        item={service}
                     />
+
+
                     <Spacing space={SH(8)} />
+
                     <BookingServiceItem
                         title='Subtotal'
-                        price={`$${service?.price || '0.00'}`}
+                        price={`${displayPrice || '0.00'}`}
                     />
                     <View style={{ marginTop: 10, marginLeft: 2 }}>
                         <Checkbox size={SF(14)} lebelFontSize={SF(14)} color={Colors.themeColor} label='Booking for Other' checked={forwhomCheck} onChange={() => { setForwhomCheck && setForwhomCheck() }} />

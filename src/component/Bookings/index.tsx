@@ -6,3 +6,4 @@ export {default as BookingItems} from './BookingItems';
 export {default as TeamMemberProfile} from './TeamMemberProfile';
 export {default as SubmitRatingReviewModal} from './SubmitRatingReviewModal';
 export {default as RatingReviewComponent} from './RatingReviewComponent';
+export {default as ServiceItem} from './ServiceItem';

@@ -23,7 +23,7 @@ import {
   useGetRatingForProviderQuery,
   useGetRatingForServiceQuery,
 } from '../../redux';
-
+import MapView, { Marker } from 'react-native-maps';
 
 
 const BookingDetails: React.FC = () => {
@@ -148,11 +148,29 @@ const BookingDetails: React.FC = () => {
       />
 
       <ScrollView>
-        <ImageLoader
-          source={imagePaths.map_img}
-          mainImageStyle={styles.mapImage}
-          resizeMode="cover"
-        />
+        <View style={styles.mapImage}>
+          <MapView
+            style={{ flex: 1 }}
+            initialRegion={{
+              latitude: 22.7377,
+              longitude: 75.8788,
+              latitudeDelta: 0.0922, // Smaller delta for more zoom
+              longitudeDelta: 0.0421,
+            }}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
+            zoomControlEnabled={true}
+          // minZoomLevel={11}   // 👈 minimum zoom out (5 ~ country level)
+          // maxZoomLevel={18}  // 👈 maximum zoom in (18 ~ street/building level)
+          >
+            <Marker
+              coordinate={{ latitude: 22.7377, longitude: 75.8788 }}
+              title="My Marker"
+              description="This is a marker in Delhi"
+            />
+          </MapView>
+        </View>
+
 
         <View style={styles.shopInfoContainer}>
           <View style={styles.shopTextBlock}>
@@ -230,7 +248,7 @@ const styles = StyleSheet.create({
     fontSize: SF(18),
   },
   mapImage: {
-    height: SH(153),
+    height: SH(200),
     width: '100%',
   },
   shopInfoContainer: {

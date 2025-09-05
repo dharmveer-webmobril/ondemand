@@ -19,7 +19,7 @@ interface SpecialItemsProps {
 
 const SpecialItems: React.FC<SpecialItemsProps> = ({ image, name, onClick }) => {
   return (
-    <TouchableOpacity onPress={onClick}>
+    <TouchableOpacity activeOpacity={0.8} onPress={onClick}>
       <View style={[styles.imageContainer, boxShadow]}>
         <ImageLoader
           source={image}

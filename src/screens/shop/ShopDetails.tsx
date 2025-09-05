@@ -22,24 +22,22 @@ const ShopDetails: React.FC<shopProps> = () => {
     const [confirmBookingTypeModal, setConfirmBookingTypeModal] = useState<boolean>(false);
     const route = useRoute<any>();
 
-    const { providerDetails } = route?.params;
+    const { providerDetails, bookingType='' } = route?.params;
 
     const { _id: providerId, } = providerDetails;
 
     const { data: portFolio, isFetching: isFetchingPortfolio } = useGetProviderPortfolioQuery({ providerId }, { refetchOnMountOrArgChange: true })
     const portFolioData = useMemo(() => portFolio?.data || [], [portFolio])
-    console.log('portFolioDataportFolioData', portFolioData);
 
-    const { data: serviceData, isFetching: isFetchingService } = useGetProviderServicesQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    // console.log('portFolioDataportFolioData', portFolioData);
+
+    const { data: serviceData, isFetching: isFetchingService } = useGetProviderServicesQuery({ providerId,bookingType }, { refetchOnMountOrArgChange: true })
     const services = useMemo(() => serviceData?.data || [], [serviceData])
+
     console.log('servicesservices', services);
 
 
     const { data: ratingData, isFetching: isFetchingRatings } = useGetAllProviderRatingsQuery({ providerId }, { refetchOnMountOrArgChange: true })
-
-
-    // const { services = [] } = providerDetails || {};
-    console.log('providerDetails--', providerDetails, isFetchingService, isFetchingPortfolio, isFetchingRatings);
 
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');

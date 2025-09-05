@@ -30,7 +30,6 @@ const baseQueryWithAuth: typeof rawBaseQuery = async (args, api, extraOptions) =
     result?.data?.message ??
     result?.error?.data?.message ??
     "Something went wrong. Please try again later.";
-  console.log('isLoginEndpointisLoginEndpoint', isLoginEndpoint);
   console.log('argsargsargs', args);
 
   // Handle 401 (Unauthorized) or 403 (Forbidden), but NOT for login API
@@ -56,4 +55,3 @@ export const axiosApi = axios.create({
   },
 });
 
- 

@@ -11,15 +11,10 @@ export const serviceApi = api.injectEndpoints({
     }),
     getProviderCatSubcat: builder.query<any, { catId: string; subCat?: string | null }>({
       query: ({ catId, subCat }) => {
-        console.log('catId-', catId, 'subcatid-', subCat);
-
         let url = `${ENDPOINTS.GET_PROVIDER_BY_CAT_SUBCAT}?catId=${catId}`;
         if (subCat) {
           url += `&subCat=${subCat}`;
         }
-
-        console.log('urlurl', url);
-
         return {
           url,
           method: "GET",
@@ -168,9 +163,12 @@ export const serviceApi = api.injectEndpoints({
         };
       },
     }),
-    getProviderServices: builder.query<any, { providerId: string }>({
-      query: ({ providerId }) => {
+    getProviderServices: builder.query<any, { providerId: string, bookingType: string | null }>({
+      query: ({ providerId, bookingType }) => {
         let url = `${ENDPOINTS.GET_PROVIDER_SERVICES}/${providerId}`;
+        if (bookingType) {
+          url += `?type=${bookingType}`
+        }
         return {
           url,
           method: "GET",
