@@ -215,8 +215,8 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           <View style={{ paddingVertical: SH(35), paddingHorizontal: SW(20) }}>
             <Formik
               initialValues={{
-                email: 'dharm@mailinator.com',
-                password: 'Qwerty@1',
+                email: '',
+                password: '',
                 // email: '',
                 // password: '',
               }}

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Image, FlatList, StyleSheet, Pressable } from 'react-native';
 import {
   Colors, SH, SW, Fonts, SF, boxShadow, goBack,
+  navigate,
 } from '../../utils';
 import imagePaths from '../../assets/images';
 import {
@@ -10,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useGetNearByServicesQuery } from '../../redux';
 import StarRating from 'react-native-star-rating-widget';
+import RouteName from '../../navigation/RouteName';
 
 const ItemList = ({ item }: any) => {
   const name = item.businessName || 'Unnamed Service';
@@ -20,6 +22,7 @@ const ItemList = ({ item }: any) => {
   return (
     <Pressable
       // onPress={() => navigate(RouteName.SERVICE_DETAILS, { id: item._id })}
+      onPress={() => { navigate(RouteName.SHOP_DETAILS, { bookingType: 'bookingType', providerDetails: item }); }}
       style={styles.serviceContainer}
     >
       <View style={styles.header}>

@@ -14,18 +14,19 @@ const BookingItems: React.FC<BookingItemsProps> = ({ item, onClick, activeTab = 
     let serviceName = item?.service?.serviceName || '';
     let serviceImage = item?.service?.servicesImage?.length > 0 ? item?.service?.servicesImage[0] : 'no-image';
     let provider = item?.provider || '';
-    let fromService = activeTab === 2 && item?.otherUserId ? item.otherUserId.name : item?.provider?.fullName || '';
+    // let fromService = activeTab === 2 && item?.otherUserId ? item.otherUserId.name : item?.provider?.fullName || '';
+    let fromService = item?.member?.fullName || item?.provider?.fullName || '';
     let bookingDate = item?.bookingDetails?.slotTime?.date || '';
     let bookingTime = `${item?.bookingDetails?.slotTime?.start}-${item?.bookingDetails?.slotTime?.end}` || '';
     bookingDate = bookingDate ? moment(bookingDate).format('YYYY-MM-DD') : '';
-    let servicePrice = item?.service?.price || 0;
+    let servicePrice = item?.bookingDetails?.checkoutPrice || item?.service?.price || 0;
 
     const addressData = activeTab === 2 && item?.otherUserId?.address ? item.otherUserId.address : item?.userActvieAddress || {};
     const addressSummery = addressData?.streetAddress || [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
-console.log('fromServicefromService', fromService);
-console.log('item?.otherUserId?.address', item?.otherUserId?.address);
-console.log('addressDataaddressData', addressData);
-console.log('activeTabactiveTab', activeTab);
+    console.log('fromServicefromService', fromService);
+    console.log('item?.otherUserId?.address', item?.otherUserId?.address);
+    console.log('addressDataaddressData', addressData);
+    console.log('activeTabactiveTab', activeTab);
 
 
     return (

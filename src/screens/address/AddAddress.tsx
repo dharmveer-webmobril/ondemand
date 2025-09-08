@@ -390,7 +390,7 @@ const AddAddress: React.FC = () => {
               onChangeText={(val) => formik.setFieldValue('zipCode', val)}
               onBlur={() => formik.setFieldTouched('zipCode', true)}
               errorMessage={formik.touched.zipCode && formik.errors.zipCode ? formik.errors.zipCode : ''}
-              keyboardType="number-pad"
+              keyboardType="default"
               color={Colors.textAppColor}
               inputStyle={styles.inputFieldStyle}
               textColor={Colors.textAppColor}

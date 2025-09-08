@@ -32,7 +32,7 @@ const ImagePickerModal: React.FC<Props> = ({ visible, onClose, onImageSelected }
         compressImageMaxWidth: 800,
         compressImageMaxHeight: 800,
         compressImageQuality: 0.5, // from 0 (low) to 1 (original)
-        cropping: false,
+        cropping: true,
       });
       onImageSelected(image);
     } catch (error) {
@@ -50,7 +50,7 @@ const ImagePickerModal: React.FC<Props> = ({ visible, onClose, onImageSelected }
         compressImageMaxWidth: 800,
         compressImageMaxHeight: 800,
         compressImageQuality: 0.5, // from 0 (low) to 1 (original)
-        cropping: false,
+        cropping: true,
       });
       onImageSelected(image);
     } catch (error) {

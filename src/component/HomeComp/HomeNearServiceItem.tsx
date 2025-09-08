@@ -30,7 +30,7 @@ const ListItem = ({ item }: { item: any }) => {
   const summary = [location?.address, location?.city, location?.state].filter(Boolean).join(', ') || "Unknown";
   return (
     <Pressable
-      onPress={() => { }}
+      onPress={() => { navigate(RouteName.SHOP_DETAILS, { bookingType: 'bookingType', providerDetails: item }); }}
       style={styles.container}
     >
       <View style={styles.header}>
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
     marginTop: SH(10),
     width: '50%',
     height: SH(40),
-    paddingHorizontal:5
+    paddingHorizontal: 5
   },
   retrybuttontext: {
     fontFamily: Fonts.MEDIUM,
     fontSize: SF(14),
     color: Colors.textWhite,
-    textAlign:'center'
+    textAlign: 'center'
   },
   viewalltext: {
     fontFamily: Fonts.MEDIUM,

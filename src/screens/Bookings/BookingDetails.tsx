@@ -40,10 +40,11 @@ const BookingDetails: React.FC = () => {
 
   const addressData = activeTabList === 2 && bookingDetail?.otherUserId?.address ? bookingDetail.otherUserId.address : bookingDetail?.userActvieAddress || {};
   const addressSummery = addressData?.streetAddress || [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
-  let fromService = activeTabList === 2 && bookingDetail?.otherUserId ? bookingDetail.otherUserId.name : bookingDetail?.provider?.fullName || '';
+
   let serviceName = bookingDetail?.service?.serviceName || '';
 
-console.log('addressDataaddressData', addressData);
+  // let fromService = activeTabList === 2 && bookingDetail?.otherUserId ? bookingDetail.otherUserId.name : bookingDetail?.provider?.fullName || '';
+  let fromService = bookingDetail?.member?.fullName || bookingDetail?.provider?.fullName || '';
 
   // Determine latitude and longitude from addressData.location.coordinates, fallback to default
   const defaultLat = 22.7377;
@@ -54,6 +55,8 @@ console.log('addressDataaddressData', addressData);
 
   const [submitServiceReview, { isLoading: isServiceReviewLoading }] = useAddRatingReviewForServiceMutation(); // form data
   const [submitProviderReview, { isLoading: isProviderReviewLoading }] = useAddRatingReviewForProviderMutation(); // json
+
+   let servicePrice = bookingDetail?.bookingDetails?.checkoutPrice || bookingDetail?.service?.price || 0;
 
   const {
     data: ratingForProvider,
@@ -209,10 +212,10 @@ console.log('addressDataaddressData', addressData);
             subtitles={`With ${fromService}`}
             time="8:00 am - 8:30 am"
             title={service?.serviceName}
-            price={displayPrice}
+            price={`$${servicePrice}`}
           />
 
-          <BookingServiceItem title="Subtotal" price={displayPrice} />
+          <BookingServiceItem title="Subtotal"     price={`$${servicePrice}`} />
         </View>
 
         <View style={styles.ratingsContainer}>

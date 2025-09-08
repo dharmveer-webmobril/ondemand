@@ -112,6 +112,7 @@ export const getPriceDetails = (item: any, type: any = null) => {
     : null;
 
   return {
+    bookingPrice:displayPrice,
     displayPrice: arrangePrice(displayPrice, priceType),
     originalPrice: arrangePrice(originalPrice, priceType),
     discountedPrice: arrangePrice(discountedAmount, 'fixed'), // Added raw discountedPrice

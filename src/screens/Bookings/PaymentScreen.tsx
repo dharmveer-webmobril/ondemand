@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Colors, Fonts, SF, SH, SW, getPriceDetails, imagePaths } from '../../utils';
-import { AppHeader, AppText, Buttons, Container, UserprofileView } from '../../component';
+import { AppHeader, AppText, Buttons, Container, LoadingComponent, UserprofileView } from '../../component';
 import { useNavigation } from '@react-navigation/native';
 import { SucessBookingModal } from '../../component';
 import RouteName from '../../navigation/RouteName';
@@ -22,7 +22,7 @@ const PaymentScreen = () => {
 
     const [submitBooking, { isLoading: isSubmitLoading }] = useCreateBookingMutation();
     const [submitCheckout, { isLoading: isCheckoutLoading }] = useCheckoutBookingMutation();
-    const { displayPrice, originalPrice, showDiscountedPrice, discountLabel, discountedPrice } = getPriceDetails(service, 'fixed');
+    const { displayPrice, originalPrice, showDiscountedPrice, discountLabel, discountedPrice, bookingPrice } = getPriceDetails(service, 'fixed');
     const successModalButton = () => {
         setSuccesModalVisible(false);
         navigation.navigate(RouteName.MY_BOOKING, { id: bookingId });
@@ -58,12 +58,13 @@ const PaymentScreen = () => {
                     memberId: selectedTeamMember?._id,
                     slotTime: slotdata,
                     address: bookingFor === 'other' ? '' : bookingJson?.myAddId,
+                    checkoutPrice: bookingPrice
                 },
                 otherUserId: bookingFor === 'other' ? bookingJson?.otherUserAddressId : null,
             };
 
             console.log('Booking Data:', bookingData);
-
+            // return
             // Step 1: Create booking
             const bookingResponse = await submitBooking({ data: bookingData }).unwrap();
             console.log('Create Booking Response:', bookingResponse);
@@ -72,7 +73,7 @@ const PaymentScreen = () => {
                 const newBookingId = bookingResponse.booking.bookingId;
                 setBookingId(newBookingId);
 
-                let data = { bookingId: newBookingId, "paymentMethod": "card" }
+                let data = { bookingId: newBookingId, "paymentMethod": "card", checkoutPrice: displayPrice }
                 console.log('submitCheckout data', data);
 
                 // Step 2: Call checkout API
@@ -90,6 +91,7 @@ const PaymentScreen = () => {
 
     return (
         <Container>
+            <LoadingComponent visible={isSubmitLoading || isCheckoutLoading} />
             <SucessBookingModal
                 bookingJson={bookingJson}
                 submitButton={() => successModalButton()}
