@@ -32,7 +32,7 @@ const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
     agentName = '',
 }) => {
     // console.log('service--', service);
-    // console.log('selectedSlot--', selectedSlot);
+    console.log('selectedSlot--', selectedSlot);
     // console.log('selectedDate--', selectedDate);
     const { displayPrice } = getPriceDetails(service);
     return (
@@ -62,7 +62,7 @@ const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
                     <ServiceItem
                         type='modal-view'
                         subtitles={`With ${agentName}`}
-                        time={selectedSlot?.time?.slot || '10:00 AM'}
+                        time={(selectedSlot?.end && selectedSlot?.start && `${selectedSlot?.start}-${selectedSlot?.end}`) || '10:00 AM'}
                         title={service?.serviceName || 'Haircut'}
                         price={`$${service?.price || '0.00'}`}
                         item={service}

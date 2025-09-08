@@ -125,7 +125,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 shopName={providerDetails?.businessName || ''}
                 agentName={selectedMember?.fullName || ''}
                 service={service}
-                selectedSlot={serviceSlots[selectedSlot]}
+                selectedSlot={selectedSlot && slotArr && slotArr[selectedSlot]}
                 setForwhomCheck={() => { setForwhomCheck(!forwhomCheck); }}
                 modalVisible={modalVisible}
                 closeModal={() => {
