@@ -19,10 +19,7 @@ const SucessBookingModal: React.FC<SucessBookingModalProps> = ({
     submitButton,
     bookingJson
 }) => {
-    const navigation = useNavigation<any>();
-
     const { slots, service, selectedTeamMember } = bookingJson;
-
     return (
         <Modal
             animationType="slide"
@@ -58,7 +55,7 @@ const SucessBookingModal: React.FC<SucessBookingModalProps> = ({
                             <View style={styles.infoContainer}>
                                 <AppText style={styles.text}>{service?.serviceName}</AppText>
                                 <AppText style={styles.price}>${service?.price}</AppText>
-                                <AppText style={styles.dateTime}>{slots?.time?.slot}</AppText>
+                                <AppText style={styles.dateTime}>{slots?.start+'-'+slots?.start}</AppText>
                                 <AppText style={styles.withText}>{`With ${selectedTeamMember?.fullName}`}</AppText>
                             </View>
                         </View>

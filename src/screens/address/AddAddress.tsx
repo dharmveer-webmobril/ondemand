@@ -212,7 +212,7 @@ const AddAddress: React.FC = () => {
 
   return (
     <Container isPadding={false}>
-                <LoadingComponent visible={isLoading || isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading} />
+      <LoadingComponent visible={isLoading || isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading} />
       <AppHeader
         headerTitle={addData?._id ? t('addAddress.edittitle') : t('addAddress.title')}
         onPress={() => navigation.goBack()}
@@ -261,7 +261,7 @@ const AddAddress: React.FC = () => {
               placeholder="Search"
               fetchDetails={true}
               keyboardShouldPersistTaps="handled"
-              onPress={(data:any, details:any = null) => {
+              onPress={(data: any, details: any = null) => {
                 if (!details) {
                   console.log('❌ No details found');
                   return;
@@ -286,7 +286,7 @@ const AddAddress: React.FC = () => {
                 formik.setFieldValue('state', state || '');
                 formik.setFieldValue('zipCode', postalCode || '');
                 formik.setFieldValue('location', { coordinates: [lat.toString(), lng.toString()] });
-                
+
                 // formik.setFieldValue('lat', lat.toString());
                 // formik.setFieldValue('lng', lng.toString());
                 console.log('✅ Latitude:', lat);
@@ -302,7 +302,7 @@ const AddAddress: React.FC = () => {
               GooglePlacesDetailsQuery={{
                 fields: 'geometry,address_components',
               }}
-              onFail={(error:any) => console.error('❌ API Error:', error)}
+              onFail={(error: any) => console.error('❌ API Error:', error)}
               onNotFound={() => console.log('⚠️ No results found')}
               styles={{
                 textInput: styles.input,
@@ -433,7 +433,7 @@ const AddAddress: React.FC = () => {
               textColor={Colors.textWhite}
               title={t('addAddress.placeholders.save')}
               onPress={formik.handleSubmit}
-              // isLoading={isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading}
+            // isLoading={isSubmitLoading || isUpdateLoading || formik.isSubmitting || isLocationLoading}
             />
           </View>
         </TouchableWithoutFeedback>

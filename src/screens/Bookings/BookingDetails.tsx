@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Colors, SH, SW, Fonts, SF, handleSuccessToast, handleApiError, handleApiFailureResponse } from '../../utils';
+import { Colors, SH, SW, Fonts, SF, handleSuccessToast, handleApiError, handleApiFailureResponse, getPriceDetails } from '../../utils';
 import {
   AppHeader,
   AppText,
@@ -14,6 +14,7 @@ import {
   TabTop,
   showAppToast,
   RatingReviewComponent,
+  ServiceItem,
 } from '../../component';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import imagePaths from '../../assets/images';
@@ -33,10 +34,23 @@ const BookingDetails: React.FC = () => {
 
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { bookingDetail } = route?.params;
+  const { bookingDetail, activeTab: activeTabList } = route?.params;
 
   const { provider = {}, service = {}, bookingId } = bookingDetail;
-  console.log('bookingId', bookingId, 'provider', provider, 'service', service);
+
+  const addressData = activeTabList === 2 && bookingDetail?.otherUserId?.address ? bookingDetail.otherUserId.address : bookingDetail?.userActvieAddress || {};
+  const addressSummery = addressData?.streetAddress || [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
+  let fromService = activeTabList === 2 && bookingDetail?.otherUserId ? bookingDetail.otherUserId.name : bookingDetail?.provider?.fullName || '';
+  let serviceName = bookingDetail?.service?.serviceName || '';
+
+console.log('addressDataaddressData', addressData);
+
+  // Determine latitude and longitude from addressData.location.coordinates, fallback to default
+  const defaultLat = 22.7377;
+  const defaultLng = 75.8788;
+  const coordinates = addressData?.location?.coordinates || [defaultLat, defaultLng];
+  const latitude = Array.isArray(coordinates) && coordinates.length >= 2 ? coordinates[0] : defaultLat; // [lng, lat] order
+  const longitude = Array.isArray(coordinates) && coordinates.length >= 2 ? coordinates[1] : defaultLng; // [lng, lat] order
 
   const [submitServiceReview, { isLoading: isServiceReviewLoading }] = useAddRatingReviewForServiceMutation(); // form data
   const [submitProviderReview, { isLoading: isProviderReviewLoading }] = useAddRatingReviewForProviderMutation(); // json
@@ -128,7 +142,7 @@ const BookingDetails: React.FC = () => {
     setIsForProvider(forProvider);
     setModalVisible(true);
   };
-
+  const { displayPrice } = getPriceDetails(service, 'fixed');
   return (
     <Container statusBarColor={Colors.white}>
       <SubmitRatingReviewModal
@@ -152,21 +166,19 @@ const BookingDetails: React.FC = () => {
           <MapView
             style={{ flex: 1 }}
             initialRegion={{
-              latitude: 22.7377,
-              longitude: 75.8788,
+              latitude,
+              longitude,
               latitudeDelta: 0.0922, // Smaller delta for more zoom
               longitudeDelta: 0.0421,
             }}
             showsUserLocation={true}
             showsMyLocationButton={true}
             zoomControlEnabled={true}
-          // minZoomLevel={11}   // 👈 minimum zoom out (5 ~ country level)
-          // maxZoomLevel={18}  // 👈 maximum zoom in (18 ~ street/building level)
           >
             <Marker
-              coordinate={{ latitude: 22.7377, longitude: 75.8788 }}
+              coordinate={{ latitude, longitude }}
               title="My Marker"
-              description="This is a marker in Delhi"
+              description="This is a marker"
             />
           </MapView>
         </View>
@@ -175,11 +187,11 @@ const BookingDetails: React.FC = () => {
         <View style={styles.shopInfoContainer}>
           <View style={styles.shopTextBlock}>
             <AppText style={styles.shopTitle}>
-              WM Barbershop{' '}
-              <AppText style={styles.shopCount}>with Juana</AppText>
+              {serviceName || ''}{' '}
+              <AppText style={styles.shopCount}>with {fromService || ''}</AppText>
             </AppText>
             <AppText style={styles.shopAddress}>
-              1893 Cheshire Bridge Rd Ne, 30325
+              {addressSummery || ''}
             </AppText>
           </View>
           <View style={styles.iconsBlock}>
@@ -194,12 +206,13 @@ const BookingDetails: React.FC = () => {
 
         <View style={styles.serviceContainer}>
           <BookingServiceItem
-            subtitles="With Juana"
+            subtitles={`With ${fromService}`}
             time="8:00 am - 8:30 am"
-            title="Only Haircut"
-            price="$8989"
+            title={service?.serviceName}
+            price={displayPrice}
           />
-          <BookingServiceItem title="Subtotal" price="$8989" />
+
+          <BookingServiceItem title="Subtotal" price={displayPrice} />
         </View>
 
         <View style={styles.ratingsContainer}>

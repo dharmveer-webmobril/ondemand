@@ -71,7 +71,7 @@ const MyBookingScreen: React.FC = () => {
             contentContainerStyle={styles.flatListContainer}
             data={bookingData}
             keyExtractor={(item: any) => `${item?._id}-appointment-list-${activeTab}`}
-            renderItem={({ item }) => { return <BookingItems item={item} onClick={() => { navigate(RouteName.BOOK_DETAILS, { bookingDetail: item }) }} /> }}
+            renderItem={({ item }) => { return <BookingItems activeTab={activeTab} item={item} onClick={() => { navigate(RouteName.BOOK_DETAILS, { bookingDetail: item,activeTab }) }} /> }}
             ItemSeparatorComponent={BookingListSeparator}
             showsHorizontalScrollIndicator={false}
           />

@@ -20,7 +20,7 @@ type BookingSlotsProps = {
 
 const seperatorComponent = () => <Spacing horizontal space={SW(10)} />;
 const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, onSelect, isFetching = false }) => {
-  console.log('BookingSlots slotsslots-', slots);
+  // console.log('BookingSlots slotsslots-', slots);
 
   return (
     <>

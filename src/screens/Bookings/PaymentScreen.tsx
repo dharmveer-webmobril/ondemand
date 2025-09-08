@@ -15,6 +15,7 @@ const PaymentScreen = () => {
     const [succesModalVisible, setSuccesModalVisible] = useState<boolean>(false);
     const navigation = useNavigation<any>();
     const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
+    console.log('bookingJsonbookingJsonbookingJsonbookingJson', bookingJson);
 
     const { service, providerDetails, selectedTeamMember, date, bookingType, bookingFor, slots } =
         bookingJson || {};
@@ -54,6 +55,7 @@ const PaymentScreen = () => {
                 bookingFor: bookingFor,
                 providerId: providerDetails._id,
                 bookingDetails: {
+                    memberId: selectedTeamMember?._id,
                     slotTime: slotdata,
                     address: bookingFor === 'other' ? '' : bookingJson?.myAddId,
                 },

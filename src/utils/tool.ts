@@ -97,14 +97,15 @@ export const arrangePrice = (price: number, priceType: string): string => {
 };
 
 export const getPriceDetails = (item: any, type: any = null) => {
-  const hasMarketOffer = item.marketOffer && item.marketOffer.discountType;
-  const originalPrice = item.actualPrice || item.price || 0;
-  const discountValue = item.marketOffer?.discountValue || 0;
-  const discountType = item.marketOffer?.discountType || '';
-  const priceType = type ? type : item.priceType || 'fixed'; // Default to 'fixed' if not provided
-  const discountedPrice = item.discountedPrice || (hasMarketOffer && discountType === 'percentage'
+  const hasMarketOffer = item?.marketOffer && item?.marketOffer?.discountType;
+  const originalPrice = item?.actualPrice || item?.price || 0;
+  const discountValue = item?.marketOffer?.discountValue || 0;
+  const discountType = item?.marketOffer?.discountType || '';
+  const priceType = type ? type : item?.priceType || 'fixed'; // Default to 'fixed' if not provided
+  const discountedPrice = item?.discountedPrice || (hasMarketOffer && discountType === 'percentage'
     ? originalPrice * (1 - discountValue / 100)
     : originalPrice);
+  const discountedAmount = (item?.actualPrice && item?.discountedPrice) ? item?.actualPrice - item?.discountedPrice : 0
   const displayPrice = hasMarketOffer ? discountedPrice : originalPrice;
   const discountLabel = hasMarketOffer
     ? (discountType === 'percentage' ? `${discountValue}%` : `$${discountValue.toFixed(2)}`)
@@ -113,7 +114,7 @@ export const getPriceDetails = (item: any, type: any = null) => {
   return {
     displayPrice: arrangePrice(displayPrice, priceType),
     originalPrice: arrangePrice(originalPrice, priceType),
-    discountedPrice: arrangePrice(discountedPrice, 'fixed'), // Added raw discountedPrice
+    discountedPrice: arrangePrice(discountedAmount, 'fixed'), // Added raw discountedPrice
     showDiscountedPrice: hasMarketOffer,
     discountLabel,
   };

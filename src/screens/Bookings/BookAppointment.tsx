@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View, FlatList } from 'react-native';
 import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, LoadingComponent, ServiceItem, showAppToast, Spacing } from '../../component';
-import { Colors, Fonts, imagePaths, SF, SH, SW } from '../../utils';
+import { Colors, Fonts, getPriceDetails, imagePaths, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import { ConfirmBookingModal, TeamMemberProfile } from '../../component';
 import RouteName from '../../navigation/RouteName';
@@ -9,6 +9,7 @@ import { RootState, setBookingJson, useGetMemberSlotsQuery, useGetProviderMember
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { Calendar } from 'react-native-calendars';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 interface BookAppointmentProps { }
 
@@ -16,8 +17,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     const navigation = useNavigation<any>();
     const [selectedSlot, setSelectedSlot] = useState<any>(null);
     const [slotArr, setSlotArr] = useState<any>(null);
-    const [selectedMember, setSelectedMember] = useState<any>('anyone');
-    const [member, setMember] = useState<any>(null);
+    const [selectedMember, setSelectedMember] = useState<any>(null);
+    const [selectedMemberId, setSelectedMemberId] = useState<any>(null);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [forwhomCheck, setForwhomCheck] = useState(false);
     const [selectedDate, setSelectedDate] = useState<any>(moment().format('YYYY-MM-DD'));
@@ -25,58 +26,63 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 
     const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
     const { service, providerDetails } = bookingJson || {};
-    console.log('bookingJson--', bookingJson);
+    // console.log('bookingJson--', bookingJson);
 
     let serviceSlots: any[] = [];
 
-    console.log('serviceSlots--', serviceSlots);
+    // console.log('serviceSlots--', serviceSlots);
 
-    const { data: membersList, isFetching: isProviderMemberLoading } = useGetProviderMemberQuery({ providerId: providerDetails?._id });
+    const { data: membersList, isFetching: isProviderMemberLoading } = useGetProviderMemberQuery(
+        { providerId: providerDetails?._id },
+        { refetchOnFocus: true, refetchOnMountOrArgChange: true }
+    );
+
     const membersListData = useMemo(() => {
-        const data = membersList?.data || [];
-        if (data.length > 0) {
-            setSelectedMember('anyone');
-            return [{ _id: 'anyone', fullName: 'Anyone', profilePic: imagePaths.no_user_img }, ...data];
-        } else {
-            setSelectedMember(providerDetails?._id);
-            return [providerDetails];
+        let data = membersList?.data || [];
+        if (data && data.length > 0) {
+            setSelectedMember(data[0]);
+            data[0]?.type === 'provider' ? setSelectedMemberId(data[0]?.providerId) : setSelectedMemberId(data[0]?._id);
         }
+        return data
     }, [membersList, providerDetails]);
 
-    // console.log('membersListmembersList--', membersList);
+    // console.log('membersListData--', membersList);
 
-    const { data: slots, isFetching: isSlots, refetch: refetchSlots } = useGetMemberSlotsQuery({ memberId: selectedMember === 'anyone' ? null : selectedMember });
-    // console.log('slotsslotsslots--', slots);
+    const { data: slots, isFetching: isSlots, refetch: refetchSlots } = useGetMemberSlotsQuery(
+        selectedMemberId ? { memberId: selectedMemberId } : skipToken,
+        { refetchOnFocus: true, refetchOnMountOrArgChange: true }
+    );
+
+    useEffect(() => {
+        console.log('selectedMemberselectedMember--', selectedMember);
+        console.log('slotArr--', slotArr);
+        console.log('membersListData--', membersListData);
+
+        setSlotArr(null);
+        if (selectedMember && typeof selectedMember === 'string' && selectedMember !== 'anyone') {
+            refetchSlots();
+        }
+    }, [selectedMember, refetchSlots]);
+
 
     const slotsData = useMemo(() => slots?.data || [], [slots]);
 
-
     useEffect(() => {
         let dayName = moment(selectedDate, 'YYYY-MM-DD').format('dddd');
-        // console.log('dayName--', dayName); // Output: "Wednesday"
         if (slotsData && dayName) {
             let slotsFind = slotsData[dayName];
             setSlotArr(slotsFind);
             setSelectedSlot(null);
-            console.log('slotsFindslotsFind', slotsFind);
-        }
-        if (slots?.memberId) {
-            let chosenTeamMember = membersListData?.find((item: any) => item?._id === slots?.memberId) || providerDetails;
-            setMember(chosenTeamMember);
         }
     }, [slotsData, selectedDate]);
 
-
-
-    useEffect(() => {
-        refetchSlots();
-    }, [selectedMember, refetchSlots]);
-
     const btnGo = () => {
         let selectedSlotInfo = slotArr[selectedSlot];
+
+        let member = membersListData?.find((item: any) => item?._id === selectedMember?._id);
+
         let bookingData = { ...bookingJson, slots: selectedSlotInfo, selectedDate, selectedTeamMember: member };
 
-        // return
         if (forwhomCheck) {
             bookingData = { ...bookingData, bookingFor: 'other', date: selectedDate };
             dispatch(setBookingJson(bookingData));
@@ -101,16 +107,6 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
             });
             return;
         }
-        if (!member) {
-            showAppToast({
-                title: 'Error',
-                message: 'Please select a member',
-                type: 'error',
-            });
-            return;
-        }
-        console.log('membermember', member);
-        
 
         setModalVisible(true);
     };
@@ -118,6 +114,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
 
+
+    const { displayPrice } = getPriceDetails(service, 'fixed');
     return (
         <Container isPadding={false}>
             <ConfirmBookingModal
@@ -125,7 +123,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 selectedDate={selectedDate}
                 shopAddress={addressSummery || ''}
                 shopName={providerDetails?.businessName || ''}
-                agentName={member?.fullName || ''}
+                agentName={selectedMember?.fullName || ''}
                 service={service}
                 selectedSlot={serviceSlots[selectedSlot]}
                 setForwhomCheck={() => { setForwhomCheck(!forwhomCheck); }}
@@ -184,49 +182,42 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                         <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>Select Member</AppText>
                         <Spacing space={SH(15)} />
                         <View style={styles.memberRow}>
-                            {membersListData?.length > 0 ? (
-                                <FlatList
-                                    data={membersListData}
-                                    keyExtractor={(item) => item?._id + 'team-member'}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.memberItem}>
-                                            <TeamMemberProfile
-                                                selectedMember={selectedMember}
-                                                onClick={() => { setSelectedMember(item?._id); }}
-                                                imageSource={item?._id === 'anyone' ? imagePaths?.no_user_img : item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
-                                                title={item?.fullName}
-                                                item={item}
-                                            />
-                                        </View>
-                                    )}
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={styles.memberListContent}
-                                />
-                            ) : (
-                                <View key={'team-member' + providerDetails?._id} style={styles.memberItem}>
-                                    <TeamMemberProfile
-                                        selectedMember={selectedMember}
-                                        onClick={() => { setSelectedMember(providerDetails?._id); }}
-                                        imageSource={providerDetails?.profilePic ? { uri: providerDetails?.profilePic } : imagePaths?.no_user_img}
-                                        title={providerDetails?.fullName}
-                                        item={providerDetails}
-                                    />
-                                </View>
-                            )}
+                            <FlatList
+                                data={membersListData}
+                                keyExtractor={(item) => item?._id + 'team-member'}
+                                renderItem={({ item }) => (
+                                    <View style={styles.memberItem}>
+                                        <TeamMemberProfile
+                                            selectedMember={selectedMember?._id || ''}
+                                            onClick={() => { item?.type === 'provider' ? setSelectedMemberId(item?.providerId) : setSelectedMemberId(item?._id); setSelectedMember(item); }}
+                                            imageSource={item?._id === 'anyone' ? imagePaths?.no_user_img : item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
+                                            title={item?.fullName}
+                                            item={item}
+                                        />
+                                    </View>
+                                )}
+                                ListEmptyComponent={() => (
+                                    <AppText style={{ color: Colors.lightGraytext, fontFamily: Fonts.MEDIUM, fontSize: SF(12) }}>
+                                        No team member found
+                                    </AppText>
+                                )}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.memberListContent}
+                            />
                         </View>
                         <Divider contStyle={{ marginVertical: SW(10) }} color='#3D3D3D50' height={0.7} />
 
                         <Spacing />
 
                         {service && [service]?.map((item) => {
-                            return <ServiceItem item={item} type='service-item'/>;
+                            return <ServiceItem item={item} type='service-item' />;
                         })}
 
                         <Divider contStyle={{ marginTop: SH(30) }} color='#3D3D3D50' height={0.7} />
                         <View style={styles.bookingContainer}>
                             <View>
-                                <AppText style={styles.price1}>${service?.price}</AppText>
+                                <AppText style={styles.price1}>{displayPrice || 0}</AppText>
                             </View>
                             <Buttons
                                 buttonStyle={styles.w65}
@@ -243,6 +234,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 };
 
 export default BookAppointment;
+
 
 const styles = StyleSheet.create({
     header: {
@@ -298,5 +290,5 @@ const styles = StyleSheet.create({
     memberRow: { marginLeft: -SW(15), flexDirection: 'row' },
     memberItem: { alignItems: 'center', justifyContent: 'center', marginRight: SW(15) },
     w65: { width: '65%' },
-    memberListContent: { paddingVertical: SH(5), paddingRight: SW(15), paddingLeft: 10 },
+    memberListContent: { paddingTop: SH(10), paddingBottom: SH(5), paddingRight: SW(15), paddingLeft: 10 },
 });

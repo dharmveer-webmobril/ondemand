@@ -6,22 +6,26 @@ import moment from 'moment';
 
 interface BookingItemsProps {
     item?: any;
-    onClick?: () => void
+    onClick?: () => void;
+    activeTab?: number;
 }
 
-const BookingItems: React.FC<BookingItemsProps> = ({ item, onClick }) => {
+const BookingItems: React.FC<BookingItemsProps> = ({ item, onClick, activeTab = 1 }) => {
     let serviceName = item?.service?.serviceName || '';
     let serviceImage = item?.service?.servicesImage?.length > 0 ? item?.service?.servicesImage[0] : 'no-image';
     let provider = item?.provider || '';
-    let fromService = item?.provider?.fullName || '';
+    let fromService = activeTab === 2 && item?.otherUserId ? item.otherUserId.name : item?.provider?.fullName || '';
     let bookingDate = item?.bookingDetails?.slotTime?.date || '';
     let bookingTime = `${item?.bookingDetails?.slotTime?.start}-${item?.bookingDetails?.slotTime?.end}` || '';
     bookingDate = bookingDate ? moment(bookingDate).format('YYYY-MM-DD') : '';
     let servicePrice = item?.service?.price || 0;
 
-
-    const addressData = item?.userActvieAddress || {};
+    const addressData = activeTab === 2 && item?.otherUserId?.address ? item.otherUserId.address : item?.userActvieAddress || {};
     const addressSummery = addressData?.streetAddress || [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
+console.log('fromServicefromService', fromService);
+console.log('item?.otherUserId?.address', item?.otherUserId?.address);
+console.log('addressDataaddressData', addressData);
+console.log('activeTabactiveTab', activeTab);
 
 
     return (
@@ -57,10 +61,7 @@ const BookingItems: React.FC<BookingItemsProps> = ({ item, onClick }) => {
     );
 };
 
-
-
 export default BookingItems;
-
 
 const styles = StyleSheet.create({
     serviceContainer: {
@@ -105,7 +106,6 @@ const styles = StyleSheet.create({
         maxWidth: '80%',
         marginTop: SH(3)
     },
-
     price: {
         color: Colors.themeColor,
         fontFamily: Fonts.SEMI_BOLD,
@@ -125,4 +125,3 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.SEMI_BOLD
     },
 });
-

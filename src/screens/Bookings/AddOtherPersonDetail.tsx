@@ -1,4 +1,4 @@
-import React, { use, useEffect } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   Keyboard,
   StyleSheet,
@@ -13,7 +13,9 @@ import {
   Spacing,
   Buttons,
   InputField,
-  AppText
+  AppText,
+  CountryPickerComp,
+  LoadingComponent
 } from '../../component';
 import { Colors, Fonts, navigate, regex, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
@@ -34,7 +36,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>(); // Get route params
   const addressFromPreviousPage = route.params?.address || ''; // Default to empty if not provided
-  const [address, setAddress] = React.useState<any>(null);
+  const [address, setAddress] = useState<any>(null);
+  const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
   const validationSchema = Yup.object().shape({
     fname: Yup.string().trim()
       .min(3, t('validation.fullnameMinLength'))
@@ -51,7 +54,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
       .min(5, 'Minimum length 5'), // Minimum length of 5 characters
   });
   const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
-  const [submitData] = useSubmitOtherUserAddressMutation()
+  const [submitData,{isLoading}] = useSubmitOtherUserAddressMutation()
   const dispatch = useDispatch();
 
   const btnSubmit = async (values: any) => {
@@ -60,9 +63,10 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
       "name": values.fname,
       "email": values.email,
       "phone": values.mobileno,
+      "countryCode": values.countryCode,
       "address": {
         "type": "Home",
-        "streetAddress": address?.type || "",
+        "streetAddress": address?.streetAddress || "",
         "apartment": address?.apartment || "",
         "city": address?.city || "",
         "state": address?.state || "",
@@ -95,6 +99,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
 
   return (
     <Container isPadding={false}>
+      <LoadingComponent visible={isLoading} />
       <AppHeader
         headerTitle={'Booking Appointment'}
         onPress={() => {
@@ -104,12 +109,13 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
         rightOnPress={() => { }}
         headerStyle={styles.header}
       />
+
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
         extraScrollHeight={SH(40)}>
         <View style={styles.container}>
-          <View style={styles.profileContainer}>
+          {/* <View style={styles.profileContainer}>
             <View style={styles.userConImage}>
               <ImageLoader
                 source={imagePaths.user_img}
@@ -129,12 +135,13 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
               <AppText style={styles.userName}>John Kevin</AppText>
               <AppText style={styles.userPhone}>+91 1234567890</AppText>
             </View>
-          </View>
+          </View> */}
           <Formik
             initialValues={{
               fname: '',
               mobileno: '',
               email: '',
+              countryCode: '+91',
               address: addressFromPreviousPage, // Pre-fill with address from previous page
             }}
             validationSchema={validationSchema}
@@ -160,6 +167,15 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
               //   touched,
               // }) => (
               return <>
+                <CountryPickerComp
+                  isPickerOpen={isPickerOpen}
+                  closeCountryPicker={() => setIsPickerOpen(false)}
+                  openCountryPicker={() => setIsPickerOpen(true)}
+                  inputText={''}
+                  onInputChange={() => { }}
+                  countryCode={values.countryCode}
+                  setCountryCode={(code: string) => setFieldValue('countryCode', code)}
+                />
                 <InputField
                   label={t('placeholders.fullname')}
                   value={values.fname}
@@ -170,16 +186,38 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
                 />
-                <InputField
-                  label={t('placeholders.mobileno')}
-                  value={values.mobileno}
-                  onChangeText={handleChange('mobileno')}
-                  onBlur={() => setFieldValue('mobileno', values.mobileno.trim())}
-                  errorMessage={touched.mobileno && errors.mobileno && errors.mobileno ? errors.mobileno : ''}
-                  keyboardType={'number-pad'}
-                  color={Colors.textAppColor}
-                  textColor={Colors.textAppColor}
-                />
+                <AppText style={{
+                  fontSize: SF(14),
+                  fontFamily: Fonts.MEDIUM,
+                  marginBottom: SH(7),
+                  color: Colors.textAppColor,
+                }}>
+                  {'Mobile Number'}
+                </AppText>
+                <View style={styles.rowContainer}>
+                  <TouchableOpacity
+                    onPress={() => setIsPickerOpen(true)}
+                    style={styles.countryCodeButton}
+                  >
+                    <AppText style={{ color: Colors.textAppColor, fontFamily: Fonts.MEDIUM }}>
+                      {values.countryCode}
+                    </AppText>
+                  </TouchableOpacity>
+                  <View style={{ flex: 1 }}>
+                    <InputField
+                      value={values.mobileno}
+                      onChangeText={(val) => setFieldValue('mobileno', val)}
+                      onBlur={() => setFieldTouched('mobileno', true)}
+                      // errorMessage={formik.touched.phone && formik.errors.phone ? formik.errors.phone : ''}
+                      keyboardType="phone-pad"
+                      color={Colors.textAppColor}
+                      textColor={Colors.textAppColor}
+                      placeholder="Mobile Number"
+                      placeholderTextColor={Colors.lightGraytext}
+                    />
+                  </View>
+                </View>
+
 
                 <InputField
                   label={t('placeholders.emailId')}
@@ -192,37 +230,19 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   textColor={Colors.textAppColor}
                 />
 
-                <Spacing space={SH(20)} />
-                {/* <View style={styles.addressContainer}>
-                  <View style={styles.addressInfo}>
-                    <AppText style={styles.addressName}>Home Address</AppText>
-                    <AppText style={styles.addressDetail}>{values.address || 'No address set'}</AppText>
-                  </View>
-                  <TouchableOpacity style={styles.addressMoreIcon}>
-                    <VectorIcon
-                      icon="Entypo"
-                      name="dots-three-vertical"
-                      size={SW(20)}
-                      color={Colors.textAppColor}
-                    />
-                  </TouchableOpacity>
-                </View> */}
+
 
                 <TouchableOpacity onPress={() => { navigate(RouteName.ADD_ADDRESS, { prevScreen: 'other_user' }) }}>
                   <InputField
                     label={"Select Address"}
                     value={values.address}
                     editable={false}
-                    // onChangeText={handleChange('address')}
-                    // onBlur={() => setFieldValue('address', values.address.trim())}
-                    // errorMessage={touched.address && errors.address && errors.address ? errors.address : ''}
                     errorMessage={touched.address && errors.address ? String(errors.address) : ''}
                     keyboardType="default"
                     color={Colors.textAppColor}
                     textColor={Colors.textAppColor}
                   />
                 </TouchableOpacity>
-                {/* <AppText>{touched.address && errors.address && errors.address ? errors.address : ''}</AppText> */}
 
                 <Buttons
                   buttonStyle={styles.submitButton}
@@ -345,5 +365,24 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: Colors.themeColor,
     marginTop: SH(70),
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  countryCodeButton: {
+    paddingHorizontal: SW(10),
+    paddingVertical: SH(12),
+    borderWidth: 1,
+    borderColor: Colors.textAppColor,
+    borderRadius: SW(10),
+    marginRight: SW(8),
+    justifyContent: 'center',
+  },
+  errorText: {
+    fontSize: SF(12),
+    fontFamily: Fonts.REGULAR,
+    color: Colors.red,
+    marginBottom: SH(10),
   },
 });

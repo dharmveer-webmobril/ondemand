@@ -31,9 +31,9 @@ const ConfirmBookingModal: React.FC<ConfirmBookingModalProps> = ({
     shopAddress = '',
     agentName = '',
 }) => {
-    console.log('service--', service);
-    console.log('selectedSlot--', selectedSlot);
-    console.log('selectedDate--', selectedDate);
+    // console.log('service--', service);
+    // console.log('selectedSlot--', selectedSlot);
+    // console.log('selectedDate--', selectedDate);
     const { displayPrice } = getPriceDetails(service);
     return (
         <Modal

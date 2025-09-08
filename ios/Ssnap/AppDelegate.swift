@@ -30,8 +30,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       in: window,
       launchOptions: launchOptions
     )
+    
     FirebaseApp.configure();
-     GMSServices.provideAPIKey("AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s")
+    GMSServices.provideAPIKey("AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s")
     
     return true
   }

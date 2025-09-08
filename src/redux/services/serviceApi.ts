@@ -30,7 +30,7 @@ export const serviceApi = api.injectEndpoints({
     // }),
     getProviderMember: builder.query<any, { providerId: any }>({
       query: ({ providerId }) => {
-        console.log('providerIdproviderIdproviderId', providerId);
+        // console.log('providerIdproviderIdproviderId', providerId);
         let url = `${ENDPOINTS.GET_PROVIDER_MEMBER}`;
         if (providerId) {
           url = `${url}?providerId=${providerId}`
@@ -47,8 +47,8 @@ export const serviceApi = api.injectEndpoints({
         if (memberId) {
           url = `${url}?memberId=${memberId}`
         }
-        console.log('memberIdmemberId-', memberId);
-        console.log('urlurlurl-', url);
+        // console.log('memberIdmemberId-', memberId);
+        // console.log('urlurlurl-', url);
 
         return {
           url,
