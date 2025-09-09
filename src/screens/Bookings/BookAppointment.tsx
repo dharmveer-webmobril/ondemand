@@ -116,6 +116,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 
 
     const { displayPrice } = getPriceDetails(service, 'fixed');
+    console.log('slotArrslotArr,slotArrslotArr', selectedSlot && slotArr[selectedSlot]);
+
     return (
         <Container isPadding={false}>
             <ConfirmBookingModal
@@ -125,7 +127,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
                 shopName={providerDetails?.businessName || ''}
                 agentName={selectedMember?.fullName || ''}
                 service={service}
-                selectedSlot={selectedSlot && slotArr && slotArr[selectedSlot]}
+                // selectedSlot={selectedSlot && slotArr && slotArr[selectedSlot]}
+                selectedSlot={selectedSlot !== null && slotArr ? slotArr[selectedSlot] : null} // Fixed slot access
                 setForwhomCheck={() => { setForwhomCheck(!forwhomCheck); }}
                 modalVisible={modalVisible}
                 closeModal={() => {

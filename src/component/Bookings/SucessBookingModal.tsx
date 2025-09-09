@@ -55,7 +55,7 @@ const SucessBookingModal: React.FC<SucessBookingModalProps> = ({
                             <View style={styles.infoContainer}>
                                 <AppText style={styles.text}>{service?.serviceName}</AppText>
                                 <AppText style={styles.price}>${service?.price}</AppText>
-                                <AppText style={styles.dateTime}>{slots?.start+'-'+slots?.start}</AppText>
+                                <AppText style={styles.dateTime}>{(slots?.start && slots?.end && slots?.start + '-' + slots?.end) || ''}</AppText>
                                 <AppText style={styles.withText}>{`With ${selectedTeamMember?.fullName}`}</AppText>
                             </View>
                         </View>

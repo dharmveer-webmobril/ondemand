@@ -43,7 +43,7 @@ const BookingDetails: React.FC = () => {
 
   let serviceName = bookingDetail?.service?.serviceName || '';
 
-  // let fromService = activeTabList === 2 && bookingDetail?.otherUserId ? bookingDetail.otherUserId.name : bookingDetail?.provider?.fullName || '';
+  let shopaName =    bookingDetail?.provider?.businessName || '';
   let fromService = bookingDetail?.member?.fullName || bookingDetail?.provider?.fullName || '';
 
   // Determine latitude and longitude from addressData.location.coordinates, fallback to default
@@ -190,7 +190,7 @@ const BookingDetails: React.FC = () => {
         <View style={styles.shopInfoContainer}>
           <View style={styles.shopTextBlock}>
             <AppText style={styles.shopTitle}>
-              {serviceName || ''}{' '}
+              {shopaName || ''}{' '}
               <AppText style={styles.shopCount}>with {fromService || ''}</AppText>
             </AppText>
             <AppText style={styles.shopAddress}>
