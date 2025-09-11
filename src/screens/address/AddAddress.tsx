@@ -21,7 +21,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTranslation } from 'react-i18next';
 import { setOtherUserAddress, useSubmitAddressMutation, useUpdateAddressMutation } from '../../redux';
-import AddressSearch, { ParsedAddress } from './AddressSearch';
+ 
 import { useDispatch } from 'react-redux';
 import useLocation from '../../utils/hooks/useLocation';
 import { useFormik } from 'formik';
@@ -354,6 +354,7 @@ const AddAddress: React.FC = () => {
               errorMessage={formik.touched.appartment && formik.errors.appartment ? formik.errors.appartment : ''}
               keyboardType="default"
               color={Colors.textAppColor}
+              maxLength={80}
               textColor={Colors.textAppColor}
             />
             <View style={styles.rowContainer}>
@@ -367,6 +368,7 @@ const AddAddress: React.FC = () => {
                   errorMessage={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
                   keyboardType="default"
                   color={Colors.textAppColor}
+                  maxLength={50}
                   textColor={Colors.textAppColor}
                 />
               </View>
@@ -381,6 +383,7 @@ const AddAddress: React.FC = () => {
                   keyboardType="default"
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
+                  maxLength={50}
                 />
               </View>
             </View>
@@ -394,6 +397,7 @@ const AddAddress: React.FC = () => {
               color={Colors.textAppColor}
               inputStyle={styles.inputFieldStyle}
               textColor={Colors.textAppColor}
+              maxLength={8}
             />
             {
               prevScreen !== 'other_user' &&

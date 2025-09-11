@@ -7,8 +7,6 @@ import {
   FlatList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-
-import { useGetNearByServicesQuery } from '../../redux';
 import { Colors, Fonts, navigate, SF, SH, SW } from '../../utils';
 import imagePaths from '../../assets/images';
 import AppText from '../AppText';
@@ -18,7 +16,6 @@ import HomeSubContainerHeader from './HomeSubContainerHeader';
 import RouteName from '../../navigation/RouteName';
 import StarRating from 'react-native-star-rating-widget';
 import ImageLoader from '../ImageLoader';
-import { useFocusEffect } from '@react-navigation/native';
 import Shimmer from '../Shimmer';
 
 const skeletonPlaceholder = [1, 2, 3, 4, 5, 6];
@@ -87,21 +84,8 @@ const ListItemSkeleton = () => (
   </View>
 );
 
-const HomeNearServiceItem = () => {
-  const { data: servicesData, isError, refetch, isFetching } = useGetNearByServicesQuery();
+const HomeNearServices = ({ servicesArr, isLoading, isError }: { servicesArr: any, isLoading: boolean, isError: boolean }) => {
   const { t } = useTranslation();
-
-  const memoizedData = useMemo(() => servicesData?.data || [], [servicesData]);
-  // useState
-  const handleRetry = () => refetch();
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
-  const showSkeleton = isFetching && !isError;
-  const showError = !isFetching && isError;
-  const showEmpty = !isFetching && !isError && memoizedData.length === 0;
 
   return (
     <>
@@ -110,7 +94,7 @@ const HomeNearServiceItem = () => {
         leftText={t('home.nearbyServices')}
         marginHori="7%"
         onClick={() => {
-          !showSkeleton && !showError && !showEmpty && navigate(RouteName.SERVICE_PROVIDER_LIST)
+          !isLoading && !isError && navigate(RouteName.SERVICE_PROVIDER_LIST)
         }}
       />
       <View style={styles.backgroundContainer}>
@@ -118,36 +102,21 @@ const HomeNearServiceItem = () => {
           horizontal
           contentContainerStyle={[
             styles.flatListContainer,
-            (showError || showEmpty) && styles.fullWidth,
+            (isLoading || isError) && styles.fullWidth,
           ]}
-          data={showSkeleton ? skeletonPlaceholder : memoizedData}
+          data={servicesArr || []}
           renderItem={({ item }) =>
-            showSkeleton ? <ListItemSkeleton /> : <ListItem item={item} />
+            <ListItem item={item} />
           }
           keyExtractor={(item, index) =>
             `servicenear-${item?._id ?? index}`
           }
           ListEmptyComponent={
-            showEmpty ? (
+            !isLoading ? (
               <View style={styles.messageContainer}>
                 <AppText style={styles.messageText}>
-                  {t('home.services.notFound')}
+                  {!isError ? '' : t('home.services.notFound')}
                 </AppText>
-              </View>
-            ) : null
-          }
-          ListFooterComponent={
-            showError ? (
-              <View style={styles.messageContainer}>
-                <AppText style={styles.messageText}>
-                  {t('home.services.error')}
-                </AppText>
-                <Buttons
-                  buttonStyle={styles.retryButton}
-                  buttonTextStyle={styles.retrybuttontext}
-                  title={t('home.services.retry')}
-                  onPress={handleRetry}
-                />
               </View>
             ) : null
           }
@@ -158,7 +127,7 @@ const HomeNearServiceItem = () => {
   );
 };
 
-export default HomeNearServiceItem;
+export default HomeNearServices;
 
 const styles = StyleSheet.create({
   container: {

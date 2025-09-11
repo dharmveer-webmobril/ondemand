@@ -10,7 +10,7 @@ import ImageLoader from '../ImageLoader';
 import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import Spacing from '../Spacing';
-import AppText from '../AppText'; 
+import AppText from '../AppText';
 import { useTranslation } from 'react-i18next';
 import { useGetCategoriesQuery } from '../../redux';
 import HomeSubContainerHeader from './HomeSubContainerHeader';
@@ -50,39 +50,24 @@ const HomeCategoryItem = memo(({ name, image, catId, subCat }: any) => {
   );
 });
 
-const HomeCategory = memo(() => {
-  const {
-    data: categoryData,
-    isLoading,
-    isError,
-    refetch: refetchCategory,
-  } = useGetCategoriesQuery();
+
+
+
+
+
+const HomeCategory = memo(({ categoryData, isLoading, isError }: { categoryData: any, isLoading: boolean, isError: boolean }) => {
+
 
   const { t } = useTranslation();
 
-  const showSkeleton = isLoading;
-  const showError = !isLoading && isError;
-  const isEmpty = !isLoading && !isError && categoryData?.length === 0;
 
-  const displayData = useMemo(
-    () => (showSkeleton ? Array(6).fill(null) : categoryData),
-    [showSkeleton, categoryData]
-  );
 
   const renderItem = ({ item, index }: any) => {
-    return showSkeleton ? (
-      <SkeletonHomeCategoryItem key={`skeleton-${index}`} />
-    ) : (
-      <HomeCategoryItem
-        key={`category-${item?._id ?? index}`}
-        id={item._id}
-        name={item.label}
-        image={item.categoryImage}
-        subCat={item?.category?.subcategories || []}
-        catId={item?.value}
-      />
-    );
-
+    // return showSkeleton ? (
+    //   <SkeletonHomeCategoryItem key={`skeleton-${index}`} />
+    // ) : (
+    return
+    // );
   }
   return (
     <>
@@ -91,7 +76,7 @@ const HomeCategory = memo(() => {
         marginHori={'7%'}
         leftText={t('home.browseCategories')}
         onClick={() => {
-          !showSkeleton && !showError && !isEmpty && navigate(RouteName.CATEGORY_LIST, {
+          !isLoading && !isError && navigate(RouteName.CATEGORY_LIST, {
             title: t('home.allCategories'),
             type: 'category',
           })
@@ -102,36 +87,30 @@ const HomeCategory = memo(() => {
       <View style={styles.categoryContainer}>
         <FlatList
           horizontal
-          data={displayData}
-          renderItem={renderItem}
+          data={categoryData || []}
+          renderItem={({ item, index }) => {
+            return <HomeCategoryItem
+              key={`category-${item?._id ?? index}`}
+              id={item._id}
+              name={item.label}
+              image={item.categoryImage}
+              subCat={item?.category?.subcategories || []}
+              catId={item?.value}
+            />
+          }}
           keyExtractor={(item, index) => `category-${item?._id ?? index}`}
           contentContainerStyle={[
             styles.flatListContainer,
-            (showError || isEmpty) && styles.fullWidth,
+            (isError || isLoading) && styles.fullWidth,
           ]}
           ItemSeparatorComponent={SeparatorComponent}
           showsHorizontalScrollIndicator={false}
           ListEmptyComponent={
-            isEmpty ? (
+            !isLoading ? (
               <View style={styles.emptyContainer}>
                 <AppText style={styles.emptyText}>
-                  {t('home.category.empty')}
+                  {isError ? 'Error found' : "No shops found"}
                 </AppText>
-              </View>
-            ) : null
-          }
-          ListFooterComponent={
-            showError ? (
-              <View style={styles.errorContainer}>
-                <AppText style={styles.errorText}>
-                  {t('home.category.error')}
-                </AppText>
-                <Buttons
-                  buttonStyle={styles.retryButton}
-                  buttonTextStyle={styles.retrybuttontext}
-                  title={t('home.category.retry')}
-                  onPress={refetchCategory}
-                />
               </View>
             ) : null
           }

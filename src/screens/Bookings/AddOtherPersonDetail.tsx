@@ -185,6 +185,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   keyboardType="default"
                   color={Colors.textAppColor}
                   textColor={Colors.textAppColor}
+                  maxLength={50}
                 />
                 <AppText style={{
                   fontSize: SF(14),
@@ -192,7 +193,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   marginBottom: SH(7),
                   color: Colors.textAppColor,
                 }}>
-                  {'Mobile Number'}
+                  {t('placeholders.mobileno')}
                 </AppText>
                 <View style={styles.rowContainer}>
                   <TouchableOpacity
@@ -212,8 +213,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                       keyboardType="phone-pad"
                       color={Colors.textAppColor}
                       textColor={Colors.textAppColor}
-                      placeholder="Mobile Number"
+                      placeholder= {t('placeholders.mobileno')}
                       placeholderTextColor={Colors.lightGraytext}
+                      maxLength={15}
                     />
                   </View>
                 </View>
@@ -231,10 +233,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                 />
 
 
-
                 <TouchableOpacity onPress={() => { navigate(RouteName.ADD_ADDRESS, { prevScreen: 'other_user' }) }}>
                   <InputField
-                    label={"Select Address"}
+                    label={t('placeholders.selectAddress')}
                     value={values.address}
                     editable={false}
                     errorMessage={touched.address && errors.address ? String(errors.address) : ''}
@@ -252,7 +253,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                     handleSubmit();
                     Keyboard.dismiss();
                   }}
-                // isLoading={true}
                 />
               </>
             }}

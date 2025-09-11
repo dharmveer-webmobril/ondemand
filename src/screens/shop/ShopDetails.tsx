@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppText, Container, ImageLoader, LoadingComponent, Spacing, VectoreIcons } from '../../component';
 import { Colors, Fonts, SF, SH, SW } from '../../utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -7,41 +7,46 @@ import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from '
 import RouteName from '../../navigation/RouteName';
 import { setBookingJson, useGetAllProviderRatingsQuery, useGetProviderPortfolioQuery, useGetProviderServicesQuery, } from '../../redux';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 interface shopProps { }
-const shopDetailTabs = [
-    { id: 1, name: 'Services' },
-    { id: 2, name: 'Reviews' },
-    { id: 3, name: 'Portfolio' },
-    { id: 4, name: 'Details' },
-];
+
 
 const ShopDetails: React.FC<shopProps> = () => {
     const navigation = useNavigation<any>();
-    const [activeTab, setActiveTabs] = useState<string>('services');
+    const { t } = useTranslation();
+    const [activeTab, setActiveTabs] = useState<number>(1);
+    const [refreshing, setRefreshing] = useState<boolean>(false);
     const [confirmBookingTypeModal, setConfirmBookingTypeModal] = useState<boolean>(false);
     const route = useRoute<any>();
 
-    const { providerDetails, bookingType='' } = route?.params;
+    const { providerDetails, bookingType = '' } = route?.params;
 
     const { _id: providerId, } = providerDetails;
 
-    const { data: portFolio, isFetching: isFetchingPortfolio } = useGetProviderPortfolioQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    const { data: portFolio, isFetching: isFetchingPortfolio, refetch: refetchPortfolio } = useGetProviderPortfolioQuery({ providerId }, { refetchOnMountOrArgChange: true })
     const portFolioData = useMemo(() => portFolio?.data || [], [portFolio])
 
     // console.log('portFolioDataportFolioData', portFolioData);
 
-    const { data: serviceData, isFetching: isFetchingService } = useGetProviderServicesQuery({ providerId,bookingType }, { refetchOnMountOrArgChange: true })
+    const { data: serviceData, isFetching: isFetchingService, refetch: refetchServices } = useGetProviderServicesQuery({ providerId, bookingType }, { refetchOnMountOrArgChange: true })
     const services = useMemo(() => serviceData?.data || [], [serviceData])
 
     console.log('servicesservices', services);
 
 
-    const { data: ratingData, isFetching: isFetchingRatings } = useGetAllProviderRatingsQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    const { data: ratingData, isFetching: isFetchingRatings, refetch: refetchRatings } = useGetAllProviderRatingsQuery({ providerId }, { refetchOnMountOrArgChange: true })
 
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
     const [selectedService, setSelectedService] = useState<any>(null);
+
+    const shopDetailTabs = [
+        { id: 1, name: t('shopDetails.tabs.services') },
+        { id: 2, name: t('shopDetails.tabs.reviews') },
+        { id: 3, name: t('shopDetails.tabs.portfolio') },
+        { id: 4, name: t('shopDetails.tabs.details') },
+    ];
 
     const btnBookService = (value: any) => {
         // bookingType === 'immediate' ? setModalVisible(true) : setConfirmBookingTypeModal(true);
@@ -53,7 +58,7 @@ const ShopDetails: React.FC<shopProps> = () => {
     const getHeaderContainerStyle = () => {
         return {
             ...styles.headerContainer,
-            borderBottomWidth: activeTab === 'details' ? 0.6 : 0,
+            borderBottomWidth: activeTab === 4 ? 0.6 : 0,
         };
     };
 
@@ -75,9 +80,18 @@ const ShopDetails: React.FC<shopProps> = () => {
         else navigation.navigate(RouteName.ADD_OTHER_PERSON_DETAIL)
     }
 
+
+    // Handle pull-to-refresh
+    const onRefresh = () => {
+        setRefreshing(true);
+        Promise.all([refetchPortfolio(), refetchServices(), refetchRatings()]).finally(() => {
+            setRefreshing(false);
+        });
+    };
+
     return (
         <Container isAuth>
-            <LoadingComponent visible={isFetchingService || isFetchingPortfolio || isFetchingRatings} />
+            <LoadingComponent visible={(isFetchingService || isFetchingPortfolio || isFetchingRatings) && !refreshing} />
             <Spacing space={SH(20)} />
             <ConfirmBookingTypeModal
                 modalVisible={confirmBookingTypeModal}
@@ -120,7 +134,7 @@ const ShopDetails: React.FC<shopProps> = () => {
                         color={Colors.textHeader}
                     />
                 </TouchableOpacity>
-                {activeTab === 'details' ? <View style={styles.shopTextBlockDetails}>
+                {activeTab === 4 ? <View style={styles.shopTextBlockDetails}>
                     <AppText style={styles.shopTitle}>
                         {providerDetails?.businessName} <AppText style={styles.shopCount}>({services ? services?.length : 0})</AppText>
                     </AppText>
@@ -128,11 +142,20 @@ const ShopDetails: React.FC<shopProps> = () => {
             </View>
 
             <ScrollView
-                bounces={false}
+                bounces={true}
                 contentContainerStyle={styles.scrollContainer}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.themeDarkColor]}
+                        tintColor={Colors.themeDarkColor}
+                        title={t('shopDetails.messages.refreshing')}
+                    />
+                }
             >
-                {activeTab !== 'details' && <>
+                {activeTab !== 4 && <>
                     <View style={styles.bannerContainer}>
                         <ImageLoader
                             source={providerDetails?.bannerImage ? { uri: providerDetails.bannerImage } : null}
@@ -178,17 +201,17 @@ const ShopDetails: React.FC<shopProps> = () => {
                 <View style={styles.tabBar}>
                     {
                         shopDetailTabs.map((item, index) => {
-                            return <Pressable onPress={() => { setActiveTabs(item.name.toLowerCase()); }} key={index.toString() + 'tabs'}>
-                                <AppText style={activeTab === item.name.toLowerCase() ? styles.activeTab : styles.inactiveTab}>{item.name}</AppText>
+                            return <Pressable onPress={() => { setActiveTabs(item.id); }} key={index.toString() + 'tabs'}>
+                                <AppText style={activeTab === item.id ? styles.activeTab : styles.inactiveTab}>{item.name}</AppText>
                             </Pressable>;
                         })
                     }
                 </View>
-                {activeTab !== 'details' && <Spacing />}
-                {activeTab === 'services' && <Services data={services} onClick={(value) => btnBookService(value)} />}
-                {activeTab === 'reviews' && <Reviews ratingData={ratingData?.data} />}
-                {activeTab === 'portfolio' && <Portfolio data={portFolioData} />}
-                {activeTab === 'details' && <Details data={providerDetails} />}
+                {activeTab !== 4 && <Spacing />}
+                {activeTab === 1 && <Services data={services} onClick={(value) => btnBookService(value)} />}
+                {activeTab === 2 && <Reviews ratingData={ratingData?.data} />}
+                {activeTab === 3 && <Portfolio data={portFolioData} />}
+                {activeTab === 4 && <Details data={providerDetails} />}
                 {/* pages=========== */}
 
             </ScrollView>

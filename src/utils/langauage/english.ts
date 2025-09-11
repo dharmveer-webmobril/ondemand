@@ -37,6 +37,7 @@ export const english = {
     "password": "Password",
     "fullname": "Full Name",
     "mobileno": "Mobile Number",
+    "selectAddress": "Select Address",
     "reEnterPassword": "Re-enter Password",
     "confirmPassword": "Confirm Password",
     "currentPassword": "Current Password",
@@ -237,5 +238,97 @@ export const english = {
     "title": "Select Address",
     "addNewAdd": "Add New Address",
     "confirm": "Confirm"
+  },
+  "shop": {
+    "shopList": {
+      "specialOffers": "Special Offers",
+      "noOffersAvailable": "No offers available",
+      "noShopsFound": "No shops found",
+      "refreshing": "Refreshing content...",
+      "allSubCategory": "All"
+    },
+    "messages": {
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "shopDetails": {
+    "tabs": {
+      "services": "Services",
+      "reviews": "Reviews",
+      "portfolio": "Portfolio",
+      "details": "Details"
+    },
+    "modal": {
+      "confirmBooking": "Confirm Booking Type",
+      "currentBooking": "Continue for Current Service",
+      "routineBooking": "Routine Booking",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "routineOptions": {
+        "placeholder": "Select plan",
+        "monthly": "$25 / Monthly Routine",
+        "quarterly": "$30 / Quarterly Routine",
+        "sixMonth": "$300 / 6-Month Routine",
+        "yearly": "$500 / Yearly Routine"
+      }
+    },
+    "actions": {
+      "share": "Share",
+      "favorite": "Add to Favorites"
+    },
+    "messages": {
+      "loading": "Loading shop details...",
+      "refreshing": "Refreshing shop details...",
+      "serviceCount": "({count}) Services"
+    }
+  },
+  "bookAppointment": {
+    "headerTitle": "Book an Appointment",
+    "subHeader": "Select Member",
+    "bookButton": "Book",
+    "modal": {
+      "confirmBooking": "Confirmation",
+      "forWhomLabel": "Booking for Other",
+      "withAgent": "With ",
+      "subtotal": "Subtotal",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "loading": "Loading appointment details...",
+      "refreshing": "Refreshing appointment details...",
+      "noTeamMembers": "No team members found",
+      "error": "Error",
+      "selectSlot": "Please select a slot"
+    }
+  },
+  "paymentScreen": {
+    "headerTitle": "Book Appointment",
+    "selectedTeam": "Selected Team",
+    "popularService": "Popular Service",
+    "paymentOptions": "Payment Options",
+    "paymentMethods": {
+      "online": "Online",
+      "onsite": "Pay Onsite"
+    },
+    "paymentSummary": "Payment Summary",
+    "summary": {
+      "itemTotal": "Item Total",
+      "itemDiscount": "Item Discount",
+      "serviceFee": "Service Fee",
+      "grandTotal": "Grand Total"
+    },
+    "bookButton": "Book",
+    "processing": "Processing...",
+    "modal": {
+      "bookingSuccessful": "Booking Successful!",
+      "defaultService": "Haircut",
+      "withTeamMember": "With {fullName}",
+      "submitButton": "View Booking"
+    },
+    "messages": {
+      "loading": "Processing payment...",
+      "refreshing": "Refreshing payment details..."
+    }
   }
 }

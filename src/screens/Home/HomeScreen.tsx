@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
-import {  Colors, SF, SH, SW, useDisableGestures } from '../../utils';
+import { Colors, SF, SH, SW, useDisableGestures } from '../../utils';
 import {
   BottomBar,
   Container,
+  HomeCategory,
   HomeHeader,
-  HomeNearServiceItem,
+  HomeNearServices,
   HomeSearchBar,
   HomeSwiper,
   Spacing,
 } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
-import RouteName from '../../navigation/RouteName';
-import HomeCategory from '../../component/HomeComp/HomeCategoryItem';
+import RouteName from '../../navigation/RouteName'; 
 import useLocation from '../../utils/hooks/useLocation';
+import { useGetCategoriesQuery, useGetNearByServicesQuery } from '../../redux';
 
 const HomeScreen = () => {
   const { location, isLocationEnabled } = useLocation();
@@ -33,6 +34,10 @@ const HomeScreen = () => {
     }, []),
   );
 
+  const { data: categoryData, isLoading: isCatloading, isError, refetch: refetchCategory } = useGetCategoriesQuery();
+  const { data: servicesData, isError: isErrorService, isLoading: isServiceloading, refetch: refetchService } = useGetNearByServicesQuery();
+  
+  const servicesArr = useMemo(() => servicesData?.data || [], [servicesData]);
   return (
     <Container isAuth statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
       <HomeHeader />
@@ -42,18 +47,28 @@ const HomeScreen = () => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.mHorizontal}>
-          <HomeSearchBar showFilterIcon={true} />
+            <HomeSearchBar showFilterIcon={true} />
           </View>
           <Spacing space={SF(10)} />
           {/* Home swiper ========================= */}
           <HomeSwiper />
           <Spacing space={SF(40)} />
           {/* Category Section========================= */}
-          {/* <View style={styles.flatListWrapper}> */}
-          <HomeCategory  />
+
+          <HomeCategory
+            categoryData={categoryData}
+            isLoading={isCatloading}
+            isError={isError}
+          />
+
           <Spacing space={SF(20)} />
+
           {/* Near By Services Section ========================== */}
-          <HomeNearServiceItem />
+          <HomeNearServices
+            servicesArr={servicesArr}
+            isLoading={isServiceloading}
+            isError={isErrorService}
+          />
         </View>
       </KeyboardAwareScrollView>
       <BottomBar activeTab={RouteName.HOME} />

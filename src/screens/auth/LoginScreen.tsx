@@ -79,7 +79,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: '892821136177-ibf9ssrdfiacat3nfthjvh3jq2s8ofm6.apps.googleusercontent.com',
+      webClientId: process.env.WEB_CLIENT_ID || '', // From Google Cloud Console
       offlineAccess: false,
       scopes: [
         "email",
@@ -215,10 +215,10 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
           <View style={{ paddingVertical: SH(35), paddingHorizontal: SW(20) }}>
             <Formik
               initialValues={{
-                email: '',
-                password: '',
                 // email: '',
                 // password: '',
+                email: 'dharm@mailinator.com',
+                password: 'Qwerty@1',
               }}
               validationSchema={validationSchema}
               onSubmit={(values, { resetForm }) => {
@@ -255,6 +255,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
                     onRightIconPress={() => setpasswordVisibility(!passwordVisibility)}
                     secureTextEntry={passwordVisibility}
                     keyboardType={'default'}
+                    maxLength={20}
                   />
 
                   <Spacing space={SF(8)} />

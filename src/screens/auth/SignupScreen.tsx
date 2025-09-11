@@ -205,9 +205,10 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     onBlur={() => setFieldValue('fname', values.fname.trim())}
                     leftIcon={imagePaths.user123}
                     errorMessage={touched.fname && errors.fname && errors.fname ? errors.fname : ''}
+                    maxLength={50}
                     keyboardType="default"
                   />
-                   
+
                   <View style={styles.rowContainer}>
                     <TouchableOpacity
                       onPress={() => setIsPickerOpen(true)}
@@ -220,6 +221,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     <View style={styles.flexOne}>
                       <InputField
                         placeholder={t('placeholders.mobileno')}
+                        maxLength={15}
                         value={values.mobileno}
                         onChangeText={handleChange('mobileno')}
                         onBlur={() => setFieldValue('mobileno', values.mobileno.trim())}
@@ -256,6 +258,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     placeholder={t('placeholders.password')}
                     value={values.password}
                     onChangeText={handleChange('password')}
+                    maxLength={20}
                     onBlur={() => setFieldTouched('password')}
                     leftIcon={imagePaths.lock_icon}
                     errorMessage={touched.password && errors.password && errors.password ? errors.password : ''}
@@ -268,6 +271,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     placeholder={t('placeholders.reEnterPassword')}
                     value={values.cpassword}
                     onChangeText={handleChange('cpassword')}
+                    maxLength={20}
                     onBlur={() => setFieldTouched('cpassword')}
                     leftIcon={imagePaths.lock_icon}
                     errorMessage={touched.cpassword && errors.cpassword && errors.cpassword ? errors.cpassword : ''}
