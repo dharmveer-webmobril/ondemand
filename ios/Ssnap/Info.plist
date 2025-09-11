@@ -31,8 +31,39 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	
+	<!-- Camera -->
+	<key>NSCameraUsageDescription</key>
+	<string>Ssnap would like to access your Camera for uploading profile photos. Your photos won’t be shared without your permission.</string>
+
+	<!-- Photos -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ssnap would like to access your Photo Library to upload profile pictures. Your photos won’t be shared without permission.</string>
+
+	<!-- Microphone (if you use voice/video calls or audio recording) -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ssnap needs access to your microphone for audio recording. Your recordings will not be shared without your permission.</string>
+
+	<!-- Location -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show nearby services.</string>
+	<string>We use your location to show nearby services and providers.</string>
+
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We use your location in the background to improve service accuracy.</string>
+
+	<!-- Face ID -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>We use Face ID for quick and secure authentication.</string>
+
+	<!-- Apple Music (required because Apple detected APIs, even if you don’t use it) -->
+	<key>NSAppleMusicUsageDescription</key>
+	<string>We do not access your music. This permission is required by underlying system frameworks.</string>
+
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+	</array>
+
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>

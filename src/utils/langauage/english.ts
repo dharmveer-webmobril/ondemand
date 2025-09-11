@@ -98,7 +98,8 @@ export const english = {
       "en": "English",
       "frcd": "French (Canada)",
       "sp": "Spanish",
-      "port": "Portuguese"
+      "port": "Portuguese",
+      "hn": "Hindi"
     }
   },
   "customerSupport": {

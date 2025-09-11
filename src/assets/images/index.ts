@@ -61,6 +61,7 @@ const imagePaths = {
   france: require('./france.png'),
   spain: require('./spain.png'),
   star_f: require('./star_f.png'),
+  india: require('./india.png'),
 
 
   barber: require('./barber.png'),

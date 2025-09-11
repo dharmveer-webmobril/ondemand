@@ -6,12 +6,14 @@ import { english } from "./english";
 import { frenchCanada } from "./frenchCanada";
 import { portuguese } from "./portuguese";
 import { spanish } from "./spanish";
+import { hindi } from "./hindi";
 
 const resources = {
   en: { translation: english },
   sp: { translation: spanish },
   frcd: { translation: frenchCanada },
   pt: { translation: portuguese },
+  hn: { translation: hindi },
 };
 
 i18next

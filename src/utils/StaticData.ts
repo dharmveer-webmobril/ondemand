@@ -53,6 +53,12 @@ export const getLanguageData = () => [
     id: 4,
     image: imagePaths.portugal,
     type: 'pt',
+  },
+  {
+    name: i18next.t('languageSetting.languageList.hn'),
+    id: 4,
+    image: imagePaths.india,
+    type: 'pt',
   }
 ];
 
