@@ -43,7 +43,7 @@ import { setToken, useLoginMutation } from '../../redux';
 const SCREEN_WIDTH = Dimensions.get('window').width
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-// import { API_URL, GOOGLE_API_KEY } from '@env';
+import { API_URL } from '@env';
 const SocialButton = ({
   icon,
   onPress,
@@ -71,6 +71,7 @@ const SocialButton = ({
 type LoginProps = {};
 
 const LoginScreen: React.FC<LoginProps> = ({ }) => {
+  console.log(API_URL,'API_URLAPI_URLAPI_URLAPI_URLAPI_URL'); // ✅ works on iOS & Android
   const navigation = useNavigation<any>();
   const [passwordVisibility, setpasswordVisibility] = useState(true);
   const { t } = useTranslation();
@@ -107,6 +108,9 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
     resetForm: any
   ) => {
     try {
+
+  console.log('valuesvalues', process.env.API_URL, API_URL);
+      
       const fcmToken = await StorageProvider.getItem('fcmToken') || null;
 
       let userData = {

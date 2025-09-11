@@ -87,10 +87,10 @@ const HomeCategory = memo(({ categoryData, isLoading, isError }: { categoryData:
       <View style={styles.categoryContainer}>
         <FlatList
           horizontal
-          data={categoryData || []}
+          data={isLoading ? [1231, 234, 567, 23, 1343] : categoryData}
           renderItem={({ item, index }) => {
-            return <HomeCategoryItem
-              key={`category-${item?._id ?? index}`}
+            return isLoading ? <SkeletonHomeCategoryItem /> : <HomeCategoryItem
+              key={`homecategory-${item?._id ?? index}`}
               id={item._id}
               name={item.label}
               image={item.categoryImage}

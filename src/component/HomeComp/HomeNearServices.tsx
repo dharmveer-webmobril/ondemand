@@ -11,7 +11,6 @@ import { Colors, Fonts, navigate, SF, SH, SW } from '../../utils';
 import imagePaths from '../../assets/images';
 import AppText from '../AppText';
 import Spacing from '../Spacing';
-import Buttons from '../Button';
 import HomeSubContainerHeader from './HomeSubContainerHeader';
 import RouteName from '../../navigation/RouteName';
 import StarRating from 'react-native-star-rating-widget';
@@ -104,9 +103,10 @@ const HomeNearServices = ({ servicesArr, isLoading, isError }: { servicesArr: an
             styles.flatListContainer,
             (isLoading || isError) && styles.fullWidth,
           ]}
-          data={servicesArr || []}
-          renderItem={({ item }) =>
-            <ListItem item={item} />
+          data={isLoading ? [12, 23, 34, 45, 23] : servicesArr}
+          renderItem={({ item }) => {
+            return isLoading ? <ListItemSkeleton /> : <ListItem item={item} />
+          }
           }
           keyExtractor={(item, index) =>
             `servicenear-${item?._id ?? index}`

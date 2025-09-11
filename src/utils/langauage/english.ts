@@ -330,5 +330,52 @@ export const english = {
       "loading": "Processing payment...",
       "refreshing": "Refreshing payment details..."
     }
+  },
+  "myBookingScreen": {
+    "headerTitle": "Appointments",
+    "tabs": {
+      "myBookings": "My Bookings",
+      "otherBookings": "Other Bookings"
+    },
+    "messages": {
+      "loading": "Loading bookings...",
+      "refreshing": "Refreshing bookings...",
+      "noBookings": "No bookings found.",
+      "error": "Something went wrong"
+    }
+  },
+  "bookingDetails": {
+    "headerTitle": "Booking Details",
+    "defaultService": "Haircut",
+    "withProvider": "with ",
+    "subtotal": "Subtotal",
+    "ratingsTitle": "Ratings",
+    "tabs": {
+      "provider": "Provider",
+      "service": "Service"
+    },
+    "yourReview": "Your Review",
+    "bookAgainButton": "Book Again",
+    "map": {
+      "markerTitle": "Booking Location",
+      "markerDescription": "This is the booking location"
+    },
+    "modal": {
+      "providerReview": "Review Provider",
+      "serviceReview": "Review Service",
+      "defaultTitle": "Submit Your Review",
+      "ratingText": "{rating} / 5",
+      "reviewPlaceholder": "Write your review here...",
+      "cancelButton": "Cancel",
+      "submitButton": "Submit Review"
+    },
+    "messages": {
+      "error": "Error",
+      "providerNotFound": "Provider not found",
+      "serviceNotFound": "Service not found",
+      "reviewSubmitted": "Review submitted successfully",
+      "reviewFailed": "Failed to submit review",
+      "refreshing": "Refreshing rating details..."
+    }
   }
 }

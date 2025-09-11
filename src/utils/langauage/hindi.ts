@@ -8,7 +8,7 @@ export const hindi = {
   },
   "signup": {
     "signUpButton": "साइन अप करें",
-    "alreadyHaveAccount": "पहले से ही खाता है?",
+    "alreadyHaveAccount": "पहले से खाता है?",
     "logIn": "लॉग इन करें",
     "orText": "या",
     "termsOfService": "सेवा की शर्तें",
@@ -37,6 +37,7 @@ export const hindi = {
     "password": "पासवर्ड",
     "fullname": "पूरा नाम",
     "mobileno": "मोबाइल नंबर",
+    "selectAddress": "पता चुनें",
     "reEnterPassword": "पासवर्ड पुनः दर्ज करें",
     "confirmPassword": "पासवर्ड की पुष्टि करें",
     "currentPassword": "वर्तमान पासवर्ड",
@@ -59,7 +60,7 @@ export const hindi = {
     "passMinLength": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
     "emptyPassword": "कृपया पासवर्ड दर्ज करें।",
     "passNewMinLength": "नया पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
-    "passValid": "पासवर्ड 8 से 16 अक्षरों के बीच होना चाहिए और इसमें 1 बड़ा अक्षर, 1 छोटा अक्षर, 1 अंक और 1 विशेष चिह्न शामिल होना चाहिए।",
+    "passValid": "पासवर्ड 8 से 16 अक्षरों के बीच होना चाहिए और इसमें 1 बड़ा अक्षर, 1 छोटा अक्षर, 1 नंबर और 1 विशेष अक्षर शामिल होना चाहिए।",
     "emptyNewPassword": "कृपया नया पासवर्ड दर्ज करें।",
     "passCurrMinLength": "वर्तमान पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
     "emptyCurrPassword": "कृपया वर्तमान पासवर्ड दर्ज करें।",
@@ -73,11 +74,11 @@ export const hindi = {
     "loginFailed": "लॉगिन विफल हुआ।",
     "error": "त्रुटि",
     "acceptTermCond": "कृपया सेवा की शर्तें स्वीकार करें।",
-    "regSuccessMsg": "पंजीकरण सफल हुआ। कृपया अपने ईमेल को सत्यापित करें।",
-    "signupFailed": "साइन अप विफल हुआ।",
+    "regSuccessMsg": "पंजीकरण सफल हुआ। कृपया अपना ईमेल सत्यापित करें।",
+    "signupFailed": "साइनअप विफल हुआ।",
     "otpResendSucccess": "OTP सफलतापूर्वक पुनः भेजा गया।",
     "otpResendFailed": "OTP पुनः भेजने में विफल।",
-    "invailidOtp": "अमान्य या समाप्त हो चुका OTP।",
+    "invailidOtp": "अमान्य या समय सीमा समाप्त OTP।",
     "somethingWentWrong": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
     "success": "सफलता!",
     "doubletab": "बाहर निकलने के लिए दो बार दबाएं",
@@ -98,7 +99,8 @@ export const hindi = {
       "en": "अंग्रेजी",
       "frcd": "फ्रेंच (कनाडा)",
       "sp": "स्पेनिश",
-      "port": "पुर्तगाली"
+      "port": "पुर्तगाली",
+      "hn": "हिन्दी"
     }
   },
   "customerSupport": {
@@ -111,11 +113,11 @@ export const hindi = {
       "description": "विवरण"
     },
     "button": {
-      "submit": "जमा करें"
+      "submit": "सबमिट करें"
     },
     "messages": {
-      "success": "सहायता अनुरोध सफलतापूर्वक जमा किया गया",
-      "error": "सहायता अनुरोध जमा करने में विफल"
+      "success": "सहायता अनुरोध सफलतापूर्वक सबमिट किया गया",
+      "error": "सहायता अनुरोध सबमिट करने में विफल"
     },
     "errors": {
       "required": "कृपया इस क्षेत्र को भरें",
@@ -133,10 +135,10 @@ export const hindi = {
     "myAddress": "मेरा पता",
     "myCalendar": "मेरा कैलेंडर",
     "paymentHistory1": "भुगतान इतिहास",
-    "ratingsReviews": "रेटिंग और समीक्षा",
+    "ratingsReviews": "रेटिंग्स और समीक्षाएँ",
     "loyaltyReferralDiscounts": "वफादारी और रेफरल छूट",
     "multiLanguageCurrency": "बहु-भाषा और मुद्रा",
-    "notificationsAlerts": "सूचनाएं और अलर्ट",
+    "notificationsAlerts": "सूचनाएँ और अलर्ट",
     "customerSupport": "ग्राहक सहायता",
     "logout": "लॉगआउट",
     "profileSetup": "प्रोफाइल सेटअप",
@@ -150,17 +152,17 @@ export const hindi = {
     "retry": "पुनः प्रयास करें",
     "notFound": "कोई पता नहीं मिला",
     "addNewAddress": "नया पता जोड़ें",
-    "confirmDelete": "क्या आप इसे हटाना चाहते हैं?",
+    "confirmDelete": "क्या आप वाकई इसे हटाना चाहते हैं?",
     "deleteSuccess": "पता सफलतापूर्वक हटाया गया",
     "deleteFailure": "पता हटाने में विफल",
     "menuEdit": "संपादित करें",
-    "menuDelete": "हटाएं"
+    "menuDelete": "हटाएँ"
   },
   "addAddress": {
     "title": "पता जोड़ें",
     "edittitle": "पता संपादित करें",
     "useMyCurrentLocation": "मेरा वर्तमान स्थान उपयोग करें",
-    "makeThisDefault": "इसे डिफ़ॉल्ट बनाएं",
+    "makeThisDefault": "इसे डिफ़ॉल्ट बनाएँ",
     "editAddaddressSuccess": "पता सफलतापूर्वक अपडेट किया गया",
     "addaddressSuccess": "पता सफलतापूर्वक जोड़ा गया",
     "placeholders": {
@@ -202,33 +204,33 @@ export const hindi = {
   },
   "category": {
     "title": "श्रेणी",
-    "error": "श्रेणियां लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें।",
+    "error": "श्रेणियाँ लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें।",
     "retry": "पुनः प्रयास करें",
-    "noResults": "{{searchTerm}} के लिए कोई परिणाम नहीं मिला। कुछ अलग आज़माएं!",
+    "noResults": "{{searchTerm}} के लिए कोई परिणाम नहीं मिला। कुछ अलग आज़माएँ!",
     "goodMsg": "खोजते रहें, आपको कुछ शानदार मिलेगा!",
-    "empty": "कोई श्रेणियां उपलब्ध नहीं।"
+    "empty": "कोई श्रेणियाँ उपलब्ध नहीं।"
   },
   "homeCategory": {
-    "error": "श्रेणियां लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें।",
+    "error": "श्रेणियाँ लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें।",
     "retry": "पुनः प्रयास करें",
     "empty": "श्रेणी खाली है"
   },
   "home": {
     "categoryViewAll": "सभी देखें",
-    "browseCategories": "सभी श्रेणियां ब्राउज़ करें",
-    "allCategories": "सभी श्रेणियां",
+    "browseCategories": "सभी श्रेणियाँ ब्राउज़ करें",
+    "allCategories": "सभी श्रेणियाँ",
     "serviceViewAll": "सभी देखें",
     "nearbyServices": "आपके पास सेवा प्रदाता",
     "services": {
       "title": "सेवा प्रदाता",
-      "notFound": "कोई पास की सेवाएं उपलब्ध नहीं।",
-      "errorMessage": "सेवाएं लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें",
-      "error": "सेवाएं लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें",
+      "notFound": "कोई पास की सेवाएँ उपलब्ध नहीं।",
+      "errorMessage": "सेवाएँ लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें",
+      "error": "सेवाएँ लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें",
       "retry": "पुनः प्रयास करें"
     },
     "category": {
       "empty": "श्रेणी खाली है",
-      "error": "श्रेणियां लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें",
+      "error": "श्रेणियाँ लोड करने में विफल। पुनः प्रयास करने के लिए टैप करें",
       "retry": "पुनः प्रयास करें"
     }
   },
@@ -236,5 +238,144 @@ export const hindi = {
     "title": "पता चुनें",
     "addNewAdd": "नया पता जोड़ें",
     "confirm": "पुष्टि करें"
+  },
+  "shop": {
+    "shopList": {
+      "specialOffers": "विशेष ऑफर",
+      "noOffersAvailable": "कोई ऑफर उपलब्ध नहीं",
+      "noShopsFound": "कोई दुकानें नहीं मिलीं",
+      "refreshing": "सामग्री रीफ्रेश हो रही है...",
+      "allSubCategory": "सभी"
+    },
+    "messages": {
+      "error": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।"
+    }
+  },
+  "shopDetails": {
+    "tabs": {
+      "services": "सेवाएँ",
+      "reviews": "समीक्षाएँ",
+      "portfolio": "पोर्टफोलियो",
+      "details": "विवरण"
+    },
+    "modal": {
+      "confirmBooking": "बुकिंग प्रकार की पुष्टि करें",
+      "currentBooking": "वर्तमान सेवा के लिए जारी रखें",
+      "routineBooking": "नियमित बुकिंग",
+      "confirm": "पुष्टि करें",
+      "cancel": "रद्द करें",
+      "routineOptions": {
+        "placeholder": "योजना चुनें",
+        "monthly": "$25 / मासिक नियमित",
+        "quarterly": "$30 / त्रैमासिक नियमित",
+        "sixMonth": "$300 / 6-महीने नियमित",
+        "yearly": "$500 / वार्षिक नियमित"
+      }
+    },
+    "actions": {
+      "share": "साझा करें",
+      "favorite": "पसंदीदा में जोड़ें"
+    },
+    "messages": {
+      "loading": "दुकान विवरण लोड हो रहा है...",
+      "refreshing": "दुकान विवरण रीफ्रेश हो रहा है...",
+      "serviceCount": "({count}) सेवाएँ"
+    }
+  },
+  "bookAppointment": {
+    "headerTitle": "नियुक्ति बुक करें",
+    "subHeader": "सदस्य चुनें",
+    "bookButton": "बुक करें",
+    "modal": {
+      "confirmBooking": "पुष्टि",
+      "forWhomLabel": "किसी और के लिए बुकिंग",
+      "withAgent": "के साथ",
+      "subtotal": "उप-योग",
+      "confirm": "पुष्टि करें",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "loading": "नियुक्ति विवरण लोड हो रहा है...",
+      "refreshing": "नियुक्ति विवरण रीफ्रेश हो रहा है...",
+      "noTeamMembers": "कोई टीम सदस्य नहीं मिले",
+      "error": "त्रुटि",
+      "selectSlot": "कृपया एक स्लॉट चुनें"
+    }
+  },
+  "paymentScreen": {
+    "headerTitle": "नियुक्ति बुक करें",
+    "selectedTeam": "चयनित टीम",
+    "popularService": "लोकप्रिय सेवा",
+    "paymentOptions": "भुगतान विकल्प",
+    "paymentMethods": {
+      "online": "ऑनलाइन",
+      "onsite": "साइट पर भुगतान"
+    },
+    "paymentSummary": "भुगतान सारांश",
+    "summary": {
+      "itemTotal": "आइटम कुल",
+      "itemDiscount": "आइटम छूट",
+      "serviceFee": "सेवा शुल्क",
+      "grandTotal": "कुल योग"
+    },
+    "bookButton": "बुक करें",
+    "processing": "प्रसंस्करण...",
+    "modal": {
+      "bookingSuccessful": "बुकिंग सफल!",
+      "defaultService": "हेयरकट",
+      "withTeamMember": "{fullName} के साथ",
+      "submitButton": "बुकिंग देखें"
+    },
+    "messages": {
+      "loading": "भुगतान संसाधित हो रहा है...",
+      "refreshing": "भुगतान विवरण रीफ्रेश हो रहा है..."
+    }
+  },
+  "myBookingScreen": {
+    "headerTitle": "नियुक्तियाँ",
+    "tabs": {
+      "myBookings": "मेरी बुकिंग्स",
+      "otherBookings": "अन्य बुकिंग्स"
+    },
+    "messages": {
+      "loading": "बुकिंग्स लोड हो रही हैं...",
+      "refreshing": "बुकिंग्स रीफ्रेश हो रही हैं...",
+      "noBookings": "कोई बुकिंग्स नहीं मिलीं।",
+      "error": "कुछ गलत हो गया"
+    }
+  },
+  "bookingDetails": {
+    "headerTitle": "बुकिंग विवरण",
+    "defaultService": "हेयरकट",
+    "withProvider": "के साथ",
+    "subtotal": "उप-योग",
+    "ratingsTitle": "रेटिंग्स",
+    "tabs": {
+      "provider": "प्रदाता",
+      "service": "सेवा"
+    },
+    "yourReview": "आपकी समीक्षा",
+    "bookAgainButton": "फिर से बुक करें",
+    "map": {
+      "markerTitle": "बुकिंग स्थान",
+      "markerDescription": "यह बुकिंग स्थान है"
+    },
+    "modal": {
+      "providerReview": "प्रदाता की समीक्षा",
+      "serviceReview": "सेवा की समीक्षा",
+      "defaultTitle": "अपनी समीक्षा सबमिट करें",
+      "ratingText": "{rating} / 5",
+      "reviewPlaceholder": "यहाँ अपनी समीक्षा लिखें...",
+      "cancelButton": "रद्द करें",
+      "submitButton": "समीक्षा सबमिट करें"
+    },
+    "messages": {
+      "error": "त्रुटि",
+      "providerNotFound": "प्रदाता नहीं मिला",
+      "serviceNotFound": "सेवा नहीं मिली",
+      "reviewSubmitted": "समीक्षा सफलतापूर्वक सबमिट की गई",
+      "reviewFailed": "समीक्षा सबमिट करने में विफल",
+      "refreshing": "रेटिंग विवरण रीफ्रेश हो रहा है..."
+    }
   }
 }

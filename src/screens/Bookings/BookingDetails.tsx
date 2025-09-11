@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Colors, SH, SW, Fonts, SF, handleSuccessToast, handleApiError, handleApiFailureResponse, getPriceDetails } from '../../utils';
 import {
   AppHeader,
@@ -25,12 +25,16 @@ import {
   useGetRatingForServiceQuery,
 } from '../../redux';
 import MapView, { Marker } from 'react-native-maps';
+import { useTranslation } from 'react-i18next';
 
 
 const BookingDetails: React.FC = () => {
+  const { t } = useTranslation();
+
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTabs] = useState(1);
   const [isForProvider, setIsForProvider] = useState(true); // Track whether the review is for provider or service
+  const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -43,7 +47,7 @@ const BookingDetails: React.FC = () => {
 
   let serviceName = bookingDetail?.service?.serviceName || '';
 
-  let shopaName =    bookingDetail?.provider?.businessName || '';
+  let shopaName = bookingDetail?.provider?.businessName || '';
   let fromService = bookingDetail?.member?.fullName || bookingDetail?.provider?.fullName || '';
 
   // Determine latitude and longitude from addressData.location.coordinates, fallback to default
@@ -56,7 +60,7 @@ const BookingDetails: React.FC = () => {
   const [submitServiceReview, { isLoading: isServiceReviewLoading }] = useAddRatingReviewForServiceMutation(); // form data
   const [submitProviderReview, { isLoading: isProviderReviewLoading }] = useAddRatingReviewForProviderMutation(); // json
 
-   let servicePrice = bookingDetail?.bookingDetails?.checkoutPrice || bookingDetail?.service?.price || 0;
+  let servicePrice = bookingDetail?.bookingDetails?.checkoutPrice || bookingDetail?.service?.price || 0;
 
   const {
     data: ratingForProvider,
@@ -74,11 +78,25 @@ const BookingDetails: React.FC = () => {
 
   console.log('ratingForProviderData', ratingForProviderData, 'ratingForServiceData', ratingForServiceData);
 
+
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchRatingForProvider(), refetchRatingForService()]);
+    } catch (error) {
+      console.error('Refresh failed:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+
   const handleSubmitProviderReview = async (rating: number, review: string) => {
     if (!provider?._id) {
       showAppToast({
-        title: 'Error',
-        message: 'Provider not found',
+        title: t('bookingDetails.messages.error'),
+        message: t('bookingDetails.messages.providerNotFound'),
         type: 'error',
       });
       return;
@@ -107,8 +125,8 @@ const BookingDetails: React.FC = () => {
   const handleSubmitServiceReview = async (rating: number, review: string) => {
     if (!service?._id) {
       showAppToast({
-        title: 'Error',
-        message: 'Service not found',
+        title: t('bookingDetails.messages.error'),
+        message: t('bookingDetails.messages.serviceNotFound'),
         type: 'error',
       });
       return;
@@ -153,9 +171,10 @@ const BookingDetails: React.FC = () => {
         onClose={() => setModalVisible(false)}
         onSubmit={handleSubmitReview}
         btnLoading={isServiceReviewLoading || isProviderReviewLoading}
+        title={t(isForProvider ? 'bookingDetails.modal.providerReview' : 'bookingDetails.modal.serviceReview')}
       />
       <AppHeader
-        headerTitle="WM Barbershop"
+        headerTitle={t('bookingDetails.headerTitle')}
         onPress={() => {
           navigation.goBack();
         }}
@@ -164,7 +183,15 @@ const BookingDetails: React.FC = () => {
         titleStyle={styles.headerTitleStyle}
       />
 
-      <ScrollView>
+      <ScrollView refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[Colors.themeDarkColor]}
+          tintColor={Colors.themeDarkColor}
+          title={t('bookingDetails.messages.refreshing')}
+        />
+      }>
         <View style={styles.mapImage}>
           <MapView
             style={{ flex: 1 }}
@@ -180,8 +207,8 @@ const BookingDetails: React.FC = () => {
           >
             <Marker
               coordinate={{ latitude, longitude }}
-              title="My Marker"
-              description="This is a marker"
+              title={t('bookingDetails.map.markerTitle')}
+              description={t('bookingDetails.map.markerDescription')}
             />
           </MapView>
         </View>
@@ -191,7 +218,7 @@ const BookingDetails: React.FC = () => {
           <View style={styles.shopTextBlock}>
             <AppText style={styles.shopTitle}>
               {shopaName || ''}{' '}
-              <AppText style={styles.shopCount}>with {fromService || ''}</AppText>
+              <AppText style={styles.shopCount}>       {t('bookingDetails.withProvider')} {fromService || ''}</AppText>
             </AppText>
             <AppText style={styles.shopAddress}>
               {addressSummery || ''}
@@ -209,17 +236,17 @@ const BookingDetails: React.FC = () => {
 
         <View style={styles.serviceContainer}>
           <BookingServiceItem
-            subtitles={`With ${fromService}`}
+            subtitles={`${t('bookingDetails.withProvider')} ${fromService}`}
             time="8:00 am - 8:30 am"
             title={service?.serviceName}
             price={`$${servicePrice}`}
           />
 
-          <BookingServiceItem title="Subtotal"     price={`$${servicePrice}`} />
+          <BookingServiceItem title="Subtotal" price={`$${servicePrice}`} />
         </View>
 
         <View style={styles.ratingsContainer}>
-          <AppText style={styles.addTipButton}>Ratings</AppText>
+          <AppText style={styles.addTipButton}>{t('bookingDetails.ratingsTitle')}</AppText>
           <TabTop
             activeTab={activeTab}
             changeTab={(val: any) => setActiveTabs(val)}
@@ -227,7 +254,7 @@ const BookingDetails: React.FC = () => {
           />
 
           <View style={styles.reviewBox}>
-            <AppText style={styles.reviewHeading}>Your review</AppText>
+            <AppText style={styles.reviewHeading}>{t('bookingDetails.yourReview')}</AppText>
             <Divider height={1} color="#0000000D" marginTop={10} />
 
             <RatingReviewComponent
@@ -245,7 +272,7 @@ const BookingDetails: React.FC = () => {
 
       <Buttons
         onPress={() => { }}
-        title="Book Again"
+        title={t('bookingDetails.bookAgainButton')}
         buttonStyle={styles.bookAgainButton}
       />
     </Container>
