@@ -26,7 +26,7 @@ const ListItem = ({ item }: { item: any }) => {
   const summary = [location?.address, location?.city, location?.state].filter(Boolean).join(', ') || "Unknown";
   return (
     <Pressable
-      onPress={() => { navigate(RouteName.SHOP_DETAILS, { bookingType: 'bookingType', providerDetails: item }); }}
+      onPress={() => { navigate(RouteName.SHOP_DETAILS, { bookingType: 'bookingType', providerDetails: item?._id }); }}
       style={styles.container}
     >
       <View style={styles.header}>

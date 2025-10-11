@@ -19,7 +19,7 @@ LogBox.ignoreLogs([
 ]);
 Geocoder.init("AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s"); // replace with your key
 const App = () => {
-console.log(process.env.GOOGLE_MAP_KEY,'process.env.GOOGLE_MAP_KEY');
+// console.log(process.env.GOOGLE_MAP_KEY,'process.env.GOOGLE_MAP_KEY');
 
   useEffect(() => {
     init()

@@ -34,6 +34,7 @@ export const ENDPOINTS = {
   GET_RATING_FOR_SERVICE: "/booking/get-service-by-booking-id",
   GET_RATING_FOR_PROVIDER: "/auth/get-provider-rating-by-booking",
   GET_PROVIDER_PORTFOLIO: "/auth/get-portfolio",
+  GET_PROVIDER_PROFILE: "/auth/get-provider-by-id",
   GET_PROVIDER_SERVICES: "/service/get-services-by-providerId",
   GET_ALL_RATING_PROVIDER: "/auth/provider-review-rating",
 };

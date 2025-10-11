@@ -10,13 +10,13 @@ import RouteName from '../../navigation/RouteName';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
-interface shopProps {}
+interface shopProps { }
 
 const SeparatorComponent = () => <Spacing space={SH(10)} />;
 const SeparatorComponentSpecialOffer = () => <Spacing horizontal space={SH(15)} />;
 
 const ShopList: React.FC<shopProps> = () => {
-  const { t } = useTranslation(); // Initialize translation hook
+  const { t } = useTranslation(); 
   const route = useRoute<any>();
   const { subCats = [], catName = '', catId } = route?.params;
 
@@ -90,11 +90,18 @@ const ShopList: React.FC<shopProps> = () => {
   }
 
   // Handle pull-to-refresh
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    Promise.all([getProviderList(), getSppecialOffer()]).finally(() => {
+    try {
+      await Promise.all([
+        getProviderList(),
+        getSppecialOffer(),
+      ]);
+    } catch (error) {
+      console.error('Refresh error:', error);
+    } finally {
       setRefreshing(false);
-    });
+    }
   };
 
   const listHeader = () => (
@@ -150,7 +157,7 @@ const ShopList: React.FC<shopProps> = () => {
                     image={item?.bannerImage ? { uri: item?.bannerImage } : imagePaths?.no_image}
                     name={item?.fullName}
                     onClick={() => {
-                      navigate(RouteName.SHOP_DETAILS, { bookingType: 'special', providerDetails: item });
+                      navigate(RouteName.SHOP_DETAILS, { bookingType: 'special', providerId: item?._id });
                     }}
                   />
                 );

@@ -20,7 +20,7 @@ const Shops: React.FC<ShopsProps> = ({ item, bookingType = null }) => {
     return (
         <Pressable
             onPress={() => {
-                navigation.navigate(RouteName.SHOP_DETAILS, { bookingType: bookingType, providerDetails: item });
+                navigation.navigate(RouteName.SHOP_DETAILS, {  providerId: item?._id });
             }}
         >
             <View style={styles.topImagesWrapper}>

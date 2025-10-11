@@ -163,6 +163,15 @@ export const serviceApi = api.injectEndpoints({
         };
       },
     }),
+    getProviderProfile: builder.query<any, { providerId: string }>({
+      query: ({ providerId }) => {
+        let url = `${ENDPOINTS.GET_PROVIDER_PROFILE}/${providerId}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+    }),
     getProviderServices: builder.query<any, { providerId: string, bookingType: string | null }>({
       query: ({ providerId, bookingType }) => {
         let url = `${ENDPOINTS.GET_PROVIDER_SERVICES}/${providerId}`;
@@ -206,6 +215,7 @@ export const {
   useGetRatingForProviderQuery,
   useGetRatingForServiceQuery,
   useGetProviderPortfolioQuery,
+  useGetProviderProfileQuery,
   useGetProviderServicesQuery,
   useGetAllProviderRatingsQuery
 } = serviceApi;

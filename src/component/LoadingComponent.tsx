@@ -5,6 +5,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface LoadingComponentProps {
   visible: boolean;

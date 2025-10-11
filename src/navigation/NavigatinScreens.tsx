@@ -54,8 +54,22 @@ import { navigationRef } from '../utils';
 const Stack = createNativeStackNavigator();
 
 export const NavigatinScreens = () => {
+  const linking = {
+    prefixes: ['ondemanduser://'],
+    config: {
+      initialRouteName: 'HomeScreen',
+      screens: {
+        Profile: { 
+          path: 'profile/:personId' //this the path after url which we send npx uri-scheme open ondemanduser://profile/123 --android
+        },
+        Details: {
+          path: 'details/:personId'
+        }
+      }
+    }
+  };
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {/* <Stack.Screen name={'PromotionCreation'} component={PromotionCreation} /> */}
 

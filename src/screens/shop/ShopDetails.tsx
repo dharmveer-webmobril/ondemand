@@ -5,7 +5,7 @@ import { Colors, Fonts, SF, SH, SW } from '../../utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ConfirmBookingTypeModal, Details, Portfolio, Reviews, Services } from '../../component';
 import RouteName from '../../navigation/RouteName';
-import { setBookingJson, useGetAllProviderRatingsQuery, useGetProviderPortfolioQuery, useGetProviderServicesQuery, } from '../../redux';
+import { setBookingJson, useGetAllProviderRatingsQuery, useGetProviderPortfolioQuery, useGetProviderProfileQuery, useGetProviderServicesQuery, } from '../../redux';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
@@ -18,11 +18,19 @@ const ShopDetails: React.FC<shopProps> = () => {
     const [activeTab, setActiveTabs] = useState<number>(1);
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [confirmBookingTypeModal, setConfirmBookingTypeModal] = useState<boolean>(false);
+    const [providerDetails, setProviderDetails] = useState<any>(null);
     const route = useRoute<any>();
 
-    const { providerDetails, bookingType = '' } = route?.params;
+    const { providerId, bookingType = '' } = route?.params;
 
-    const { _id: providerId, } = providerDetails;
+   const { data: providerProfile, isFetching: is, refetch: refetChProvider } = useGetProviderProfileQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    React.useEffect(() => {
+        console.log('providerProfileproviderProfile', providerProfile);
+        if (providerProfile?.success && providerProfile?.data) {
+            setProviderDetails(providerProfile?.data)
+        }
+    }, [providerProfile])
+    console.log('providerDetailsproviderDetails', providerDetails);
 
     const { data: portFolio, isFetching: isFetchingPortfolio, refetch: refetchPortfolio } = useGetProviderPortfolioQuery({ providerId }, { refetchOnMountOrArgChange: true })
     const portFolioData = useMemo(() => portFolio?.data || [], [portFolio])
@@ -36,6 +44,8 @@ const ShopDetails: React.FC<shopProps> = () => {
 
 
     const { data: ratingData, isFetching: isFetchingRatings, refetch: refetchRatings } = useGetAllProviderRatingsQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    
+    console.log('ratingDataratingData', ratingData);
 
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
@@ -82,11 +92,15 @@ const ShopDetails: React.FC<shopProps> = () => {
 
 
     // Handle pull-to-refresh
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        Promise.all([refetchPortfolio(), refetchServices(), refetchRatings()]).finally(() => {
+        try {
+            await Promise.all([refetchPortfolio(), refetchServices(), refetchRatings()]);
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
             setRefreshing(false);
-        });
+        }
     };
 
     return (
