@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 import {
   Pressable,
   ActivityIndicator,
@@ -7,9 +7,9 @@ import {
   TextStyle,
   ViewStyle,
   View,
-} from "react-native";
-import { Fonts, SF,  SW, Colors, boxShadow, boxShadowlight } from "../utils";
-import AppText from "./AppText";
+} from 'react-native';
+import { Fonts, SF, SW, Colors, boxShadow, boxShadowlight } from '../utils';
+import AppText from './AppText';
 
 type ButtonsProps = {
   title?: string;
@@ -23,19 +23,23 @@ type ButtonsProps = {
   linearGradientProps?: object;
   textColor?: string;
   isExtraBoxShadow?: boolean;
+  isBordered?: boolean;
+  paddingHorizontal?: any
 };
 
 const Buttons: React.FC<ButtonsProps> = ({
-  title = "",
-  onPress = () => {},
+  title = '',
+  onPress = () => { },
   isLoading = false,
   buttonStyle = {},
   disable = false,
   buttonTextStyle = {},
   icon,
   spacedImages = false,
-  textColor = "#ffffff",
+  textColor = '#ffffff',
   isExtraBoxShadow = true,
+  isBordered = false,
+  paddingHorizontal = ''
 }) => {
   const isButtonDisabled = disable || isLoading;
 
@@ -47,11 +51,11 @@ const Buttons: React.FC<ButtonsProps> = ({
             ? `${Colors.themeColor}80` // 50% opacity
             : Colors.themeColor,
           height: SF(42),
-          width: "100%",
+          ...(paddingHorizontal ? { paddingHorizontal } : { width: '100%' }),
           borderRadius: 10,
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "row",
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
         },
         buttonTextStyle: {
           color: textColor || Colors.textWhite,
@@ -59,16 +63,16 @@ const Buttons: React.FC<ButtonsProps> = ({
           fontSize: SF(18),
         },
         buttonViewStyle: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: spacedImages ? "space-around" : "center",
-          width: "100%",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: spacedImages ? 'space-around' : 'center',
+          ...(paddingHorizontal ? { paddingHorizontal } : { width: '100%' }),
         },
         LeftImageViewStyle: {
           marginVertical: SW(5),
         },
       }),
-    [disable, spacedImages, textColor]
+    [disable, spacedImages, textColor],
   );
 
   return (
@@ -76,18 +80,23 @@ const Buttons: React.FC<ButtonsProps> = ({
       onPress={!isButtonDisabled ? onPress : undefined}
       style={({ pressed }) => [
         styles.buttonStyle,
-        isExtraBoxShadow ? boxShadow : boxShadowlight,
+        !isBordered && boxShadow,
         buttonStyle,
         pressed && !isButtonDisabled && { opacity: 0.8 },
       ]}
       disabled={isButtonDisabled}
     >
       {isLoading ? (
-        <ActivityIndicator size="small" color={textColor || Colors.themeColor} />
+        <ActivityIndicator
+          size="small"
+          color={textColor || Colors.themeColor}
+        />
       ) : (
         <View style={styles.buttonViewStyle}>
           {icon && <View style={styles.LeftImageViewStyle}>{icon}</View>}
-          <AppText style={[styles.buttonTextStyle, buttonTextStyle]}>{title}</AppText>
+          <AppText style={[styles.buttonTextStyle, buttonTextStyle]}>
+            {title}
+          </AppText>
         </View>
       )}
     </Pressable>

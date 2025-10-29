@@ -89,7 +89,6 @@ const InputField: React.FC<InputFieldProps> = ({
                     borderColor: color,
                     borderRadius: SF(10),
                     paddingHorizontal: SF(10),
-                    paddingVertical: SH(3.6),
                     backgroundColor: withBackground ? "#fff" : "transparent",
                     ...inputContainer
                 },

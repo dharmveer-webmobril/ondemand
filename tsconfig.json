@@ -12,13 +12,13 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "types": ["@env"]
+    "noEmit": true
   },
   "include": [
     "src/**/*",
     "App.tsx",
-    "index.js"
+    "index.js",
+    "env.d.ts"
   ],
   "exclude": [
     "node_modules"

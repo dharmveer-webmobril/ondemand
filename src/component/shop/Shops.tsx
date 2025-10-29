@@ -9,10 +9,10 @@ import Shimmer from '../Shimmer';
 interface ShopsProps {
     item: any;
     index: number;
-    bookingType?: string
+ 
 }
 
-const Shops: React.FC<ShopsProps> = ({ item, bookingType = null }) => {
+const Shops: React.FC<ShopsProps> = ({ item  }) => {
     const navigation = useNavigation<any>();
     console.log('item?.bannerImage', item?.bannerImage);
     const addressData = item?.location || {};

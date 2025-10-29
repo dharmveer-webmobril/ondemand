@@ -39,11 +39,9 @@ import { useNavigation } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { setToken, useLoginMutation } from '../../redux';
+import { setToken, setUserProfileData, useLoginMutation } from '../../redux';
 const SCREEN_WIDTH = Dimensions.get('window').width
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-
-import { API_URL } from '@env';
 const SocialButton = ({
   icon,
   onPress,
@@ -71,7 +69,6 @@ const SocialButton = ({
 type LoginProps = {};
 
 const LoginScreen: React.FC<LoginProps> = ({ }) => {
-  console.log(API_URL,'API_URLAPI_URLAPI_URLAPI_URLAPI_URL'); // ✅ works on iOS & Android
   const navigation = useNavigation<any>();
   const [passwordVisibility, setpasswordVisibility] = useState(true);
   const { t } = useTranslation();
@@ -80,7 +77,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: process.env.WEB_CLIENT_ID || '', // From Google Cloud Console
+      webClientId: process.env.WEB_CLIENT_ID || '',
       offlineAccess: false,
       scopes: [
         "email",
@@ -108,11 +105,8 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
     resetForm: any
   ) => {
     try {
-
-  console.log('valuesvalues', process.env.API_URL, API_URL);
-      
+          
       const fcmToken = await StorageProvider.getItem('fcmToken') || null;
-
       let userData = {
         email: values.email,
         password: values.password,
@@ -120,41 +114,7 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
         "roleType": "user"
       };
 
-      console.log('userDatauserData', userData)
       const response = await login(userData).unwrap();
-      console.log('responseresponse', response);
-
-      // if (response.success) {
-      //   const token = response.data.accessToken;
-
-      //   if (response.data.isStatus) {
-
-      //     dispatch(setToken({ token }));
-      //     StorageProvider.saveItem('token', token);
-      //     resetForm()
-
-      //     setTimeout(() => {
-      //       navigation.navigate(RouteName.HOME);
-      //     }, 300);
-      //     // handleSuccessToast(response.message || 'Login successful');
-
-      //   } else if (response.data.otp) {
-      //     handleSuccessToast(response.message || t('messages.otpSendTomail'));
-
-      //     navigation.navigate(RouteName.OTP_VERIFY, {
-      //       fromScreen: 'signup',
-      //       userToken: token,
-      //       otp: response.data.otp,
-      //       email: values.email,
-      //     });
-
-      //   } else {
-      //     handleApiFailureResponse(response, t('messages.accNotVerified'));
-      //   }
-
-      // } else {
-      //   handleApiFailureResponse(response, t('messages.loginFailed'));
-      // }
 
       if (response.success) {
         const token = response.data.accessToken;
@@ -168,14 +128,13 @@ const LoginScreen: React.FC<LoginProps> = ({ }) => {
             email: values.email,
           });
         } else if (response.data.user.status === 'active') {
+          console.log('response.data.user', response.data.user);
           dispatch(setToken({ token }));
           StorageProvider.saveItem('token', token);
           resetForm()
-
           setTimeout(() => {
             navigation.navigate(RouteName.HOME);
           }, 300);
-
         } else {
           handleApiFailureResponse(response, t('messages.loginFailed'));
         }

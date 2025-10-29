@@ -9,6 +9,7 @@ import { getProvidersByCatAndSubcat, getSpecialOffers } from '../../redux';
 import RouteName from '../../navigation/RouteName';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import NodataFoundUi from '../../component/NodataFoundUi';
 
 interface shopProps { }
 
@@ -16,7 +17,7 @@ const SeparatorComponent = () => <Spacing space={SH(10)} />;
 const SeparatorComponentSpecialOffer = () => <Spacing horizontal space={SH(15)} />;
 
 const ShopList: React.FC<shopProps> = () => {
-  const { t } = useTranslation(); 
+  const { t } = useTranslation();
   const route = useRoute<any>();
   const { subCats = [], catName = '', catId } = route?.params;
 
@@ -157,19 +158,22 @@ const ShopList: React.FC<shopProps> = () => {
                     image={item?.bannerImage ? { uri: item?.bannerImage } : imagePaths?.no_image}
                     name={item?.fullName}
                     onClick={() => {
-                      navigate(RouteName.SHOP_DETAILS, { bookingType: 'special', providerId: item?._id });
+                      navigate(RouteName.SHOP_DETAILS, { isSpecialOffer: 'yes', providerId: item?._id });
                     }}
                   />
                 );
               }}
               ListEmptyComponent={
-                !isSpecialLoading ? (
-                  <View style={styles.emptyContainer1}>
-                    <AppText style={styles.emptyText1}>
-                      {isSpecialOfferError ? isSpecialOfferError : t('shop.shopList.noOffersAvailable')}
-                    </AppText>
-                  </View>
-                ) : null
+                !isSpecialLoading ?
+                  <NodataFoundUi
+                    height={SW(60)}
+                    width={SW(60)}
+                    isError={isSpecialOfferError}
+                    messageText={isSpecialOfferError ? isSpecialOfferError : t('shop.shopList.noOffersAvailable')}
+                  />
+                  :
+                  null
+
               }
             />
           </View>
@@ -183,16 +187,19 @@ const ShopList: React.FC<shopProps> = () => {
           contentContainerStyle={styles.flatListRecommended}
           ListHeaderComponent={listHeader}
           renderItem={({ item, index }) => {
-            return isShopLoading ? <ShopsSkeleton /> : <Shops item={item} index={index} bookingType={'bookingType'} />;
+            return isShopLoading ? <ShopsSkeleton /> : <Shops item={item} index={index} />;
           }}
+
           ListEmptyComponent={
-            !isShopLoading ? (
-              <View style={styles.emptyContainer}>
-                <AppText style={styles.emptyText}>
-                  {isShopError ? isShopError : t('shop.shopList.noShopsFound')}
-                </AppText>
-              </View>
-            ) : null
+            !isShopLoading ? <View style={styles.emptyContainer}>
+              <NodataFoundUi
+                height={SW(60)}
+                width={SW(60)}
+                isError={isShopError}
+                messageText={isShopError ? isShopError : t('shop.shopList.noShopsFound')}
+              />
+            </View> :
+              null
           }
         />
       </KeyboardAwareScrollView>

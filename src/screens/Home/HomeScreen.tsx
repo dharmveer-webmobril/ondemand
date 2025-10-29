@@ -20,7 +20,6 @@ import { useGetCategoriesQuery, useGetNearByServicesQuery } from '../../redux';
 const HomeScreen = () => {
   const { location, isLocationEnabled } = useLocation();
   console.log('locationlocation', location, isLocationEnabled);
-  // console.log('errorerror', error);
 
   useDisableGestures();
   useFocusEffect(

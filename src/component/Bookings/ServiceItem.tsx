@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Keyboard } from 'react-native';
+import { View, StyleSheet, Pressable, Keyboard, TouchableOpacity } from 'react-native';
 import { arrangePrice, boxShadow, Colors, commonStyles, Fonts, getPriceDetails, SF, SH, SW } from '../../utils';
 import { AppText, Buttons, ImageLoader } from '../../component';
 import moment from 'moment';
@@ -12,10 +12,12 @@ interface ServiceItemProps {
     time?: string;
     price?: string;
     type?: string;
+    isDeleteShow?: boolean;
 }
 
-const ServiceItem: React.FC<ServiceItemProps> = ({ item, onClick, type = 'service-item', time, price, title, subtitles }) => {
+const ServiceItem: React.FC<ServiceItemProps> = ({ item, onClick, type = 'service-item', time, price, title, subtitles, isDeleteShow }) => {
     // Common function to get price details
+    console.log(item);
 
     const { displayPrice, originalPrice, showDiscountedPrice, discountLabel } = getPriceDetails(item);
 
@@ -44,15 +46,11 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ item, onClick, type = 'servic
                             </>
                         )}
                     </View>
-                    {/* <Buttons
-                        buttonStyle={styles.bookBtn}
-                        textColor={Colors.textWhite}
-                        isExtraBoxShadow={false}
-                        title={'Book'}
-                        buttonTextStyle={styles.bookText}
-                        onPress={onClick}
-                    /> */}
                 </View>
+                {isDeleteShow && <TouchableOpacity
+                    style={{ position: "absolute", width: SW(25), height: SW(25), borderRadius: SW(12.5), backgroundColor: Colors.themeColor, top: -5, right: -5 }}
+                    onPress={onClick}
+                />}
             </View>
         );
     }

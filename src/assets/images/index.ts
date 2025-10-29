@@ -94,6 +94,8 @@ const imagePaths = {
   mute_icon: require('./mute_icon.png'),
   feedback_icon: require('./feedback_icon.png'),
   no_image: require('./no_image.jpg'),
+  error: require('./error.png'),
+  empty_item: require('./empty.png'),
   defaultUser: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
   no_user_img: require('./no_user_img.png'),
 };

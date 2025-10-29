@@ -16,7 +16,6 @@ const SeparatorComponent = () => <View style={styles.itemSeparator} />;
 const Services: FC<servicesInterface> = ({ onClick, data }) => {
     const renderItem = ({ item }: any) => {
         const { displayPrice, originalPrice, showDiscountedPrice, discountLabel } = getPriceDetails(item);
-
         return (
             <View style={styles.serviceItem}>
                 <View>
@@ -35,9 +34,9 @@ const Services: FC<servicesInterface> = ({ onClick, data }) => {
                                         {originalPrice || arrangePrice(0, item?.priceType || 'fixed')}
                                     </AppText>
                                 </AppText>
-                                {/* <AppText style={styles.discountText}>
+                                {discountLabel && <AppText style={styles.discountText}>
                                     Save {discountLabel} Off
-                                </AppText> */}
+                                </AppText>}
                             </>
                         )}
                     </View>

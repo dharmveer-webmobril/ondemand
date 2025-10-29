@@ -21,31 +21,26 @@ const ShopDetails: React.FC<shopProps> = () => {
     const [providerDetails, setProviderDetails] = useState<any>(null);
     const route = useRoute<any>();
 
-    const { providerId, bookingType = '' } = route?.params;
+    const { providerId, isSpecialOffer = '' } = route?.params;
 
-   const { data: providerProfile, isFetching: is, refetch: refetChProvider } = useGetProviderProfileQuery({ providerId }, { refetchOnMountOrArgChange: true })
+    const { data: providerProfile, isFetching: is, refetch: refetChProvider } = useGetProviderProfileQuery({ providerId }, { refetchOnMountOrArgChange: true })
     React.useEffect(() => {
-        console.log('providerProfileproviderProfile', providerProfile);
         if (providerProfile?.success && providerProfile?.data) {
             setProviderDetails(providerProfile?.data)
         }
     }, [providerProfile])
-    console.log('providerDetailsproviderDetails', providerDetails);
 
     const { data: portFolio, isFetching: isFetchingPortfolio, refetch: refetchPortfolio } = useGetProviderPortfolioQuery({ providerId }, { refetchOnMountOrArgChange: true })
     const portFolioData = useMemo(() => portFolio?.data || [], [portFolio])
 
-    // console.log('portFolioDataportFolioData', portFolioData);
 
-    const { data: serviceData, isFetching: isFetchingService, refetch: refetchServices } = useGetProviderServicesQuery({ providerId, bookingType }, { refetchOnMountOrArgChange: true })
+    const { data: serviceData, isFetching: isFetchingService, refetch: refetchServices } = useGetProviderServicesQuery({ providerId, bookingType:isSpecialOffer }, { refetchOnMountOrArgChange: true })
     const services = useMemo(() => serviceData?.data || [], [serviceData])
 
-    console.log('servicesservices', services);
 
 
     const { data: ratingData, isFetching: isFetchingRatings, refetch: refetchRatings } = useGetAllProviderRatingsQuery({ providerId }, { refetchOnMountOrArgChange: true })
-    
-    console.log('ratingDataratingData', ratingData);
+
 
     const addressData = providerDetails?.location || {};
     const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
@@ -60,7 +55,6 @@ const ShopDetails: React.FC<shopProps> = () => {
 
     const btnBookService = (value: any) => {
         // bookingType === 'immediate' ? setModalVisible(true) : setConfirmBookingTypeModal(true);
-        console.log('value--', value);
         setSelectedService(value);
         setConfirmBookingTypeModal(true)
     }
@@ -69,20 +63,19 @@ const ShopDetails: React.FC<shopProps> = () => {
         return {
             ...styles.headerContainer,
             borderBottomWidth: activeTab === 4 ? 0.6 : 0,
+            paddingBottom: activeTab === 4 ? 8 : 0,
         };
     };
 
 
-
-
     const dispatch = useDispatch();
     const brnSubmit = (value: any) => {
-        console.log('value--', value);
         let bookingJson = {
-            service: selectedService,
+            service: [selectedService],
             providerDetails: providerDetails,
             "promoCode": "",
-            bookingType: value === 'current' ? "current" : 'other'
+            bookingType: value === 'current' ? "current" : 'other',
+            isSpecialOffer
         };
         dispatch(setBookingJson(bookingJson));
         setConfirmBookingTypeModal(false)
@@ -104,41 +97,19 @@ const ShopDetails: React.FC<shopProps> = () => {
     };
 
     return (
-        <Container isAuth>
+        <Container>
             <LoadingComponent visible={(isFetchingService || isFetchingPortfolio || isFetchingRatings) && !refreshing} />
-            <Spacing space={SH(20)} />
             <ConfirmBookingTypeModal
                 modalVisible={confirmBookingTypeModal}
                 brnSubmit={(value: any) => { brnSubmit(value) }}
                 closeModal={() => { setConfirmBookingTypeModal(false) }}
             />
-            {/* <ConfirmBookingModal
-                forwhomCheck={forwhomCheck}
-                setForwhomCheck={() => { setForwhomCheck(!forwhomCheck) }}
-                modalVisible={modalVisible}
-                closeModal={() => {
-                    setModalVisible(false);
-                }}
-                btnSubmit={() => {
-                    setModalVisible(false);
-                    if (forwhomCheck) {
-                        setTimeout(() => {
-                            btnClickForCureentTab()
-                        }, 200);
-                    } else {
-                        setTimeout(() => {
-                            // navigation.navigate(RouteName.PAYMENT_SCREEN)
-                            navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' })
-                        }, 200);
-                    }
-                }}
-            /> */}
             <StatusBar
                 barStyle={'dark-content'}
             />
             <Spacing />
             <View style={getHeaderContainerStyle()}>
-                <TouchableOpacity onPress={() => {
+                <TouchableOpacity style={{ width: SF(30), height: SF(30) }} onPress={() => {
                     navigation.goBack();
                 }}>
                     <VectoreIcons
@@ -244,8 +215,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: "9%",
-        paddingBottom: SH(10),
+        paddingHorizontal: "8%",
         borderColor: '#3D3D3D40',
     },
     scrollContainer: {
@@ -270,6 +240,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         alignSelf: 'center',
         marginBottom: 20,
+        marginTop: 10
     },
     bannerImage: {
         width: '100%',

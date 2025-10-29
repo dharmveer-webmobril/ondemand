@@ -37,7 +37,7 @@ const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, on
             keyExtractor={(item, index) => `${index}-appointment-slots`}
             renderItem={({ item, index }) => {
               return <TouchableOpacity onPress={() => { onSelect(index) }} style={index === selectedSlot ? styles.slotsselected : styles.slots}>
-                <AppText style={index === selectedSlot ? styles.selectedtxt : styles.txt}>{`${item?.start}-${item?.end}`}</AppText>
+                <AppText style={index === selectedSlot ? styles.selectedtxt : styles.txt}>{`${item?.start}`}</AppText>
               </TouchableOpacity>
             }}
             ListEmptyComponent={
@@ -52,7 +52,7 @@ const BookingSlots: React.FC<BookingSlotsProps> = ({ slots, selectedSlot = 0, on
   );
 };
 
-export default BookingSlots;
+export default React.memo(BookingSlots);
 const styles = StyleSheet.create({
   slots: {
     backgroundColor: '#F2F2F2',

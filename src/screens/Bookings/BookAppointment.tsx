@@ -1,18 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View, FlatList, RefreshControl } from 'react-native';
-import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, LoadingComponent, ServiceItem, showAppToast, Spacing } from '../../component';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, View, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, LoadingComponent, SelectBookingService, ServiceItem, showAppToast, Spacing, VectoreIcons } from '../../component';
 import { Colors, Fonts, getPriceDetails, imagePaths, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import { ConfirmBookingModal, TeamMemberProfile } from '../../component';
 import RouteName from '../../navigation/RouteName';
-import { RootState, setBookingJson, useGetMemberSlotsQuery, useGetProviderMemberQuery } from '../../redux';
+import { RootState, setBookingJson, useGetMemberSlotsQuery, useGetProviderMemberQuery, useGetProviderServicesQuery } from '../../redux';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import moment from 'moment';
 import { Calendar } from 'react-native-calendars';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-interface BookAppointmentProps {}
+interface BookAppointmentProps { }
 
 const BookAppointment: React.FC<BookAppointmentProps> = () => {
   const { t } = useTranslation(); // Initialize translation hook
@@ -24,12 +24,20 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [forwhomCheck, setForwhomCheck] = useState(false);
   const [selectedDate, setSelectedDate] = useState<any>(moment().format('YYYY-MM-DD'));
-  const [refreshing, setRefreshing] = useState<boolean>(false); // State for pull-to-refresh
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [serviceSelectModal, setServiceSelectModal] = useState(false)
+  const [selectedServices, setSelectedServices] = useState<any[]>([])
+  const [isMultiple, setisMultiple] = useState(false)
+
   const dispatch = useDispatch();
 
   const bookingJson = useSelector((state: RootState) => state.service.bookingJson);
-  const { service, providerDetails } = bookingJson || {};
+  const { service, providerDetails, isSpecialOffer } = bookingJson || {};
 
+  useEffect(() => {
+    setSelectedServices(service)
+  }, [service])
+  //fetch provider members=======
   const { data: membersList, isFetching: isProviderMemberLoading, refetch: refetchMembers } = useGetProviderMemberQuery(
     { providerId: providerDetails?._id },
     { refetchOnFocus: true, refetchOnMountOrArgChange: true }
@@ -44,6 +52,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     return data;
   }, [membersList, providerDetails]);
 
+  //get member slots=========
   const { data: slots, isFetching: isSlots, refetch: refetchSlots } = useGetMemberSlotsQuery(
     selectedMemberId ? { memberId: selectedMemberId } : skipToken,
     { refetchOnFocus: true, refetchOnMountOrArgChange: true }
@@ -57,6 +66,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
   }, [selectedMember, refetchSlots]);
 
   const slotsData = useMemo(() => slots?.data || [], [slots]);
+
 
   useEffect(() => {
     let dayName = moment(selectedDate, 'YYYY-MM-DD').format('dddd');
@@ -75,10 +85,18 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     });
   };
 
-  const btnGo = () => {
-    let selectedSlotInfo = slotArr[selectedSlot];
-    let member = membersListData?.find((item: any) => item?._id === selectedMember?._id);
-    let bookingData = { ...bookingJson, slots: selectedSlotInfo, selectedDate, selectedTeamMember: member };
+  const btnGo = useCallback(() => {
+    const selectedSlotInfo = slotArr[selectedSlot];
+    const member = membersListData?.find(
+      (item: any) => item?._id === selectedMember?._id
+    );
+
+    let bookingData = {
+      ...bookingJson,
+      slots: selectedSlotInfo,
+      selectedDate,
+      selectedTeamMember: member,
+    };
 
     if (forwhomCheck) {
       bookingData = { ...bookingData, bookingFor: 'other', date: selectedDate };
@@ -89,13 +107,14 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     } else {
       bookingData = { ...bookingData, bookingFor: 'self', date: selectedDate };
       dispatch(setBookingJson(bookingData));
+
       setTimeout(() => {
         navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' });
       }, 200);
     }
-  };
+  }, [ slotArr,selectedSlot,membersListData,selectedMember, bookingJson, selectedDate, forwhomCheck, dispatch, navigation]);
 
-  const btnBook = () => {
+  const btnBook = useCallback(() => {
     if (selectedSlot === null) {
       showAppToast({
         title: t('bookAppointment.messages.error'),
@@ -105,14 +124,60 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
       return;
     }
     setModalVisible(true);
-  };
+  }, [selectedSlot, t, setModalVisible]);
 
   const addressData = providerDetails?.location || {};
   const addressSummery = [addressData.address, addressData.city, addressData.state].filter(Boolean).join(', ');
   const { displayPrice } = getPriceDetails(service, 'fixed');
 
+  //get all services======
+  const { data: serviceData } = useGetProviderServicesQuery({ providerId: providerDetails?._id, bookingType: isSpecialOffer }, { refetchOnMountOrArgChange: true })
+  const servicesList = useMemo(() => serviceData?.data || [], [serviceData])
+
+
+  const selectUnselectFunc = useCallback(
+    (val: any) => {
+      setSelectedServices((prevSelected: any[]) => {
+        const isSelected = prevSelected.some((item) => item._id === val._id);
+
+        if (isSelected) {
+          console.log('yes');
+          return prevSelected.filter((item) => item._id !== val._id);
+        } else {
+          console.log('no');
+          return [...prevSelected, val];
+        }
+      });
+
+      setServiceSelectModal(false);
+    },
+    [setSelectedServices, setServiceSelectModal]
+  );
+
+  useEffect(() => {
+
+  }, [selectedServices])
+
+  const btnRemoveServiceItem = (val: any) => {
+    const filterData = selectedServices?.filter((item: any) => item._id !== val._id);
+    setSelectedServices(filterData)
+  }
+
   return (
     <Container isPadding={false}>
+      <SelectBookingService
+        visible={serviceSelectModal}
+        data={servicesList || []}
+        selectedData={selectedServices || []}
+        modalTitle="Select Service"
+        onChange={(val: any) => {
+          selectUnselectFunc(val)
+
+        }}
+        onClose={() => { setServiceSelectModal(false) }}
+      />
+
+
       <ConfirmBookingModal
         forwhomCheck={forwhomCheck}
         selectedDate={selectedDate}
@@ -128,15 +193,12 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
           setModalVisible(false);
           btnGo();
         }}
-        // forWhomLabel={t('bookAppointment.modal.forWhomLabel')}
-        // confirmButton={t('bookAppointment.modal.confirm')}
-        // cancelButton={t('bookAppointment.modal.cancel')}
       />
       <AppHeader
         headerTitle={t('bookAppointment.headerTitle')}
         onPress={() => navigation.goBack()}
         Iconname="arrowleft"
-        rightOnPress={() => {}}
+        rightOnPress={() => { }}
         headerStyle={styles.header}
       />
       <ScrollView
@@ -153,7 +215,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
           />
         }
       >
-        <LoadingComponent visible={isProviderMemberLoading || isSlots}  />
+        <LoadingComponent visible={isProviderMemberLoading || isSlots} />
         <Calendar
           current={moment().format('YYYY-MM-DD')}
           minDate={moment().format('YYYY-MM-DD')}
@@ -211,9 +273,18 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
           </View>
           <Divider contStyle={{ marginVertical: SW(10) }} color="#3D3D3D50" height={0.7} />
           <Spacing />
-          {service && [service]?.map((item) => (
-            <ServiceItem item={item} type="service-item" key={item._id} />
+          {selectedServices && selectedServices.length > 0 && selectedServices?.map((item: any) => (
+            <ServiceItem onClick={() => { btnRemoveServiceItem(item) }} item={item} type="service-item" key={item._id} isDeleteShow={selectedServices && selectedServices.length > 1} />
           ))}
+          <TouchableOpacity style={styles.addAnotoherButton} onPress={() => { setServiceSelectModal(true) }}>
+            <AppText style={styles.addAnotoherButtonTxt}>
+              <VectoreIcons
+                icon='Entypo'
+                name='plus'
+                color={Colors.themeColor}
+                size={SF(14)}
+              /> Add another service</AppText>
+          </TouchableOpacity>
           <Divider contStyle={{ marginTop: SH(30) }} color="#3D3D3D50" height={0.7} />
           <View style={styles.bookingContainer}>
             <View>

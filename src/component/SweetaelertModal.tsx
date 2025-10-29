@@ -77,13 +77,14 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
                         <View style={styles.buttonminview} >
                             <View style={styles.setokbutton}>
                                 <Buttons title={'Ok'}
+                                      isBordered
                                     isLoading={isOkButtonLoading}
                                     onPress={() => { onOk && onOk() }}
                                 />
                             </View>
                             {isConfirmBox && <View style={styles.setokbutton}>
                                 <Buttons title={'Cancel'}
-
+      isBordered
                                     onPress={() => { onCancel && onCancel() }}
                                 />
                             </View>}

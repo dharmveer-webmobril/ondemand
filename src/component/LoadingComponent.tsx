@@ -18,6 +18,7 @@ const LoadingComponent: React.FC<LoadingComponentProps> = ({ visible }) => {
       transparent={true}
       animationType="fade"
       visible={visible}
+      statusBarTranslucent={true}
       onRequestClose={() => { }}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
