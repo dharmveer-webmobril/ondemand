@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
-import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, LoadingComponent, SelectBookingService, ServiceItem, showAppToast, Spacing, VectoreIcons } from '../../component';
-import { Colors, Fonts, getPriceDetails, imagePaths, SF, SH, SW } from '../../utils';
+import { ScrollView, StyleSheet, View, RefreshControl, TouchableOpacity } from 'react-native';
+import { AppHeader, AppText, BookingSlots, Buttons, Container, Divider, LoadingComponent, SelectBookingService, ServiceItem, showAppToast, Spacing, TeamMemberSelector, VectoreIcons } from '../../component';
+import { Colors, Fonts, getPriceDetails, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import { ConfirmBookingModal, TeamMemberProfile } from '../../component';
 import RouteName from '../../navigation/RouteName';
@@ -15,7 +15,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 interface BookAppointmentProps { }
 
 const BookAppointment: React.FC<BookAppointmentProps> = () => {
-  const { t } = useTranslation(); // Initialize translation hook
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [slotArr, setSlotArr] = useState<any>(null);
@@ -27,7 +27,9 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [serviceSelectModal, setServiceSelectModal] = useState(false)
   const [selectedServices, setSelectedServices] = useState<any[]>([])
-  const [isMultiple, setisMultiple] = useState(false)
+  const [indexSelectedService, setIndexSelectedService] = useState<any[]>([])
+  const [isMultiple, setIsMultiple] = useState(false)
+  const [isMultipleMember, setIsMultipleMember] = useState(false)
 
   const dispatch = useDispatch();
 
@@ -37,20 +39,35 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
   useEffect(() => {
     setSelectedServices(service)
   }, [service])
+
+  useEffect(() => {
+    selectedServices && selectedServices.length > 1 ? setIsMultiple(true) : setIsMultiple(false)
+  }, [selectedServices])
+
   //fetch provider members=======
   const { data: membersList, isFetching: isProviderMemberLoading, refetch: refetchMembers } = useGetProviderMemberQuery(
     { providerId: providerDetails?._id },
     { refetchOnFocus: true, refetchOnMountOrArgChange: true }
   );
 
+ 
+
+
   const membersListData = useMemo(() => {
     let data = membersList?.data || [];
     if (data && data.length > 0) {
+      setIsMultipleMember(true)
       setSelectedMember(data[0]);
       data[0]?.type === 'provider' ? setSelectedMemberId(data[0]?.providerId) : setSelectedMemberId(data[0]?._id);
+    } else {
+      setIsMultipleMember(false)
     }
     return data;
   }, [membersList, providerDetails]);
+
+
+ 
+
 
   //get member slots=========
   const { data: slots, isFetching: isSlots, refetch: refetchSlots } = useGetMemberSlotsQuery(
@@ -112,7 +129,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
         navigation.navigate(RouteName.SELECT_ADDRESS, { prevType: 'forSelf' });
       }, 200);
     }
-  }, [ slotArr,selectedSlot,membersListData,selectedMember, bookingJson, selectedDate, forwhomCheck, dispatch, navigation]);
+  }, [slotArr, selectedSlot, membersListData, selectedMember, bookingJson, selectedDate, forwhomCheck, dispatch, navigation]);
 
   const btnBook = useCallback(() => {
     if (selectedSlot === null) {
@@ -134,7 +151,6 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
   const { data: serviceData } = useGetProviderServicesQuery({ providerId: providerDetails?._id, bookingType: isSpecialOffer }, { refetchOnMountOrArgChange: true })
   const servicesList = useMemo(() => serviceData?.data || [], [serviceData])
 
-
   const selectUnselectFunc = useCallback(
     (val: any) => {
       setSelectedServices((prevSelected: any[]) => {
@@ -154,10 +170,6 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
     [setSelectedServices, setServiceSelectModal]
   );
 
-  useEffect(() => {
-
-  }, [selectedServices])
-
   const btnRemoveServiceItem = (val: any) => {
     const filterData = selectedServices?.filter((item: any) => item._id !== val._id);
     setSelectedServices(filterData)
@@ -172,7 +184,6 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
         modalTitle="Select Service"
         onChange={(val: any) => {
           selectUnselectFunc(val)
-
         }}
         onClose={() => { setServiceSelectModal(false) }}
       />
@@ -194,6 +205,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
           btnGo();
         }}
       />
+
       <AppHeader
         headerTitle={t('bookAppointment.headerTitle')}
         onPress={() => navigation.goBack()}
@@ -201,6 +213,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
         rightOnPress={() => { }}
         headerStyle={styles.header}
       />
+
       <ScrollView
         bounces={true}
         contentContainerStyle={styles.scrollContainer}
@@ -215,7 +228,9 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
           />
         }
       >
+
         <LoadingComponent visible={isProviderMemberLoading || isSlots} />
+
         <Calendar
           current={moment().format('YYYY-MM-DD')}
           minDate={moment().format('YYYY-MM-DD')}
@@ -232,6 +247,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
             arrowColor: '#000',
           }}
         />
+
         <View style={styles.contentPadding}>
           <Divider contStyle={{ marginVertical: SW(10) }} color="#3D3D3D50" height={0.7} />
           <BookingSlots
@@ -241,40 +257,23 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
             onSelect={(val: any) => setSelectedSlot(val)}
           />
           <Divider marginTop={SF(10)} color="#3D3D3D50" height={0.7} />
-          <AppText style={[styles.subHeader, { marginTop: SH(10) }]}>{t('bookAppointment.subHeader')}</AppText>
-          <Spacing space={SH(15)} />
-          <View style={styles.memberRow}>
-            <FlatList
-              data={membersListData}
-              keyExtractor={(item) => item?._id + 'team-member'}
-              renderItem={({ item }) => (
-                <View style={styles.memberItem}>
-                  <TeamMemberProfile
-                    selectedMember={selectedMember?._id || ''}
-                    onClick={() => {
-                      item?.type === 'provider' ? setSelectedMemberId(item?.providerId) : setSelectedMemberId(item?._id);
-                      setSelectedMember(item);
-                    }}
-                    imageSource={item?._id === 'anyone' ? imagePaths?.no_user_img : item?.profilePic ? { uri: item?.profilePic } : imagePaths?.no_user_img}
-                    title={item?.fullName}
-                    item={item}
-                  />
-                </View>
-              )}
-              ListEmptyComponent={() => (
-                <AppText style={{ color: Colors.lightGraytext, fontFamily: Fonts.MEDIUM, fontSize: SF(12) }}>
-                  {t('bookAppointment.messages.noTeamMembers')}
-                </AppText>
-              )}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.memberListContent}
-            />
-          </View>
+
+          {/* ==Team Member Selector======================== */}
+          <TeamMemberSelector
+            membersListData={membersListData}
+            selectedMember={selectedMember}
+            onMemberSelect={(member) => {
+              const memberId = member?.type === 'provider' ? member?.providerId : member?._id;
+              setSelectedMemberId(memberId);
+              setSelectedMember(member);
+            }}
+            isMultiple={isMultiple}
+          />
+
           <Divider contStyle={{ marginVertical: SW(10) }} color="#3D3D3D50" height={0.7} />
           <Spacing />
           {selectedServices && selectedServices.length > 0 && selectedServices?.map((item: any) => (
-            <ServiceItem onClick={() => { btnRemoveServiceItem(item) }} item={item} type="service-item" key={item._id} isDeleteShow={selectedServices && selectedServices.length > 1} />
+            <ServiceItem onClick={() => { btnRemoveServiceItem(item) }} item={item} type="service-item" key={item._id} isDeleteShow={isMultiple} isMultipleMember={isMultipleMember} />
           ))}
           <TouchableOpacity style={styles.addAnotoherButton} onPress={() => { setServiceSelectModal(true) }}>
             <AppText style={styles.addAnotoherButtonTxt}>
@@ -306,32 +305,12 @@ const BookAppointment: React.FC<BookAppointmentProps> = () => {
 export default BookAppointment;
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: Colors.bgwhite,
-    paddingHorizontal: SW(30),
-  },
-  scrollContainer: {
-    paddingBottom: SH(30),
-  },
-  subHeader: {
-    color: Colors.textAppColor,
-    fontFamily: Fonts.SEMI_BOLD,
-    fontSize: SF(12),
-  },
-  crossIcon: {
-    position: 'absolute',
-    right: -4,
-    top: -6,
-  },
-  addAnotoherButton: {
-    paddingVertical: 7,
-    alignSelf: 'flex-end',
-  },
-  addAnotoherButtonTxt: {
-    color: Colors.themeColor,
-    fontFamily: Fonts.SEMI_BOLD,
-    fontSize: SF(12),
-  },
+  header: { backgroundColor: Colors.bgwhite, paddingHorizontal: SW(30), },
+  scrollContainer: { paddingBottom: SH(30), },
+  subHeader: { color: Colors.textAppColor, fontFamily: Fonts.SEMI_BOLD, fontSize: SF(12), },
+  crossIcon: { position: 'absolute', right: -4, top: -6, },
+  addAnotoherButton: { paddingVertical: 7, alignSelf: 'flex-end', },
+  addAnotoherButtonTxt: { color: Colors.themeColor, fontFamily: Fonts.SEMI_BOLD, fontSize: SF(12), },
   price: {
     fontSize: SF(10),
     fontFamily: Fonts.SEMI_BOLD,

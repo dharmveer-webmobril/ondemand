@@ -7,3 +7,5 @@ export {default as TeamMemberProfile} from './TeamMemberProfile';
 export {default as SubmitRatingReviewModal} from './SubmitRatingReviewModal';
 export {default as RatingReviewComponent} from './RatingReviewComponent';
 export {default as ServiceItem} from './ServiceItem';
+export {default as SelectBookingService} from './SelectBookingService';
+export {default as TeamMemberSelector} from './TeamMemberSelector';
