@@ -1,6 +1,8 @@
 
 
 import { StyleSheet } from 'react-native';
+import { SH, SW } from './dimensions';
+import Colors from './colors';
 
 export const commonStyles = StyleSheet.create({
   rowSpaceBetweenCss: {
@@ -8,8 +10,16 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "space-between",
   },
+  countryCodeBoxStyle: {
+    paddingHorizontal: SW(10),
+    paddingVertical: SH(12),
+    borderWidth: 1,
+    borderColor: Colors.textAppColor,
+    borderRadius: SW(10),
+    marginRight: SW(8),
+    justifyContent: 'center',
+  }
 });
-
 
 
 export const boxShadow = {

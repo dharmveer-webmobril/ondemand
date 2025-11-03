@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import React from 'react';
-import { Container } from '../component';
+import React, { useEffect } from 'react';
+import { Container, LogoAnimated } from '../component';
 import { checkLocationPermission, Colors, Fonts, SF, StorageProvider, useProfileUpdate } from '../utils';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import { useDispatch } from 'react-redux';
-import {  setToken } from '../redux';
+import { setToken } from '../redux';
 import RouteName from '../navigation/RouteName';
 
 const SplashScreen: React.FC = () => {
@@ -26,23 +26,21 @@ const SplashScreen: React.FC = () => {
       navigation.reset({ index: 0, routes: [{ name: RouteName.LOGIN }] });
     }
   };
+  useEffect(() => {
+    setTimeout(() => {
+      handleAnimationFinish()
+    }, 4500);
+  }, [])
 
   return (
     <Container isAuth={true} statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
       <LinearGradient
         style={styles.linearGradient}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        colors={['#1A434E', '#204f5c']}
+        end={{ x: 0, y: 1 }}
+        colors={Colors.gradientColor}
       >
-        <LottieView
-          source={require('../assets/lottie/loading.json')}
-          autoPlay
-          loop={false}
-          resizeMode='cover'
-          style={styles.lottieView}
-          onAnimationFinish={handleAnimationFinish}
-        />
+        <LogoAnimated />
       </LinearGradient>
     </Container>
   );

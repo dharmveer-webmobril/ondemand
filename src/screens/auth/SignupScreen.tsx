@@ -3,6 +3,7 @@ import {
   Dimensions,
   Image,
   Keyboard,
+  Platform,
   Pressable,
   StyleSheet,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 import {
   Colors,
+  commonStyles,
   Fonts,
   handleApiError,
   handleApiFailureResponse,
@@ -170,8 +172,8 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
         keyboardShouldPersistTaps="handled"
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <Spacing space={SH(40)} />
-        <AuthImgComp icon={imagePaths.signup_img} />
+        <Spacing space={SH(20)} />
+        <AuthImgComp icon={imagePaths.signup_img} height={SF(130)} width={SF(130)} />
         <AuthBottomContainer>
           <View style={{ paddingVertical: SH(35), paddingHorizontal: SW(20) }}>
             <Formik
@@ -212,7 +214,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                   <View style={styles.rowContainer}>
                     <TouchableOpacity
                       onPress={() => setIsPickerOpen(true)}
-                      style={styles.countryCodeButton}>
+                      style={[commonStyles.countryCodeBoxStyle]}>
                       <AppText style={{ color: Colors.white, fontFamily: Fonts.MEDIUM }}>
                         {values.countryCode}
                       </AppText>
@@ -362,7 +364,7 @@ const SignupScreen: React.FC<SignupProps> = ({ }) => {
                     ))}
                   </View>
 
-                  <Spacing space={SH(25)} />
+                  <Spacing space={SH(15)} />
 
                   <AppText style={styles.dontHaveAccTxt}>
                     {t('signup.alreadyHaveAccount')}{' '}
@@ -465,15 +467,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  countryCodeButton: {
-    paddingHorizontal: SW(10),
-    paddingVertical: SH(12),
-    borderWidth: 1,
-    borderColor: Colors.white,
-    borderRadius: SW(10),
-    marginRight: SW(8),
-    justifyContent: 'center',
-  },
+  
   flexOne: {
     flex: 1,
   },

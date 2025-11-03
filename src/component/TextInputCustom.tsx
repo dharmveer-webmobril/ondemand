@@ -78,7 +78,7 @@ const InputField: React.FC<InputFieldProps> = ({
                 label: {
                     fontSize: SF(14),
                     fontFamily: Fonts.MEDIUM,
-                    marginBottom: SH(7),
+                    marginBottom: SH(10),
                     color: color,
                     ...labelStyle
                 },
@@ -89,6 +89,7 @@ const InputField: React.FC<InputFieldProps> = ({
                     borderColor: color,
                     borderRadius: SF(10),
                     paddingHorizontal: SF(10),
+                    // paddingVertical: SF(3),
                     backgroundColor: withBackground ? "#fff" : "transparent",
                     ...inputContainer
                 },

@@ -22,10 +22,7 @@ const AuthBottomContainer: React.FC<AuthBottomContainerProps> = ({
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={[styles.gradient]}
-        colors={[
-          Colors.themeDarkColor,
-          Colors.colorLinear2,
-        ]}
+        colors={Colors.gradientColor}
       >
         {children}
       </LinearGradient>
@@ -37,8 +34,8 @@ const styles = StyleSheet.create({
   container: {
     borderTopLeftRadius: SH(40),
     borderTopRightRadius: SH(40),
-    flex:1,
-    marginTop:SH(25)
+    flex: 1,
+    marginTop: SH(25)
   },
   gradient: {
     flex: 1,

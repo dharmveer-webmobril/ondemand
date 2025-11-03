@@ -16,7 +16,7 @@ import {
   ImagePickerModal,
   CountryPickerComp,
 } from '../../component';
-import { Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, profileSetupValidationSchema, regex, SF, SH, SW } from '../../utils';
+import { Colors, commonStyles, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, profileSetupValidationSchema, regex, SF, SH, SW } from '../../utils';
 import { useNavigation } from '@react-navigation/native';
 import imagePaths from '../../assets/images';
 import { useTranslation } from 'react-i18next';
@@ -164,7 +164,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ }) => {
                   <View style={styles.rowContainer}>
                     <TouchableOpacity
                       onPress={() => setIsPickerOpen(true)}
-                      style={styles.countryCodeButton}
+                      style={commonStyles.countryCodeBoxStyle}
                     >
                       <AppText style={{ color: Colors.textAppColor, fontFamily: Fonts.MEDIUM }}>
                         {values.countryCode}
@@ -309,15 +309,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  countryCodeButton: {
-    paddingHorizontal: SW(10),
-    paddingVertical: SH(12),
-    borderWidth: 1,
-    borderColor: Colors.textAppColor,
-    borderRadius: SW(10),
-    marginRight: SW(8),
-    justifyContent: 'center',
-  },
+   
   errorText: {
     color: 'red',
     fontSize: SF(12),
