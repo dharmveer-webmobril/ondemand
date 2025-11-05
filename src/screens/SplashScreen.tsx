@@ -1,22 +1,35 @@
 import { StyleSheet } from 'react-native';
 import React, { useEffect } from 'react';
 import { Container, LogoAnimated } from '../component';
-import { checkLocationPermission, Colors, Fonts, SF, StorageProvider, useProfileUpdate } from '../utils';
+import {  Colors, Fonts, getAddressFromCoords, SF, StorageProvider, useProfileUpdate } from '../utils';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import LottieView from 'lottie-react-native';
+ 
 import { useDispatch } from 'react-redux';
-import { setToken } from '../redux';
+import { setHomeAddress, setToken, setUserCurrentLoc } from '../redux';
 import RouteName from '../navigation/RouteName';
+import useLocation from '../utils/hooks/useLocation';
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   useProfileUpdate();
+  const dispatch = useDispatch();
 
-  const dispatch = useDispatch()
+  const { location, retry } = useLocation();
+
+  useEffect(() => {
+    if (location) {
+      dispatch(setUserCurrentLoc({ location: location }))
+
+      getAddressFromCoords(location.latitude, location.longitude).then(address => {
+        dispatch(setHomeAddress({ address: address }))
+      }).catch(err => console.log('Error:', err));
+
+    }
+  }, [location]);
+
 
   const handleAnimationFinish = async () => {
-    await checkLocationPermission();
     const loginToken = await StorageProvider.getItem('token');
     if (loginToken) {
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
@@ -26,10 +39,12 @@ const SplashScreen: React.FC = () => {
       navigation.reset({ index: 0, routes: [{ name: RouteName.LOGIN }] });
     }
   };
+
   useEffect(() => {
+    retry();
     setTimeout(() => {
       handleAnimationFinish()
-    }, 4500);
+    }, 5000);
   }, [])
 
   return (

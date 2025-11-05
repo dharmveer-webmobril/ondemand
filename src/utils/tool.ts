@@ -7,7 +7,50 @@ import {
   Permission,
 } from 'react-native-permissions';
 import { Platform, Alert, Linking } from 'react-native';
+import Geocoder from 'react-native-geocoding';
 
+
+const mapKey = process.env.GOOGLE_MAP_KEY;
+if (mapKey) {
+  Geocoder.init(mapKey);
+} else {
+  console.warn("Google Maps API key is not set; Geocoder not initialized.");
+}
+
+export const getAddressFromCoords = async (latitude: number, longitude: number) => {
+  try {
+    const response = await Geocoder.from(latitude, longitude);
+    if (!response.results?.length) throw new Error("No address found");
+
+    const result = response.results[0];
+    const components = result.address_components || [];
+
+    const getComp = (types: string[]) =>
+      components.find((c: any) => types.every(t => c.types.includes(t)))?.long_name || "";
+
+    const streetAddress = result.formatted_address || getComp(["route"]);
+    const city = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
+    const state = getComp(["administrative_area_level_1"]);
+    const zip = getComp(["postal_code"]);
+
+    const addressObj = {
+      location: {
+        coordinates: [latitude, longitude],
+        type: "Point",
+      },
+      streetAddress,
+      city,
+      state,
+      zip,
+      country: "NA",
+    };
+
+    return addressObj;
+  } catch (error) {
+    console.warn("getAddressFromCoords error:", error);
+    return null;
+  }
+};
 export const requestCameraAccess = async (): Promise<boolean> => {
   const permission =
     Platform.OS === 'ios'
@@ -112,7 +155,7 @@ export const getPriceDetails = (item: any, type: any = null) => {
     : null;
 
   return {
-    bookingPrice:displayPrice,
+    bookingPrice: displayPrice,
     displayPrice: arrangePrice(displayPrice, priceType),
     originalPrice: arrangePrice(originalPrice, priceType),
     discountedPrice: arrangePrice(discountedAmount, 'fixed'), // Added raw discountedPrice

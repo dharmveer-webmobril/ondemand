@@ -189,8 +189,7 @@ const AddAddress: React.FC = () => {
         const city = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
         const state = getComp(["administrative_area_level_1"]);
         const postalCode = getComp(["postal_code"]);
-        console.log('result.formatted_address', result.formatted_address);
-
+      
         formik.setValues({
           ...formik.values,
           address: result?.formatted_address || street,

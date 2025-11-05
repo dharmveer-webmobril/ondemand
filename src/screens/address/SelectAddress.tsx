@@ -11,42 +11,32 @@ import {
   Buttons,
   Container,
   Shimmer,
-  SweetaelertModal,
   VectoreIcons,
-} from '../../component'; // Adjust based on your actual paths
-import { Colors, Fonts, handleApiError, handleApiFailureResponse, handleSuccessToast, navigate, SF, SH, SW } from '../../utils';
-import { useNavigation } from '@react-navigation/native';
+} from '../../component';
+import { Colors, Fonts, goBack, handleApiFailureResponse, navigate, SF, SH, SW } from '../../utils';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import { useTranslation } from 'react-i18next';
-import AddressMenu from './AddressMenu';
-import { RootState, setBookingJson, useDeleteAddressMutation, useGetAddressQuery } from '../../redux';
-import VectorIcon from '../../component/VectoreIcons';
+import { RootState, setBookingJson, setHomeAddress, useGetAddressQuery } from '../../redux';
 import { useDispatch, useSelector } from 'react-redux';
 
 const MyAddressScreen = () => {
   const navigation = useNavigation<any>();
-  const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
+  const route = useRoute<any>();
   const { t } = useTranslation();
-
-
   const { data: addressData = [], isError, refetch, isFetching } = useGetAddressQuery();
-
   const memoizedData = useMemo(() => addressData?.data || [], [addressData]);
-  console.log('addressDataaddressData', addressData);
-  // useState
   const handleRetry = () => refetch();
-
   const showSkeleton = isFetching && !isError;
   const showError = !isFetching && isError;
   const showEmpty = !isFetching && !isError && memoizedData.length === 0;
   const [selectedAddress, setSelectedAddress] = useState(null);
 
+  const { prevScreen } = route?.params;
+
   useEffect(() => {
     refetch();
   }, [refetch]);
-
-
-
 
   const renderSkeleton = () => (
     <View style={styles.card}>
@@ -61,14 +51,12 @@ const MyAddressScreen = () => {
   );
 
   const renderItem = ({ item }: { item: any }) => {
-    console.log('item', item);
-
     return <TouchableOpacity style={styles.card} onPress={() => setSelectedAddress(item?._id)}>
       <View style={styles.cardTop}>
         <View style={styles.cardContent}>
           <AppText style={styles.cardTitle}>{item?.type || ''}</AppText>
           <AppText style={styles.cardSubtitle}>
-            {`${item?.apartment || ''}, ${item?.streetAddress || ''}, ${item?.city || ''}, ${item?.state || ''}, ${item?.zip || ''}`}
+            {`${item?.streetAddress || ''}, ${item?.city || ''}, ${item?.state || ''}, ${item?.zip || ''}`}
           </AppText>
         </View>
         <View style={styles.dotMenu}>
@@ -98,11 +86,17 @@ const MyAddressScreen = () => {
 
   const btnConfirmButton = () => {
     if (selectedAddress) {
-      const addjson = memoizedData.find((item: any) => item._id === selectedAddress);
-      let bookingData = { ...bookingJson, myAddId: selectedAddress, myAdd: addjson };
-      dispatch(setBookingJson(bookingData));
-      navigation.navigate(RouteName.PAYMENT_SCREEN);
-      // navigation.navigate(RouteName.SELECT_ADDRESS, { selectedAddress });
+      if (prevScreen == 'home') {
+        const addjson = memoizedData.find((item: any) => item._id === selectedAddress);
+        dispatch(setHomeAddress({ address: addjson }));
+        console.log('addjson',addjson);
+        goBack()
+      } else {
+        const addjson = memoizedData.find((item: any) => item._id === selectedAddress);
+        let bookingData = { ...bookingJson, myAddId: selectedAddress, myAdd: addjson };
+        dispatch(setBookingJson(bookingData));
+        navigation.navigate(RouteName.PAYMENT_SCREEN);
+      }
     } else {
       handleApiFailureResponse('', 'Please select an address');
     }

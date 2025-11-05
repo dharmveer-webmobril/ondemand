@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
 import { Colors, SF, SH, SW, useDisableGestures } from '../../utils';
 import {
@@ -13,13 +13,20 @@ import {
 } from '../../component';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
-import RouteName from '../../navigation/RouteName'; 
+import RouteName from '../../navigation/RouteName';
 import useLocation from '../../utils/hooks/useLocation';
-import { useGetCategoriesQuery, useGetNearByServicesQuery } from '../../redux';
+import { RootState, setHomeAddress, setUserCurrentLoc, useGetCategoriesQuery, useGetNearByServicesQuery } from '../../redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 const HomeScreen = () => {
-  const { location, isLocationEnabled } = useLocation();
-  console.log('locationlocation', location, isLocationEnabled);
+  
+  const { location, isLocationEnabled, isLoading, retry } = useLocation();
+
+  let userCurrentLoc = useSelector((state: RootState) => state.app.userCurrentLoc);
+
+  useEffect(() => {
+    userCurrentLoc && retry();
+  }, []);
 
   useDisableGestures();
   useFocusEffect(
@@ -35,7 +42,7 @@ const HomeScreen = () => {
 
   const { data: categoryData, isLoading: isCatloading, isError, refetch: refetchCategory } = useGetCategoriesQuery();
   const { data: servicesData, isError: isErrorService, isLoading: isServiceloading, refetch: refetchService } = useGetNearByServicesQuery();
-  
+
   const servicesArr = useMemo(() => servicesData?.data || [], [servicesData]);
   return (
     <Container isAuth statusBarStyle="light-content" statusBarColor={Colors.themeDarkColor}>
@@ -53,13 +60,11 @@ const HomeScreen = () => {
           <HomeSwiper />
           <Spacing space={SF(40)} />
           {/* Category Section========================= */}
-
           <HomeCategory
             categoryData={categoryData}
             isLoading={isCatloading}
             isError={isError}
           />
-
           <Spacing space={SF(20)} />
 
           {/* Near By Services Section ========================== */}

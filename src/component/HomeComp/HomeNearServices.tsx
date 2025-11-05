@@ -97,31 +97,33 @@ const HomeNearServices = ({ servicesArr, isLoading, isError }: { servicesArr: an
         }}
       />
       <View style={styles.backgroundContainer}>
-        <FlatList
-          horizontal
-          contentContainerStyle={[
-            styles.flatListContainer,
-            (isLoading || isError) && styles.fullWidth,
-          ]}
-          data={isLoading ? [12, 23, 34, 45, 23] : servicesArr}
-          renderItem={({ item }) => {
-            return isLoading ? <ListItemSkeleton /> : <ListItem item={item} />
-          }
-          }
-          keyExtractor={(item, index) =>
-            `servicenear-${item?._id ?? index}`
-          }
-          ListEmptyComponent={
-            !isLoading ? (
-              <View style={styles.messageContainer}>
-                <AppText style={styles.messageText}>
-                  {!isError ? '' : t('home.services.notFound')}
-                </AppText>
-              </View>
-            ) : null
-          }
-          showsHorizontalScrollIndicator={false}
-        />
+        <View style={{ marginHorizontal: '7%', }}>
+          <FlatList
+            horizontal
+            contentContainerStyle={[
+              styles.flatListContainer,
+              (isLoading || isError) && styles.fullWidth,
+            ]}
+            data={isLoading ? [12, 23, 34, 45, 23] : servicesArr}
+            renderItem={({ item }) => {
+              return isLoading ? <ListItemSkeleton /> : <ListItem item={item} />
+            }
+            }
+            keyExtractor={(item, index) =>
+              `servicenear-${item?._id ?? index}`
+            }
+            ListEmptyComponent={
+              !isLoading ? (
+                <View style={styles.messageContainer}>
+                  <AppText style={styles.messageText}>
+                    {!isError ? '' : t('home.services.notFound')}
+                  </AppText>
+                </View>
+              ) : null
+            }
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
       </View>
     </>
   );
@@ -201,7 +203,6 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   flatListContainer: {
-    paddingHorizontal: '5%',
     backgroundColor: '#EEF6F9',
     paddingVertical: SH(20),
   },

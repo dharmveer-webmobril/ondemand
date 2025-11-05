@@ -110,9 +110,9 @@ const useLocation = (): UseLocationResult => {
     }
   }, [permission, getLocation]);
 
-  useEffect(() => {
-    requestLocationPermission();
-  }, [requestLocationPermission]);
+  // useEffect(() => {
+  //   requestLocationPermission();
+  // }, [requestLocationPermission]);
 
   const retry = useCallback(() => {
     setError(null);

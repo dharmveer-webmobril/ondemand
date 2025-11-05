@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   DimensionValue,
@@ -54,6 +53,6 @@ const styles = StyleSheet.create({
     fontSize: SF(14),
     textAlign: 'right',
     textDecorationLine: 'underline',
-    color: Colors.themeDarkColor,
+    color: Colors.textAppColor,
   },
 });

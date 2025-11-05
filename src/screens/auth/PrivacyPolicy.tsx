@@ -24,7 +24,6 @@ const PrivacyPolicy: React.FC = () => {
   const [data, setData] = useState<string | null>(null);
   const { data: termAndCond, isLoading, isError } = useGetTermAndCondQuery();
 
-  console.log('termAndCond----->', termAndCond);
 
   useEffect(() => {
     if (termAndCond?.data?.length > 0) {

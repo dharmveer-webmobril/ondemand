@@ -57,18 +57,8 @@ const HomeCategoryItem = memo(({ name, image, catId, subCat }: any) => {
 
 const HomeCategory = memo(({ categoryData, isLoading, isError }: { categoryData: any, isLoading: boolean, isError: boolean }) => {
 
-
   const { t } = useTranslation();
-
-
-
-  const renderItem = ({ item, index }: any) => {
-    // return showSkeleton ? (
-    //   <SkeletonHomeCategoryItem key={`skeleton-${index}`} />
-    // ) : (
-    return
-    // );
-  }
+ 
   return (
     <>
       <HomeSubContainerHeader
@@ -217,7 +207,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   categoryContainer: {
-    marginHorizontal: '6.5%',
+    marginRight: '7%',
+    marginLeft: '6.5%',
     marginTop: 20,
   },
   fullWidth: {
