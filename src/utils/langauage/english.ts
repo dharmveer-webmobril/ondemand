@@ -3,8 +3,10 @@ export const english = {
     "forgotPassword": "Forgot Password?",
     "loginButton": "Log In",
     "orText": "Or",
-    "dontHaveAccount": "Don’t have an account?",
-    "signUp": "Sign Up"
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "loginSuccess": "Login successful.",
+    "welcomeBack": "Welcome back!"
   },
   "signup": {
     "signUpButton": "Sign Up",
@@ -13,23 +15,65 @@ export const english = {
     "orText": "Or",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
-    "acceptTerms": "By signing up, you accept the"
+    "acceptTerms": "By signing up, you accept the",
+    "selectCountry": "Select Country",
+    "selectCity": "Select City",
+    "selectCountryFirst": "Please select a country first to choose a city.",
+    "countryRequired": "Please select a country and city to continue."
   },
   "forgotpass": {
     "forgotPassword": "Forgot Password",
     "subtitle": "Please enter the email ID linked with your account.",
-    "sendotp": "Send OTP"
+    "sendotp": "Send OTP",
+    "otpSentMessage": "OTP sent to your email. Please check your inbox.",
+    "failedToSendOtp": "Failed to send OTP. Please try again."
   },
   "otpverify": {
     "title": "Verification",
     "subtitle": "Please enter the code we sent to your email ID.",
     "verify": "Verify",
-    "resendOTP": "Resend OTP"
+    "resendOTP": "Resend OTP",
+    "enterValidOtp": "Please enter a valid 4-digit OTP code.",
+    "emailMissing": "Email is missing. Please try again.",
+    "otpVerifiedSuccess": "OTP verified successfully.",
+    "welcomeMessage": "Welcome!",
+    "checkEmail": "Please check your email."
   },
   "updatepass": {
     "title": "Update Password",
     "subtitle": "Please create your new password.",
-    "update": "Update"
+    "update": "Update",
+    "missingCredentials": "Missing credentials. Please try again from the beginning.",
+    "loginWithNewPassword": "Please login with your new password."
+  },
+  "interestChoose": {
+    "title": "Choose your Interest",
+    "subtitle": "Select all that apply",
+    "continue": "Continue",
+    "selectAtLeastOne": "Please select at least one interest to continue.",
+    "interestsSubmitted": "Interests submitted successfully.",
+    "submissionFailed": "Failed to submit interests. Please try again.",
+    "loadError": "Failed to load categories. Please try again.",
+    "noCategories": "No categories available."
+  },
+
+  "chat": {
+    "title": "Chat",
+    "recent": "Recent",
+    "search": "Search",
+    "lastSeen": "Last seen {time}",
+    "today": "Today",
+    "deleteChat": "Delete Chat",
+    "report": "Report",
+    "block": "Block",
+    "muteNotification": "Mute Notification",
+    "rateClient": "Rate Client",
+    "typeYourReviews": "Type your reviews...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "inputPlaceholder": "Type a message...",
+    "noMessages": "No messages yet",
+    "noChats": "No recent chats"
   },
   "placeholders": {
     "email": "Email",
@@ -38,6 +82,7 @@ export const english = {
     "fullname": "Full Name",
     "mobileno": "Mobile Number",
     "selectAddress": "Select Address",
+    "selectCity": "Select City",
     "reEnterPassword": "Re-enter Password",
     "confirmPassword": "Confirm Password",
     "currentPassword": "Current Password",
@@ -66,7 +111,9 @@ export const english = {
     "emptyCurrPassword": "Please enter current password.",
     "emptyConfirmPassword": "Please enter confirm password.",
     "notMatchConfirmPassword": "Passwords do not match.",
-    "emotyOtp": "Please enter OTP."
+    "emotyOtp": "Please enter OTP.",
+    "emptyCountry": "Please select a country.",
+    "emptyCity": "Please select a city."
   },
   "messages": {
     "otpSendTomail": "OTP sent to email.",
@@ -74,7 +121,7 @@ export const english = {
     "loginFailed": "Login failed.",
     "error": "Error",
     "acceptTermCond": "Please accept the Terms of Service.",
-    "regSuccessMsg": "Registration successful. Please verify your email.",
+    "regSuccessMsg": "Registration successful. Please verify your email to continue.",
     "signupFailed": "Signup failed.",
     "otpResendSucccess": "OTP resent successfully.",
     "otpResendFailed": "Failed to resend OTP.",
@@ -332,7 +379,7 @@ export const english = {
     }
   },
   "myBookingScreen": {
-    "headerTitle": "Appointments",
+    "headerTitle": "My Appointment",
     "tabs": {
       "myBookings": "My Bookings",
       "otherBookings": "Other Bookings"
@@ -342,6 +389,12 @@ export const english = {
       "refreshing": "Refreshing bookings...",
       "noBookings": "No bookings found.",
       "error": "Something went wrong"
+    },
+    "bookAgain": "Book Again",
+    "status": {
+      "completed": "COMPLETED",
+      "ongoing": "ONGOING",
+      "upcoming": "UPCOMING"
     }
   },
   "bookingDetails": {

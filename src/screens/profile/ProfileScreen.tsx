@@ -1,183 +1,134 @@
-import React, { useState } from 'react';
-import { FlatList, Image, Pressable, StatusBar, StyleSheet, View } from 'react-native';
-import { AppHeader, AppText, BottomBar, Container, LogoutPopup, ProfileList } from '../../component';
-import { Colors, Fonts, navigate, SF, SH, SW, useDisableGestures } from '../../utils';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import imagePaths from '../../assets/images';
+import { FlatList, StyleSheet } from 'react-native'
+import React, { useMemo, useState } from 'react'
+import { Container, AppHeader, ProfileHeader, ProfileMenuItem, LogoutModal } from '@components';
+import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
-import RouteName from '../../navigation/RouteName';
-import { RootState } from '../../redux';
-import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import imagePaths from '@assets';
+import { SH } from '@utils/dimensions';
+import { useAppDispatch } from '@store/hooks';
+import { logout } from '@store/slices/authSlice';
 
-type ProfileProps = {};
-const ProfileScreen: React.FC<ProfileProps> = ({ }) => {
+interface MenuItem {
+  id: string;
+  label: string;
+  showArrow?: boolean;
+}
 
-  useDisableGestures();
-  useFocusEffect(
-    React.useCallback(() => {
-      StatusBar.setBackgroundColor('#ffffff'); // Black color
-      StatusBar.setBarStyle('dark-content'); // Light content for dark background
-      return () => {
-        StatusBar.setBackgroundColor('#ffffff'); // Black color
-        StatusBar.setBarStyle('dark-content'); // Dark content for light background
-      };
-    }, []),
-  );
-
+export default function ProfileScreen() {
+  const theme = useThemeContext();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
-  const navigation = useNavigation<any>();
-  const [logoutPopup, setLogoutPopup] = useState<any>(false);
+  const navigation = useNavigation();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const user = useSelector((state: RootState) => state.auth.user);
-
-  const listData = [
-    {
-      name: t('profile.profileSetup'),
-      id: 1,
-      onClick: () => {
-        navigation.navigate(RouteName.PROFILE_SETUP);
-      },
-    },
-    {
-      name: t('profile.changePassword'),
-      id: 2,
-      onClick: () => {
-        navigation.navigate(RouteName.CHANGE_PASSWORD);
-      },
-    },
-    {
-      name: t('profile.myAddress'),
-      id: 2,
-      onClick: () => {
-        navigation.navigate(RouteName.MY_ADDRESS, { prevScreen: 'ghh' });
-      },
-    },
-
-    {
-      name: t('profile.paymentHistory1'),
-      id: 12,
-      onClick: () => {
-        navigation.navigate(RouteName.PAYMENT_HISTORY);
-      },
-    },
-    {
-      name: t('profile.ratingsReviews'),
-      id: 5,
-      onClick: () => {
-        navigation.navigate(RouteName.RATING_REVIEW);
-      },
-    },
-    { name: t('profile.loyaltyReferralDiscounts'), id: 6, onClick: () => { navigation.navigate(RouteName.LOYALTY_DISCOUNT) } },
-    { name: t('profile.multiLanguageCurrency'), id: 7, onClick: () => { navigation.navigate(RouteName.LANG_CURRENCY); } },
-    {
-      name: t('profile.notificationsAlerts'),
-      id: 8,
-      onClick: () => {
-        navigation.navigate(RouteName.NOTIFICATION_ALERT);
-      },
-    },
-    { name: t('profile.customerSupport'), id: 9, onClick: () => { navigation.navigate(RouteName.CUSTOMER_SUPPORT); } },
-    { name: t('profile.logout'), id: 10, onClick: () => { setLogoutPopup(true) } },
+  const menuItems: MenuItem[] = [
+    { id: '1', label: t('profile.profileSetup') },
+    { id: '2', label: t('profile.changePassword') },
+    { id: '3', label: t('profile.myAddress') },
+    { id: '4', label: t('profile.paymentHistory1') },
+    { id: '5', label: t('profile.ratingsReviews') },
+    { id: '6', label: t('profile.loyaltyReferralDiscounts') },
+    { id: '7', label: t('profile.multiLanguageCurrency') },
+    { id: '8', label: t('profile.notificationsAlerts') },
+    { id: '9', label: t('profile.customerSupport') },
+ 
+    { id: '10', label: t('profile.logout'), showArrow: false },
   ];
-  const seperatorComponent = () => <View style={styles.separator} />;
+
+  const handleMenuItemPress = (item: MenuItem) => {
+    console.log(item);
+    
+    // if (item.id === '1') {
+    //   // Profile Setup
+    //   navigation.navigate('ProfileSetup' as never);
+    // } else if (item.id === '2') {
+    //   // Service Management
+    //   navigation.navigate('ChangePassword' as never);
+    // } else if (item.id === '3') {
+    //   navigation.navigate('MyAddress' as never);
+    // } else if (item.id === '5') {
+    //   // Team Management
+    //   navigation.navigate('TeamMembers' as never);
+    // } else if (item.id === '6') {
+    //   // Business Details
+    //   navigation.navigate('BusinessDetails' as never);
+    // } else if (item.id === '3') {
+    //   // Marketing & Promotions
+    //   navigation.navigate('MarketingPromotions' as never);
+    // } else if (item.id === '8') {
+    //   // Subscription
+    //   navigation.navigate('Subscription' as never);
+    // } else if (item.id === '10') {
+    //   // Change Password
+    //   navigation.navigate('ChangePassword' as never);
+    // } else if (item.id === '11') {
+    //   // Multi Language & Currency
+    //   navigation.navigate('LanguageSettings' as never);
+    // } else if (item.id === '8') { // Subscription
+    //   navigation.navigate('Subscription' as never);
+    // } else if (item.id === '9') {
+    //   // Payments Withdraw & History
+    //   navigation.navigate('Payments' as never);
+    // } else if (item.id === '12') {
+    //   // Notifications & Alerts
+    //   navigation.navigate('NotificationsAlerts' as never);
+    // } else if (item.id === '13') {
+    //   // Customer Support
+    //   navigation.navigate('CustomerSupport' as never);
+    // } else if (item.id === '14') {
+    //   // Logout
+    //   setShowLogoutModal(true);
+    // } else {
+    //   // Handle other menu items
+    //   console.log('Pressed:', item.label);
+    // }
+  };
+
   return (
-    <Container>
-      <AppHeader
-        headerTitle={t('profile.headerTitle')}
-        onPress={() => { }}
-        rightOnPress={() => { }}
-        headerStyle={styles.headerStyle}
+    <Container safeArea={true} style={styles.container}>
+      <AppHeader title={t('profile.headerTitle')} />
+      <ProfileHeader
+        name="John Kevin"
+        phone="+91 1234567890"
+        image={imagePaths.recomanded1}
+        onEditPress={() => navigation.navigate('ProfileSetup' as never)}
+        onSharePress={() => navigation.navigate('ShareProfile' as never)}
+      />
+      <FlatList
+        data={menuItems}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ProfileMenuItem
+            label={item.label}
+            onPress={() => handleMenuItemPress(item)}
+            showArrow={item.showArrow}
+          />
+        )}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
       />
 
-      <View style={styles.mainContainer}>
-        <View style={styles.userInfoContainer}>
-          <View style={styles.userConImage}>
-            <Image
-              source={user?.profilePic ? { uri: user?.profilePic } : { uri: imagePaths.defaultUser }}
-              resizeMode="cover"
-              style={styles.userImage}
-            />
-          </View>
-          <View style={styles.userDetailsContainer}>
-            <AppText style={styles.userName}>{user?.fullName || ''}</AppText>
-            <AppText style={styles.userPhone}>{user?.countryCode + '-' + user?.mobileNo || ''}</AppText>
-          </View>
-          <Pressable onPress={() => { navigate(RouteName.PROFILE_SETUP) }}>
-            <Image
-              source={imagePaths.edit_profile}
-              resizeMode="cover"
-              style={styles.editProfileIcon}
-            />
-          </Pressable>
-        </View>
-      </View>
-      <FlatList
-        data={listData}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: SH(90),
-          marginHorizontal: SW(25),
+      <LogoutModal
+        visible={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onLogout={() => {
+          dispatch(logout());
+          setShowLogoutModal(false);
         }}
-        ItemSeparatorComponent={() => seperatorComponent()}
-        renderItem={({ item }) => <ProfileList item={item} />}
-        keyExtractor={item => item.name}
-        removeClippedSubviews={false}
-      />
-      <LogoutPopup closeModal={() => { setLogoutPopup(false) }} modalVisible={logoutPopup} />
-      <BottomBar
-        activeTab={RouteName.PROFILE}
       />
     </Container>
   );
-};
+}
 
-export default ProfileScreen;
-
-const styles = StyleSheet.create({
-  headerStyle: {
-    backgroundColor: Colors.bgwhite,
+const createStyles = (theme: ThemeType) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background || '#F7F7F7',
   },
-  mainContainer: {
-    paddingHorizontal: SW(25),
-    paddingVertical: SH(20),
-  },
-  userInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  userConImage: {
-    width: SF(70),
-    height: SF(70),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.borderColor,
-    borderRadius: SF(68) / 2,
-  },
-  userImage: {
-    width: SF(66),
-    height: SF(66),
-    borderRadius: SF(66) / 2,
-  },
-  userDetailsContainer: {
-    width: '60%',
-  },
-  userName: {
-    fontFamily: Fonts.MEDIUM,
-    fontSize: SF(16),
-  },
-  userPhone: {
-    fontFamily: Fonts.REGULAR,
-    fontSize: SF(12),
-    marginTop: SH(3.5),
-  },
-  editProfileIcon: {
-    width: SF(40),
-    height: SF(40),
-    borderRadius: SF(10),
-  },
-  separator: {
-    height: SH(15),
+  listContent: {
+    paddingTop: theme.SH(20),
+    paddingBottom: SH(90),
   },
 });

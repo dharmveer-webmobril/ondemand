@@ -13,7 +13,11 @@ export const hindi = {
     "orText": "या",
     "termsOfService": "सेवा की शर्तें",
     "privacyPolicy": "गोपनीयता नीति",
-    "acceptTerms": "साइन अप करके, आप स्वीकार करते हैं"
+    "acceptTerms": "साइन अप करके, आप स्वीकार करते हैं",
+    "selectCountry": "देश चुनें",
+    "selectCity": "शहर चुनें",
+    "selectCountryFirst": "कृपया पहले एक देश चुनें फिर शहर चुनें।",
+    "countryRequired": "कृपया जारी रखने के लिए एक देश और शहर चुनें।"
   },
   "forgotpass": {
     "forgotPassword": "पासवर्ड भूल गए",
@@ -38,6 +42,7 @@ export const hindi = {
     "fullname": "पूरा नाम",
     "mobileno": "मोबाइल नंबर",
     "selectAddress": "पता चुनें",
+    "selectCity": "शहर चुनें",
     "reEnterPassword": "पासवर्ड पुनः दर्ज करें",
     "confirmPassword": "पासवर्ड की पुष्टि करें",
     "currentPassword": "वर्तमान पासवर्ड",
@@ -66,7 +71,9 @@ export const hindi = {
     "emptyCurrPassword": "कृपया वर्तमान पासवर्ड दर्ज करें।",
     "emptyConfirmPassword": "कृपया पासवर्ड की पुष्टि करें।",
     "notMatchConfirmPassword": "पासवर्ड मेल नहीं खाते।",
-    "emotyOtp": "कृपया OTP दर्ज करें।"
+    "emotyOtp": "कृपया OTP दर्ज करें।",
+    "emptyCountry": "कृपया एक देश चुनें।",
+    "emptyCity": "कृपया एक शहर चुनें।"
   },
   "messages": {
     "otpSendTomail": "OTP ईमेल पर भेजा गया।",

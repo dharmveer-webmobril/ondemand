@@ -7,13 +7,17 @@ export const frenchCanada = {
     "signUp": "S’inscrire"
   },
   "signup": {
-    "signUpButton": "S’inscrire",
+    "signUpButton": "S'inscrire",
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
     "logIn": "Se connecter",
     "orText": "Ou",
-    "termsOfService": "Conditions d’utilisation",
+    "termsOfService": "Conditions d'utilisation",
     "privacyPolicy": "Politique de confidentialité",
-    "acceptTerms": "En vous inscrivant, vous acceptez les"
+    "acceptTerms": "En vous inscrivant, vous acceptez les",
+    "selectCountry": "Sélectionner un pays",
+    "selectCity": "Sélectionner une ville",
+    "selectCountryFirst": "Veuillez d'abord sélectionner un pays pour choisir une ville.",
+    "countryRequired": "Veuillez sélectionner un pays et une ville pour continuer."
   },
   "forgotpass": {
     "forgotPassword": "Mot de passe oublié",
@@ -37,6 +41,7 @@ export const frenchCanada = {
     "password": "Mot de passe",
     "fullname": "Nom complet",
     "mobileno": "Numéro de mobile",
+    "selectCity": "Sélectionner une ville",
     "reEnterPassword": "Réentrer le mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
     "currentPassword": "Mot de passe actuel",
@@ -65,7 +70,9 @@ export const frenchCanada = {
     "emptyCurrPassword": "Veuillez entrer le mot de passe actuel.",
     "emptyConfirmPassword": "Veuillez entrer la confirmation du mot de passe.",
     "notMatchConfirmPassword": "Les mots de passe ne correspondent pas.",
-    "emotyOtp": "Veuillez entrer l’OTP."
+    "emotyOtp": "Veuillez entrer l'OTP.",
+    "emptyCountry": "Veuillez sélectionner un pays.",
+    "emptyCity": "Veuillez sélectionner une ville."
   },
   "messages": {
     "otpSendTomail": "OTP envoyé par courriel.",

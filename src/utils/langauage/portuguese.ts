@@ -13,7 +13,11 @@ export const portuguese = {
     "orText": "Ou",
     "termsOfService": "Termos de Serviço",
     "privacyPolicy": "Política de Privacidade",
-    "acceptTerms": "Ao se inscrever, você aceita os"
+    "acceptTerms": "Ao se inscrever, você aceita os",
+    "selectCountry": "Selecionar País",
+    "selectCity": "Selecionar Cidade",
+    "selectCountryFirst": "Por favor, selecione um país primeiro para escolher uma cidade.",
+    "countryRequired": "Por favor, selecione um país e uma cidade para continuar."
   },
   "forgotpass": {
     "forgotPassword": "Esqueceu a Senha",
@@ -37,6 +41,7 @@ export const portuguese = {
     "password": "Senha",
     "fullname": "Nome Completo",
     "mobileno": "Número de Celular",
+    "selectCity": "Selecionar Cidade",
     "reEnterPassword": "Digite a senha novamente",
     "confirmPassword": "Confirmar Senha",
     "currentPassword": "Senha Atual",
@@ -65,7 +70,9 @@ export const portuguese = {
     "emptyCurrPassword": "Por favor, insira a senha atual.",
     "emptyConfirmPassword": "Por favor, insira a confirmação da senha.",
     "notMatchConfirmPassword": "As senhas não correspondem.",
-    "emotyOtp": "Por favor, insira o OTP."
+    "emotyOtp": "Por favor, insira o OTP.",
+    "emptyCountry": "Por favor, selecione um país.",
+    "emptyCity": "Por favor, selecione uma cidade."
   },
   "messages": {
     "otpSendTomail": "OTP enviado por e-mail.",

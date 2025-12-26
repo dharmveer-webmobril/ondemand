@@ -13,7 +13,11 @@ export const spanish = {
     "orText": "O",
     "termsOfService": "Términos de Servicio",
     "privacyPolicy": "Política de Privacidad",
-    "acceptTerms": "Al registrarte, aceptas los"
+    "acceptTerms": "Al registrarte, aceptas los",
+    "selectCountry": "Seleccionar País",
+    "selectCity": "Seleccionar Ciudad",
+    "selectCountryFirst": "Por favor, selecciona un país primero para elegir una ciudad.",
+    "countryRequired": "Por favor, selecciona un país y una ciudad para continuar."
   },
   "forgotpass": {
     "forgotPassword": "Olvidé mi Contraseña",
@@ -37,6 +41,7 @@ export const spanish = {
     "password": "Contraseña",
     "fullname": "Nombre Completo",
     "mobileno": "Número de Móvil",
+    "selectCity": "Seleccionar Ciudad",
     "reEnterPassword": "Volver a ingresar la contraseña",
     "confirmPassword": "Confirmar Contraseña",
     "currentPassword": "Contraseña Actual",
@@ -65,7 +70,9 @@ export const spanish = {
     "emptyCurrPassword": "Por favor, ingresa la contraseña actual.",
     "emptyConfirmPassword": "Por favor, ingresa la confirmación de la contraseña.",
     "notMatchConfirmPassword": "Las contraseñas no coinciden.",
-    "emotyOtp": "Por favor, ingresa el OTP."
+    "emotyOtp": "Por favor, ingresa el OTP.",
+    "emptyCountry": "Por favor, selecciona un país.",
+    "emptyCity": "Por favor, selecciona una ciudad."
   },
   "messages": {
     "otpSendTomail": "OTP enviado al correo.",

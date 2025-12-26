@@ -1,222 +1,160 @@
-import React, { useContext } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
-import {
-  AppText,
-  BottomBar,
-  Container,
-  ImageLoader,
-  VectoreIcons,
-} from '../../component';
-import {
-  Colors,
-  Fonts,
-  SF,
-  SH,
-  SW,
-  formatChatTimestamp,
-  imagePaths,
-  useDisableGestures,
-} from '../../utils';
-import { useNavigation } from '@react-navigation/native';
-import RouteName from '../../navigation/RouteName';
-import { ChatContext } from '../ChatProvider';
-import InboxDropdownMenu from './component/InboxDropdownMenu';
-import { useInboxUsers } from './component/useInbox';
+import { View, FlatList, StyleSheet } from 'react-native'
+import React, { useState, useMemo } from 'react'
+import { Container, AppHeader } from '@components';
+import ActionMenu, { ActionMenuItem } from '@components/chat/ActionMenu';
+import { ThemeType, useThemeContext } from '@utils/theme';
+import { CustomText } from '@components/common';
+import imagePaths from '@assets';
+import { SH } from '@utils/dimensions';
+import ChatListItem, { ChatListItemData } from '@components/chat/ChatListItem';
+import { navigate } from '@utils/NavigationUtils';
+import SCREEN_NAMES from '@navigation/ScreenNames';
 
-const { width } = Dimensions.get('window');
-
-const InboxScreen = () => {
-
-
-  useDisableGestures();
-  const navigation = useNavigation<any>();
-
-  const {userData, toggleBlockUser } = useContext(ChatContext)!;
-  const { inboxUsers, loading, } = useInboxUsers(userData?.userId || '');
+// Mock data
+const recentChats: ChatListItemData[] = [
+  {
+    id: '1',
+    name: 'Jerry Walker',
+    lastMessage: 'Hi last chat here',
+    timestamp: '4:14 pm',
+    image: imagePaths.recomanded1,
+  },
+  {
+    id: '2',
+    name: 'Sharon Young',
+    lastMessage: 'Hi last chat here',
+    timestamp: '4:14 pm',
+    image: imagePaths.recomanded1,
+  },
+  {
+    id: '3',
+    name: 'Party Group',
+    lastMessage: 'Hi last chat here',
+    timestamp: '4:14 pm',
+    image: imagePaths.recomanded1,
+    isGroup: true,
+  },
+];
 
 
-  const btnNavigateMessageScreen = (item: any) => {
-    let otheruser = {
-      "chat_room_id": item?.chat_room_id,
-      "email": item?.email,
-      "fcmToken": item?.fcmToken,
-      "image": item?.image,
-      "mobileNo": item?.mobileNo,
-      "name": item?.name,
-      "notificationStatus": item?.notificationStatus,
-      "onlineStatus": item?.onlineStatus,
-      "roleType": item?.roleType,
-      "userId": item?.userId
-    }
-    navigation.navigate(RouteName.MESSAGE_SCREEN, {
-      otherDetails: otheruser,
-      myDetails: userData,
-    });
-  }
+export default function InboxScreen() {
+  const [showListItemMenu, setShowListItemMenu] = useState(false);
+  const theme = useThemeContext();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
-  console.log('inboxUsers', inboxUsers);
+  const handleChatPress = (chat: ChatListItemData) => {
+    navigate(SCREEN_NAMES.CHAT_SCREEN, { chat: chat.id });
+  };
 
-  const onPressMenuOption = (type: string, oUser: any = null) => {
-    console.log(type, 'typetype');
-    switch (type) {
-      case 'delete':
-        // Handle mute
-        break;
-      case 'report':
-        // Handle Report
-        break;
-      case 'block':
-        blockUnblockUser(oUser)
-        break;
-    }
-  }
 
-  const blockUnblockUser = (oUser: any) => {
-    userData?.userId && toggleBlockUser(userData?.userId, oUser.userId, !oUser?.isBlocked || false)
-    // userData?.userId && toggleBlockUser(oUser.userId,userData?.userId,  true)
-  }
+  const chatListItemMenuItems: ActionMenuItem[] = [
+    {
+      id: '1',
+      label: 'Delete Chat',
+      icon: 'trash-outline',
+      onPress: () => {
+        // Handle delete chat
+      },
+    },
+    {
+      id: '2',
+      label: 'Report',
+      icon: 'warning-outline',
+      onPress: () => {
+        // Handle report
+      },
+    },
+    {
+      id: '3',
+      label: 'Block',
+      icon: 'remove-circle-outline',
+      onPress: () => {
+        // Handle block
+      },
+    },
+  ];
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.itemRow}>
-      <TouchableOpacity
-        style={styles.itemRow1}
-        onPress={() => {
-          btnNavigateMessageScreen(item)
-        }}
-      >
-        <View style={styles.avatarContainer}>
-          <ImageLoader
-            source={{ uri: item.image || imagePaths.defaultUser }}
-            mainImageStyle={styles.avatar}
-          />
-        </View>
-        <View style={styles.alignStart}>
-          <AppText style={styles.name}>{item.name}</AppText>
-          <AppText style={styles.lastMessage}>{typeof item.lastMessage === 'string'
-            ? item.lastMessage
-            : item.lastMessage?.text || 'No messages yet'}</AppText>
-          {item.timestamp && <AppText style={styles.time}>
-            <VectoreIcons icon='MaterialCommunityIcons' name="clock-outline" size={SF(12)} color="#787878" /> {formatChatTimestamp(item.timestamp)}
-          </AppText>}
-        </View>
-      </TouchableOpacity>
-
-      <View style={{ marginTop: SH(10) }}>
-        <InboxDropdownMenu
-          isBlocked={item.isBlocked}
-          onSelect={(val) => {
-            onPressMenuOption(val, item)
-          }} />
-      </View>
-    </View>
-  );
-
+  // Recent Chats List View
   return (
-    <Container>
-      <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <AppText style={styles.header}>Chat</AppText>
-        </View>
-        {loading ? <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.themeColor} />
-        </View>
-          :
-          <FlatList
-            data={inboxUsers || []}
-            contentContainerStyle={{ paddingBottom: SH(90) }}
-            keyExtractor={(item) => item?.userId + 'inbox'}
-            renderItem={renderItem}
-            ListEmptyComponent={<AppText style={styles.header}>No messages yet</AppText>}
-          />
-        }
+    <Container safeArea={true} style={styles.container}>
+      <AppHeader
+        title="Chat"
+        rightIconName="search-outline"
+        rightIconFamily="Ionicons"
+        onRightPress={() => { }}
+      />
+      <View style={styles.recentHeader}>
+        <CustomText style={styles.recentText}>Recent</CustomText>
       </View>
-      <BottomBar activeTab={RouteName.INBOX_SCREEN} />
+      <FlatList
+        data={recentChats}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ChatListItem
+            item={item}
+            onPress={() => handleChatPress(item)}
+            onOptionsPress={() => {
+              setShowListItemMenu(true);
+            }}
+          />
+        )}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <CustomText style={styles.emptyText}>No recent chats</CustomText>
+          </View>
+        }
+      />
+      <ActionMenu
+        visible={showListItemMenu}
+        items={chatListItemMenuItems}
+        onClose={() => {
+          setShowListItemMenu(false);
+        }}
+      />
     </Container>
   );
-};
+}
 
-export default InboxScreen;
-
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
-    backgroundColor: '#fff',
-    paddingHorizontal: SF(15),
+    backgroundColor: theme.colors.background || '#F7F7F7',
   },
-  headerRow: {
-    flexDirection: 'row',
+  recentHeader: {
+    paddingHorizontal: theme.SW(20),
+    paddingVertical: theme.SH(12),
+    backgroundColor: theme.colors.white,
+  },
+  recentText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    fontFamily: theme.fonts.BOLD,
+  },
+  listContent: {
+    paddingBottom: SH(90),
+  },
+  messagesContent: {
+    paddingBottom: theme.SH(20),
+  },
+  dateSeparator: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: SF(16),
+    marginVertical: theme.SH(16),
   },
-  header: {
-    fontSize: SF(16),
-    textAlign: 'center',
-    fontFamily: Fonts.SEMI_BOLD,
-    marginVertical: SH(15),
-    marginLeft: SW(18),
+  dateText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.lightText,
+    fontFamily: theme.fonts.MEDIUM,
   },
-  itemRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    position: 'relative',
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  itemRow1: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarContainer: {
-    height: SF(60),
-    width: SF(60),
-    borderRadius: SF(30),
-    overflow: 'hidden',
-    marginRight: 12,
-  },
-  avatar: {
-    width: '100%',
-    height: '100%',
-  },
-  name: {
-    fontSize: SF(14),
-    fontFamily: Fonts.MEDIUM,
-    color: Colors.textAppColor,
-  },
-  lastMessage: {
-    fontSize: SF(10),
-    color: Colors.textAppColor,
-    fontFamily: Fonts.REGULAR,
-    marginTop: 2,
-  },
-  time: {
-    fontSize: SF(10),
-    color: '#787878',
-    marginTop: 2,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width,
-    height: '100%',
-    zIndex: 10,
-  },
-  alignStart: {
-    alignItems: 'flex-start',
-  },
-  loadingContainer: {
+  emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: theme.SH(40),
+  },
+  emptyText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.lightText,
+    fontFamily: theme.fonts.MEDIUM,
   },
 });

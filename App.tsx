@@ -1,61 +1,50 @@
-import React, { useEffect } from 'react';
-
-import { LogBox, StyleSheet, View, } from 'react-native';
-import AppRoute from './src/navigation/AppRoute';
-import './src/utils/langauage/i18n';
-import { ChatProvider } from './src/screens/ChatProvider';
-import { Provider } from 'react-redux';
-import { persistor, store } from './src/redux';
-import { notificationListener, requestUserPermission, StorageProvider } from './src/utils';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { PersistGate } from 'redux-persist/integration/react';
-import { MenuProvider } from 'react-native-popup-menu';
+import { LogBox, View } from 'react-native'
+import { useEffect } from 'react'
+import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react'
+import { QueryClientProvider } from '@tanstack/react-query'
+import RootNavigator from './src/navigation/RootNavigator'
+import { StorageProvider, ThemeProvider } from '@utils/index';
 import i18next from 'i18next';
-import FastImage from 'react-native-fast-image';
-import Geocoder from "react-native-geocoding";
+import './src/utils/langauage/i18n';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider } from '@ui-kitten/components';
+import { store, persistor } from './src/store';
+import { queryClient } from './src/services/api/queryClient';
+import Toast from 'react-native-toast-message';
+import toastConfig from '@components/common/CustomToast'
 
 LogBox.ignoreLogs([
-  'VirtualizedLists should never be nested', // 👈 hides the warning
+  'Open debugger to view warnings',
+  'findHostInstance_DEPRECATED is deprecated in StrictMode',
+  'findNodeHandle is deprecated in StrictMode',
 ]);
-Geocoder.init("AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s"); // replace with your key
+
 const App = () => {
-// console.log(process.env.GOOGLE_MAP_KEY,'process.env.GOOGLE_MAP_KEY');
 
   useEffect(() => {
     init()
-    requestUserPermission();
-    notificationListener();
-  }, []);
-  useEffect(() => {
-    FastImage.clearMemoryCache();
-    FastImage.clearDiskCache();
-  }, []);
-
+  }, [])
   async function init() {
     let language = await StorageProvider.getItem('language');
     i18next.changeLanguage(language || 'en')
   }
   return (
-    <SafeAreaProvider>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ChatProvider>
-            <MenuProvider>
-              <View style={styles.safeArea}>
-                <AppRoute />
-              </View>
-            </MenuProvider>
-          </ChatProvider>
-        </PersistGate>
-      </Provider>
-    </SafeAreaProvider>
-  );
-};
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <QueryClientProvider client={queryClient}>
+          <View style={{ flex: 1 }}>
+            <ApplicationProvider {...eva} theme={eva.light}>
+              <ThemeProvider>
+                <RootNavigator />
+              </ThemeProvider>
+            </ApplicationProvider>
+          </View>
+          <Toast config={toastConfig} />
+        </QueryClientProvider>
+      </PersistGate>
+    </Provider>
+  )
+}
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-});
-
-export default App;
+export default App

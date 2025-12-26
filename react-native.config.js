@@ -1,8 +1,18 @@
 module.exports = {
   project: {
-      ios: {},
-      android: {},
+    ios: {},
+    android: {},
   },
-  assets: ['./assets/fonts/'],
-  
+  "react-native-vector-icons": {
+    platforms: {
+      ios: null,
+    },
+  },
+  assets: ["./src/assets/fonts/"],
+  getTransformModulePath() {
+    return require.resolve("react-native-typescript-transformer");
+  },
+  getSourceExts() {
+    return ["ts", "tsx"];
+  },
 };
