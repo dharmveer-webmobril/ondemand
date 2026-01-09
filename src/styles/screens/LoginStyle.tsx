@@ -14,11 +14,15 @@ const LoginStyle = (theme: ThemeType) => {
             flexDirection: 'row',
             alignSelf: 'center',
             justifyContent: 'space-between',
-            marginTop:theme.margins.xl
+            marginTop: theme.margins.xl
         },
         signupTextContainer: {
             alignItems: 'center',
             marginTop: SH(20),
+        },
+        scrollViewContainer: {
+            flexGrow: 1,
+            paddingHorizontal: 0,
         },
     });
 };

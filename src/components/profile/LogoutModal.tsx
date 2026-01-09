@@ -1,20 +1,29 @@
 import { View, StyleSheet, Modal, Pressable } from 'react-native'
-import React, { useMemo } from 'react'
+import  { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomButton, CustomText } from '@components/common';
 import { useTranslation } from 'react-i18next';
 import LinearGradient from 'react-native-linear-gradient';
+import { useAppDispatch } from '@store/hooks';
+import { logout } from '@store/slices/authSlice';
+import { useNavigation } from '@react-navigation/native';
+import SCREEN_NAMES from '@navigation/ScreenNames';
 
 interface LogoutModalProps {
     visible: boolean;
     onClose: () => void;
-    onLogout: () => void;
 }
 
-export default function LogoutModal({ visible, onClose, onLogout }: LogoutModalProps) {
+export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
     const theme = useThemeContext();
     const styles = useMemo(() => createStyles(theme), [theme]);
     const { t } = useTranslation();
+    const dispatch = useAppDispatch();
+    const navigation = useNavigation<any>();
+    const logOutButton = () => {
+        dispatch(logout())
+        navigation.navigate(SCREEN_NAMES.LOGIN)
+    }
 
     return (
         <Modal
@@ -39,10 +48,10 @@ export default function LogoutModal({ visible, onClose, onLogout }: LogoutModalP
                                 buttonTextStyle={styles.logoutButtonText}
                                 backgroundColor={theme.colors.white}
                                 textColor={theme.colors.primary}
-                                onPress={onLogout}
+                                onPress={logOutButton}
                                 title={t('logoutPopup.logoutButton')}
                             />
-                           
+
                             <CustomButton
                                 buttonTextStyle={styles.cancelButtonText}
                                 onPress={onClose}
@@ -98,10 +107,7 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
         fontSize: theme.fontSize.md,
         fontFamily: theme.fonts.BOLD,
     },
-    // cancelButton: {
-    //     borderRadius: theme.borderRadius.md,
-    //     borderColor: theme.colors.white,
-    // },
+    
     cancelButtonText: {
         fontSize: theme.fontSize.md,
         fontFamily: theme.fonts.BOLD,

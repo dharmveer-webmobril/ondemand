@@ -13,6 +13,7 @@ import * as Yup from 'yup';
 import { useSignup } from '@services/api/queries/authQueries';
 import { useGetCities, useGetCountries } from '@services/api/queries/appQueries';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import regex from '@utils/regexList';
 
 interface Country {
     _id: string;
@@ -64,19 +65,16 @@ const Signup = () => {
     const validationSchema = Yup.object().shape({
         name: Yup.string()
             .min(3, t('validation.fullNameMinLength'))
+            .matches(regex.NAME_REGEX, t('validation.validFullName'))
             .required(t('validation.emptyFullName')),
         email: Yup.string()
             .email(t('validation.validEmail'))
             .required(t('validation.emptyEmail')),
         contact: Yup.string()
-            .min(10, t('validation.mobileMinLen'))
+            .matches(regex.MOBILE, t('validation.validMobile'))
             .required(t('validation.emptyMobile')),
         password: Yup.string()
-            .min(8, t('validation.passValid'))
-            .matches(
-                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-                t('validation.passValid')
-            )
+            .matches(regex.PASSWORD, t('validation.passValid'))
             .required(t('validation.emptyPassword')),
         confirmPassword: Yup.string()
             .oneOf([Yup.ref('password')], t('validation.notMatchConfirmPassword'))
@@ -177,16 +175,17 @@ const Signup = () => {
         setSelectedCity(null);
         formik.setFieldValue('country', country._id, false);
         formik.setFieldValue('city', '', false);
-        // formik.setFieldTouched('country', true, false);
-        formik.setFieldTouched('city', false, false);
         formik.validateField('country');
+        formik.setFieldTouched('city', false);
     };
 
     const handleCitySelect = (city: City) => {
         setSelectedCity(city);
-        formik.setFieldValue('city', city._id, false);
-        // formik.setFieldTouched('city', true, false);
-        formik.validateField('city');
+        formik.setFieldValue('city', city._id);
+        setTimeout(() => {
+            formik.setFieldTouched('city', true);
+            formik.validateField('city');
+        }, 100);
     };
 
     const handleFormSubmit = () => {
@@ -222,7 +221,7 @@ const Signup = () => {
 
             <KeyboardAwareScrollView
                 contentContainerStyle={styles.contentContainer}
-                enableOnAndroid={true}
+                // enableOnAndroid={true}
                 extraScrollHeight={100}
                 keyboardShouldPersistTaps="handled"
                 enableResetScrollToCoords={false}
@@ -245,6 +244,7 @@ const Signup = () => {
                         value={formik.values.name}
                         onChangeText={formik.handleChange('name')}
                         onBlur={formik.handleBlur('name')}
+                        maxLength={70}
                     />
 
                     {/* Contact with Country Code */}
@@ -323,7 +323,7 @@ const Signup = () => {
                         disabled={!selectedCountry}
                     >
                         <CustomInput
-                            leftIcon={imagePaths.map_img}
+                            leftIcon={imagePaths.city}
                             placeholder={t('placeholders.selectCity')}
                             errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
                             inputTheme={'white'}
@@ -422,7 +422,7 @@ const Signup = () => {
                                     });
                                 }}
                             >
-                                {' '}
+                                {' \n'}and{' '}
                                 {t('signup.privacyPolicy')}
                             </CustomText>
                         </CustomText>

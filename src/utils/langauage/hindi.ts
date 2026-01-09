@@ -153,6 +153,15 @@ export const hindi = {
     "headerTitle": "प्रोफाइल मेनू",
     "languageSettings": "भाषा सेटिंग्स"
   },
+  "changePasswordDetails": {
+    "currentPassword": "वर्तमान पासवर्ड",
+    "newPassword": "नया पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "currentPasswordPlaceholder": "अपना वर्तमान पासवर्ड दर्ज करें",
+    "newPasswordPlaceholder": "अपना नया पासवर्ड दर्ज करें",
+    "confirmPasswordPlaceholder": "अपने नए पासवर्ड की पुष्टि करें",
+    "update": "अपडेट करें"
+  },
   "myAddress": {
     "title": "मेरा पता",
     "error": "पते लोड करने में त्रुटि",
@@ -196,6 +205,11 @@ export const hindi = {
       "office": "कार्यालय",
       "apartment": "अपार्टमेंट"
     }
+  },
+  "selectAddress": {
+    "title": "पता चुनें",
+    "confirm": "पुष्टि करें",
+    "addNewAddress": "नया पता जोड़ें"
   },
   "imagePickerModal": {
     "title": "छवि चुनें",

@@ -151,6 +151,15 @@ export const frenchCanada = {
     "headerTitle": "Menu de profil",
     "languageSettings": "Paramètres de langue"
   },
+  "changePasswordDetails": {
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "currentPasswordPlaceholder": "Entrez votre mot de passe actuel",
+    "newPasswordPlaceholder": "Entrez votre nouveau mot de passe",
+    "confirmPasswordPlaceholder": "Confirmez votre nouveau mot de passe",
+    "update": "Mettre à jour"
+  },
   "myAddress": {
     "title": "Mes adresses",
     "error": "Erreur lors du chargement des adresses",
@@ -194,6 +203,11 @@ export const frenchCanada = {
       "office": "Bureau",
       "apartment": "Appartement"
     }
+  },
+  "selectAddress": {
+    "title": "Sélectionner une adresse",
+    "confirm": "Confirmer",
+    "addNewAddress": "Ajouter une nouvelle adresse"
   },
   "imagePickerModal": {
     "title": "Sélectionner une image",

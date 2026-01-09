@@ -19,6 +19,7 @@ export const Colors = {
     whitetext: '#ffffff',
     errorText: '#f50000',
     red: '#f50000',
+    black: '#000000',
     textInputBorder: '#3D3D3D',
     lightInputBorder: '#FFFFFF80',
     placeholder: '#7F7F7F',
@@ -28,6 +29,7 @@ export const Colors = {
     textWhite:'#ffffff',
     gray: '#D9D9D9',
     textAppColor: '#404040',
+    warningColor: '#FAAC00',
 }
 
 export enum Fonts {

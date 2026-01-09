@@ -8,6 +8,8 @@ export interface UserDetails {
 interface AuthState {
   userId: string | null;
   token: string | null;
+  cityId: string | null;
+  countryId: string | null;
   userDetails: UserDetails | null;
   isAuthenticated: boolean;
 }
@@ -17,6 +19,8 @@ const initialState: AuthState = {
   token: null,
   userDetails: null,
   isAuthenticated: false,
+  cityId: null,
+  countryId: null,
 };
 
 const authSlice = createSlice({
@@ -36,6 +40,12 @@ const authSlice = createSlice({
       state.userDetails = action.payload.userDetails;
       state.isAuthenticated = true;
     },
+    setCityId: (state, action: PayloadAction<string>) => {
+      state.cityId = action.payload;
+    },
+    setCountryId: (state, action: PayloadAction<string>) => {
+      state.countryId = action.payload;
+    },
     updateUserDetails: (state, action: PayloadAction<UserDetails>) => {
       state.userDetails = { ...state.userDetails, ...action.payload };
     },
@@ -51,6 +61,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, updateUserDetails, updateToken, logout } =
+export const { setCredentials, updateUserDetails, updateToken, logout, setCityId, setCountryId } =
   authSlice.actions;
 export default authSlice.reducer;

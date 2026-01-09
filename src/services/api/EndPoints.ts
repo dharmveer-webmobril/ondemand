@@ -10,5 +10,10 @@ export default {
     FORGOT_PASSWORD: '/auth/customer/forgot-password',
     RESET_PASSWORD: '/auth/customer/reset-password',
     UPDATE_PROFILE: '/users/profile',
+    UPDATE_PROFILE_1: '/auth/customer/update-profile',
+    GET_PROFILE: '/auth/customer/profile',
+    ADD_CUSTOMER_INTEREST: '/customer/interest',
     SUBMIT_INTERESTS: '/auth/customer/interests',
+    UPLOAD_DOCUMENT: '/auth/customer/upload-document',
+    CHANGE_PASSWORD: '/auth/customer/change-password',
 };

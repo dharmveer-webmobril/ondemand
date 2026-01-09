@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -26,6 +26,10 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.HOME} component={BottomTabs} />
         <Stack.Screen name={SCREEN_NAMES.CHAT_SCREEN} component={ChatScreen} />
         <Stack.Screen name={SCREEN_NAMES.PROFILE_SETUP} component={ProfileSetup} />
+        <Stack.Screen name={SCREEN_NAMES.CHANGE_PASSWORD} component={ChangePassword} />
+        <Stack.Screen name={SCREEN_NAMES.MY_ADDRESS} component={MyAddress} />
+        <Stack.Screen name={SCREEN_NAMES.ADD_ADDRESS} component={AddAddress} />
+        <Stack.Screen name={SCREEN_NAMES.SELECT_ADDRESS} component={SelectAddress} />
       </Stack.Navigator>
     </NavigationContainer>
   )

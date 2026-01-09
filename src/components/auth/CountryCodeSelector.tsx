@@ -6,20 +6,21 @@ import { CustomText, VectoreIcons } from '@components/common';
 interface CountryCodeSelectorProps {
   countryCode: string;
   onPress: () => void;
+  borderColor?: string;
 }
 
-export default function CountryCodeSelector({ countryCode, onPress }: CountryCodeSelectorProps) {
+export default function CountryCodeSelector({ countryCode, onPress ,borderColor="#ffffff"}: CountryCodeSelectorProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <Pressable style={styles.container} onPress={onPress}>
-      <CustomText style={styles.countryCodeText}>{countryCode}</CustomText>
+    <Pressable style={[styles.container, { borderColor: borderColor }]} onPress={onPress}>
+      <CustomText style={[styles.countryCodeText,{color:borderColor}]}>{countryCode}</CustomText>
       <VectoreIcons
         icon="Ionicons"
         name="chevron-down"
         size={theme.SF(16)}
-        color={theme.colors.white}
+        color={borderColor}
       />
     </Pressable>
   );

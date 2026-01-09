@@ -11,6 +11,7 @@ import { showToast } from '@components/common/CustomToast';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SCREEN_NAMES } from '@navigation';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const UpdatePass = () => {
     const theme = useThemeContext();
@@ -109,7 +110,7 @@ const UpdatePass = () => {
             } else {
                 const firstErrorKey = Object.keys(errors)[0];
                 const firstError = errors[firstErrorKey as keyof typeof errors];
-                
+
                 if (firstError) {
                     showToast({
                         type: 'error',
@@ -123,78 +124,83 @@ const UpdatePass = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
-            <ImageComp
-                imageSource={imagePaths.forgot_img}
-                marginLeft={'auto'}
-                marginRight={'auto'}
-                marginBottom={20}
-                height={theme.SH(225)}
-                width={theme.SW(225)}
-                marginTop={10 + statusBarHeight}
-            />
-            <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
-                <CustomText
-                    variant="h3"
-                    textAlign={'center'}
-                    color={Colors.whitetext}
-                    fontFamily={fonts.SEMI_BOLD}
-                    marginTop={theme.margins.lg}
-                >
-                    {t('updatepass.title')}
-                </CustomText>
-                <CustomText
-                    variant="h5"
-                    textAlign={'center'}
-                    color={Colors.whitetext}
-                    fontFamily={fonts.REGULAR}
-                    marginTop={theme.margins.md}
-                >
-                    {t('updatepass.subtitle')}
-                </CustomText>
-                <CustomInput
-                    leftIcon={imagePaths.lock_icon}
-                    placeholder={t('placeholders.newPassword')}
-                    errortext={formik.touched.newPassword && formik.errors.newPassword ? formik.errors.newPassword : ''}
-                    inputTheme={'white'}
-                    secureTextEntry={passwordVisibility}
-                    value={formik.values.newPassword}
-                    onChangeText={formik.handleChange('newPassword')}
-                    onBlur={formik.handleBlur('newPassword')}
-                    onRightIconPress={() => setPasswordVisibility(!passwordVisibility)}
-                    rightIcon={!passwordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
-                    marginTop={theme.SH(20)}
+            <KeyboardAwareScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+                extraScrollHeight={theme.SH(40)}>
+                <ImageComp
+                    imageSource={imagePaths.forgot_img}
+                    marginLeft={'auto'}
+                    marginRight={'auto'}
+                    marginBottom={20}
+                    height={theme.SH(225)}
+                    width={theme.SW(225)}
+                    marginTop={10 + statusBarHeight}
                 />
+                <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
+                    <CustomText
+                        variant="h3"
+                        textAlign={'center'}
+                        color={Colors.whitetext}
+                        fontFamily={fonts.SEMI_BOLD}
+                        marginTop={theme.margins.lg}
+                    >
+                        {t('updatepass.title')}
+                    </CustomText>
+                    <CustomText
+                        variant="h5"
+                        textAlign={'center'}
+                        color={Colors.whitetext}
+                        fontFamily={fonts.REGULAR}
+                        marginTop={theme.margins.md}
+                    >
+                        {t('updatepass.subtitle')}
+                    </CustomText>
+                    <CustomInput
+                        leftIcon={imagePaths.lock_icon}
+                        placeholder={t('placeholders.newPassword')}
+                        errortext={formik.touched.newPassword && formik.errors.newPassword ? formik.errors.newPassword : ''}
+                        inputTheme={'white'}
+                        secureTextEntry={passwordVisibility}
+                        value={formik.values.newPassword}
+                        onChangeText={formik.handleChange('newPassword')}
+                        onBlur={formik.handleBlur('newPassword')}
+                        onRightIconPress={() => setPasswordVisibility(!passwordVisibility)}
+                        rightIcon={!passwordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
+                        marginTop={theme.SH(20)}
+                    />
 
-                <CustomInput
-                    leftIcon={imagePaths.lock_icon}
-                    placeholder={t('placeholders.confirmPassword')}
-                    errortext={
-                        formik.touched.confirmPassword && formik.errors.confirmPassword
-                            ? formik.errors.confirmPassword
-                            : ''
-                    }
-                    maxLength={20}
-                    inputTheme={'white'}
-                    secureTextEntry={confirmPasswordVisibility}
-                    value={formik.values.confirmPassword}
-                    onChangeText={formik.handleChange('confirmPassword')}
-                    onBlur={formik.handleBlur('confirmPassword')}
-                    rightIcon={!confirmPasswordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
-                    onRightIconPress={() => setConfirmPasswordVisibility(!confirmPasswordVisibility)}
-                    marginTop={theme.SH(20)}
-                    keyboardType={'default'}
-                />
+                    <CustomInput
+                        leftIcon={imagePaths.lock_icon}
+                        placeholder={t('placeholders.confirmPassword')}
+                        errortext={
+                            formik.touched.confirmPassword && formik.errors.confirmPassword
+                                ? formik.errors.confirmPassword
+                                : ''
+                        }
+                        maxLength={20}
+                        inputTheme={'white'}
+                        secureTextEntry={confirmPasswordVisibility}
+                        value={formik.values.confirmPassword}
+                        onChangeText={formik.handleChange('confirmPassword')}
+                        onBlur={formik.handleBlur('confirmPassword')}
+                        rightIcon={!confirmPasswordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
+                        onRightIconPress={() => setConfirmPasswordVisibility(!confirmPasswordVisibility)}
+                        marginTop={theme.SH(20)}
+                        keyboardType={'default'}
+                    />
 
-                <CustomButton
-                    title={t('updatepass.update')}
-                    backgroundColor={theme.colors.white}
-                    textColor={theme.colors.primary}
-                    marginTop={theme.SH(150)}
-                    onPress={handleUpdatePassword}
-                    isLoading={resetPasswordMutation.isPending}
-                    disable={resetPasswordMutation.isPending}
-                />
-            </AuthBottomContainer>
+                    <CustomButton
+                        title={t('updatepass.update')}
+                        backgroundColor={theme.colors.white}
+                        textColor={theme.colors.primary}
+                        marginTop={theme.SH(150)}
+                        onPress={handleUpdatePassword}
+                        isLoading={resetPasswordMutation.isPending}
+                        disable={resetPasswordMutation.isPending}
+                    />
+                </AuthBottomContainer>
+            </KeyboardAwareScrollView>
         </Container>
     );
 };

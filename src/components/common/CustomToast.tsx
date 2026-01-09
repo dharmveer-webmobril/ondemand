@@ -1,22 +1,23 @@
-import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { CustomText, VectoreIcons } from './index';
+import { SH, SW } from '@utils/dimensions';
 
 interface ToastProps {
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'exit';
   title?: string;
   message: string;
   position?: 'top' | 'bottom';
+  timeout?: number;
 }
 
-export const showToast = ({ type, title, message, position = 'top' }: ToastProps) => {
+export const showToast = ({ type, title, message, position = 'top', timeout = 2500, }: ToastProps) => {
   Toast.show({
     type: type,
     text1: title,
     text2: message,
     position: position,
-    visibilityTime: 4000,
+    visibilityTime: timeout,
     autoHide: true,
     topOffset: 60,
     bottomOffset: 40,
@@ -103,6 +104,13 @@ const toastConfig = {
       </View>
     );
   },
+  exit: ({ text2 }: any) => (
+    <View style={styles.exitToast}>
+      <CustomText style={styles.message}>
+        {text2}
+      </CustomText>
+    </View>
+  )
 };
 
 const styles = StyleSheet.create({
@@ -159,6 +167,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
     color: '#FFFFFF',
+  },
+  exitToast: {
+    minHeight: SH(30),
+    minWidth: SW(120),
+    backgroundColor: '#000',
+    paddingVertical: SH(4),
+    paddingHorizontal: SW(10),
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
   },
 });
 

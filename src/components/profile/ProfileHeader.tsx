@@ -1,30 +1,30 @@
 import { View, StyleSheet, Pressable } from 'react-native'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
+import { useAppSelector } from '@store/hooks';
+import imagePaths from '@assets';
 
 interface ProfileHeaderProps {
-  name: string;
-  phone: string;
-  image?: any;
   onEditPress?: () => void;
   onSharePress?: () => void;
 }
 
 export default function ProfileHeader({
-  name,
-  phone,
-  image,
+
   onEditPress,
-  onSharePress,
 }: ProfileHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-
+  const { userDetails } = useAppSelector(state => state.auth);
+  const profileImage = userDetails?.profileImage ? { uri: userDetails?.profileImage } : imagePaths.no_user_img;
+  const name = userDetails?.name ? userDetails?.name : '';
+  const phone = userDetails?.contact ? `${userDetails?.country?.phoneCode}-${userDetails?.contact}` : '';
+  // console.log('userDetails', userDetails);
   return (
     <View style={styles.container}>
       <ImageLoader
-        source={image}
+        source={profileImage}
         mainImageStyle={styles.profileImage}
         resizeMode="cover"
       />
@@ -43,7 +43,7 @@ export default function ProfileHeader({
             />
           </View>
         </Pressable>
-        <Pressable style={styles.actionButton} onPress={onSharePress}>
+        {/* <Pressable style={styles.actionButton} onPress={onSharePress}>
           <View style={styles.iconContainer}>
             <VectoreIcons
               name="share-outline"
@@ -52,7 +52,7 @@ export default function ProfileHeader({
               color={theme.colors.white}
             />
           </View>
-        </Pressable>
+        </Pressable> */}
       </View>
     </View>
   );

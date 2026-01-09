@@ -1,7 +1,8 @@
-import { View, Text, TextInput, ImageSourcePropType, KeyboardTypeOptions, TextInputProps, Image, Pressable, Touchable, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { View, TextInput, ImageSourcePropType, KeyboardTypeOptions, TextInputProps, Image, Pressable } from 'react-native'
+import { forwardRef } from 'react'
 import { useThemeContext } from '@utils/theme';
 import { CustomInputStyle } from '@styles/index';
+import CustomText from './CustomText';
 
 interface CustomTextInputProps extends TextInputProps {
     label?: string;
@@ -15,14 +16,22 @@ interface CustomTextInputProps extends TextInputProps {
     marginTop?: number | undefined;
     withBackground?: string;
     inputTheme?: string;
+    transparentBackground?: boolean;
 }
 
-export default function CustomTextInput({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress=()=>{}, isEditable = true, errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0 }: CustomTextInputProps) {
+const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline, ...textInputProps }, ref) => {
+    let localMaxLength:any = 70;
+    if (multiline) {
+        localMaxLength = undefined;
+    }
+    if (maxLength) {
+        localMaxLength = maxLength;
+    }
     const theme = useThemeContext();
-    const styles = CustomInputStyle(theme, false, inputTheme, withBackground);
+    const styles = CustomInputStyle(theme, false, inputTheme, transparentBackground ? '' : withBackground, multiline);
     return (
         <View style={[styles.container, { marginTop }]}>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, multiline && styles.inputContainerMultiline]}>
                 {leftIcon && (
                     <Image
                         source={leftIcon}
@@ -31,15 +40,17 @@ export default function CustomTextInput({ placeholder = '', secureTextEntry = fa
                     />
                 )}
                 <TextInput
+                    ref={ref}
                     style={styles.inputStyle}
-                    placeholderTextColor={inputTheme == 'white' ? theme.colors.white : theme.colors.placeholder}
+                    placeholderTextColor={inputTheme === 'white' ? theme.colors.white : theme.colors.placeholder}
                     placeholder={placeholder}
-                    maxLength={maxLength}
+                    maxLength={localMaxLength}
                     keyboardType={keyboardType}
                     onChangeText={onChangeText}
                     value={value}
                     secureTextEntry={secureTextEntry}
                     editable={isEditable}
+                    {...textInputProps}
                 />
                 {rightIcon && (
                     <Pressable
@@ -53,6 +64,11 @@ export default function CustomTextInput({ placeholder = '', secureTextEntry = fa
                     </Pressable>
                 )}
             </View>
+            {_errortext && <CustomText color={theme.colors.errorText} fontSize={theme.fontSize.xxs} fontFamily={theme.fonts.REGULAR} marginTop={5}>{_errortext}</CustomText>}
         </View>
     )
-}
+});
+
+CustomTextInput.displayName = 'CustomTextInput';
+
+export default CustomTextInput;

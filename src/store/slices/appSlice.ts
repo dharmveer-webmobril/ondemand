@@ -4,6 +4,8 @@ interface AppState {
   isLoading: boolean;
   language: string;
   theme: 'light' | 'dark';
+  isUserActiveOrNotModal: boolean;
+  inactiveMessage: string;
   // Add other app-level state here
 }
 
@@ -11,6 +13,8 @@ const initialState: AppState = {
   isLoading: false,
   language: 'en',
   theme: 'light',
+  isUserActiveOrNotModal: false,
+  inactiveMessage: '',
 };
 
 const appSlice = createSlice({
@@ -26,8 +30,14 @@ const appSlice = createSlice({
     setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
       state.theme = action.payload;
     },
+    setIsUserActiveOrNotModal: (state, action: PayloadAction<boolean>) => {
+      state.isUserActiveOrNotModal = action.payload;
+    },
+    setInactiveMessage: (state, action: PayloadAction<string>) => {
+      state.inactiveMessage = action.payload;
+    },
   },
 });
 
-export const { setLoading, setLanguage, setTheme } = appSlice.actions;
+export const { setLoading, setLanguage, setTheme, setIsUserActiveOrNotModal, setInactiveMessage } = appSlice.actions;
 export default appSlice.reducer;

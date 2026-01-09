@@ -1,11 +1,12 @@
 // Example query file - This demonstrates how to create queries
 // You can create similar files for different features (e.g., userQueries.ts, productQueries.ts, etc.)
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import axiosInstance from '../axiosInstance';
 import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
-
+import axios from 'axios';
+const BASE_URL = 'http://52.22.241.165:10054/api';
 // Example: Get user profile
 export const useGetUserProfile = (userId: string | null) => {
   return useQuery({
@@ -19,19 +20,31 @@ export const useGetUserProfile = (userId: string | null) => {
   });
 };
 
-// Example: Update user profile
-export const useUpdateUserProfile = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: any) => {
-      const response = await axiosInstance.put<ApiResponse>(EndPoints.UPDATE_PROFILE, data);
+export const useProfile = (enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const response = await axiosInstance.get(EndPoints.GET_PROFILE);
       return response.data;
     },
-    onSuccess: () => {
-      // Invalidate and refetch user profile
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+    enabled: enabled,
+    staleTime: 0,
+  });
+};
+
+export const useProfileSplashScreen = (enabled: boolean = true, token: string | null) => {
+  return useQuery({
+    queryKey: ['profileSplashScreen', token],
+    queryFn: async () => {
+      const response = await axios.get(`${BASE_URL}${EndPoints.GET_PROFILE}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
     },
+    enabled: enabled,
+    staleTime: 0,
   });
 };
 
@@ -45,7 +58,13 @@ export const useLogin = () => {
   return useMutation<any, Error, any>({
     mutationFn: async (data: any) => {
       const response = await axiosInstance.post<any>(EndPoints.LOGIN, data);
+      console.log();
       return response.data;
+    },
+    onError: (error: any) => {
+      console.log('❌ Login Error Message:', error.message);
+      console.log('❌ Status Code:', error.response?.status);
+      console.log('❌ API Response:', error.response?.data);
     },
   });
 };
@@ -200,7 +219,8 @@ export const useResetPassword = () => {
 
 // Submit Interests
 export interface SubmitInterestsData {
-  interests: string[];
+  categoryIds: string[];
+  enum: string
 }
 
 export interface SubmitInterestsResponse {
@@ -213,8 +233,43 @@ export interface SubmitInterestsResponse {
 export const useSubmitInterests = () => {
   return useMutation<SubmitInterestsResponse, Error, SubmitInterestsData>({
     mutationFn: async (data: SubmitInterestsData) => {
-      const response = await axiosInstance.post<SubmitInterestsResponse>(EndPoints.SUBMIT_INTERESTS, data);
+      const response = await axiosInstance.post<SubmitInterestsResponse>(EndPoints.ADD_CUSTOMER_INTEREST, data);
       return response.data;
+    },
+    onError: (error: any) => {
+      console.log('❌ Login Error Message:', error.message);
+      console.log('❌ Status Code:', error.response?.status);
+      console.log('❌ API Response:', error.response?.data);
+    },
+  });
+};
+
+
+export const useUpdateProfile = () => {
+  return useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      console.log('data------useUpdateProfile', data);
+      const response = await axiosInstance.put<any>(EndPoints.UPDATE_PROFILE_1, data);
+      return response.data;
+    },
+    onError: (error: any) => {
+      console.log('❌ Login Error Message:', error.message);
+      console.log('❌ Status Code:', error.response?.status);
+      console.log('❌ API Response:', error.response?.data);
+    },
+  });
+};
+
+export const useChangePassword = () => {
+  return useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      const response = await axiosInstance.put<any>(EndPoints.CHANGE_PASSWORD, data);
+      return response.data;
+    },
+    onError: (error: any) => {
+      console.log('❌ Login Error Message:', error.message);
+      console.log('❌ Status Code:', error.response?.status);
+      console.log('❌ API Response:', error.response?.data);
     },
   });
 };

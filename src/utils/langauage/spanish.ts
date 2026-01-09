@@ -151,6 +151,15 @@ export const spanish = {
     "headerTitle": "Menú de Perfil",
     "languageSettings": "Configuraciones de Idioma"
   },
+  "changePasswordDetails": {
+    "currentPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "currentPasswordPlaceholder": "Ingrese su contraseña actual",
+    "newPasswordPlaceholder": "Ingrese su nueva contraseña",
+    "confirmPasswordPlaceholder": "Confirme su nueva contraseña",
+    "update": "Actualizar"
+  },
   "myAddress": {
     "title": "Mis Direcciones",
     "error": "Error al cargar las direcciones",
@@ -194,6 +203,11 @@ export const spanish = {
       "office": "Oficina",
       "apartment": "Apartamento"
     }
+  },
+  "selectAddress": {
+    "title": "Seleccionar Dirección",
+    "confirm": "Confirmar",
+    "addNewAddress": "Agregar Nueva Dirección"
   },
   "imagePickerModal": {
     "title": "Seleccionar Imagen",

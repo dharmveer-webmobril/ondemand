@@ -9,6 +9,7 @@ import { useForgotPassword } from '@services/api/queries/authQueries';
 import { showToast } from '@components/common/CustomToast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SCREEN_NAMES } from '@navigation';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const ForgotPass = () => {
     const theme = useThemeContext();
@@ -87,57 +88,62 @@ const ForgotPass = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
-            <ImageComp
-                imageSource={imagePaths.forgot_img}
-                marginLeft={'auto'}
-                marginRight={'auto'}
-                marginBottom={20}
-                height={theme.SH(225)}
-                width={theme.SW(225)}
-                marginTop={10 + statusBarHeight}
-            />
-            <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
-                <CustomText
-                    variant="h3"
-                    textAlign={'center'}
-                    color={Colors.whitetext}
-                    fontFamily={fonts.SEMI_BOLD}
-                    marginTop={theme.margins.lg}
-                >
-                    {t('forgotpass.forgotPassword')}
-                </CustomText>
-                <CustomText
-                    variant="h5"
-                    textAlign={'center'}
-                    color={Colors.whitetext}
-                    fontFamily={fonts.REGULAR}
-                    marginTop={theme.margins.md}
-                >
-                    {t('forgotpass.subtitle')}
-                </CustomText>
-                <CustomInput
-                    leftIcon={imagePaths.email_icon}
-                    placeholder={t('placeholders.email')}
-                    errortext={formik.touched.email && formik.errors.email ? formik.errors.email : ''}
-                    inputTheme={'white'}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    value={formik.values.email}
-                    onChangeText={formik.handleChange('email')}
-                    onBlur={formik.handleBlur('email')}
-                    marginTop={SH(40)}
+            <KeyboardAwareScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+                extraScrollHeight={theme.SH(40)}>
+                <ImageComp
+                    imageSource={imagePaths.forgot_img}
+                    marginLeft={'auto'}
+                    marginRight={'auto'}
+                    marginBottom={20}
+                    height={theme.SH(225)}
+                    width={theme.SW(225)}
+                    marginTop={10 + statusBarHeight}
                 />
+                <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
+                    <CustomText
+                        variant="h3"
+                        textAlign={'center'}
+                        color={Colors.whitetext}
+                        fontFamily={fonts.SEMI_BOLD}
+                        marginTop={theme.margins.lg}
+                    >
+                        {t('forgotpass.forgotPassword')}
+                    </CustomText>
+                    <CustomText
+                        variant="h5"
+                        textAlign={'center'}
+                        color={Colors.whitetext}
+                        fontFamily={fonts.REGULAR}
+                        marginTop={theme.margins.md}
+                    >
+                        {t('forgotpass.subtitle')}
+                    </CustomText>
+                    <CustomInput
+                        leftIcon={imagePaths.email_icon}
+                        placeholder={t('placeholders.email')}
+                        errortext={formik.touched.email && formik.errors.email ? formik.errors.email : ''}
+                        inputTheme={'white'}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        value={formik.values.email}
+                        onChangeText={formik.handleChange('email')}
+                        onBlur={formik.handleBlur('email')}
+                        marginTop={SH(40)}
+                    />
 
-                <CustomButton
-                    title={t('forgotpass.sendotp')}
-                    backgroundColor={theme.colors.white}
-                    textColor={theme.colors.primary}
-                    marginTop={theme.SH(150)}
-                    onPress={handleSendOtp}
-                    isLoading={forgotPasswordMutation.isPending}
-                    disable={forgotPasswordMutation.isPending}
-                />
-            </AuthBottomContainer>
+                    <CustomButton
+                        title={t('forgotpass.sendotp')}
+                        backgroundColor={theme.colors.white}
+                        textColor={theme.colors.primary}
+                        marginTop={theme.SH(150)}
+                        onPress={handleSendOtp}
+                        isLoading={forgotPasswordMutation.isPending}
+                        disable={forgotPasswordMutation.isPending}
+                    />
+                </AuthBottomContainer>
+            </KeyboardAwareScrollView>
         </Container>
     );
 };

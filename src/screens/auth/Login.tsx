@@ -11,9 +11,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAppDispatch } from '@store/hooks';
-import { setCredentials } from '@store/slices/authSlice';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { setCityId, setCountryId, setCredentials } from '@store/slices/authSlice';
 import { useLogin } from '@services';
 import { SCREEN_NAMES } from '@navigation';
+import { useDisableGestures } from '@utils/hooks';
 
 export const socialButtons = [
     {
@@ -35,6 +37,7 @@ const Login = () => {
     const { t } = useTranslation();
     const styles = LoginStyle(theme);
     const dispatch = useAppDispatch();
+    useDisableGestures();
     const [passwordVisibility, setPasswordVisibility] = useState(true);
     const insets = useSafeAreaInsets();
     const statusBarHeight = insets.top;
@@ -63,9 +66,10 @@ const Login = () => {
                     password: values.password,
                 });
 
+
+                const { token, customer, otp = '', note = '' } = response.ResponseData;
                 if (response.succeeded && response.ResponseCode === 200) {
                     // Store credentials in Redux
-                    const { token, customer } = response.ResponseData;
                     dispatch(
                         setCredentials({
                             userId: customer._id,
@@ -73,18 +77,34 @@ const Login = () => {
                             userDetails: customer,
                         })
                     );
-
+                    dispatch(setCityId(customer.city));
+                    dispatch(setCountryId(customer.country));
                     showToast({
                         type: 'success',
                         title: t('messages.success'),
                         message: t('login.loginSuccess'),
                     });
 
-                    // Navigate to home/main scree
-                    setTimeout(() => {
-                        navigate(SCREEN_NAMES.HOME);
-                        // Navigation will be handled by RootNavigator based on auth state
-                    }, 1000);
+                    if (customer?.interests && customer?.interests?.length > 0) {
+                        setTimeout(() => {
+                            navigate(SCREEN_NAMES.HOME);
+                        }, 1000);
+                    } else {
+                        navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
+                    }
+                    
+                } else if (!response.succeeded && response.ResponseCode === 200 && otp && note) {
+                    showToast({
+                        type: 'error',
+                        title: t('messages.error'),
+                        message: note,
+                    });
+                    navigate(SCREEN_NAMES.OTP_VERIFY, {
+                        prevScreen: 'signup',
+                        email: values.email,
+                        otp: otp,
+                        note: note,
+                    });
                 } else {
                     showToast({
                         type: 'error',
@@ -94,10 +114,11 @@ const Login = () => {
                 }
             } catch (error: any) {
                 console.error('Login error:', error);
+                const message = error?.response?.data?.ResponseMessage || t('messages.loginFailed')
                 showToast({
                     type: 'error',
                     title: t('messages.error'),
-                    message: error?.response?.data?.ResponseMessage || t('messages.loginFailed'),
+                    message: message,
                 });
             }
         },
@@ -120,92 +141,97 @@ const Login = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
-            <ImageComp
-                imageSource={imagePaths.login_img}
-                marginLeft={'auto'}
-                marginRight={'auto'}
-                marginBottom={20}
-                height={theme.SH(225)}
-                width={theme.SW(225)}
-                marginTop={10 + statusBarHeight}
-            />
-            <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
-                <CustomInput
-                    leftIcon={imagePaths.email_icon}
-                    placeholder={t('placeholders.email')}
-                    errortext={formik.touched.email && formik.errors.email ? formik.errors.email : ''}
-                    inputTheme={'white'}
-                    value={formik.values.email}
-                    onChangeText={formik.handleChange('email')}
-                    onBlur={formik.handleBlur('email')}
-                    keyboardType='email-address'
-                    autoCapitalize='none'
+            <KeyboardAwareScrollView
+                contentContainerStyle={styles.scrollViewContainer}
+                showsVerticalScrollIndicator={false}
+                extraScrollHeight={theme.SH(40)}>
+                <ImageComp
+                    imageSource={imagePaths.login_img}
+                    marginLeft={'auto'}
+                    marginRight={'auto'}
+                    marginBottom={20}
+                    height={theme.SH(225)}
+                    width={theme.SW(225)}
+                    marginTop={10 + statusBarHeight}
                 />
-                <CustomInput
-                    leftIcon={imagePaths.lock_icon}
-                    placeholder={t('placeholders.password')}
-                    errortext={formik.touched.password && formik.errors.password ? formik.errors.password : ''}
-                    inputTheme={'white'}
-                    secureTextEntry={passwordVisibility}
-                    value={formik.values.password}
-                    onChangeText={formik.handleChange('password')}
-                    onBlur={formik.handleBlur('password')}
-                    onRightIconPress={() => setPasswordVisibility(!passwordVisibility)}
-                    rightIcon={!passwordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
-                    marginTop={theme.SH(25)}
-                />
+                <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
+                    <CustomInput
+                        leftIcon={imagePaths.email_icon}
+                        placeholder={t('placeholders.email')}
+                        errortext={formik.touched.email && formik.errors.email ? formik.errors.email : ''}
+                        inputTheme={'white'}
+                        value={formik.values.email}
+                        onChangeText={formik.handleChange('email')}
+                        onBlur={formik.handleBlur('email')}
+                        keyboardType='email-address'
+                        autoCapitalize='none'
+                    />
+                    <CustomInput
+                        leftIcon={imagePaths.lock_icon}
+                        placeholder={t('placeholders.password')}
+                        errortext={formik.touched.password && formik.errors.password ? formik.errors.password : ''}
+                        inputTheme={'white'}
+                        secureTextEntry={passwordVisibility}
+                        value={formik.values.password}
+                        onChangeText={formik.handleChange('password')}
+                        onBlur={formik.handleBlur('password')}
+                        onRightIconPress={() => setPasswordVisibility(!passwordVisibility)}
+                        rightIcon={!passwordVisibility ? imagePaths.eye_open : imagePaths.eye_off_icon}
+                        marginTop={theme.SH(25)}
+                    />
 
-                <CustomText
-                    onPress={() => {
-                        navigate(SCREEN_NAMES.FORGOT_PASS);
-                    }}
-                    color={theme.colors.whitetext}
-                    variant="h5"
-                    style={styles.forgotPassTxt}
-                >
-                    {t('login.forgotPassword')}
-                </CustomText>
-                <CustomButton
-                    title={t('login.loginButton')}
-                    backgroundColor={theme.colors.white}
-                    textColor={theme.colors.primary}
-                    marginTop={theme.SH(40)}
-                    onPress={handleLogin}
-                    isLoading={loginMutation.isPending}
-                    disable={loginMutation.isPending}
-                />
-
-                <OrText />
-
-                <View style={styles.socialIconContainer}>
-                    {socialButtons.map((button, index) => (
-                        <SocialButtons
-                            key={index}
-                            icon={button.icon}
-                            width={SF(40)}
-                            iconSize={index === 2 ? SF(31) : SF(26)}
-                            onPress={() => {
-                                // btnSignup()
-                            }}
-                        />
-                    ))}
-                </View>
-                <View style={styles.signupTextContainer}>
-                    <CustomText fontSize={theme.fontSize.sm} color={theme.colors.whitetext}>
-                        {t('login.dontHaveAccount')}{' '}
-                        <CustomText
-                            onPress={() => {
-                                navigate(SCREEN_NAMES.SIGNUP);
-                            }}
-                            fontSize={theme.fontSize.md}
-                            fontFamily={theme.fonts.SEMI_BOLD}
-                            color={theme.colors.whitetext}
-                        >
-                            {t('login.signUp')}
-                        </CustomText>
+                    <CustomText
+                        onPress={() => {
+                            navigate(SCREEN_NAMES.FORGOT_PASS);
+                        }}
+                        color={theme.colors.whitetext}
+                        variant="h5"
+                        style={styles.forgotPassTxt}
+                    >
+                        {t('login.forgotPassword')}
                     </CustomText>
-                </View>
-            </AuthBottomContainer>
+                    <CustomButton
+                        title={t('login.loginButton')}
+                        backgroundColor={theme.colors.white}
+                        textColor={theme.colors.primary}
+                        marginTop={theme.SH(40)}
+                        onPress={handleLogin}
+                        isLoading={loginMutation.isPending}
+                        disable={loginMutation.isPending}
+                    />
+
+                    <OrText />
+
+                    <View style={styles.socialIconContainer}>
+                        {socialButtons.map((button, index) => (
+                            <SocialButtons
+                                key={index}
+                                icon={button.icon}
+                                width={SF(40)}
+                                iconSize={index === 2 ? SF(31) : SF(26)}
+                                onPress={() => {
+                                    // btnSignup()
+                                }}
+                            />
+                        ))}
+                    </View>
+                    <View style={styles.signupTextContainer}>
+                        <CustomText fontSize={theme.fontSize.sm} color={theme.colors.whitetext}>
+                            {t('login.dontHaveAccount')}{' '}
+                            <CustomText
+                                onPress={() => {
+                                    navigate(SCREEN_NAMES.SIGNUP);
+                                }}
+                                fontSize={theme.fontSize.md}
+                                fontFamily={theme.fonts.SEMI_BOLD}
+                                color={theme.colors.whitetext}
+                            >
+                                {t('login.signUp')}
+                            </CustomText>
+                        </CustomText>
+                    </View>
+                </AuthBottomContainer>
+            </KeyboardAwareScrollView>
         </Container>
     );
 };

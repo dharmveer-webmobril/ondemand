@@ -12,7 +12,7 @@ import OTPTextView from 'react-native-otp-textinput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVerifyOtp, useResendOtp } from '@services/api/queries/authQueries';
 import { useAppDispatch } from '@store/hooks';
-import { setCredentials } from '@store/slices/authSlice';
+import { setCityId, setCountryId, setCredentials } from '@store/slices/authSlice';
 import { showToast } from '@components/common/CustomToast';
 import { SCREEN_NAMES } from '@navigation';
 
@@ -87,7 +87,8 @@ const OtpVerify = () => {
                             userDetails: customer,
                         })
                     );
-
+                    dispatch(setCityId(customer.city));
+                    dispatch(setCountryId(customer.country));
                     showToast({
                         type: 'success',
                         title: t('messages.success'),
@@ -96,7 +97,7 @@ const OtpVerify = () => {
 
                     // Navigate to interest choose or home
                     setTimeout(() => {
-                        navigate(SCREEN_NAMES.INTEREST_CHOOSE);
+                        navigate(SCREEN_NAMES.INTEREST_CHOOSE,{prevScreen: 'auth'});
                     }, 1000);
 
                 } else {

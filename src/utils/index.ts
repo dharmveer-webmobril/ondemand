@@ -4,3 +4,4 @@ export * from './NavigationUtils'
 export * from './theme'
 export * from './staticData'
 export {default as StorageProvider} from './StorageProvider';
+export {default as regex} from './regexList';

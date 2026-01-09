@@ -1,21 +1,25 @@
 import { AppHeader, CustomButton, CustomText, InterestItem, Spacing, showToast } from '@components';
-import { goBack, navigate } from '@utils/NavigationUtils';
+import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import { useThemeContext } from '@utils/theme';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { FlatList, StyleSheet, View, ActivityIndicator, BackHandler, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSubmitInterests } from '@services/api/queries/authQueries';
 import { useGetCategories } from '@services/api/queries/appQueries';
 import { SCREEN_NAMES } from '@navigation';
+import { useDisableGestures } from '@utils/hooks';
+import { useRoute } from '@react-navigation/native';
 const IntrestChoose = () => {
     const theme = useThemeContext();
     const { t } = useTranslation();
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const submitInterestsMutation = useSubmitInterests();
+    const route = useRoute<any>();
+    const prevScreen = route?.params?.prevScreen;
     const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategories();
-
+    useDisableGestures(prevScreen === 'auth');
     const toggleSelect = (id: string) => {
         setSelectedIds(prev => {
             const next = new Set(prev);
@@ -34,6 +38,26 @@ const IntrestChoose = () => {
         return categoriesData?.ResponseData || [];
     }, [categoriesData]);
 
+    // Handle back button navigation
+    const handleBackPress = useCallback(() => {
+        if (prevScreen === 'auth') {
+            // If coming from auth flow, navigate to Login
+            resetAndNavigate(SCREEN_NAMES.LOGIN);
+        } else {
+            // Otherwise, go back normally
+            goBack();
+        }
+        return true; // Prevent default back behavior
+    }, [prevScreen]);
+
+    // Handle Android hardware back button
+    useEffect(() => {
+        if (Platform.OS === 'android') {
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+            return () => backHandler.remove();
+        }
+    }, [handleBackPress]);
+
     const handleSubmit = async () => {
         if (selectedIds.size === 0) {
             showToast({
@@ -46,9 +70,9 @@ const IntrestChoose = () => {
 
         try {
             const interests = Array.from(selectedIds);
-            const response = await submitInterestsMutation.mutateAsync({ interests });
+            const response = await submitInterestsMutation.mutateAsync({ categoryIds: interests, enum: 'service_interests' });
 
-            if (response.succeeded && response.ResponseCode === 200) {
+            if (response.succeeded && response.ResponseCode === 201) {
                 showToast({
                     type: 'success',
                     title: t('messages.success'),
@@ -92,7 +116,7 @@ const IntrestChoose = () => {
 
                         <AppHeader
                             title={t('interestChoose.title')}
-                            onLeftPress={() => goBack()}
+                            onLeftPress={handleBackPress}
                             tintColor="#ffffff"
                         />
 

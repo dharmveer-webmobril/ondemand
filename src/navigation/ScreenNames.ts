@@ -34,6 +34,10 @@ export const SCREEN_NAMES = {
   CHAT_SCREEN: 'ChatScreen',
   INBOX_SCREEN: 'InboxScreen',
   PROFILE_SETUP: 'ProfileSetup',
+  CHANGE_PASSWORD: 'ChangePassword',
+  MY_ADDRESS: 'MyAddress',
+  ADD_ADDRESS: 'AddAddress',
+  SELECT_ADDRESS: 'SelectAddress',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

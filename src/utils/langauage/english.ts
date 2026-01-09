@@ -13,8 +13,8 @@ export const english = {
     "alreadyHaveAccount": "Already have an account?",
     "logIn": "Log In",
     "orText": "Or",
-    "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of service",
+    "privacyPolicy": "Privacy policy",
     "acceptTerms": "By signing up, you accept the",
     "selectCountry": "Select Country",
     "selectCity": "Select City",
@@ -30,7 +30,7 @@ export const english = {
   },
   "otpverify": {
     "title": "Verification",
-    "subtitle": "Please enter the code we sent to your email ID.",
+    "subtitle": "Please enter the code we have sent to your email ID.",
     "verify": "Verify",
     "resendOTP": "Resend OTP",
     "enterValidOtp": "Please enter a valid 4-digit OTP code.",
@@ -110,16 +110,17 @@ export const english = {
     "passCurrMinLength": "Current password must be at least 6 characters.",
     "emptyCurrPassword": "Please enter current password.",
     "emptyConfirmPassword": "Please enter confirm password.",
-    "notMatchConfirmPassword": "Passwords do not match.",
+    "notMatchConfirmPassword": "Password do not match.",
     "emotyOtp": "Please enter OTP.",
     "emptyCountry": "Please select a country.",
-    "emptyCity": "Please select a city."
+    "emptyCity": "Please select a city.",
   },
   "messages": {
     "otpSendTomail": "OTP sent to email.",
     "accNotVerified": "Account not verified.",
     "loginFailed": "Login failed.",
     "error": "Error",
+    "info": "Info",
     "acceptTermCond": "Please accept the Terms of Service.",
     "regSuccessMsg": "Registration successful. Please verify your email to continue.",
     "signupFailed": "Signup failed.",
@@ -178,6 +179,15 @@ export const english = {
     "cancelButton": "Cancel"
   },
   "profile": {
+    "changePasswordDetails": {
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "update": "Update"
+    },
     "changePassword": "Change Password",
     "myAddress": "My Address",
     "myCalendar": "My Calendar",
@@ -192,6 +202,15 @@ export const english = {
     "paymentHistory": "Payments",
     "headerTitle": "Profile Menu",
     "languageSettings": "Language Settings"
+  },
+  "changePasswordDetails": {
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "update": "Update"
   },
   "myAddress": {
     "title": "My Address",
@@ -237,6 +256,11 @@ export const english = {
       "apartment": "Apartment"
     }
   },
+  "selectAddress": {
+    "title": "Select Address",
+    "confirm": "Confirm",
+    "addNewAddress": "Add New Address"
+  },
   "imagePickerModal": {
     "title": "Select Image",
     "capture_image": "📷 Capture Image",
@@ -280,11 +304,6 @@ export const english = {
       "error": "Failed to load categories. Tap to retry",
       "retry": "Retry"
     }
-  },
-  "selectAddress": {
-    "title": "Select Address",
-    "addNewAdd": "Add New Address",
-    "confirm": "Confirm"
   },
   "shop": {
     "shopList": {

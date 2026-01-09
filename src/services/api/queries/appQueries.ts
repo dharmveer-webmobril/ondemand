@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axiosInstance from '../axiosInstance';
 import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
+import { Platform } from 'react-native';
 
 export const useGetAppInfo = () => {
     return useQuery({
@@ -23,7 +24,7 @@ export const useGetCountries = () => {
     });
 };
 export const useGetCities = (countryId: string | null) => {
-    console.log(countryId, 'countryId------');
+    // console.log(countryId, 'countryId------');
     
     return useQuery({
         queryKey: ['cities', countryId],
@@ -55,3 +56,57 @@ export const useGetTermsAndConditions = () => {
         },
     });
 };
+
+
+export interface UploadDocumentData {
+    docType: string;
+    document: any; // File/Image object
+  }
+  
+  export interface UploadDocumentResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: {
+      url: string;
+      bucket: string;
+      fileName: string;
+      docType: string;
+    };
+  }
+  
+export const useUploadDocument = () => {
+    return useMutation<UploadDocumentResponse, Error, UploadDocumentData>({
+      mutationFn: async (data: UploadDocumentData) => {
+        const formData = new FormData();
+        console.log('data-----useUploadDocument', data);
+        formData.append('docType', data.docType);
+        const image = data.document;
+        const fileName =
+          image.filename ??
+          image.path?.split('/').pop() ??
+          `image_${Date.now()}.jpg`;
+  
+        const file = {
+          uri: Platform.OS === 'android'
+              ? image.path.startsWith('file://')
+                ? image.path
+                : `file://${image.path}`
+              : image.path,
+  
+          type: image.mime ?? 'image/jpeg',
+          
+          name: fileName,
+        };
+  
+        formData.append('document', file as any);
+        console.log('formData-----useUploadDocument', formData);
+        return (
+          await axiosInstance.post<UploadDocumentResponse>(
+            EndPoints.UPLOAD_DOCUMENT,
+            formData
+          )
+        ).data;
+      },
+    });
+  };

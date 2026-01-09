@@ -1,14 +1,16 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { StatusBar, View, StyleSheet } from "react-native";
 import { HomeHeader, HomeMainList } from "@components";
+import { useDisableGestures } from "@utils/hooks";
 
 export default function Home() {
+  useDisableGestures()
   const [refreshing, setRefreshing] = useState(false);
 
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    
+
     try {
       // TODO: Add API calls here when ready
       // Example:
@@ -17,7 +19,7 @@ export default function Home() {
       //   refetchNearestProviders(),
       //   refetchSliderData(),
       // ]);
-      
+
       // Simulate API call delay
       await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
     } catch (error) {

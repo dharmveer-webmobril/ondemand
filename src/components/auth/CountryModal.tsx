@@ -1,5 +1,5 @@
 import { View, StyleSheet, Modal, Pressable, FlatList, ActivityIndicator } from 'react-native';
-import React, { useMemo, useState, } from 'react';
+import { useMemo, useState, } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomButton, CustomText, CustomInput } from '@components/common';
 import { useTranslation } from 'react-i18next';
@@ -249,5 +249,6 @@ const createStyles = (theme: ThemeType) =>
     confirmButtonText: {
       fontSize: theme.fontSize.md,
       fontFamily: theme.fonts.BOLD,
+      color: theme.colors.white,
     },
   });

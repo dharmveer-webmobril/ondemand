@@ -29,7 +29,7 @@ const TermsAndConditions = () => {
     }, [termsData, type]);
 
     return (
-        <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
+        <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white ,paddingHorizontal:20}}>
             <Spacing space={statusBarHeight} />
             <AppHeader
                 title={type}
@@ -95,7 +95,6 @@ const createStyles = (theme: any) => StyleSheet.create({
         paddingBottom: theme.SH(40),
     },
     content: {
-        paddingHorizontal: theme.SW(20),
         paddingTop: theme.SH(20),
     },
     loaderContainer: {

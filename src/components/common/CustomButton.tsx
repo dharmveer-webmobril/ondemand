@@ -38,7 +38,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     disable = false,
     icon,
     spacedImages = false,
-    textColor = '',
+    textColor = '#ffffff',
     backgroundColor = '',
     paddingHorizontal = '',
     marginTop = 0,
@@ -63,7 +63,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
                     color: textColor || theme.colors.whitetext,
                     fontFamily: theme.fonts.SEMI_BOLD,
                     fontSize: theme.SF(18),
-                    
+
                 },
                 buttonViewStyle: {
                     flexDirection: 'row',
@@ -75,7 +75,9 @@ const CustomButton: React.FC<CustomButtonProps> = ({
                     marginVertical: theme.SW(5),
                 },
             }),
-        [disable, spacedImages, textColor, backgroundColor,paddingHorizontal,theme],
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [disable, spacedImages, textColor, backgroundColor, paddingHorizontal, theme],
     );
 
     return (
@@ -83,10 +85,10 @@ const CustomButton: React.FC<CustomButtonProps> = ({
             onPress={!isButtonDisabled ? onPress : undefined}
             style={({ pressed }) => [
                 styles.buttonStyle,
-                buttonStyle,
                 { marginTop, marginBottom },
                 { backgroundColor: backgroundColor || theme.colors.primary },
                 pressed && !isButtonDisabled && { opacity: 0.8 },
+                buttonStyle,
             ]}
             disabled={isButtonDisabled}
         >
