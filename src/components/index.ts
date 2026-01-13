@@ -13,6 +13,7 @@ export { default as SplashAnimation } from './splash/SplashAnimation'
 //home============
 export { default as HomeHeader } from './home/HomeHeader'
 export { default as HomeMainList } from './home/HomeMainList'
+export { default as HomeSearchBar } from './home/HomeSearchBar'
 //chat============
 export { default as ChatHeader } from './chat/ChatHeader'
 export { default as ChatMessage } from './chat/ChatMessage'
@@ -28,3 +29,18 @@ export { default as BookingCard } from './booking/BookingCard'
 export { default as ProfileHeader } from './profile/ProfileHeader'
 export { default as ProfileMenuItem } from './profile/ProfileMenuItem'
 export { default as LogoutModal } from './profile/LogoutModal'
+
+//category============
+export { default as CategoryTabs } from './category/CategoryTabs'
+export { default as ServiceProviderListItem } from './category/ServiceProviderListItem'
+export { default as DeliveryModeModal } from './category/DeliveryModeModal'
+
+//provider============
+export { default as ProviderSubHeader } from './provider/ProviderSubHeader'
+export { default as ProviderHeader } from './provider/ProviderHeader'
+export { default as ProviderTabs } from './provider/ProviderTabs'
+export { default as ServiceItem } from './provider/ServiceItem'
+export { default as RatingChart } from './provider/RatingChart'
+export { default as ReviewItem } from './provider/ReviewItem'
+export { default as PortfolioGrid } from './provider/PortfolioGrid'
+export { default as ProviderDetails } from './provider/ProviderDetails'

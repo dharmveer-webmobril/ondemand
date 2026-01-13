@@ -5,6 +5,9 @@ import HomeCategoryList from './HomeCategoryList';
 import HomeProvider from './HomeProvider';
 import { CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
+import { CategoriesResponse, BannersResponse } from '@services/api/queries/appQueries';
+import { navigate } from '@utils/NavigationUtils';
+import SCREEN_NAMES from '@navigation/ScreenNames';
 
 type SectionData = {
   title: string;
@@ -16,43 +19,90 @@ type SectionData = {
 type HomeMainListProps = {
   refreshing?: boolean;
   onRefresh?: () => void;
+  categoriesData?: CategoriesResponse;
+  categoriesLoading?: boolean;
+  categoriesError?: boolean;
+  onRetryCategories?: () => void;
+  bannersData?: BannersResponse;
+  bannersLoading?: boolean;
+  bannersError?: boolean;
+  onRetryBanners?: () => void;
 };
 
-const DATA: SectionData[] = [
-  {
-    title: '',
-    data: [{}],
-    key: 'slider',
-    renderItem: () => <HomeSlider />,
-  },
-  {
-    title: 'Categories',
-    renderItem: () => <HomeCategoryList />,
-    key: 'Categories',
-    data: [{}],
-  },
-  {
-    title: 'Nearest Provider',
-    key: 'provider',
-    data: [{}],
-    renderItem: () => <HomeProvider />,
-  },
-];
+const SectionSeparator = () => {
+  const theme = useThemeContext();
+  const styles = useMemo(() => StyleSheet.create({
+    separator: {
+      height: theme.SH(30),
+    },
+  }), [theme]);
+  return <View style={styles.separator} />;
+};
 
-export default function HomeMainList({ refreshing = false, onRefresh }: HomeMainListProps) {
+export default function HomeMainList({ 
+  refreshing = false, 
+  onRefresh,
+  categoriesData,
+  categoriesLoading,
+  categoriesError,
+  onRetryCategories,
+  bannersData,
+  bannersLoading,
+  bannersError,
+  onRetryBanners,
+}: HomeMainListProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleViewAll = (sectionKey: string) => {
-    // TODO: Navigate to respective screen when ready
-    console.log('View All pressed for:', sectionKey);
+    if (sectionKey === 'provider') {
+      // Navigate to CategoryProviders without category filter
+      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS);
+    } else {
+      console.log('View All pressed for:', sectionKey);
+    }
   };
+
+  const DATA: SectionData[] = useMemo(() => [
+    {
+      title: '',
+      data: [{}],
+      key: 'slider',
+      renderItem: () => (
+        <HomeSlider 
+          banners={bannersData?.ResponseData || []}
+          isLoading={bannersLoading}
+          isError={bannersError}
+          onRetry={onRetryBanners}
+        />
+      ),
+    },
+    {
+      title: 'Categories',
+      renderItem: () => (
+        <HomeCategoryList 
+          categories={categoriesData?.ResponseData || []}
+          isLoading={categoriesLoading}
+          isError={categoriesError}
+          onRetry={onRetryCategories}
+        />
+      ),
+      key: 'Categories',
+      data: [{}],
+    },
+    {
+      title: 'Nearest Provider',
+      key: 'provider',
+      data: [{}],
+      renderItem: () => <HomeProvider />,
+    },
+  ], [bannersData, bannersLoading, bannersError, onRetryBanners, categoriesData, categoriesLoading, categoriesError, onRetryCategories]);
 
   return (
     <SectionList
       sections={DATA}
       keyExtractor={(_, index) => index?.toString()}
-      renderItem={({ item, section }: any) => section.renderItem()}
+      renderItem={({ _, section }: any) => section.renderItem()}
       renderSectionHeader={({ section: { title, key } }) =>
         title ? (
           <View style={[styles.headerContainer, styles.sectionHeader]}>
@@ -75,7 +125,7 @@ export default function HomeMainList({ refreshing = false, onRefresh }: HomeMain
           </View>
         ) : null
       }
-      SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
+      SectionSeparatorComponent={SectionSeparator}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -86,6 +136,7 @@ export default function HomeMainList({ refreshing = false, onRefresh }: HomeMain
       }
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled={false}
+      contentContainerStyle={styles.contentContainer}
     />
   );
 }
@@ -98,13 +149,15 @@ const createStyles = (theme: ThemeType) =>
       alignItems: 'center',
     },
     sectionHeader: {
-      marginTop: theme.SH(25),
       paddingHorizontal: theme.SW(16),
     },
     viewAllText: {
       textDecorationLine: 'underline',
     },
     sectionSeparator: {
-      height: theme.SH(30),
+      // height: theme.SH(20),
+    },
+    contentContainer: {
+      paddingBottom: theme.SH(90),
     },
   });

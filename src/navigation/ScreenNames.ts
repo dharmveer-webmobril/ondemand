@@ -38,6 +38,12 @@ export const SCREEN_NAMES = {
   MY_ADDRESS: 'MyAddress',
   ADD_ADDRESS: 'AddAddress',
   SELECT_ADDRESS: 'SelectAddress',
+  CATEGORY_PROVIDERS: 'CategoryProviders',
+  PROVIDER_DETAILS: 'ProviderDetails',
+  SERVICE_FEE_POLICY: 'ServiceFeePolicy',
+  PAYMENT_POLICY: 'PaymentPolicy',
+  REPORT: 'Report',
+  BOOK_APPOINTMENT: 'BookAppointment',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

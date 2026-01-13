@@ -1,39 +1,92 @@
 import { useState, useCallback } from "react";
 import { StatusBar, View, StyleSheet } from "react-native";
-import { HomeHeader, HomeMainList } from "@components";
+import { HomeHeader, HomeMainList, HomeSearchBar } from "@components";
+import { LoadingComp } from "@components/common";
 import { useDisableGestures } from "@utils/hooks";
+import { useGetCategories, useGetBanners } from "@services/api/queries/appQueries";
 
 export default function Home() {
   useDisableGestures()
   const [refreshing, setRefreshing] = useState(false);
+  const [isCityUpdating, setIsCityUpdating] = useState(false);
+
+  // Fetch categories and banners
+  const { 
+    data: categoriesData, 
+    isLoading: categoriesLoading, 
+    isError: categoriesError,
+    refetch: refetchCategories 
+  } = useGetCategories();
+
+  const { 
+    data: bannersData, 
+    isLoading: bannersLoading, 
+    isError: bannersError,
+    refetch: refetchBanners 
+  } = useGetBanners();
 
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
 
     try {
-      // TODO: Add API calls here when ready
-      // Example:
-      // await Promise.all([
-      //   refetchCategories(),
-      //   refetchNearestProviders(),
-      //   refetchSliderData(),
-      // ]);
-
-      // Simulate API call delay
-      await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
+      // Refetch both categories and banners
+      await Promise.all([
+        refetchCategories(),
+        refetchBanners()
+      ]);
     } catch (error) {
       console.error('Error refreshing home data:', error);
     } finally {
       setRefreshing(false);
     }
+  }, [refetchCategories, refetchBanners]);
+
+  // Handle city update - refresh home data
+  const handleCityUpdate = useCallback(async () => {
+    await Promise.all([
+      refetchCategories(),
+      refetchBanners()
+    ]);
+  }, [refetchCategories, refetchBanners]);
+
+  // Handle search
+  const handleSearch = useCallback((text: string) => {
+    // TODO: Implement search functionality
+    console.log('Search:', text);
+  }, []);
+
+  // Handle filter press
+  const handleFilterPress = useCallback(() => {
+    // TODO: Implement filter functionality
+    console.log('Filter pressed');
   }, []);
 
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <HomeHeader />
-      <HomeMainList refreshing={refreshing} onRefresh={onRefresh} />
+      <HomeHeader 
+        onCityUpdate={handleCityUpdate} 
+        onCityUpdateLoading={setIsCityUpdating}
+      />
+      <HomeSearchBar 
+        onSearch={handleSearch}
+        onFilterPress={handleFilterPress}
+        placeholder="Search"
+      />
+      <HomeMainList 
+        refreshing={refreshing} 
+        onRefresh={onRefresh}
+        categoriesData={categoriesData}
+        categoriesLoading={categoriesLoading}
+        categoriesError={categoriesError}
+        onRetryCategories={refetchCategories}
+        bannersData={bannersData}
+        bannersLoading={bannersLoading}
+        bannersError={bannersError}
+        onRetryBanners={refetchBanners}
+      />
+      <LoadingComp visible={isCityUpdating} />
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -30,6 +30,12 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.MY_ADDRESS} component={MyAddress} />
         <Stack.Screen name={SCREEN_NAMES.ADD_ADDRESS} component={AddAddress} />
         <Stack.Screen name={SCREEN_NAMES.SELECT_ADDRESS} component={SelectAddress} />
+        <Stack.Screen name={SCREEN_NAMES.CATEGORY_PROVIDERS} component={CategoryProviders} />
+        <Stack.Screen name={SCREEN_NAMES.PROVIDER_DETAILS} component={ProviderDetailsScreen} />
+        <Stack.Screen name={SCREEN_NAMES.SERVICE_FEE_POLICY} component={ServiceFeePolicy} />
+        <Stack.Screen name={SCREEN_NAMES.PAYMENT_POLICY} component={PaymentPolicy} />
+        <Stack.Screen name={SCREEN_NAMES.REPORT} component={Report} />
+        <Stack.Screen name={SCREEN_NAMES.BOOK_APPOINTMENT} component={BookAppointment} />
       </Stack.Navigator>
     </NavigationContainer>
   )

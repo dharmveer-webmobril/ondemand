@@ -2,232 +2,239 @@ import { View, StyleSheet, Pressable, Image } from 'react-native'
 import React, { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import StarRating from 'react-native-star-rating-widget';
-import { CustomText, ImageLoader, Spacing } from '@components/common';
+import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
-export default function HomeProviderItem() {
+import { ServiceProvider } from '@services/api/queries/appQueries';
+
+type HomeProviderItemProps = {
+  provider: ServiceProvider;
+  onPress?: () => void;
+};
+
+export default function HomeProviderItem({ provider, onPress }: HomeProviderItemProps) {
   const theme = useThemeContext();
-  const styles = useMemo(() => createStyles(theme), []);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
-  return <Pressable
-    onPress={() => {
+  const address = provider.businessProfile?.address || provider.city?.name || '';
+  const rating = typeof provider?.rating === 'number' ? provider.rating : 0;
+  const isVerified = provider?.isVerified || false;
+  const profileImage = provider?.profileImage ? { uri: provider?.profileImage } : imagePaths.no_image;
+  const bannerImage = provider.businessProfile?.bannerImage;
+  const serviceType = provider.businessProfile?.name || 'Service Provider';
 
-    }}
-    style={styles.container}
-  >
-    <View style={styles.header}>
-      <ImageLoader source={imagePaths.recomanded1} mainImageStyle={styles.logo} resizeMode="cover" />
-      <CustomText style={styles.text}>{'name'}</CustomText>
-      <Image source={imagePaths.verified_star} style={styles.verifiedIcon} resizeMode="contain" />
-    </View>
-    <Spacing space={10} />
-    <View style={styles.ratingContainer}>
-      <StarRating
-        starStyle={styles.starStyle}
-        starSize={theme.SF(12)}
-        rating={4.5}
-        onChange={() => { }}
-        color="#FAAC00"
-      />
-      <CustomText style={styles.ratingtxt}>({4.5})</CustomText>
-    </View>
-    <Spacing space={7} />
-    <View style={styles.locationContainer}>
-      <Image source={imagePaths.service_loc} style={styles.locationIcon} />
-      <CustomText style={styles.addtext} numberOfLines={1}>
-        Lorem Ipsum is simply dummy text of the
-      </CustomText>
-      <CustomText style={styles.dotText}> . </CustomText>
-      <CustomText style={styles.closetext}>Closed</CustomText>
-    </View>
-  </Pressable>
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.container,
+        pressed && styles.pressedContainer,
+      ]}
+    >
+      {/* Banner Image */}
+      {/* {  (
+        <View style={styles.bannerContainer}>
+          <ImageLoader
+            source={bannerImage ? { uri: bannerImage } : imagePaths.no_image}
+            mainImageStyle={styles.bannerImage}
+            resizeMode="cover"
+          />
+          {isVerified && (
+            <View style={styles.verifiedBadge}>
+              <Image source={imagePaths.verified_star} style={styles.verifiedIcon} resizeMode="contain" />
+            </View>
+          )}
+        </View>
+      )} */}
+
+      {/* Content Section */}
+      <View style={styles.content}>
+        {/* Profile Section */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileImageContainer}>
+            <View style={styles.profileImageWrapper}>
+              <ImageLoader
+                source={profileImage}
+                mainImageStyle={styles.profileImage}
+                resizeMode="cover"
+              />
+            </View>
+          </View>
+          <View style={styles.profileInfo}>
+            <CustomText style={styles.providerName} numberOfLines={1}>
+              {provider.name}
+            </CustomText>
+            {serviceType && (
+              <CustomText style={styles.serviceType} numberOfLines={1}>
+                {serviceType}
+              </CustomText>
+            )}
+          </View>
+        </View>
+
+        {/* Rating Section */}
+        {rating > 0 && (
+          <View style={styles.ratingSection}>
+            <StarRating
+              starStyle={styles.starStyle}
+              starSize={theme.SF(14)}
+              rating={rating}
+              onChange={() => {}}
+              color="#FAAC00"
+            />
+            <CustomText style={styles.ratingText}>
+              {typeof rating === 'number' ? rating.toFixed(1) : '0.0'}
+            </CustomText>
+          </View>
+        )}
+
+        {/* Address Section */}
+        {address && (
+          <View style={styles.addressSection}>
+            <VectoreIcons
+              name="location"
+              icon="Ionicons"
+              size={theme.SF(14)}
+              color={theme.colors.textAppColor || theme.colors.text}
+            />
+            <CustomText style={styles.addressText} numberOfLines={2}>
+              {address}
+            </CustomText>
+          </View>
+        )}
+      </View>
+    </Pressable>
+  );
 }
 const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
   return StyleSheet.create({
-    backgroundContainer: {
-      backgroundColor: '#EEF6F9',
-      marginTop: SF(17),
-      marginBottom: SF(30),
-    },
     container: {
-      width: SW(190),
-      marginRight: 30,
+      width: SW(220),
+      marginRight: SW(16),
+      backgroundColor: Colors.white,
+      borderRadius: SF(16),
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+      
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    pressedContainer: {
+      opacity: 0.9,
+      transform: [{ scale: 0.98 }],
     },
-    logo: {
-      width: SF(28),
-      height: SF(28),
-      borderRadius: SF(14),
-      marginLeft:-2
+    bannerContainer: {
+      width: '100%',
+      height: SF(100),
+      position: 'relative',
+    },
+    profileImageWrapper: {
+      width: SF(50),
+      height: SF(50),
+      borderRadius: SF(25),
+      borderWidth: 1,
+      borderColor: Colors.primary,
+      overflow: 'hidden',
+    },
+    profileImage: {  
+     width: '100%',
+     height: '100%',
     },
     verifiedIcon: {
-      width: SF(14),
-      height: SF(14),
-      marginLeft: SF(8),
+      width: SF(16),
+      height: SF(16),
     },
-    text: {
-      color: Colors.textAppColor,
-      fontFamily: Fonts.MEDIUM,
-      fontSize: SF(12),
-      marginLeft: SF(10),
+    content: {
+      padding: SW(12),
     },
-    ratingContainer: {
+    profileSection: {
       flexDirection: 'row',
       alignItems: 'center',
-      width: SF(90),
+      marginBottom: SH(12),
     },
-    ratingtxt: {
-      color: Colors.textAppColor,
-      fontFamily: Fonts.REGULAR,
-      marginLeft: 5,
-      fontSize: SF(12),
+    profileImageContainer: {
+      position: 'relative',
+      marginRight: SW(10),
     },
-    locationContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      width: SW(120),
-    },
-    locationIconskelton: {
-      height: SF(15),
-      width: SF(160),
-      resizeMode: 'contain',
-      tintColor: Colors.textAppColor,
-    },
-    locationIcon: {
-      height: SF(15),
-      width: SF(15),
-      resizeMode: 'contain',
-      tintColor: Colors.textAppColor,
-    },
-    addtext: {
-      color: Colors.textAppColor,
-      fontFamily: Fonts.MEDIUM,
-      marginLeft: 5,
-      fontSize: SF(12),
-    },
-    closetext: {
-      color: '#777777',
-      fontFamily: Fonts.MEDIUM,
-      marginLeft: 5,
-      fontSize: SF(12),
-    },
-    dotText: {
-      fontFamily: Fonts.EXTRA_BOLD,
-      fontSize: SF(18),
-      marginTop: -4,
-      marginLeft: 2,
-    },
-    flatListContainer: {
-      backgroundColor: '#EEF6F9',
-      paddingVertical: SH(20),
-    },
-    skeletonContainer: {
-      width: SW(200),
-      marginRight: 30,
-      alignItems: 'center',
-    },
-    skeletonImage: {
-      height: SF(56),
-      width: SF(56),
-      borderRadius: SF(28),
-      backgroundColor: '#E0E0E0',
-    },
-    skeletonText: {
-      height: SF(14),
-      width: SW(80),
-      marginTop: 5,
-      backgroundColor: '#E0E0E0',
-      borderRadius: 4,
-    },
-    messageContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
+    bannerImage: {
       width: '100%',
-      paddingVertical: SH(20),
+      height: '100%',
     },
-    messageText: {
-      color: Colors.textAppColor,
+    verifiedBadge: {
+      position: 'absolute',
+      top: SF(8),
+      right: SF(8),
+      backgroundColor: Colors.white,
+      borderRadius: SF(16),
+      padding: SF(4),
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+ 
+    verifiedBadgeSmall: {
+      position: 'absolute',
+      // bottom: -SF(2),
+      // right: -SF(2),
+      backgroundColor: Colors.white,
+      borderRadius: SF(10),
+      padding: SF(2),
+      borderWidth: 1,
+      borderColor: Colors.primary,
+    },
+    verifiedIconSmall: {
+      width: SF(12),
+      height: SF(12),
+    },
+    profileInfo: {
+      flex: 1,
+    },
+    providerName: {
+      fontSize: SF(15),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.text,
+      marginBottom: SH(2),
+    },
+    serviceType: {
+      fontSize: SF(11),
       fontFamily: Fonts.MEDIUM,
-      fontSize: SF(14),
-      textAlign: 'center',
+      color: Colors.primary,
     },
-    retryButton: {
-      padding: SW(10),
-      backgroundColor: Colors.primary,
-      borderRadius: SF(8),
-      marginTop: SH(10),
-      width: '50%',
-      height: SH(40),
-      paddingHorizontal: 5
+    ratingSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: SH(10),
+      gap: SW(6),
     },
-    retrybuttontext: {
+    ratingText: {
+      fontSize: SF(13),
       fontFamily: Fonts.MEDIUM,
-      fontSize: SF(14),
-      color: Colors.textWhite,
-      textAlign: 'center'
-    },
-    viewalltext: {
-      fontFamily: Fonts.MEDIUM,
-      fontSize: SF(14),
-      color: Colors.textWhite,
+      color: Colors.text,
     },
     starStyle: {
-      marginHorizontal: 2,
+      marginHorizontal: 1,
     },
-    fullWidth: {
-      width: '100%',
+    addressSection: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: SW(6),
     },
-    // New skeleton styles
-    textSkeleton: {
-      height: SF(12),
-      width: SW(120),
-      marginLeft: SF(10),
-      backgroundColor: '#E0E0E0',
-      borderRadius: 4,
+    addressText: {
+      flex: 1,
+      fontSize: SF(11),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.textAppColor || Colors.text,
+      lineHeight: SF(16),
     },
-    ratingSkeleton: {
-      height: SF(12),
-      width: SF(80),
-      backgroundColor: '#E0E0E0',
-      borderRadius: 4,
-    },
-    ratingtxtSkeleton: {
-      height: SF(12),
-      width: SF(30),
-      marginLeft: 5,
-      backgroundColor: '#E0E0E0',
-      borderRadius: 4,
-    },
-    locationIconSkeleton: {
-      height: SF(15),
-      width: SF(15),
-      backgroundColor: '#E0E0E0',
-      borderRadius: SF(15) / 2,
-    },
-    addtextSkeleton: {
-      height: SF(12),
-      width: SW(80),
-      marginLeft: 5,
-      backgroundColor: '#E0E0E0',
-      borderRadius: 4,
-    },
-    dotTextSkeleton: {
-      height: SF(18),
-      width: SF(18),
-      marginLeft: 2,
-      backgroundColor: '#E0E0E0',
-      borderRadius: SF(18) / 2,
-    },
-    closetextSkeleton: {
-      height: SF(12),
-      width: SF(40),
-      marginLeft: 5,
-      backgroundColor: '#E0E0E0',
-      borderRadius: 4,
-    },
-
-  })
-}
+  });
+};

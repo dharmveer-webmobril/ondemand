@@ -4,6 +4,131 @@ import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
 import { Platform } from 'react-native';
 
+// Category interfaces
+export interface Category {
+    _id: string;
+    name: string;
+    image: string | null;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface CategoriesResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: Category[];
+}
+
+// Banner interfaces
+export interface Banner {
+    _id: string;
+    name: string;
+    description?: string;
+    image?: string;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface BannersResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: Banner[];
+}
+
+// Service Provider interfaces
+export interface City {
+    _id: string;
+    name: string;
+    countryId: string;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface Country {
+    _id: string;
+    name: string;
+    flag: string;
+    countryCode: string;
+    phoneCode: string;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface Coordinates {
+    lat: number;
+    lng: number;
+}
+
+export interface BusinessProfile {
+    _id: string;
+    spId: string;
+    description: string;
+    address: string;
+    bannerImage: string;
+    businessProof: string | null;
+    portfolioImages: string[];
+    websiteAndSocialLinks: {
+        website: string | null;
+        facebook: string | null;
+        instagram: string | null;
+        recommendation: string | null;
+    };
+    amenitiesIds: string[];
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    name: string;
+}
+
+export interface ServiceProvider {
+    _id: string;
+    name: string;
+    email: string;
+    contact: string;
+    profileImage: string;
+    city: City;
+    country: Country;
+    coordinates: Coordinates;
+    subscription: boolean;
+    status: string;
+    googleId: string | null;
+    applId: string | null;
+    oauthProvider: string;
+    resetToken: string | null;
+    resetTokenExpiry: string | null;
+    createdAt: string;
+    updatedAt: string;
+    tempOTP: string;
+    isVerified: boolean;
+    rating: number | null;
+    businessProfile: BusinessProfile;
+}
+
+export interface Pagination {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+}
+
+export interface ServiceProvidersResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: ServiceProvider[];
+    pagination: Pagination;
+}
+
 export const useGetAppInfo = () => {
     return useQuery({
         queryKey: ['appInfo'],
@@ -38,10 +163,50 @@ export const useGetCities = (countryId: string | null) => {
 };
 
 export const useGetCategories = () => {
-    return useQuery({
+    return useQuery<CategoriesResponse>({
         queryKey: ['categories'],
         queryFn: async () => {
-            const response = await axiosInstance.get<any>(EndPoints.GET_CATEGORIES);
+            const response = await axiosInstance.get<CategoriesResponse>(EndPoints.GET_CATEGORIES);
+            return response.data;
+        },
+    });
+};
+
+export const useGetBanners = () => {
+    return useQuery<BannersResponse>({
+        queryKey: ['banners'],
+        queryFn: async () => {
+            const response = await axiosInstance.get<BannersResponse>(EndPoints.GET_BANNERS);
+            return response.data;
+        },
+    });
+};
+
+export interface GetServiceProvidersParams {
+    page?: number;
+    limit?: number;
+    categoryIds?: string[];
+}
+
+export const useGetServiceProviders = (params: GetServiceProvidersParams = {}) => {
+    const { page = 1, limit = 10, categoryIds } = params;
+    
+    return useQuery<ServiceProvidersResponse>({
+        queryKey: ['serviceProviders', page, limit, categoryIds],
+        queryFn: async () => {
+            // Convert page and limit to strings explicitly
+            const pageStr = String(page);
+            const limitStr = String(limit);
+            let url = `${EndPoints.GET_SERVICE_PROVIDERS}?page=${pageStr}&limit=${limitStr}`;
+            
+            // Add categoryIds if provided
+            if (categoryIds && categoryIds.length > 0) {
+                // Format as JSON array string: ["id1", "id2"]
+                const categoryIdsParam = JSON.stringify(categoryIds);
+                url += `&categoryIds=${encodeURIComponent(categoryIdsParam)}`;
+            }
+            
+            const response = await axiosInstance.get<ServiceProvidersResponse>(url);
             return response.data;
         },
     });

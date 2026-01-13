@@ -4,6 +4,7 @@ export default {
     GET_COUNTRIES: '/master/country/all',
     GET_CITIES: '/master/city/by-country',
     GET_CATEGORIES: '/master/category/all',
+    GET_BANNERS: '/master/banner/all',
     GET_TERMS_AND_CONDITIONS: '/master/term-condition/all',
     VERIFY_OTP: '/auth/customer/verify-otp',
     RESEND_OTP: '/auth/customer/resend-otp',
@@ -16,4 +17,5 @@ export default {
     SUBMIT_INTERESTS: '/auth/customer/interests',
     UPLOAD_DOCUMENT: '/auth/customer/upload-document',
     CHANGE_PASSWORD: '/auth/customer/change-password',
+    GET_SERVICE_PROVIDERS: '/customer/service-providers',
 };

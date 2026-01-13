@@ -1,41 +1,97 @@
-import { View, Text, StyleSheet, Image, ImageProps } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import React, { useMemo } from 'react'
-import imagePaths from '@assets';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import Swiper from 'react-native-swiper';
-const imageData = [
-    { image: imagePaths.plumb_img, id: 1 },
-    { image: imagePaths.carpentry, id: 2 },
-    { image: imagePaths.electrical, id: 4 },
-    { image: imagePaths.painting, id: 3 },
-    { image: imagePaths.cleaning, id: 6 },
-    { image: imagePaths.electrical, id: 5 },
-    { image: imagePaths.cleaning, id: 7 },
-];
-export default function HomeSlider() {
+import { Banner } from '@services/api/queries/appQueries';
+import ImageLoader from '@components/common/ImageLoader';
+import CustomButton from '@components/common/CustomButton';
+
+type HomeSliderProps = {
+    banners?: Banner[];
+    isLoading?: boolean;
+    isError?: boolean;
+    onRetry?: () => void;
+};
+
+export default function HomeSlider({ banners = [], isLoading = false, isError = false, onRetry }: HomeSliderProps) {
     const theme = useThemeContext();
-    const styles = useMemo(() => createStyles(theme), []);
+    const styles = useMemo(() => createStyles(theme), [theme]);
+console.log('banners', banners);
+    // Show loading state
+    if (isLoading) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.loaderContainer}>
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                </View>
+            </View>
+        );
+    }
+
+    // Show error state
+    if (isError) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>Failed to load banners</Text>
+                    {onRetry && (
+                        <CustomButton
+                            title="Retry"
+                            onPress={onRetry}
+                            buttonStyle={styles.retryButton}
+                            textColor={theme.colors.whitetext}
+                            backgroundColor={theme.colors.primary}
+                            paddingHorizontal={theme.SW(20)}
+                            marginTop={theme.SH(10)}
+                        />
+                    )}
+                </View>
+            </View>
+        );
+    }
+
+    // Show empty state
+    if (!banners || banners.length === 0) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No banners available</Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Filter banners with images and status true
+    const activeBanners = banners.filter(banner => banner.status && banner.image);
+
+    if (activeBanners.length === 0) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No banners available</Text>
+                </View>
+            </View>
+        );
+    }
+
     return (
-        <View style={{ paddingHorizontal: 20,flex:1}}>
+        <View style={styles.container}>
             <Swiper
                 showsButtons={false}
                 style={styles.wrapper}
                 pagingEnabled={true}
                 autoplay
-
                 dot={<View style={styles.dot} />}
                 activeDot={<View style={styles.activeDot} />}
                 paginationStyle={styles.paginationStyle}
             >
-                {imageData.map((item: { id: number; image: ImageProps; }) => (
-                    <View style={[styles.slide]} key={item.id}>
-                        <View style={[styles.imageBox,]}>
-                            <Image
-                                resizeMode="cover"
-                                style={styles.image}
-                                source={item.image}
-                            />
-                        </View>
+                {activeBanners.map((banner) => (
+                    <View style={[styles.slide]} key={banner._id}>
+                        <ImageLoader
+                            source={{ uri: banner.image }}
+                            resizeMode="contain"
+                            mainImageStyle={styles.image}
+                        />
                     </View>
                 ))}
             </Swiper>
@@ -46,6 +102,10 @@ export default function HomeSlider() {
 const createStyles = (theme: ThemeType) => {
     const { colors: Colors, SF, fonts: Fonts, SW } = theme;
     return StyleSheet.create({
+        container: {
+            paddingHorizontal: SW(20),
+            flex: 1,
+        },
         wrapper: {
             height: SF(160),
         },
@@ -73,16 +133,13 @@ const createStyles = (theme: ThemeType) => {
         slide: {
             height: SF(160),
             borderRadius: SF(10),
+            overflow: 'hidden',
+            backgroundColor:theme.colors.secondary,
         },
         image: {
             height: '100%',
             width: '100%',
-        },
-        imageBox: {
-            borderRadius: 10,
-            overflow: 'hidden',
-            backgroundColor: '#ffffff',
-            marginVertical: 2,
+            borderRadius: SF(10),
         },
         loaderContainer: {
             height: SF(160),
@@ -118,6 +175,9 @@ const createStyles = (theme: ThemeType) => {
             fontFamily: Fonts.MEDIUM,
             color: Colors.text,
             textAlign: 'center',
+        },
+        retryButton: {
+            borderRadius: SF(8),
         },
     })
 }
