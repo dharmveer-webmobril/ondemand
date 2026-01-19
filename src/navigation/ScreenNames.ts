@@ -44,6 +44,7 @@ export const SCREEN_NAMES = {
   PAYMENT_POLICY: 'PaymentPolicy',
   REPORT: 'Report',
   BOOK_APPOINTMENT: 'BookAppointment',
+  BOOKING_DETAIL: 'BookingDetail',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

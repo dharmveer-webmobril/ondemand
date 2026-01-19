@@ -1,5 +1,6 @@
 import { View, StyleSheet, Pressable, Image } from 'react-native';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomInput } from '@components/common';
 import imagePaths from '@assets';
@@ -13,10 +14,11 @@ type HomeSearchBarProps = {
 export default function HomeSearchBar({ 
   onSearch, 
   onFilterPress,
-  placeholder = 'Search'
+  placeholder
 }: HomeSearchBarProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
 
   const handleSearchChange = (text: string) => {
@@ -30,7 +32,7 @@ export default function HomeSearchBar({
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <CustomInput
-          placeholder={placeholder}
+          placeholder={placeholder || t('home.search')}
           value={searchText}
           onChangeText={handleSearchChange}
           leftIcon={imagePaths.Search}

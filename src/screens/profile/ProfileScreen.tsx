@@ -6,10 +6,28 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { SH } from '@utils/dimensions';
 
+type IconType =
+  | 'Feather'
+  | 'AntDesign'
+  | 'Fontisto'
+  | 'MaterialCommunityIcons'
+  | 'FontAwesome'
+  | 'EvilIcons'
+  | 'Entypo'
+  | 'Ionicons'
+  | 'Octicons'
+  | 'FontAwesome5'
+  | 'MaterialIcons'
+  | 'FontAwesome6';
+
 interface MenuItem {
   id: string;
   label: string;
   showArrow?: boolean;
+  icon?: {
+    name: string;
+    icon: IconType;
+  };
 }
 
 export default function ProfileScreen() {
@@ -20,17 +38,16 @@ export default function ProfileScreen() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const menuItems: MenuItem[] = [
-    // { id: '1', label: t('profile.profileSetup') },
-    { id: '2', label: t('profile.changePassword') },
-    { id: '3', label: t('profile.myAddress') },
-    { id: '4', label: t('profile.paymentHistory1') },
-    { id: '5', label: t('profile.ratingsReviews') },
-    { id: '6', label: t('profile.loyaltyReferralDiscounts') },
-    { id: '7', label: t('profile.multiLanguageCurrency') },
-    { id: '8', label: t('profile.notificationsAlerts') },
-    { id: '9', label: t('profile.customerSupport') },
-
-    { id: '10', label: t('profile.logout'), showArrow: false },
+    // { id: '1', label: t('profile.profileSetup'), icon: { name: 'person-outline', icon: 'Ionicons' } },
+    { id: '2', label: t('profile.changePassword'), icon: { name: 'lock-closed-outline', icon: 'Ionicons' } },
+    { id: '3', label: t('profile.myAddress'), icon: { name: 'location-outline', icon: 'Ionicons' } },
+    { id: '4', label: t('profile.paymentHistory1'), icon: { name: 'card-outline', icon: 'Ionicons' } },
+    // { id: '5', label: t('profile.ratingsReviews'), icon: { name: 'star-outline', icon: 'Ionicons' } },
+    { id: '6', label: t('profile.loyaltyReferralDiscounts'), icon: { name: 'gift-outline', icon: 'Ionicons' } },
+    { id: '7', label: t('profile.multiLanguageCurrency'), icon: { name: 'language-outline', icon: 'Ionicons' } },
+    { id: '8', label: t('profile.notificationsAlerts'), icon: { name: 'notifications-outline', icon: 'Ionicons' } },
+    { id: '9', label: t('profile.customerSupport'), icon: { name: 'headset-outline', icon: 'Ionicons' } },
+    { id: '10', label: t('profile.logout'), showArrow: false, icon: { name: 'log-out-outline', icon: 'Ionicons' } },
   ];
 
   const handleMenuItemPress = (item: MenuItem) => {
@@ -66,6 +83,7 @@ export default function ProfileScreen() {
             label={item.label}
             onPress={() => handleMenuItemPress(item)}
             showArrow={item.showArrow}
+            icon={item.icon}
           />
         )}
         contentContainerStyle={styles.listContent}

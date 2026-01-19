@@ -150,7 +150,7 @@ export const useGetCountries = () => {
 };
 export const useGetCities = (countryId: string | null) => {
     // console.log(countryId, 'countryId------');
-    
+
     return useQuery({
         queryKey: ['cities', countryId],
         queryFn: async () => {
@@ -186,29 +186,46 @@ export interface GetServiceProvidersParams {
     page?: number;
     limit?: number;
     categoryIds?: string[];
+    search?: string;
 }
 
 export const useGetServiceProviders = (params: GetServiceProvidersParams = {}) => {
-    const { page = 1, limit = 10, categoryIds } = params;
-    
+    const { page = 1, limit = 10, categoryIds, search } = params;
+
+    // Normalize query key - use null instead of undefined for consistent caching
+    const normalizedCategoryIds = categoryIds && categoryIds.length > 0 ? categoryIds : null;
+    const normalizedSearch = search && search.trim() ? search.trim() : null;
+
     return useQuery<ServiceProvidersResponse>({
-        queryKey: ['serviceProviders', page, limit, categoryIds],
+        queryKey: ['serviceProviders', page, limit, normalizedCategoryIds, normalizedSearch],
         queryFn: async () => {
             // Convert page and limit to strings explicitly
             const pageStr = String(page);
             const limitStr = String(limit);
             let url = `${EndPoints.GET_SERVICE_PROVIDERS}?page=${pageStr}&limit=${limitStr}`;
-            
+
             // Add categoryIds if provided
             if (categoryIds && categoryIds.length > 0) {
                 // Format as JSON array string: ["id1", "id2"]
                 const categoryIdsParam = JSON.stringify(categoryIds);
                 url += `&categoryIds=${encodeURIComponent(categoryIdsParam)}`;
             }
-            
+
+            // Add search query if provided
+            if (search && search.trim()) {
+                url += `&search=${encodeURIComponent(search.trim())}`;
+            }
+
+            console.log('Fetching providers with URL:', url);
             const response = await axiosInstance.get<ServiceProvidersResponse>(url);
+            console.log('Providers response:', response.data);
             return response.data;
         },
+        staleTime: 0, // Data is immediately stale, always refetch
+        gcTime: 0, // Don't cache data (React Query v5)
+        refetchOnMount: 'always', // Always refetch when component mounts
+        refetchOnWindowFocus: false, // Don't refetch on window focus
+        refetchOnReconnect: false, // Don't refetch on reconnect
     });
 };
 
@@ -226,52 +243,200 @@ export const useGetTermsAndConditions = () => {
 export interface UploadDocumentData {
     docType: string;
     document: any; // File/Image object
-  }
-  
-  export interface UploadDocumentResponse {
+}
+
+export interface UploadDocumentResponse {
     ResponseCode: number;
     ResponseMessage: string;
     succeeded: boolean;
     ResponseData: {
-      url: string;
-      bucket: string;
-      fileName: string;
-      docType: string;
+        url: string;
+        bucket: string;
+        fileName: string;
+        docType: string;
     };
-  }
-  
+}
+
 export const useUploadDocument = () => {
     return useMutation<UploadDocumentResponse, Error, UploadDocumentData>({
-      mutationFn: async (data: UploadDocumentData) => {
-        const formData = new FormData();
-        console.log('data-----useUploadDocument', data);
-        formData.append('docType', data.docType);
-        const image = data.document;
-        const fileName =
-          image.filename ??
-          image.path?.split('/').pop() ??
-          `image_${Date.now()}.jpg`;
-  
-        const file = {
-          uri: Platform.OS === 'android'
-              ? image.path.startsWith('file://')
-                ? image.path
-                : `file://${image.path}`
-              : image.path,
-  
-          type: image.mime ?? 'image/jpeg',
-          
-          name: fileName,
-        };
-  
-        formData.append('document', file as any);
-        console.log('formData-----useUploadDocument', formData);
-        return (
-          await axiosInstance.post<UploadDocumentResponse>(
-            EndPoints.UPLOAD_DOCUMENT,
-            formData
-          )
-        ).data;
-      },
+        mutationFn: async (data: UploadDocumentData) => {
+            const formData = new FormData();
+            console.log('data-----useUploadDocument', data);
+            formData.append('docType', data.docType);
+            const image = data.document;
+            const fileName =
+                image.filename ??
+                image.path?.split('/').pop() ??
+                `image_${Date.now()}.jpg`;
+
+            const file = {
+                uri: Platform.OS === 'android'
+                    ? image.path.startsWith('file://')
+                        ? image.path
+                        : `file://${image.path}`
+                    : image.path,
+
+                type: image.mime ?? 'image/jpeg',
+
+                name: fileName,
+            };
+
+            formData.append('document', file as any);
+            console.log('formData-----useUploadDocument', formData);
+            return (
+                await axiosInstance.post<UploadDocumentResponse>(
+                    EndPoints.UPLOAD_DOCUMENT,
+                    formData
+                )
+            ).data;
+        },
     });
-  };
+};
+
+// Service Provider Detail interfaces
+export interface ServiceProviderDetailResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: ServiceProvider;
+}
+
+// Service interfaces
+export interface ServiceAddOn {
+    _id: string;
+    sp_id: string;
+    serviceId: {
+        _id: string;
+        sp_id: string;
+        category_id: string;
+        name: string;
+        time: number;
+        description: string;
+        preferences: string[];
+        priceType: string;
+        price: number;
+        consultationPrice: number | null;
+        discountPercentage: number;
+        images: string[];
+        status: boolean;
+        createdAt: string;
+        updatedAt: string;
+        __v: number;
+    };
+    name: string;
+    duration: number;
+    description: string;
+    price: number;
+    type: string;
+    discountPercentage: number;
+    images: string[];
+    enum: string | null;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface Service {
+    _id: string;
+    sp_id: string;
+    category_id: {
+        _id: string;
+        name: string;
+        image: string | null;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+        __v: number;
+    };
+    name: string;
+    time: number; // duration in minutes
+    description: string;
+    preferences: string[];
+    priceType: string; // "fixed" | "hourly" | "2" etc.
+    price: number;
+    consultationPrice: number | null;
+    discountPercentage: number;
+    images: string[];
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    serviceAddOns?: ServiceAddOn[];
+}
+
+export interface ServicesResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: {
+        services: Service[];
+    };
+    pagination?: Pagination;
+}
+
+// Get Service Provider Detail
+export const useGetServiceProviderDetail = (spId: string | null) => {
+    console.log(spId, 'spId------');
+    return useQuery<any>({
+        queryKey: ['serviceProviderDetail', spId],
+        queryFn: async () => {
+            if (!spId) throw new Error('Service Provider ID is required');
+            const response = await axiosInstance.get<any>(
+                `${EndPoints.GET_SERVICE_PROVIDER_DETAIL}/${spId}`
+            );
+            return response.data;
+        },
+        enabled: !!spId, // Only run query if spId exists
+    });
+};
+
+// Get Service Provider Services
+export const useGetServiceProviderServices = (spId: string | null) => {
+    return useQuery<any>({
+        queryKey: ['serviceProviderServices', spId],
+        queryFn: async () => {
+            if (!spId) throw new Error('Service Provider ID is required');
+            const response = await axiosInstance.get<any>(
+                `${EndPoints.GET_SERVICE_PROVIDER_SERVICES}/${spId}/services`
+            );
+            return response.data;
+        },
+        enabled: !!spId, // Only run query if spId exists
+    });
+};
+
+// Availability interfaces
+export interface AvailabilityData {
+    date: string;
+    startTime: string;
+    endTime: string;
+    close: boolean;
+}
+
+export interface AvailabilityResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: {
+        available: boolean;
+        availability: AvailabilityData;
+    };
+}
+
+// Get Service Provider Availability
+export const useGetServiceProviderAvailability = (spId: string | null, date: string | null) => {
+    return useQuery<AvailabilityResponse>({
+        queryKey: ['serviceProviderAvailability', spId, date],
+        queryFn: async () => {
+            if (!spId || !date) throw new Error('Service Provider ID and date are required');
+            const response = await axiosInstance.get<AvailabilityResponse>(
+                `${EndPoints.GET_SERVICE_PROVIDER_AVAILABILITY}/${spId}/availability?date=${date}`
+            );
+            return response.data;
+        },
+        enabled: !!spId && !!date, // Only run query if spId and date exist
+        staleTime: 0, // Always refetch
+        gcTime: 0, // Don't cache
+    });
+};

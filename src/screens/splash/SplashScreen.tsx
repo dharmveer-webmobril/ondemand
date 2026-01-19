@@ -66,3 +66,49 @@ const createStyles = () =>
       alignItems: 'center',
     },
   });
+
+
+
+// import { View, StyleSheet } from 'react-native';
+// import { useMemo } from 'react';
+// import LinearGradient from 'react-native-linear-gradient';
+// import { useThemeContext } from '@utils/theme';
+// import LottieView from 'lottie-react-native';
+// import imagePaths from '@assets';
+
+// export default function SplashScreen() {
+//   const theme = useThemeContext();
+//   const styles = useMemo(() => createStyles(), []);
+//   return (
+//     <View style={styles.container}>
+//       <LinearGradient
+//         style={styles.linearGradient}
+//         start={{ x: 0, y: 0 }}
+//         end={{ x: 0, y: 1 }}
+//         colors={theme.colors.gradientColor}
+//       >
+//         <LottieView
+//           source={imagePaths.logo_json}
+//           autoPlay={true}
+//           style={{ height: theme.size.SH(130), width: theme.size.SH(130) }}
+//           loop={false}
+//           onAnimationFinish={() => {
+//             console.log('Animation finished');
+//           }}
+//         />
+//       </LinearGradient>
+//     </View>
+//   );
+// }
+
+// const createStyles = () =>
+//   StyleSheet.create({
+//     container: {
+//       flex: 1,
+//     },
+//     linearGradient: {
+//       flex: 1,
+//       justifyContent: 'center',
+//       alignItems: 'center',
+//     },
+//   });

@@ -1,5 +1,6 @@
 import { View, SectionList, StyleSheet, RefreshControl } from 'react-native';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import HomeSlider from './HomeSlider';
 import HomeCategoryList from './HomeCategoryList';
 import HomeProvider from './HomeProvider';
@@ -27,6 +28,10 @@ type HomeMainListProps = {
   bannersLoading?: boolean;
   bannersError?: boolean;
   onRetryBanners?: () => void;
+  providersData?: any;
+  providersLoading?: boolean;
+  providersError?: boolean;
+  onRetryProviders?: () => void;
 };
 
 const SectionSeparator = () => {
@@ -39,8 +44,8 @@ const SectionSeparator = () => {
   return <View style={styles.separator} />;
 };
 
-export default function HomeMainList({ 
-  refreshing = false, 
+export default function HomeMainList({
+  refreshing = false,
   onRefresh,
   categoriesData,
   categoriesLoading,
@@ -50,9 +55,14 @@ export default function HomeMainList({
   bannersLoading,
   bannersError,
   onRetryBanners,
+  providersData,
+  providersLoading,
+  providersError,
+  onRetryProviders,
 }: HomeMainListProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
 
   const handleViewAll = (sectionKey: string) => {
     if (sectionKey === 'provider') {
@@ -63,13 +73,15 @@ export default function HomeMainList({
     }
   };
 
+  console.log('providersData-------------', providersData,providersLoading);
+
   const DATA: SectionData[] = useMemo(() => [
     {
       title: '',
       data: [{}],
       key: 'slider',
       renderItem: () => (
-        <HomeSlider 
+        <HomeSlider
           banners={bannersData?.ResponseData || []}
           isLoading={bannersLoading}
           isError={bannersError}
@@ -78,9 +90,9 @@ export default function HomeMainList({
       ),
     },
     {
-      title: 'Categories',
+      title: t('home.categories'),
       renderItem: () => (
-        <HomeCategoryList 
+        <HomeCategoryList
           categories={categoriesData?.ResponseData || []}
           isLoading={categoriesLoading}
           isError={categoriesError}
@@ -91,12 +103,17 @@ export default function HomeMainList({
       data: [{}],
     },
     {
-      title: 'Nearest Provider',
+      title: t('home.nearestProvider'),
       key: 'provider',
       data: [{}],
-      renderItem: () => <HomeProvider />,
+      renderItem: () => <HomeProvider
+        providersData={providersData}
+        providersLoading={providersLoading}
+        providersError={providersError}
+        onRetryProviders={onRetryProviders}
+      />,
     },
-  ], [bannersData, bannersLoading, bannersError, onRetryBanners, categoriesData, categoriesLoading, categoriesError, onRetryCategories]);
+  ], [bannersData, bannersLoading, bannersError, onRetryBanners, categoriesData, categoriesLoading, categoriesError, onRetryCategories,providersLoading,providersError,onRetryProviders]);
 
   return (
     <SectionList

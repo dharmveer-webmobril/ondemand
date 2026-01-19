@@ -1,4 +1,4 @@
-import { View, StyleSheet, Pressable, FlatList } from 'react-native';
+import { View, StyleSheet, Pressable, FlatList, RefreshControl } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { ImageLoader, VectoreIcons } from '@components/common';
@@ -6,9 +6,10 @@ import { ImageLoader, VectoreIcons } from '@components/common';
 type PortfolioGridProps = {
   images: string[];
   onImagePress?: (index: number) => void;
+  refreshControl?: React.ReactElement<RefreshControl>;
 };
 
-export default function PortfolioGrid({ images, onImagePress }: PortfolioGridProps) {
+export default function PortfolioGrid({ images, onImagePress, refreshControl }: PortfolioGridProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -48,6 +49,7 @@ export default function PortfolioGrid({ images, onImagePress }: PortfolioGridPro
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
       />
     </View>
   );

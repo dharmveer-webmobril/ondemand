@@ -1,30 +1,39 @@
 import { useState, useCallback } from "react";
 import { StatusBar, View, StyleSheet } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { HomeHeader, HomeMainList, HomeSearchBar } from "@components";
 import { LoadingComp } from "@components/common";
 import { useDisableGestures } from "@utils/hooks";
-import { useGetCategories, useGetBanners } from "@services/api/queries/appQueries";
+import { useGetCategories, useGetBanners, useGetServiceProviders } from "@services/api/queries/appQueries";
 
 export default function Home() {
   useDisableGestures()
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [isCityUpdating, setIsCityUpdating] = useState(false);
 
   // Fetch categories and banners
-  const { 
-    data: categoriesData, 
-    isLoading: categoriesLoading, 
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
     isError: categoriesError,
-    refetch: refetchCategories 
+    refetch: refetchCategories
   } = useGetCategories();
 
-  const { 
-    data: bannersData, 
-    isLoading: bannersLoading, 
+  const {
+    data: bannersData,
+    isLoading: bannersLoading,
     isError: bannersError,
-    refetch: refetchBanners 
+    refetch: refetchBanners
   } = useGetBanners();
 
+  const { 
+    data: providersData, 
+    isFetching:providerLoading, 
+    isError:providerError, 
+    refetch:providerReftech 
+  } = useGetServiceProviders({ page: 1, limit: 10 });
+console.log('providersData', providersData);
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -46,9 +55,9 @@ export default function Home() {
   const handleCityUpdate = useCallback(async () => {
     await Promise.all([
       refetchCategories(),
-      refetchBanners()
+      refetchBanners(),
     ]);
-  }, [refetchCategories, refetchBanners]);
+  }, [refetchCategories, refetchBanners, ]);
 
   // Handle search
   const handleSearch = useCallback((text: string) => {
@@ -65,17 +74,17 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <HomeHeader 
-        onCityUpdate={handleCityUpdate} 
+      <HomeHeader
+        onCityUpdate={handleCityUpdate}
         onCityUpdateLoading={setIsCityUpdating}
       />
-      <HomeSearchBar 
+      <HomeSearchBar
         onSearch={handleSearch}
         onFilterPress={handleFilterPress}
-        placeholder="Search"
+        placeholder={t('home.search')}
       />
-      <HomeMainList 
-        refreshing={refreshing} 
+      <HomeMainList
+        refreshing={refreshing}
         onRefresh={onRefresh}
         categoriesData={categoriesData}
         categoriesLoading={categoriesLoading}
@@ -85,6 +94,10 @@ export default function Home() {
         bannersLoading={bannersLoading}
         bannersError={bannersError}
         onRetryBanners={refetchBanners}
+        providersData={providersData}
+        providersLoading={providerLoading}
+        providersError={providerError}
+        onRetryProviders={providerReftech}
       />
       <LoadingComp visible={isCityUpdating} />
     </View>

@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -36,6 +36,7 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.PAYMENT_POLICY} component={PaymentPolicy} />
         <Stack.Screen name={SCREEN_NAMES.REPORT} component={Report} />
         <Stack.Screen name={SCREEN_NAMES.BOOK_APPOINTMENT} component={BookAppointment} />
+        <Stack.Screen name={SCREEN_NAMES.BOOKING_DETAIL} component={BookingDetail} />
       </Stack.Navigator>
     </NavigationContainer>
   )

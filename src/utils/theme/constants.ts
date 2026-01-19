@@ -8,7 +8,7 @@ export const isBannerHeight = screenHeight * 0.4
 export const Colors = {
     primary: '#135D96',
     primary_light: '#009BFF',
-    secondary: '#EAEAEA',
+    secondary: '#EEF6F9',
     tertiary: '#EAEAEA',
     background: "#f7f7f7",
     border: '#3D3D3D',

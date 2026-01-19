@@ -5,6 +5,8 @@ import CustomBookingTabs from '@components/booking/CustomBookingTabs';
 import { useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { navigate } from '@utils/NavigationUtils';
+import SCREEN_NAMES from '@navigation/ScreenNames';
 import imagePaths from '@assets';
 
 type BookingStatus = 'COMPLETED' | 'ONGOING' | 'UPCOMING';
@@ -137,9 +139,36 @@ export default function BookingList() {
   }, []);
 
   const handleCardPress = useCallback((bookingId: string) => {
-    // TODO: Navigate to booking details
-    console.log('View booking:', bookingId);
-  }, []);
+    const bookingItem = currentBookings.find(b => (b.bookingId || b.friendName || b.id) === bookingId);
+    // Map status from BookingList to BookingDetail format
+    const statusMap: Record<string, 'PENDING' | 'ACCEPTED' | 'RESCHEDULED' | 'CANCELLED' | 'COMPLETED'> = {
+      'UPCOMING': 'PENDING',
+      'ONGOING': 'ACCEPTED',
+      'COMPLETED': 'COMPLETED',
+    };
+    
+    navigate(SCREEN_NAMES.BOOKING_DETAIL, {
+      booking: {
+        id: bookingId,
+        bookingId: bookingItem?.bookingId || bookingId,
+        status: statusMap[bookingItem?.status || 'UPCOMING'] || 'PENDING',
+        customerName: bookingItem?.friendName || 'John Doe',
+        customerPhone: '+1234567890',
+        serviceAddress: bookingItem?.address || '',
+        bookingDate: bookingItem?.date || '',
+        timeSlot: bookingItem?.time || '',
+        services: [
+          {
+            id: '1',
+            name: bookingItem?.shopName || 'Service',
+            duration: '30m',
+            price: parseFloat(bookingItem?.price?.replace('$', '') || '0'),
+          },
+        ],
+        totalPrice: parseFloat(bookingItem?.price?.replace('$', '') || '0'),
+      },
+    });
+  }, [currentBookings]);
 
   return (
     <Container safeArea={false} statusBarColor={theme.colors.white} style={styles.container}>
@@ -225,7 +254,7 @@ const createStyles = (theme: any) =>
     },
     listContent: {
       paddingTop: theme.SH(10),
-      paddingBottom: theme.SH(20),
+      paddingBottom: theme.SH(90),
     },
     emptyContainer: {
       flex: 1,

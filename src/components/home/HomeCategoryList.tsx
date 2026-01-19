@@ -1,5 +1,6 @@
 import { View, FlatList, Pressable, StyleSheet, ActivityIndicator, Text } from 'react-native'
 import { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next';
 import { CustomText, Spacing } from '@components/common';
 import imagePaths from '@assets';
 import ImageLoader from '@components/common/ImageLoader';
@@ -50,6 +51,7 @@ const HomeCategoryItem = memo(({ name, image,  category }: any) => {
 export default function HomeCategoryList({ categories = [], isLoading = false, isError = false, onRetry }: HomeCategoryListProps) {
     const theme = useThemeContext();
     const styles = useMemo(() => createStyles(theme), [theme]);
+    const { t } = useTranslation();
 
     // Show loading state
     if (isLoading) {
@@ -65,10 +67,10 @@ export default function HomeCategoryList({ categories = [], isLoading = false, i
         return (
             <View style={styles.stateContainer}>
                 <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>Failed to load categories</Text>
+                    <Text style={styles.errorText}>{t('home.failedToLoadCategories')}</Text>
                     {onRetry && (
                         <CustomButton
-                            title="Retry"
+                            title={t('category.retry')}
                             onPress={onRetry}
                             buttonStyle={styles.retryButton}
                             textColor={theme.colors.whitetext}

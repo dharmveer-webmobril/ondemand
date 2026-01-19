@@ -1,4 +1,4 @@
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView, RefreshControl } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
@@ -14,6 +14,7 @@ type ProviderDetailsProps = {
   onServiceFeePress?: () => void;
   onPaymentPolicyPress?: () => void;
   onReportPress?: () => void;
+  refreshControl?: React.ReactElement<RefreshControl>;
 };
 
 export default function ProviderDetails({
@@ -27,6 +28,7 @@ export default function ProviderDetails({
   onServiceFeePress,
   onPaymentPolicyPress,
   onReportPress,
+  refreshControl,
 }: ProviderDetailsProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -36,6 +38,7 @@ export default function ProviderDetails({
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      refreshControl={refreshControl}
     >
       {/* Map Placeholder */}
       <View style={styles.mapContainer}>

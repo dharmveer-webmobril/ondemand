@@ -1,25 +1,27 @@
 import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
 import React, { useMemo, useState, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Container, CustomInput, CustomText, VectoreIcons, CustomButton } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CategoryTabs from '@components/category/CategoryTabs';
 import ServiceProviderListItem from '@components/category/ServiceProviderListItem';
 import DeliveryModeModal from '@components/category/DeliveryModeModal';
-import { Category, useGetCategories, useGetServiceProviders, ServiceProvider } from '@services/api/queries/appQueries';
+import { Category, useGetCategories, useGetServiceProviders, ServiceProvider, ServiceProvidersResponse, GetServiceProvidersParams } from '@services/api/queries/appQueries';
 import imagePaths from '@assets';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import useDebounce from '@utils/hooks/useDebounce';
 
 type DeliveryMode = 'at_home' | 'online' | 'on_premises';
 
 export default function CategoryProviders() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const route = useRoute();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500); // 500ms debounce delay
   const routeCategory = (route.params as any)?.category as Category | undefined;
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     routeCategory || null
@@ -28,6 +30,7 @@ export default function CategoryProviders() {
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('at_home');
   const [currentPage, setCurrentPage] = useState(1);
   const [allProviders, setAllProviders] = useState<ServiceProvider[]>([]);
+  const [hasReceivedData, setHasReceivedData] = useState(false);
 
   // Get all categories for tabs
   const { data: categoriesData } = useGetCategories();
@@ -35,60 +38,96 @@ export default function CategoryProviders() {
     return categoriesData?.ResponseData?.filter((cat: Category) => cat.status) || [];
   }, [categoriesData]);
 
-  // Build categoryIds array - only include if category is selected
-  const categoryIds = useMemo(() => {
+  // Build query params - only include categoryIds if a specific category is selected (not "All")
+  const queryParams = useMemo(() => {
+    const params: GetServiceProvidersParams = {
+      page: currentPage,
+      limit: 10,
+    };
+
+    // Only add categoryIds if a specific category is selected (not "All")
     if (selectedCategory && selectedCategory._id) {
-      return [selectedCategory._id];
+      params.categoryIds = [selectedCategory._id];
     }
-    return undefined; // Don't send key if no category
-  }, [selectedCategory]);
 
-  // Fetch providers with pagination
-  const { 
-    data: providersData, 
-    isLoading: providersLoading, 
+    // Only add search if not empty
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery.trim();
+    }
+
+    console.log('Query params:', params);
+    return params;
+  }, [currentPage, selectedCategory, debouncedSearchQuery]);
+
+  // Fetch providers with pagination and search
+  const {
+    data: providersData,
+    isLoading: providersLoading,
     isError: providersError,
-    refetch: refetchProviders 
-  } = useGetServiceProviders({
-    page: currentPage,
-    limit: 10,
-    categoryIds,
-  });
+    refetch: refetchProviders
+  } = useGetServiceProviders(queryParams);
 
-  // Accumulate providers from all pages
-  React.useEffect(() => {
-    if (providersData?.ResponseData) {
-      if (currentPage === 1) {
-        setAllProviders(providersData.ResponseData);
-      } else {
-        setAllProviders(prev => [...prev, ...providersData.ResponseData]);
-      }
-    }
-  }, [providersData, currentPage]);
-
-  // Reset providers when category changes
+  // Reset providers when category or search changes
   React.useEffect(() => {
     setCurrentPage(1);
     setAllProviders([]);
-  }, [selectedCategory?._id]);
+    setHasReceivedData(false); // Reset flag when category or search changes
+  }, [selectedCategory?._id, debouncedSearchQuery]);
 
-  // Filter providers by search query
-  const filteredProviders = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return allProviders;
+  // Accumulate providers from all pages
+  React.useEffect(() => {
+    const data = providersData as ServiceProvidersResponse | undefined;
+    console.log('providersData changed:', data ? 'has data' : 'no data', 'currentPage:', currentPage);
+    if (data?.ResponseData) {
+      console.log('Setting providers data:', data.ResponseData.length, 'items, page:', currentPage);
+      setHasReceivedData(true);
+      if (currentPage === 1) {
+        console.log('Setting allProviders for page 1:', data.ResponseData.length);
+        setAllProviders(data.ResponseData);
+      } else {
+        console.log('Appending to allProviders for page:', currentPage);
+        setAllProviders(prev => {
+          const newProviders = [...prev, ...data.ResponseData];
+          console.log('New total providers:', newProviders.length);
+          return newProviders;
+        });
+      }
+    } else if (data && Array.isArray(data.ResponseData) && data.ResponseData.length === 0) {
+      // Empty response - still mark as received
+      console.log('Empty ResponseData received');
+      setHasReceivedData(true);
+      if (currentPage === 1) {
+        setAllProviders([]);
+      }
+    } else {
+      console.log('No ResponseData in providersData, data:', data);
     }
-    return allProviders.filter(
-      (provider) =>
-        provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        provider.businessProfile?.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        provider.city?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [allProviders, searchQuery]);
+  }, [providersData, currentPage]);
+
+  // Use providers directly from API (search is handled server-side)
+  const filteredProviders = useMemo(() => {
+    console.log('filteredProviders memo - allProviders length:', allProviders.length);
+    return allProviders;
+  }, [allProviders]);
 
   const hasMore = useMemo(() => {
-    if (!providersData?.pagination) return false;
-    return currentPage < providersData.pagination.pages;
+    const data = providersData as ServiceProvidersResponse | undefined;
+    if (!data?.pagination) return false;
+    return currentPage < data.pagination.pages;
   }, [providersData, currentPage]);
+
+  // Check if we should show empty state
+  // Only show empty state if we've received data and it's actually empty (not just loading)
+  const shouldShowEmptyState = useMemo(() => {
+    // Don't show empty state if still loading
+    if (providersLoading) return false;
+    // Don't show empty state if there's an error (error state will be shown separately)
+    if (providersError) return false;
+    // Don't show empty state if we haven't received any data yet
+    if (!hasReceivedData) return false;
+    // Only show empty state if we have received data and filtered providers is empty
+    return filteredProviders.length === 0;
+  }, [providersLoading, providersError, hasReceivedData, filteredProviders]);
 
   const handleLoadMore = useCallback(() => {
     if (hasMore && !providersLoading) {
@@ -115,53 +154,63 @@ export default function CategoryProviders() {
     // Apply delivery mode filter to providers
   }, []);
 
-  return (
-    <Container safeArea={false} style={styles.container}>
-      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+  const handleReload = useCallback(() => {
+    setCurrentPage(1);
+    setAllProviders([]);
+    refetchProviders();
+  }, [refetchProviders]);
 
-        <View style={styles.searchContainer}>
-          <Pressable onPress={() => navigation.goBack()}>
-            <VectoreIcons
-              icon="FontAwesome"
-              name="angle-left"
-              size={theme.SF(40)}
-              color={theme.colors.text}
-            />
-          </Pressable>
-          <View style={styles.searchInputContainer}>
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    // Reset pagination and clear providers when clearing search
+    setCurrentPage(1);
+    setAllProviders([]);
+    setHasReceivedData(false);
+  }, []);
+
+
+
+  return (
+    <Container safeArea={true} style={styles.container}>
+      <View style={styles.searchContainer}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <VectoreIcons
+            icon="FontAwesome"
+            name="angle-left"
+            size={theme.SF(40)}
+            color={theme.colors.text}
+          />
+        </Pressable>
+          <View style={styles.searchInputWrapper}>
             <CustomInput
-              placeholder="Search"
+              placeholder={t('category.search')}
               value={searchQuery}
               onChangeText={setSearchQuery}
               leftIcon={imagePaths.Search}
+              rightIcon={searchQuery.length > 0 ? imagePaths.remove : null}
+              onRightIconPress={handleClearSearch}
             />
-            {/* </View> */}
           </View>
-        </View>
+      
       </View>
-
       {/* Category Tabs */}
       <CategoryTabs
         categories={categories}
-        selectedCategoryId={selectedCategory?._id || null}
+        selectedCategoryId={selectedCategory?._id || 'all'}
         onSelectCategory={setSelectedCategory}
       />
 
       {/* Providers List */}
-      {providersLoading && currentPage === 1 ? (
+      {(providersLoading && currentPage === 1) || (!hasReceivedData && !providersError && currentPage === 1) ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : providersError ? (
         <View style={styles.emptyContainer}>
-          <CustomText style={styles.errorText}>Failed to load providers</CustomText>
+          <CustomText style={styles.errorText}>{t('category.failedToLoadProviders')}</CustomText>
           <CustomButton
-            title="Reload"
-            onPress={() => {
-              setCurrentPage(1);
-              setAllProviders([]);
-              refetchProviders();
-            }}
+            title={t('category.reload')}
+            onPress={handleReload}
             buttonStyle={styles.reloadButton}
             backgroundColor={theme.colors.primary}
             textColor={theme.colors.whitetext}
@@ -169,19 +218,15 @@ export default function CategoryProviders() {
             marginTop={theme.SH(10)}
           />
         </View>
-      ) : filteredProviders.length === 0 ? (
+      ) : shouldShowEmptyState ? (
         <View style={styles.emptyContainer}>
           <CustomText style={styles.emptyText}>
-            {searchQuery.trim() ? 'No providers found matching your search' : 'No providers available'}
+            {debouncedSearchQuery.trim() ? t('category.noProvidersFound') : t('category.noProvidersAvailable')}
           </CustomText>
-          {!searchQuery.trim() && (
+          {!debouncedSearchQuery.trim() && (
             <CustomButton
-              title="Reload"
-              onPress={() => {
-                setCurrentPage(1);
-                setAllProviders([]);
-                refetchProviders();
-              }}
+              title={t('category.reload')}
+              onPress={handleReload}
               buttonStyle={styles.reloadButton}
               backgroundColor={theme.colors.primary}
               textColor={theme.colors.whitetext}
@@ -190,7 +235,7 @@ export default function CategoryProviders() {
             />
           )}
         </View>
-      ) : (
+      ) : filteredProviders && filteredProviders.length > 0 ? (
         <FlatList
           data={filteredProviders}
           keyExtractor={(item) => item._id}
@@ -221,12 +266,12 @@ export default function CategoryProviders() {
               </View>
             ) : hasMore ? (
               <Pressable onPress={handleLoadMore} style={styles.loadMoreButton}>
-                <CustomText style={styles.loadMoreText}>Load More</CustomText>
+                <CustomText style={styles.loadMoreText}>{t('category.loadMore')}</CustomText>
               </Pressable>
             ) : null
           }
         />
-      )}
+      ) : null}
 
       {/* Delivery Mode Modal */}
       <DeliveryModeModal
@@ -246,16 +291,14 @@ const createStyles = (theme: ThemeType) => {
       flex: 1,
       backgroundColor: Colors.background || '#F5F5F5',
     },
-    headerContainer: {
-      backgroundColor: Colors.white,
-      paddingBottom: SH(12),
-    },
+
     searchContainer: {
       paddingHorizontal: SW(20),
-      paddingTop: SH(8),
+      paddingVertical: SH(10),
       flexDirection: 'row',
       alignItems: 'center',
-      gap: SW(10),
+      justifyContent: 'space-between',
+      backgroundColor: Colors.white,
     },
     searchInput: {
       marginBottom: 0,
@@ -280,11 +323,25 @@ const createStyles = (theme: ThemeType) => {
       paddingTop: SH(16),
       paddingBottom: SH(20),
     },
+    searchInputWrapper: {
+      width: '88%',
+    },
     searchInputContainer: {
       flex: 1,
       borderRadius: SW(10),
       paddingHorizontal: SW(10),
       paddingVertical: SH(10),
+      height: SH(90),
+    },
+    clearButton: {
+      position: 'absolute',
+      right: SW(20),
+      top: '50%',
+      transform: [{ translateY: -SH(11) }],
+      zIndex: 1,
+      padding: SW(5),
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     errorText: {
       fontSize: SF(16),

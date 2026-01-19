@@ -1,12 +1,13 @@
 import { View, FlatList, Pressable, StyleSheet } from 'react-native';
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { Category } from '@services/api/queries/appQueries';
 
 type CategoryTabsProps = {
   categories: Category[];
-  selectedCategoryId: string | null;
+  selectedCategoryId: string | null | 'all';
   onSelectCategory: (category: Category | null) => void;
 };
 
@@ -17,13 +18,37 @@ export default function CategoryTabs({
 }: CategoryTabsProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
+  const flatListRef = useRef<FlatList>(null);
 
   const allCategories = useMemo(() => {
-    return [{ _id: 'all', name: 'All', status: true }, ...categories];
-  }, [categories]);
+    return [{ _id: 'all', name: t('category.all'), status: true }, ...categories];
+  }, [categories, t]);
+
+  // Scroll to selected category when it changes or when categories are loaded
+  useEffect(() => {
+    if (selectedCategoryId && flatListRef.current && allCategories.length > 0) {
+      const index = allCategories.findIndex(cat => 
+        cat._id === selectedCategoryId || 
+        (selectedCategoryId === 'all' && cat._id === 'all')
+      );
+      
+      if (index >= 0) {
+        // Use setTimeout to ensure FlatList is rendered and laid out
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index,
+            animated: true,
+            viewPosition: 0, // Scroll to show at the start (left side)
+          });
+        }, 200);
+      }
+    }
+  }, [selectedCategoryId, allCategories.length]);
 
   const renderTab = ({ item }: { item: Category | { _id: string; name: string; status: boolean } }) => {
-    const isSelected = selectedCategoryId === item._id;
+    // Show "All" as selected if selectedCategoryId is 'all' or null
+    const isSelected = selectedCategoryId === item._id || (item._id === 'all' && (selectedCategoryId === 'all' || selectedCategoryId === null));
     
     return (
       <Pressable
@@ -49,12 +74,20 @@ export default function CategoryTabs({
   return (
     <View style={styles.container}>
       <FlatList
+        ref={flatListRef}
         data={allCategories}
         renderItem={renderTab}
         keyExtractor={(item) => item._id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabsContainer}
+        onScrollToIndexFailed={(info) => {
+          // Handle scroll to index failure gracefully
+          const wait = new Promise(resolve => setTimeout(resolve, 500));
+          wait.then(() => {
+            flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+          });
+        }}
       />
     </View>
   );

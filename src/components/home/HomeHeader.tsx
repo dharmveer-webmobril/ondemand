@@ -103,6 +103,7 @@ export default function HomeHeader({ onCityUpdate, onCityUpdateLoading }: HomeHe
         // Invalidate and refetch home data
         queryClient.invalidateQueries({ queryKey: ['categories'] });
         queryClient.invalidateQueries({ queryKey: ['banners'] });
+        queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
         
         // Call parent refresh callback if provided
         if (onCityUpdate) {
@@ -147,51 +148,51 @@ export default function HomeHeader({ onCityUpdate, onCityUpdateLoading }: HomeHe
 
   return (
     <>
-      <LinearGradient
-        colors={['#011321', '#066AB7', '#009BFF']}
-        style={[
-          styles.headerContainer,
-          { paddingTop: insets.top }
-        ]}
-      >
-        <View style={styles.container}>
-          <View style={styles.leftContainer}>
-            <VectoreIcons
-              name="location-sharp"
-              size={24}
-              icon="Ionicons"
-              color={'white'}
-            />
-            <View style={styles.locationContainer}>
-              <CustomText style={styles.currentLocationText}>Current Location</CustomText>
+    <LinearGradient
+      colors={['#011321', '#066AB7', '#009BFF']}
+      style={[
+        styles.headerContainer,
+        { paddingTop: insets.top }
+      ]}
+    >
+      <View style={styles.container}>
+        <View style={styles.leftContainer}>
+          <VectoreIcons
+            name="location-sharp"
+            size={24}
+            icon="Ionicons"
+            color={'white'}
+          />
+          <View style={styles.locationContainer}>
+            <CustomText style={styles.currentLocationText}>Current Location</CustomText>
               <TouchableOpacity 
                 style={styles.locationRow}
                 onPress={handleLocationPress}
                 activeOpacity={0.7}
               >
-                <CustomText numberOfLines={1} style={styles.cityText}>
+              <CustomText numberOfLines={1} style={styles.cityText}>
                   {currentCity}
-                </CustomText>
-                <Image source={imagePaths.down} style={styles.downIcon} />
+              </CustomText>
+              <Image source={imagePaths.down} style={styles.downIcon} />
               </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.rightView}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => { }}
-            >
-              <Image source={imagePaths.calender_icon} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => { }}
-            >
-              <Image source={imagePaths.notification_icon} style={styles.icon} />
-            </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
+        <View style={styles.rightView}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => { }}
+          >
+            <Image source={imagePaths.calender_icon} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => { }}
+          >
+            <Image source={imagePaths.notification_icon} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </LinearGradient>
 
       {/* City Modal */}
       <CountryModal

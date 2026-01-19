@@ -1,31 +1,32 @@
 import { View, FlatList, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useThemeContext } from '@utils/theme';
 import HomeProviderItem from './HomeProviderItem';
 import { CustomText, CustomButton } from '@components/common';
-import { useGetServiceProviders } from '@services/api/queries/appQueries';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 
 type HomeProviderProps = {
   onViewAll?: () => void;
+  providersData?: any;
+  providersLoading?: boolean;
+  providersError?: boolean;
+  onRetryProviders?: () => void;
 };
 
-export default function HomeProvider({ onViewAll }: HomeProviderProps) {
+export default function HomeProvider({ onViewAll, providersData, providersLoading, providersError, onRetryProviders }: HomeProviderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
 
-  // Fetch first 10 providers for home
-  const { 
-    data: providersData, 
-    isLoading, 
-    isError, 
-    refetch 
-  } = useGetServiceProviders({ page: 1, limit: 10 });
+  console.log('providersData', providersData);
 
   const providers = useMemo(() => {
     return providersData?.ResponseData || [];
-  }, [providersData]);
+  }, [providersData
+    
+  ]);
 
   const handleProviderPress = (provider: any) => {
     navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
@@ -49,7 +50,7 @@ export default function HomeProvider({ onViewAll }: HomeProviderProps) {
     }
   };
 
-  if (isLoading) {
+  if (providersLoading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="small" color={theme.colors.primary} />
@@ -57,13 +58,13 @@ export default function HomeProvider({ onViewAll }: HomeProviderProps) {
     );
   }
 
-  if (isError) {
+  if (providersError) {
     return (
       <View style={styles.errorContainer}>
-        <CustomText style={styles.errorText}>Failed to load providers</CustomText>
+        <CustomText style={styles.errorText}>{t('home.failedToLoadProviders')}</CustomText>
         <CustomButton
-          title="Reload"
-          onPress={() => refetch()}
+          title={t('category.reload')}
+          onPress={() => onRetryProviders?.()}
           buttonStyle={styles.reloadButton}
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}
@@ -77,10 +78,10 @@ export default function HomeProvider({ onViewAll }: HomeProviderProps) {
   if (providers.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <CustomText style={styles.emptyText}>No providers available</CustomText>
+        <CustomText style={styles.emptyText}>{t('home.noProvidersAvailable')}</CustomText>
         <CustomButton
-          title="Reload"
-          onPress={() => refetch()}
+          title={t('category.reload')}
+          onPress={() => onRetryProviders?.()}
           buttonStyle={styles.reloadButton}
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}
@@ -107,8 +108,8 @@ export default function HomeProvider({ onViewAll }: HomeProviderProps) {
         contentContainerStyle={styles.listContent}
       />
       {(providersData?.pagination?.total ?? 0) > 10 && (
-        <Pressable 
-          onPress={handleViewAll} 
+        <Pressable
+          onPress={handleViewAll}
           style={({ pressed }) => [
             styles.viewAllButton,
             pressed && { opacity: 0.7 },

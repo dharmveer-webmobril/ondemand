@@ -1,5 +1,6 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText } from '@components/common';
 
@@ -10,16 +11,17 @@ type ProviderTabsProps = {
   onTabChange: (tab: TabType) => void;
 };
 
-const tabs: { id: TabType; label: string }[] = [
-  { id: 'services', label: 'Services' },
-  { id: 'reviews', label: 'Reviews' },
-  { id: 'portfolio', label: 'Portfolio' },
-  { id: 'details', label: 'Details' },
-];
-
 export default function ProviderTabs({ activeTab, onTabChange }: ProviderTabsProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
+
+  const tabs: { id: TabType; label: string }[] = useMemo(() => [
+    { id: 'services', label: t('provider.services') },
+    { id: 'reviews', label: t('provider.reviews') },
+    { id: 'portfolio', label: t('provider.portfolio') },
+    { id: 'details', label: t('provider.details') },
+  ], [t]);
 
   return (
     <View style={styles.container}>

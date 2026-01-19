@@ -13,7 +13,6 @@ type ServiceItemProps = {
 };
 
 export default function ServiceItem({
-  id,
   name,
   price,
   duration,
@@ -120,8 +119,8 @@ const createStyles = (theme: ThemeType) => {
       color: Colors.textAppColor || Colors.text,
     },
     bookButton: {
-      borderRadius: SF(8),
-      paddingVertical: SH(8),
+      borderRadius: SF(6),
+      paddingVertical: SH(6),
     },
     bookButtonText: {
       fontSize: SF(14),

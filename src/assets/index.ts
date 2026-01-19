@@ -99,5 +99,8 @@ const imagePaths = {
   defaultUser: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
   no_user_img: require('./icons/no_user_img.png'),
   city: require('./icons/city.png'),
+  logo_gif: require('./gif/logo_gif.gif'),
+  logo_json: require('./lottie/logo_gif.json'),
+  remove: require('./icons/remove.png'),
 };
 export default imagePaths;

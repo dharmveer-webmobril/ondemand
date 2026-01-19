@@ -1,5 +1,6 @@
 import { View, StyleSheet, Modal, Pressable } from 'react-native';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 import VectoreIcons from '@components/common/VectoreIcons';
@@ -21,6 +22,7 @@ export default function DeliveryModeModal({
 }: DeliveryModeModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const [currentMode, setCurrentMode] = useState<DeliveryMode>(selectedMode);
 
   const deliveryModes = [
@@ -90,7 +92,7 @@ export default function DeliveryModeModal({
             </View>
 
             <CustomButton
-              title="Confirm"
+              title={t('category.confirm')}
               onPress={handleConfirm}
               buttonStyle={styles.confirmButton}
               backgroundColor={theme.colors.primary}

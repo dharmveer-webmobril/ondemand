@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import Swiper from 'react-native-swiper';
 import { Banner } from '@services/api/queries/appQueries';
@@ -16,6 +17,7 @@ type HomeSliderProps = {
 export default function HomeSlider({ banners = [], isLoading = false, isError = false, onRetry }: HomeSliderProps) {
     const theme = useThemeContext();
     const styles = useMemo(() => createStyles(theme), [theme]);
+    const { t } = useTranslation();
 console.log('banners', banners);
     // Show loading state
     if (isLoading) {
@@ -33,10 +35,10 @@ console.log('banners', banners);
         return (
             <View style={styles.container}>
                 <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>Failed to load banners</Text>
+                    <Text style={styles.errorText}>{t('home.failedToLoadBanners')}</Text>
                     {onRetry && (
                         <CustomButton
-                            title="Retry"
+                            title={t('category.retry')}
                             onPress={onRetry}
                             buttonStyle={styles.retryButton}
                             textColor={theme.colors.whitetext}
@@ -55,7 +57,7 @@ console.log('banners', banners);
         return (
             <View style={styles.container}>
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No banners available</Text>
+                    <Text style={styles.emptyText}>{t('home.noBannersAvailable')}</Text>
                 </View>
             </View>
         );
@@ -68,7 +70,7 @@ console.log('banners', banners);
         return (
             <View style={styles.container}>
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No banners available</Text>
+                    <Text style={styles.emptyText}>{t('home.noBannersAvailable')}</Text>
                 </View>
             </View>
         );
@@ -91,7 +93,7 @@ console.log('banners', banners);
                             source={{ uri: banner.image }}
                             resizeMode="contain"
                             mainImageStyle={styles.image}
-                        />
+                            />
                     </View>
                 ))}
             </Swiper>

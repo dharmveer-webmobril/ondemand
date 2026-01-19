@@ -1,5 +1,6 @@
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Container, AppHeader, CustomInput, CustomButton, CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -7,17 +8,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CountryModal } from '@components';
 import { showToast } from '@components/common';
 
-const reportReasons = [
-  { id: '1', name: 'Inappropriate Content' },
-  { id: '2', name: 'Spam or Scam' },
-  { id: '3', name: 'Harassment' },
-  { id: '4', name: 'Fake Profile' },
-  { id: '5', name: 'Other' },
-];
-
 export default function Report() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation();
@@ -25,12 +19,20 @@ export default function Report() {
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [reportText, setReportText] = useState('');
 
+  const reportReasons = useMemo(() => [
+    { id: '1', name: t('report.inappropriateContent') },
+    { id: '2', name: t('report.spamOrScam') },
+    { id: '3', name: t('report.harassment') },
+    { id: '4', name: t('report.fakeProfile') },
+    { id: '5', name: t('report.other') },
+  ], [t]);
+
   const handleSubmit = () => {
     if (!selectedReason) {
       showToast({
         type: 'error',
-        title: 'Error',
-        message: 'Please select a report reason',
+        title: t('messages.error'),
+        message: t('report.selectReasonError'),
       });
       return;
     }
@@ -47,8 +49,8 @@ export default function Report() {
     // Handle report submission
     showToast({
       type: 'success',
-      title: 'Success',
-      message: 'Report submitted successfully',
+      title: t('messages.success'),
+      message: t('report.submitSuccess'),
     });
     navigation.goBack();
   };
@@ -56,7 +58,7 @@ export default function Report() {
   return (
     <Container safeArea={false} style={styles.container}>
       <AppHeader
-        title="Report"
+        title={t('report.title')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}
@@ -68,10 +70,10 @@ export default function Report() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
-          <CustomText style={styles.label}>Select report reason</CustomText>
+          <CustomText style={styles.label}>{t('report.selectReason')}</CustomText>
           <Pressable onPress={() => setShowReasonModal(true)}>
             <CustomInput
-              placeholder="Select reason type"
+              placeholder={t('report.selectReasonPlaceholder')}
               value={selectedReason?.name || ''}
               editable={false}
               rightIcon="chevron-down"
@@ -81,9 +83,9 @@ export default function Report() {
         </View>
 
         <View style={styles.section}>
-          <CustomText style={styles.label}>Tell us more</CustomText>
+          <CustomText style={styles.label}>{t('report.tellUsMore')}</CustomText>
           <CustomInput
-            placeholder="Describe the issue..."
+            placeholder={t('report.describeIssue')}
             value={reportText}
             onChangeText={setReportText}
             multiline
@@ -94,7 +96,7 @@ export default function Report() {
         </View>
 
         <CustomButton
-          title="Report"
+          title={t('report.submit')}
           onPress={handleSubmit}
           buttonStyle={styles.submitButton}
           backgroundColor={theme.colors.primary}

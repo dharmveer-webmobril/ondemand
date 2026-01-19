@@ -194,7 +194,7 @@ export const english = {
     "paymentHistory1": "Payment History",
     "ratingsReviews": "Ratings & Reviews",
     "loyaltyReferralDiscounts": "Loyalty & Referral Discounts",
-    "multiLanguageCurrency": "Multi Language & Currency",
+    "multiLanguageCurrency": "Multi Language",
     "notificationsAlerts": "Notifications & Alerts",
     "customerSupport": "Customer Support",
     "logout": "Logout",
@@ -275,10 +275,18 @@ export const english = {
   },
   "category": {
     "title": "Category",
+    "search": "Search",
+    "failedToLoadProviders": "Failed to load providers",
+    "reload": "Reload",
+    "noProvidersFound": "No providers found matching your search",
+    "noProvidersAvailable": "No providers available",
+    "loadMore": "Load More",
+    "all": "All",
+    "confirm": "Confirm",
     "error": "Failed to load categories. Tap to retry.",
     "retry": "Retry",
     "noResults": "No results found for {{searchTerm}}. Try something different!",
-    "goodMsg": "Keep exploring, you’ll find something great!",
+    "goodMsg": "Keep exploring, you'll find something great!",
     "empty": "No categories available."
   },
   "homeCategory": {
@@ -292,6 +300,14 @@ export const english = {
     "allCategories": "All Categories",
     "serviceViewAll": "View All",
     "nearbyServices": "Service Provider Near You",
+    "categories": "Categories",
+    "nearestProvider": "Nearest Provider",
+    "search": "Search",
+    "failedToLoadCategories": "Failed to load categories",
+    "failedToLoadBanners": "Failed to load banners",
+    "failedToLoadProviders": "Failed to load providers",
+    "noBannersAvailable": "No banners available",
+    "noProvidersAvailable": "No providers available",
     "services": {
       "title": "Service Provider",
       "notFound": "No nearby services available.",
@@ -449,5 +465,27 @@ export const english = {
       "reviewFailed": "Failed to submit review",
       "refreshing": "Refreshing rating details..."
     }
+  },
+  "provider": {
+    "services": "Services",
+    "reviews": "Reviews",
+    "portfolio": "Portfolio",
+    "details": "Details"
+  },
+  "report": {
+    "title": "Report",
+    "selectReason": "Select report reason",
+    "selectReasonPlaceholder": "Select reason type",
+    "tellUsMore": "Tell us more",
+    "describeIssue": "Describe the issue...",
+    "submit": "Report",
+    "selectReasonError": "Please select a report reason",
+    "provideMoreDetails": "Please provide more details",
+    "submitSuccess": "Report submitted successfully",
+    "inappropriateContent": "Inappropriate Content",
+    "spamOrScam": "Spam or Scam",
+    "harassment": "Harassment",
+    "fakeProfile": "Fake Profile",
+    "other": "Other"
   }
 }

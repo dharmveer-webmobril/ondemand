@@ -1,7 +1,7 @@
-import { StyleSheet, FlatList } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import { StyleSheet, FlatList, View, ActivityIndicator, Linking, Alert, RefreshControl } from 'react-native';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useRoute, } from '@react-navigation/native';
-import { Container,  } from '@components/common';
+import { Container, CustomText, CustomButton } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ProviderTabs from '@components/provider/ProviderTabs';
 import ServiceItem from '@components/provider/ServiceItem';
@@ -12,18 +12,11 @@ import ProviderDetails from '@components/provider/ProviderDetails';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { ProviderHeader, ProviderSubHeader } from '@components';
+import { useGetServiceProviderDetail, useGetServiceProviderServices } from '@services/index';
 
 type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
 
 // Mock data - Replace with actual API calls
-const mockServices = [
-  { id: '1', name: 'Haircut + Beard', price: 55.00, duration: '30m', icon: 'cut' },
-  { id: '2', name: 'Only Haircut', price: 55.00, duration: '30m', icon: 'cut' },
-  { id: '3', name: 'Razor', price: 55.00, duration: '25m', icon: 'cut' },
-  { id: '4', name: 'Kids Haircut', price: 30.00, duration: '15m', icon: 'cut' },
-  { id: '5', name: 'Enchantments', price: 15.00, duration: '10m', icon: 'sparkles' },
-];
-
 const mockReviews = [
   {
     id: '1',
@@ -47,13 +40,6 @@ const mockReviews = [
   },
 ];
 
-const mockPortfolioImages = [
-  'https://via.placeholder.com/300',
-  'https://via.placeholder.com/300',
-  'https://via.placeholder.com/300',
-  'https://via.placeholder.com/300',
-];
-
 const ratingDistribution = [
   { stars: 5, percentage: 75, count: 150 },
   { stars: 4, percentage: 21, count: 42 },
@@ -65,22 +51,46 @@ const ratingDistribution = [
 export default function ProviderDetailsScreen() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const route = useRoute();
+  const route = useRoute<any>();
   const [activeTab, setActiveTab] = useState<TabType>('services');
 
-  const provider = (route.params as any)?.provider || {
-    id: '1',
-    name: 'WM Barbershop',
-    logo: 'https://via.placeholder.com/100',
-    address: '1893 Cheshire Bridge Rd Ne, 30325',
-    serviceType: 'Home Service',
-    rating: 4.8,
-    reviewCount: 200,
-  };
+  // Get spId from route params - could be provider.id or provider._id or direct spId
+  const spId = route.params?.provider?.id || route.params?.provider?._id || route.params?.spId || route.params?.providerId;
+
+  // Fetch provider details and services
+  const { 
+    data: providerData, 
+    isLoading: isLoadingProvider,
+    isFetching: isFetchingProvider,
+    isError: isErrorProvider,
+    error: providerError,
+    refetch: refetchProvider 
+  } = useGetServiceProviderDetail(spId);
+
+  const { 
+    data: servicesData, 
+    isLoading: isLoadingServices,
+    isFetching: isFetchingServices,
+    isError: isErrorServices,
+    error: servicesError,
+    refetch: refetchServices 
+  } = useGetServiceProviderServices(spId);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Extract provider data from API response
+  const provider = providerData?.ResponseData || {};
+  const services = servicesData?.ResponseData?.services || [];
+  const businessProfile = provider?.businessProfile || {};
+
+  const isLoading = isLoadingProvider || isLoadingServices;
+  const isFetching = isFetchingProvider || isFetchingServices;
+  const isError = isErrorProvider || isErrorServices;
+  const errorMessage = providerError?.message || servicesError?.message || 'Failed to load provider details';
 
   const handleBookService = (serviceId: string) => {
     navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
-      providerId: provider.id,
+      providerId: provider._id || spId,
       serviceId,
     });
   };
@@ -94,27 +104,132 @@ export default function ProviderDetailsScreen() {
   };
 
   const handleReportPress = () => {
-    navigate(SCREEN_NAMES.REPORT, { providerId: provider.id });
+    navigate(SCREEN_NAMES.REPORT, { providerId: provider._id || spId });
+  };
+
+  const handleCall = () => {
+    if (provider.contact) {
+      const url = `tel:${provider.contact}`;
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(url);
+          } else {
+            Alert.alert('Error', 'Phone calls are not supported on this device');
+          }
+        })
+        .catch(() => {
+          Alert.alert('Error', 'Unable to make phone call');
+        });
+    }
+  };
+
+  const handleRetry = useCallback(() => {
+    refetchProvider();
+    refetchServices();
+  }, [refetchProvider, refetchServices]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchProvider(),
+        refetchServices()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing provider data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchProvider, refetchServices]);
+
+  // Format duration from minutes to "30m" format
+  const formatDuration = (minutes: number | undefined) => {
+    if (!minutes) return '';
+    return `${minutes}m`;
   };
 
   const renderContent = () => {
+    // Show initial loading only on first load, not during refetch
+    if (isLoading && !refreshing) {
+      return (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <CustomText
+            fontSize={theme.fontSize.sm}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.lightText}
+            style={{ marginTop: theme.SH(12) }}
+          >
+            Loading provider details...
+          </CustomText>
+        </View>
+      );
+    }
+
+    if (isError && !providerData?.ResponseData) {
+      return (
+        <View style={styles.errorContainer}>
+          <CustomText
+            fontSize={theme.fontSize.md}
+            fontFamily={theme.fonts.SEMI_BOLD}
+            color={theme.colors.red}
+            textAlign="center"
+            style={{ marginBottom: theme.SH(8) }}
+          >
+            {errorMessage}
+          </CustomText>
+          <CustomButton
+            title="Retry"
+            onPress={handleRetry}
+            backgroundColor={theme.colors.primary}
+            textColor={theme.colors.white}
+            buttonStyle={styles.retryButton}
+          />
+        </View>
+      );
+    }
+
     switch (activeTab) {
       case 'services':
+        if (services.length === 0) {
+          return (
+            <View style={styles.emptyContainer}>
+              <CustomText
+                fontSize={theme.fontSize.md}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText}
+                textAlign="center"
+              >
+                No services available
+              </CustomText>
+            </View>
+          );
+        }
         return (
           <FlatList
-            data={mockServices}
-            keyExtractor={(item) => item.id}
+            data={services}
+            keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <ServiceItem
-                id={item.id}
+                id={item._id}
                 name={item.name}
                 price={item.price}
-                duration={item.duration}
-                icon={item.icon}
-                onBook={() => handleBookService(item.id)}
+                duration={formatDuration(item.time)}
+                icon="cut"
+                onBook={() => handleBookService(item._id)}
               />
             )}
             contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing || isFetchingServices}
+                onRefresh={handleRefresh}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary || '#135D96']}
+              />
+            }
+            showsVerticalScrollIndicator={false}
           />
         );
       case 'reviews':
@@ -124,7 +239,7 @@ export default function ProviderDetailsScreen() {
             keyExtractor={(item) => item.id}
             ListHeaderComponent={
               <RatingChart
-                overallRating={typeof provider.rating === 'number' ? provider.rating : 4.8}
+                overallRating={provider.rating || 0}
                 ratingDistribution={ratingDistribution}
               />
             }
@@ -142,28 +257,68 @@ export default function ProviderDetailsScreen() {
               />
             )}
             contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing || isFetching}
+                onRefresh={handleRefresh}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary || '#135D96']}
+              />
+            }
+            showsVerticalScrollIndicator={false}
           />
         );
       case 'portfolio':
+        const portfolioImages = businessProfile.portfolioImages || [];
+        if (portfolioImages.length === 0) {
+          return (
+            <View style={styles.emptyContainer}>
+              <CustomText
+                fontSize={theme.fontSize.md}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText}
+                textAlign="center"
+              >
+                No portfolio images available
+              </CustomText>
+            </View>
+          );
+        }
         return (
           <PortfolioGrid
-            images={mockPortfolioImages}
+            images={portfolioImages}
             onImagePress={(index) => console.log('Image pressed:', index)}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing || isFetching}
+                onRefresh={handleRefresh}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary || '#135D96']}
+              />
+            }
           />
         );
       case 'details':
         return (
           <ProviderDetails
-            aboutUs="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-            phoneNumber="(3945687456)"
-            onCall={() => console.log('Call pressed')}
-            facebookUrl="https://facebook.com"
-            instagramUrl="https://instagram.com"
-            websiteUrl="https://website.com"
-            amenities={['Places parking', 'WIFI', 'Accessible Personal Handicaps']}
+            aboutUs={businessProfile.description || 'No description available'}
+            phoneNumber={provider.contact || ''}
+            onCall={handleCall}
+            facebookUrl={businessProfile.websiteAndSocialLinks?.facebook || undefined}
+            instagramUrl={businessProfile.websiteAndSocialLinks?.instagram || undefined}
+            websiteUrl={businessProfile.websiteAndSocialLinks?.website || undefined}
+            amenities={[]} // TODO: Map amenitiesIds to actual amenities
             onServiceFeePress={handleServiceFeePress}
             onPaymentPolicyPress={handlePaymentPolicyPress}
             onReportPress={handleReportPress}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing || isFetching}
+                onRefresh={handleRefresh}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary || '#135D96']}
+              />
+            }
           />
         );
       default:
@@ -171,19 +326,73 @@ export default function ProviderDetailsScreen() {
     }
   };
 
+  // Don't render content if loading or error - show full screen loader/error
+  // Only show full screen loader on initial load, not during refetch
+  if (isLoading && !refreshing && !providerData?.ResponseData) {
+    return (
+      <Container safeArea={true} style={styles.container}>
+        <View style={styles.fullScreenLoader}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <CustomText
+            fontSize={theme.fontSize.sm}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.lightText}
+            style={{ marginTop: theme.SH(12) }}
+          >
+            Loading provider details...
+          </CustomText>
+        </View>
+      </Container>
+    );
+  }
+
+  if (isError && !providerData?.ResponseData) {
+    return (
+      <Container safeArea={true} style={styles.container}>
+        <View style={styles.fullScreenError}>
+          <CustomText
+            fontSize={theme.fontSize.lg}
+            fontFamily={theme.fonts.SEMI_BOLD}
+            color={theme.colors.red}
+            textAlign="center"
+            style={{ marginBottom: theme.SH(8) }}
+          >
+            Error Loading Provider
+          </CustomText>
+          <CustomText
+            fontSize={theme.fontSize.sm}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.lightText}
+            textAlign="center"
+            style={{ marginBottom: theme.SH(20) }}
+          >
+            {errorMessage}
+          </CustomText>
+          <CustomButton
+            title="Retry"
+            onPress={handleRetry}
+            backgroundColor={theme.colors.primary}
+            textColor={theme.colors.white}
+            buttonStyle={styles.retryButton}
+          />
+        </View>
+      </Container>
+    );
+  }
+
   return (
     <Container safeArea={true} style={styles.container}>
       <ProviderHeader
-        name={provider.name}
-        logo={provider.logo}
+        name={provider.name || 'Provider'}
+        logo={provider.profileImage}
       />
       <ProviderSubHeader
-        logo={provider.logo}
-        name={provider.name}
-        address={provider.address}
-        serviceType={provider.serviceType}
-        rating={typeof provider.rating === 'number' ? provider.rating : undefined}
-        reviewCount={provider.reviewCount}
+        logo={provider.profileImage}
+        name={provider.name || 'Provider'}
+        address={businessProfile.address || provider.city?.name || 'Address not available'}
+        serviceType={businessProfile.name || 'Service Provider'}
+        rating={provider.rating || undefined}
+        reviewCount={0} // TODO: Get from API if available
         onShare={() => console.log('Share pressed')}
         onFavorite={(isFavorite: any) => console.log('Favorite:', isFavorite)}
       />
@@ -194,7 +403,7 @@ export default function ProviderDetailsScreen() {
 }
 
 const createStyles = (theme: ThemeType) => {
-  const { colors: Colors, SH } = theme;
+  const { colors: Colors, SH, SW } = theme;
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -202,6 +411,40 @@ const createStyles = (theme: ThemeType) => {
     },
     listContent: {
       paddingBottom: SH(20),
+    },
+    loaderContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: SH(40),
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: SW(20),
+      paddingVertical: SH(40),
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: SH(40),
+    },
+    fullScreenLoader: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    fullScreenError: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: SW(20),
+    },
+    retryButton: {
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal: SW(24),
     },
   });
 };

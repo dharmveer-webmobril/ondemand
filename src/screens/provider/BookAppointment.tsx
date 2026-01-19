@@ -1,61 +1,100 @@
-import { View, StyleSheet, ScrollView, Pressable, FlatList } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { Calendar, DateData } from 'react-native-calendars';
 import { Container, AppHeader, CustomText, CustomButton, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useGetServiceProviderAvailability } from '@services/index';
+import { generateTimeSlots } from '@utils/timeSlotUtils';
 
-type TimeSlot = {
-  id: string;
-  time: string;
-  available: boolean;
-};
-
-const timeSlots: TimeSlot[] = [
-  { id: '1', time: '8:00 am', available: true },
-  { id: '2', time: '8:30 am', available: true },
-  { id: '3', time: '9:00 am', available: true },
-  { id: '4', time: '9:30 am', available: true },
-  { id: '5', time: '10:00 am', available: true },
-  { id: '6', time: '10:30 am', available: true },
-  { id: '7', time: '11:00 am', available: false },
-  { id: '8', time: '11:30 am', available: true },
-];
-
-const generateCalendarDays = () => {
-  const days = [];
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  
-  for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(currentYear, currentMonth, i);
-    const dayOfWeek = date.getDay();
-    days.push({
-      day: i,
-      dayName: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][dayOfWeek],
-      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      date: date,
-    });
-  }
-  return days;
+// Format date to YYYY-MM-DD
+const formatDateToString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 export default function BookAppointment() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
-  const route = useRoute();
+  const route = useRoute<any>();
   const navigation = useNavigation();
-  const [selectedDate, setSelectedDate] = useState<number>(6);
+  
+  // Get spId from route params
+  const spId = route.params?.providerId || route.params?.provider?.id || route.params?.provider?._id || route.params?.spId;
+  
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+  const todayString = useMemo(() => formatDateToString(today), [today]);
+  
+  // Get today's date as default selected date
+  const [selectedDateString, setSelectedDateString] = useState<string>(todayString);
+  const [currentMonth, setCurrentMonth] = useState<string>(() => {
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState([
     { id: '1', name: 'Haircut + Beard', price: 55.00, duration: '30m' },
   ]);
 
-  const calendarDays = useMemo(() => generateCalendarDays(), []);
-  const monthName = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+  // Fetch availability for selected date
+  const {
+    data: availabilityData,
+    isLoading: isLoadingAvailability,
+    isError: isErrorAvailability,
+    isFetching: isFetchingAvailability,
+  } = useGetServiceProviderAvailability(spId, selectedDateString);
+
+  // Generate time slots based on availability (in 24-hour format)
+  const timeSlots = useMemo(() => {
+    if (!availabilityData?.ResponseData?.availability) {
+      return [];
+    }
+    const availability = availabilityData.ResponseData.availability;
+    if (!availabilityData.ResponseData.available || availability.close) {
+      return [];
+    }
+    return generateTimeSlots(availability.startTime, availability.endTime, availability.close);
+  }, [availabilityData]);
+
+  // Handle date selection from Calendar
+  const handleDayPress = useCallback((day: DateData) => {
+    const selectedDate = new Date(day.dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    // Don't allow selecting past dates
+    if (selectedDate < today) {
+      return;
+    }
+    
+    setSelectedDateString(day.dateString);
+    setSelectedTimeSlot(null); // Reset time slot when date changes
+  }, [today]);
+
+  // Handle month change
+  const handleMonthChange = useCallback((month: { month: number; year: number }) => {
+    const monthString = `${month.year}-${String(month.month).padStart(2, '0')}`;
+    setCurrentMonth(monthString);
+  }, []);
+
+  // Marked dates for calendar
+  const markedDates = useMemo(() => {
+    return {
+      [selectedDateString]: {
+        selected: true,
+        selectedColor: theme.colors.primary,
+        selectedTextColor: theme.colors.white,
+      },
+    };
+  }, [selectedDateString, theme.colors.primary, theme.colors.white]);
 
   const totalPrice = useMemo(() => {
     return selectedServices.reduce((sum, service) => sum + service.price, 0);
@@ -63,7 +102,7 @@ export default function BookAppointment() {
 
   const totalDuration = useMemo(() => {
     return selectedServices.reduce((sum, service) => {
-      const duration = parseInt(service.duration.replace('m', ''));
+      const duration = parseInt(service.duration.replace('m', ''), 10);
       return sum + duration;
     }, 0);
   }, [selectedServices]);
@@ -98,82 +137,105 @@ export default function BookAppointment() {
       >
         {/* Calendar Section */}
         <View style={styles.section}>
-          <CustomText style={styles.sectionTitle}>{monthName}</CustomText>
           <View style={styles.calendarContainer}>
-            <View style={styles.dayNamesRow}>
-              {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
-                <View key={day} style={styles.dayNameCell}>
-                  <CustomText style={styles.dayNameText}>{day}</CustomText>
-                </View>
-              ))}
-            </View>
-            <View style={styles.calendarGrid}>
-              {calendarDays.map((day) => {
-                const isSelected = day.day === selectedDate;
-                const isWeekend = day.isWeekend;
-                return (
-                  <Pressable
-                    key={day.day}
-                    onPress={() => setSelectedDate(day.day)}
-                    style={({ pressed }) => [
-                      styles.calendarDay,
-                      isSelected && styles.selectedDay,
-                      isWeekend && styles.weekendDay,
-                      pressed && { opacity: 0.7 },
-                    ]}
-                  >
-                    <CustomText
-                      style={[
-                        styles.dayText,
-                        isSelected && styles.selectedDayText,
-                        isWeekend && !isSelected && styles.weekendText,
-                      ]}
-                    >
-                      {day.day}
-                    </CustomText>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Calendar
+              current={currentMonth}
+              onDayPress={handleDayPress}
+              onMonthChange={handleMonthChange}
+              markedDates={markedDates}
+              minDate={todayString}
+              disableAllTouchEventsForDisabledDays
+              enableSwipeMonths
+              theme={{
+                backgroundColor: theme.colors.white,
+                calendarBackground: theme.colors.white,
+                textSectionTitleColor: theme.colors.text,
+                selectedDayBackgroundColor: theme.colors.primary,
+                selectedDayTextColor: theme.colors.white,
+                todayTextColor: theme.colors.primary,
+                dayTextColor: theme.colors.text,
+                textDisabledColor: theme.colors.lightText,
+                dotColor: theme.colors.primary,
+                selectedDotColor: theme.colors.white,
+                arrowColor: theme.colors.primary,
+                monthTextColor: theme.colors.text,
+                textDayFontFamily: theme.fonts.REGULAR,
+                textMonthFontFamily: theme.fonts.SEMI_BOLD,
+                textDayHeaderFontFamily: theme.fonts.MEDIUM,
+                textDayFontSize: theme.fontSize.sm,
+                textMonthFontSize: theme.fontSize.lg,
+                textDayHeaderFontSize: theme.fontSize.xs,
+              } as any}
+              style={styles.calendar}
+            />
           </View>
         </View>
 
         {/* Time Slots */}
         <View style={styles.section}>
           <CustomText style={styles.sectionTitle}>Select Time</CustomText>
-          <FlatList
-            data={timeSlots}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.timeSlotsContainer}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const isSelected = selectedTimeSlot === item.id;
-              const isAvailable = item.available;
-              return (
-                <Pressable
-                  onPress={() => isAvailable && setSelectedTimeSlot(item.id)}
-                  disabled={!isAvailable}
-                  style={({ pressed }) => [
-                    styles.timeSlot,
-                    isSelected && styles.selectedTimeSlot,
-                    !isAvailable && styles.unavailableTimeSlot,
-                    pressed && isAvailable && { opacity: 0.7 },
-                  ]}
-                >
+          {isLoadingAvailability || isFetchingAvailability ? (
+            <View style={styles.slotsLoaderContainer}>
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+              <CustomText
+                fontSize={theme.fontSize.sm}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText}
+                style={{ marginTop: theme.SH(8) }}
+              >
+                Loading available slots...
+              </CustomText>
+            </View>
+          ) : isErrorAvailability || !availabilityData?.ResponseData?.available || timeSlots.length === 0 ? (
+            <View style={styles.notAvailableContainer}>
+              <CustomText
+                fontSize={theme.fontSize.sm}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText}
+                textAlign="center"
+              >
+                {isErrorAvailability 
+                  ? 'Not available' 
+                  : availabilityData?.ResponseData?.availability?.close 
+                    ? 'Closed on this date' 
+                    : 'No slots available for this date'}
+              </CustomText>
+            </View>
+          ) : (
+            <FlatList
+              data={timeSlots}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.timeSlotsContainer}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const isSelected = selectedTimeSlot === item.id;
+                const isAvailable = item.available;
+                return (
+                  <Pressable
+                    onPress={() => isAvailable && setSelectedTimeSlot(item.id)}
+                    disabled={!isAvailable}
+                    style={({ pressed }) => [
+                      styles.timeSlot,
+                      isSelected && styles.selectedTimeSlot,
+                      !isAvailable && styles.unavailableTimeSlot,
+                      pressed && isAvailable && { opacity: 0.7 },
+                    ]}
+                  >
                   <CustomText
                     style={[
                       styles.timeSlotText,
-                      isSelected && styles.selectedTimeSlotText,
-                      !isAvailable && styles.unavailableText,
+                      isSelected ? styles.selectedTimeSlotText : {},
+                      !isAvailable ? styles.unavailableText : {},
                     ]}
                   >
                     {item.time}
                   </CustomText>
-                </Pressable>
-              );
-            }}
-          />
+                  </Pressable>
+                );
+              }}
+            />
+          )}
         </View>
 
         {/* Selected Services */}
@@ -266,52 +328,25 @@ const createStyles = (theme: ThemeType) => {
     },
     calendarContainer: {
       backgroundColor: Colors.white,
+      borderRadius: SF(12),
+      overflow: 'hidden',
     },
-    dayNamesRow: {
-      flexDirection: 'row',
-      marginBottom: SH(8),
-    },
-    dayNameCell: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    dayNameText: {
-      fontSize: SF(12),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.textAppColor || Colors.text,
-    },
-    calendarGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-    },
-    calendarDay: {
-      width: '14.28%',
-      aspectRatio: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: SF(8),
-      marginBottom: SH(8),
-    },
-    selectedDay: {
-      backgroundColor: Colors.primary,
-    },
-    weekendDay: {
-      // Weekend styling
-    },
-    dayText: {
-      fontSize: SF(14),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.text,
-    },
-    selectedDayText: {
-      color: Colors.whitetext,
-      fontFamily: Fonts.SEMI_BOLD,
-    },
-    weekendText: {
-      color: Colors.primary,
+    calendar: {
+      borderRadius: SF(12),
+      paddingVertical: SH(10),
     },
     timeSlotsContainer: {
       gap: SW(12),
+    },
+    slotsLoaderContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SW(12),
+    },
+    notAvailableContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     timeSlot: {
       paddingHorizontal: SW(20),

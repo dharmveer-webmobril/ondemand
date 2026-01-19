@@ -18,4 +18,7 @@ export default {
     UPLOAD_DOCUMENT: '/auth/customer/upload-document',
     CHANGE_PASSWORD: '/auth/customer/change-password',
     GET_SERVICE_PROVIDERS: '/customer/service-providers',
+    GET_SERVICE_PROVIDER_DETAIL: '/customer/service-provider',
+    GET_SERVICE_PROVIDER_SERVICES: '/customer/service-provider',
+    GET_SERVICE_PROVIDER_AVAILABILITY: '/customer/bookings/sp',
 };
