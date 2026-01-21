@@ -5,6 +5,7 @@ import { HomeHeader, HomeMainList, HomeSearchBar } from "@components";
 import { LoadingComp } from "@components/common";
 import { useDisableGestures } from "@utils/hooks";
 import { useGetCategories, useGetBanners, useGetServiceProviders } from "@services/api/queries/appQueries";
+import { useAppSelector } from "@store/hooks";
 
 export default function Home() {
   useDisableGestures()
@@ -27,13 +28,15 @@ export default function Home() {
     refetch: refetchBanners
   } = useGetBanners();
 
-  const { 
-    data: providersData, 
-    isFetching:providerLoading, 
-    isError:providerError, 
-    refetch:providerReftech 
-  } = useGetServiceProviders({ page: 1, limit: 10 });
-console.log('providersData', providersData);
+  const currentCityId = useAppSelector(state => state.app.userCityId);
+  const {
+    data: providersData,
+    isFetching: providerLoading,
+    isError: providerError,
+    refetch: providerReftech
+  } = useGetServiceProviders({ page: 1, limit: 10,currentCityId });
+  
+  console.log('providersData', providersData);
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -57,7 +60,7 @@ console.log('providersData', providersData);
       refetchCategories(),
       refetchBanners(),
     ]);
-  }, [refetchCategories, refetchBanners, ]);
+  }, [refetchCategories, refetchBanners,]);
 
   // Handle search
   const handleSearch = useCallback((text: string) => {

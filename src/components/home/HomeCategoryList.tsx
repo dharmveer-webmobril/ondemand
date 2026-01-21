@@ -9,6 +9,7 @@ import { Category } from '@services/api/queries/appQueries';
 import CustomButton from '@components/common/CustomButton';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import HomeCategoryListSkeleton from './HomeCategoryListSkeleton';
 
 type HomeCategoryListProps = {
     categories?: Category[];
@@ -53,13 +54,9 @@ export default function HomeCategoryList({ categories = [], isLoading = false, i
     const styles = useMemo(() => createStyles(theme), [theme]);
     const { t } = useTranslation();
 
-    // Show loading state
+    // Show loading state with skeleton
     if (isLoading) {
-        return (
-            <View style={styles.stateContainer}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
-        );
+        return <HomeCategoryListSkeleton />;
     }
 
     // Show error state

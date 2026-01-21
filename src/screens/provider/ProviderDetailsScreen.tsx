@@ -1,14 +1,17 @@
-import { StyleSheet, FlatList, View, ActivityIndicator, Linking, Alert, RefreshControl } from 'react-native';
-import React, { useMemo, useState, useCallback } from 'react';
-import { useRoute, } from '@react-navigation/native';
-import { Container, CustomText, CustomButton } from '@components/common';
+import { StyleSheet, Linking, Alert, RefreshControl } from 'react-native';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useRoute } from '@react-navigation/native';
+import { Container, showToast } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ProviderTabs from '@components/provider/ProviderTabs';
-import ServiceItem from '@components/provider/ServiceItem';
-import RatingChart from '@components/provider/RatingChart';
-import ReviewItem from '@components/provider/ReviewItem';
-import PortfolioGrid from '@components/provider/PortfolioGrid';
 import ProviderDetails from '@components/provider/ProviderDetails';
+import ProviderLoadingState from '@components/provider/ProviderLoadingState';
+import ProviderErrorState from '@components/provider/ProviderErrorState';
+import ProviderServicesTab from '@components/provider/ProviderServicesTab';
+import ProviderReviewsTab from '@components/provider/ProviderReviewsTab';
+import ProviderPortfolioTab from '@components/provider/ProviderPortfolioTab';
+import DeliveryModeModal from '@components/category/DeliveryModeModal';
+import ServiceForModal from '@components/provider/ServiceForModal';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { ProviderHeader, ProviderSubHeader } from '@components';
@@ -53,30 +56,38 @@ export default function ProviderDetailsScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const [activeTab, setActiveTab] = useState<TabType>('services');
-
+  const prevScreenFlag = route.params?.prevScreenFlag;
   // Get spId from route params - could be provider.id or provider._id or direct spId
   const spId = route.params?.provider?.id || route.params?.provider?._id || route.params?.spId || route.params?.providerId;
-
+  const isShowBookButton = prevScreenFlag === 'without_data';
+  const [bookingDetails, setBookingDetails] = useState<{
+    deliveryMode?: any;
+    serviceFor?: any;
+  }>({ deliveryMode: null, serviceFor: null });
+  console.log('spId--------isShowBookButton', isShowBookButton);
   // Fetch provider details and services
-  const { 
-    data: providerData, 
+  const {
+    data: providerData,
     isLoading: isLoadingProvider,
     isFetching: isFetchingProvider,
     isError: isErrorProvider,
     error: providerError,
-    refetch: refetchProvider 
+    refetch: refetchProvider
   } = useGetServiceProviderDetail(spId);
 
-  const { 
-    data: servicesData, 
+  const {
+    data: servicesData,
     isLoading: isLoadingServices,
     isFetching: isFetchingServices,
     isError: isErrorServices,
     error: servicesError,
-    refetch: refetchServices 
-  } = useGetServiceProviderServices(spId);
+    refetch: refetchServices
+  } = useGetServiceProviderServices(spId, bookingDetails.deliveryMode);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [showDeliveryModeModal, setShowDeliveryModeModal] = useState(false);
+  const [showServiceForModal, setShowServiceForModal] = useState(false);
+  const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
 
   // Extract provider data from API response
   const provider = providerData?.ResponseData || {};
@@ -89,10 +100,68 @@ export default function ProviderDetailsScreen() {
   const errorMessage = providerError?.message || servicesError?.message || 'Failed to load provider details';
 
   const handleBookService = (serviceId: string) => {
-    navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
-      providerId: provider._id || spId,
-      serviceId,
-    });
+    setPendingServiceId(serviceId);
+    setShowDeliveryModeModal(true);
+  };
+
+  const handleDeliveryModeConfirm = (deliveryMode: any) => {
+
+    const service = services.find((s: any) => s._id === pendingServiceId);
+    console.log('deliveryMode--------service', service);
+    console.log('deliveryMode--------deliveryMode', deliveryMode);
+    if (service?.preferences?.length > 0 && service?.preferences.includes(deliveryMode)) {
+      navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
+        providerId: provider._id || spId,
+        serviceId: pendingServiceId,
+        services: services,
+        selectedServices: [service],
+        bookingDetails: { deliveryMode },
+      });
+      console.log('deliveryMode--------service yes show service for modal', service);
+    } else {
+      showToast({ type: 'info', message: 'Service is not available for this delivery mode' });
+      return;
+    }
+
+    // setBookingDetails((prev) => ({ ...prev, deliveryMode }));
+    // If "at_home" is selected, show ServiceForModal
+    // if (deliveryMode === 'atHome') {
+    //   setShowDeliveryModeModal(false);
+    //   setShowServiceForModal(true);
+    // } else {
+    //   navigateToBookAppointment(deliveryMode);
+    // }
+  };
+
+  const handleServiceForConfirm = (serviceFor: 'self' | 'other') => {
+    setBookingDetails((prev) => ({ ...prev, serviceFor }));
+    setShowServiceForModal(false);
+    navigateToBookAppointment(bookingDetails.deliveryMode, bookingDetails.serviceFor);
+  };
+
+  const navigateToBookAppointment = (
+    deliveryMode: any,
+    serviceFor?: any
+  ) => {
+    if (!pendingServiceId) return;
+    const bookingData = {
+      deliveryMode,
+      ...(serviceFor && { serviceFor }),
+    };
+    console.log('deliveryMode--------navigateToBookAppointment', deliveryMode, serviceFor);
+    console.log('deliveryMode--------pendingServiceId', bookingData, services);
+    console.log('deliveryMode--------bookingData', pendingServiceId);
+
+    // navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
+    //   providerId: provider._id || spId,
+    //   serviceId: pendingServiceId,
+    //   services: services,
+    //   bookingDetails: bookingData,
+    // });
+
+    // // Reset state
+    // setPendingServiceId(null);
+    // setBookingDetails({});
   };
 
   const handleServiceFeePress = () => {
@@ -124,6 +193,11 @@ export default function ProviderDetailsScreen() {
     }
   };
 
+  useEffect(() => {
+    console.log('bookingDetails--------useEffect', bookingDetails);
+    refetchServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refetchServices]);
   const handleRetry = useCallback(() => {
     refetchProvider();
     refetchServices();
@@ -152,150 +226,52 @@ export default function ProviderDetailsScreen() {
   const renderContent = () => {
     // Show initial loading only on first load, not during refetch
     if (isLoading && !refreshing) {
-      return (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <CustomText
-            fontSize={theme.fontSize.sm}
-            fontFamily={theme.fonts.REGULAR}
-            color={theme.colors.lightText}
-            style={{ marginTop: theme.SH(12) }}
-          >
-            Loading provider details...
-          </CustomText>
-        </View>
-      );
+      return <ProviderLoadingState />;
     }
 
     if (isError && !providerData?.ResponseData) {
       return (
-        <View style={styles.errorContainer}>
-          <CustomText
-            fontSize={theme.fontSize.md}
-            fontFamily={theme.fonts.SEMI_BOLD}
-            color={theme.colors.red}
-            textAlign="center"
-            style={{ marginBottom: theme.SH(8) }}
-          >
-            {errorMessage}
-          </CustomText>
-          <CustomButton
-            title="Retry"
-            onPress={handleRetry}
-            backgroundColor={theme.colors.primary}
-            textColor={theme.colors.white}
-            buttonStyle={styles.retryButton}
-          />
-        </View>
+        <ProviderErrorState
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+        />
       );
     }
 
     switch (activeTab) {
       case 'services':
-        if (services.length === 0) {
-          return (
-            <View style={styles.emptyContainer}>
-              <CustomText
-                fontSize={theme.fontSize.md}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.lightText}
-                textAlign="center"
-              >
-                No services available
-              </CustomText>
-            </View>
-          );
-        }
         return (
-          <FlatList
-            data={services}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-              <ServiceItem
-                id={item._id}
-                name={item.name}
-                price={item.price}
-                duration={formatDuration(item.time)}
-                icon="cut"
-                onBook={() => handleBookService(item._id)}
-              />
-            )}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing || isFetchingServices}
-                onRefresh={handleRefresh}
-                tintColor={theme.colors.primary}
-                colors={[theme.colors.primary || '#135D96']}
-              />
-            }
-            showsVerticalScrollIndicator={false}
+          <ProviderServicesTab
+            services={services}
+            isLoading={isLoading}
+            isFetching={isFetchingServices}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            onBookService={handleBookService}
+            // isShowBookButton={!isShowBookButton}
+            formatDuration={formatDuration}
           />
         );
       case 'reviews':
         return (
-          <FlatList
-            data={mockReviews}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={
-              <RatingChart
-                overallRating={provider.rating || 0}
-                ratingDistribution={ratingDistribution}
-              />
-            }
-            renderItem={({ item }) => (
-              <ReviewItem
-                id={item.id}
-                userName={item.userName}
-                rating={item.rating}
-                reviewText={item.reviewText}
-                timeAgo={item.timeAgo}
-                isVerified={item.isVerified}
-                likes={item.likes}
-                dislikes={item.dislikes}
-                onReport={handleReportPress}
-              />
-            )}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing || isFetching}
-                onRefresh={handleRefresh}
-                tintColor={theme.colors.primary}
-                colors={[theme.colors.primary || '#135D96']}
-              />
-            }
-            showsVerticalScrollIndicator={false}
+          <ProviderReviewsTab
+            reviews={mockReviews}
+            overallRating={provider.rating || 0}
+            ratingDistribution={ratingDistribution}
+            isFetching={isFetching}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            onReport={handleReportPress}
           />
         );
       case 'portfolio':
-        const portfolioImages = businessProfile.portfolioImages || [];
-        if (portfolioImages.length === 0) {
-          return (
-            <View style={styles.emptyContainer}>
-              <CustomText
-                fontSize={theme.fontSize.md}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.lightText}
-                textAlign="center"
-              >
-                No portfolio images available
-              </CustomText>
-            </View>
-          );
-        }
         return (
-          <PortfolioGrid
-            images={portfolioImages}
+          <ProviderPortfolioTab
+            images={businessProfile.portfolioImages || []}
+            isFetching={isFetching}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
             onImagePress={(index) => console.log('Image pressed:', index)}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing || isFetching}
-                onRefresh={handleRefresh}
-                tintColor={theme.colors.primary}
-                colors={[theme.colors.primary || '#135D96']}
-              />
-            }
           />
         );
       case 'details':
@@ -331,17 +307,7 @@ export default function ProviderDetailsScreen() {
   if (isLoading && !refreshing && !providerData?.ResponseData) {
     return (
       <Container safeArea={true} style={styles.container}>
-        <View style={styles.fullScreenLoader}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <CustomText
-            fontSize={theme.fontSize.sm}
-            fontFamily={theme.fonts.REGULAR}
-            color={theme.colors.lightText}
-            style={{ marginTop: theme.SH(12) }}
-          >
-            Loading provider details...
-          </CustomText>
-        </View>
+        <ProviderLoadingState fullScreen={true} />
       </Container>
     );
   }
@@ -349,33 +315,11 @@ export default function ProviderDetailsScreen() {
   if (isError && !providerData?.ResponseData) {
     return (
       <Container safeArea={true} style={styles.container}>
-        <View style={styles.fullScreenError}>
-          <CustomText
-            fontSize={theme.fontSize.lg}
-            fontFamily={theme.fonts.SEMI_BOLD}
-            color={theme.colors.red}
-            textAlign="center"
-            style={{ marginBottom: theme.SH(8) }}
-          >
-            Error Loading Provider
-          </CustomText>
-          <CustomText
-            fontSize={theme.fontSize.sm}
-            fontFamily={theme.fonts.REGULAR}
-            color={theme.colors.lightText}
-            textAlign="center"
-            style={{ marginBottom: theme.SH(20) }}
-          >
-            {errorMessage}
-          </CustomText>
-          <CustomButton
-            title="Retry"
-            onPress={handleRetry}
-            backgroundColor={theme.colors.primary}
-            textColor={theme.colors.white}
-            buttonStyle={styles.retryButton}
-          />
-        </View>
+        <ProviderErrorState
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+          fullScreen={true}
+        />
       </Container>
     );
   }
@@ -398,53 +342,44 @@ export default function ProviderDetailsScreen() {
       />
       <ProviderTabs activeTab={activeTab} onTabChange={setActiveTab} />
       {renderContent()}
+      {/* {isShowBookButton && services.length > 0 && (
+        <ProviderBookButton
+          onPress={() => handleBookService(services[0]._id)}
+        />
+      )} */}
+
+      {/* Delivery Mode Modal */}
+      <DeliveryModeModal
+        visible={showDeliveryModeModal}
+        onClose={() => {
+          setShowDeliveryModeModal(false);
+          setPendingServiceId(null);
+        }}
+        onConfirm={handleDeliveryModeConfirm}
+        selectedMode={bookingDetails.deliveryMode}
+      />
+
+      {/* Service For Modal (shown when "At Home" is selected) */}
+      <ServiceForModal
+        visible={showServiceForModal}
+        onClose={() => {
+          setShowServiceForModal(false);
+          setPendingServiceId(null);
+          setBookingDetails({});
+        }}
+        onConfirm={handleServiceForConfirm}
+        selectedServiceFor={bookingDetails.serviceFor}
+      />
     </Container>
   );
 }
 
 const createStyles = (theme: ThemeType) => {
-  const { colors: Colors, SH, SW } = theme;
+  const { colors: Colors } = theme;
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: Colors.white,
-    },
-    listContent: {
-      paddingBottom: SH(20),
-    },
-    loaderContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: SH(40),
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: SW(20),
-      paddingVertical: SH(40),
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: SH(40),
-    },
-    fullScreenLoader: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    fullScreenError: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: SW(20),
-    },
-    retryButton: {
-      borderRadius: theme.borderRadius.md,
-      paddingHorizontal: SW(24),
     },
   });
 };

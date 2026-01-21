@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -37,6 +37,9 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.REPORT} component={Report} />
         <Stack.Screen name={SCREEN_NAMES.BOOK_APPOINTMENT} component={BookAppointment} />
         <Stack.Screen name={SCREEN_NAMES.BOOKING_DETAIL} component={BookingDetail} />
+        <Stack.Screen name={SCREEN_NAMES.CHECKOUT} component={Checkout} />
+        <Stack.Screen name={SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL} component={AddOtherPersonDetail} />
+        <Stack.Screen name={SCREEN_NAMES.BOOKING_SUMMARY} component={BookingSummery} />
       </Stack.Navigator>
     </NavigationContainer>
   )

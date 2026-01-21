@@ -13,6 +13,7 @@ import { store, persistor } from './src/store';
 import { queryClient } from './src/services/api/queryClient';
 import Toast from 'react-native-toast-message';
 import toastConfig from '@components/common/CustomToast'
+import { MenuProvider } from 'react-native-popup-menu'
 
 LogBox.ignoreLogs([
   'Open debugger to view warnings',
@@ -35,9 +36,11 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <View style={{ flex: 1 }}>
             <ApplicationProvider {...eva} theme={eva.light}>
-              <ThemeProvider>
-                <RootNavigator />
-              </ThemeProvider>
+              <MenuProvider>
+                <ThemeProvider>
+                  <RootNavigator />
+                </ThemeProvider>
+              </MenuProvider>
             </ApplicationProvider>
           </View>
           <Toast config={toastConfig} />

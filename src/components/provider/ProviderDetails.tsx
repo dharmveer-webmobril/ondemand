@@ -1,5 +1,5 @@
 import { View, StyleSheet, Pressable, ScrollView, RefreshControl } from 'react-native';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
 

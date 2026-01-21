@@ -4,9 +4,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useThemeContext } from '@utils/theme';
 import { SplashAnimation } from '@components';
 import { resetAndNavigate } from '@utils/NavigationUtils';
-import { useAppSelector } from '@store/hooks';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 import SCREEN_NAMES from '../../navigation/ScreenNames';
 import { useProfileSplashScreen } from '@services/index';
+import { setUserCityId } from '@store/slices/appSlice';
 
 export default function SplashScreen() {
   const theme = useThemeContext();
@@ -17,7 +18,7 @@ export default function SplashScreen() {
   );
   const token = useAppSelector(state => state.auth.token);
   const { data: userData, isLoading, isFetching } = useProfileSplashScreen(true, token || '');
-
+const dispatch = useAppDispatch();
   useEffect(() => {
     // Wait minimum splash time
     const timer = setTimeout(() => {
@@ -28,6 +29,7 @@ export default function SplashScreen() {
 
       if (userData?.succeeded && !isFetching) {
         if (userData?.ResponseData?.interests && userData?.ResponseData?.interests?.length > 0) {
+          dispatch(setUserCityId(userData?.ResponseData?.city?._id || userData?.ResponseData?.city || ''));
           resetAndNavigate(SCREEN_NAMES.HOME);
           return;
         } else {
@@ -39,6 +41,7 @@ export default function SplashScreen() {
     }, 5000); // splash delay
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isLoading, userData, isFetching]);
 
   return (

@@ -1,5 +1,5 @@
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import React, { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,9 +8,9 @@ import { CountryModal } from '@components';
 import imagePaths from '@assets';
 import { useProfile, useUpdateProfile } from '@services/api/queries/authQueries';
 import { useGetCities } from '@services/api/queries/appQueries';
-import { useAppDispatch } from '@store/hooks';
-import { updateUserDetails } from '@store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { useQueryClient } from '@tanstack/react-query';
+import { setUserCityId } from '@store/slices/appSlice';
 
 interface City {
   _id: string;
@@ -22,26 +22,25 @@ type HomeHeaderProps = {
   onCityUpdateLoading?: (isLoading: boolean) => void;
 };
 
-export default function HomeHeader({ onCityUpdate, onCityUpdateLoading }: HomeHeaderProps) {
+export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const queryClient = useQueryClient();
   const [showCityModal, setShowCityModal] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
 
   const updateProfileMutation = useUpdateProfile();
 
   // Notify parent about loading state
-  React.useEffect(() => {
+  useEffect(() => {
     if (onCityUpdateLoading) {
       onCityUpdateLoading(updateProfileMutation.isPending);
     }
   }, [updateProfileMutation.isPending, onCityUpdateLoading]);
 
   // Get user profile
-  const { data: profileData, refetch: refetchProfile } = useProfile(true);
+  const { data: profileData } = useProfile(true);
   const userProfile = profileData?.ResponseData;
 
   // Get country ID from user profile
@@ -50,20 +49,21 @@ export default function HomeHeader({ onCityUpdate, onCityUpdateLoading }: HomeHe
   }, [userProfile]);
 
   // Get current city from user profile
-  const currentCity = useMemo(() => {
-    return userProfile?.city?.name || userProfile?.city || 'Select City';
-  }, [userProfile]);
-
-  const currentCityId = useMemo(() => {
-    return userProfile?.city?._id || userProfile?.city || null;
-  }, [userProfile]);
-
   // Fetch cities based on country
   const { data: citiesData, isLoading: citiesLoading } = useGetCities(countryId);
 
   const cities = useMemo(() => {
     return citiesData?.ResponseData || [];
   }, [citiesData]);
+
+  const currentCityId = useAppSelector(state => state.app.userCityId);
+  // console.log('currentCityId--------HomeHeader', currentCityId);
+  // console.log('cities--------HomeHeader', cities);
+  const currentCity = useMemo(() => {
+    return cities && cities.length > 0 && cities.find((c: City) => c._id === currentCityId).name || 'Select City';
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCityId, cities]);
+
 
   // Set selected city when profile loads
   useEffect(() => {
@@ -76,62 +76,54 @@ export default function HomeHeader({ onCityUpdate, onCityUpdateLoading }: HomeHe
   }, [currentCityId, cities]);
 
   const handleCitySelect = async (city: City) => {
-    if (!countryId) {
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Please select a country first',
-      });
-      return;
-    }
+    dispatch(setUserCityId(city._id));
+    // try {
+    //   // Update only city in profile
+    //   const data = {
+    //     city: city._id,
+    //   };
 
-    try {
-      // Update only city in profile
-      const data = {
-        city: city._id,
-      };
+    //   const response = await updateProfileMutation.mutateAsync(data);
 
-      const response = await updateProfileMutation.mutateAsync(data);
-      
-      if (response.succeeded && response.ResponseCode === 200) {
-        // Update Redux store
-        dispatch(updateUserDetails(response.ResponseData));
-        
-        // Refetch profile
-        await refetchProfile();
-        
-        // Invalidate and refetch home data
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
-        queryClient.invalidateQueries({ queryKey: ['banners'] });
-        queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
-        
-        // Call parent refresh callback if provided
-        if (onCityUpdate) {
-          onCityUpdate();
-        }
+    //   if (response.succeeded && response.ResponseCode === 200) {
+    //     // Update Redux store
+    //     dispatch(updateUserDetails(response.ResponseData));
 
-        // showToast({
-        //   type: 'success',
-        //   title: 'Success',
-        //   message: response.ResponseMessage || 'City updated successfully',
-        // });
+    //     // Refetch profile
+    //     await refetchProfile();
 
-        setShowCityModal(false);
-      } else {
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: response.ResponseMessage || 'Failed to update city',
-        });
-      }
-    } catch (error: any) {
-      console.error('Error updating city:', error);
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: error?.response?.data?.ResponseMessage || 'Failed to update city',
-      });
-    }
+    //     // Invalidate and refetch home data
+    //     queryClient.invalidateQueries({ queryKey: ['categories'] });
+    //     queryClient.invalidateQueries({ queryKey: ['banners'] });
+    //     queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
+
+    //     // Call parent refresh callback if provided
+    //     if (onCityUpdate) {
+    //       onCityUpdate();
+    //     }
+
+    //     // showToast({
+    //     //   type: 'success',
+    //     //   title: 'Success',
+    //     //   message: response.ResponseMessage || 'City updated successfully',
+    //     // });
+
+    //     setShowCityModal(false);
+    //   } else {
+    //     showToast({
+    //       type: 'error',
+    //       title: 'Error',
+    //       message: response.ResponseMessage || 'Failed to update city',
+    //     });
+    //   }
+    // } catch (error: any) {
+    //   console.error('Error updating city:', error);
+    //   showToast({
+    //     type: 'error',
+    //     title: 'Error',
+    //     message: error?.response?.data?.ResponseMessage || 'Failed to update city',
+    //   });
+    // }
   };
 
   const handleLocationPress = () => {
@@ -148,51 +140,51 @@ export default function HomeHeader({ onCityUpdate, onCityUpdateLoading }: HomeHe
 
   return (
     <>
-    <LinearGradient
-      colors={['#011321', '#066AB7', '#009BFF']}
-      style={[
-        styles.headerContainer,
-        { paddingTop: insets.top }
-      ]}
-    >
-      <View style={styles.container}>
-        <View style={styles.leftContainer}>
-          <VectoreIcons
-            name="location-sharp"
-            size={24}
-            icon="Ionicons"
-            color={'white'}
-          />
-          <View style={styles.locationContainer}>
-            <CustomText style={styles.currentLocationText}>Current Location</CustomText>
-              <TouchableOpacity 
+      <LinearGradient
+        colors={['#011321', '#066AB7', '#009BFF']}
+        style={[
+          styles.headerContainer,
+          { paddingTop: insets.top }
+        ]}
+      >
+        <View style={styles.container}>
+          <View style={styles.leftContainer}>
+            <VectoreIcons
+              name="location-sharp"
+              size={24}
+              icon="Ionicons"
+              color={'white'}
+            />
+            <View style={styles.locationContainer}>
+              <CustomText style={styles.currentLocationText}>Current Location</CustomText>
+              <TouchableOpacity
                 style={styles.locationRow}
                 onPress={handleLocationPress}
                 activeOpacity={0.7}
               >
-              <CustomText numberOfLines={1} style={styles.cityText}>
+                <CustomText numberOfLines={1} style={styles.cityText}>
                   {currentCity}
-              </CustomText>
-              <Image source={imagePaths.down} style={styles.downIcon} />
+                </CustomText>
+                <Image source={imagePaths.down} style={styles.downIcon} />
               </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.rightView}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => { }}
+            >
+              <Image source={imagePaths.calender_icon} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => { }}
+            >
+              <Image source={imagePaths.notification_icon} style={styles.icon} />
+            </TouchableOpacity>
           </View>
         </View>
-        <View style={styles.rightView}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => { }}
-          >
-            <Image source={imagePaths.calender_icon} style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => { }}
-          >
-            <Image source={imagePaths.notification_icon} style={styles.icon} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
 
       {/* City Modal */}
       <CountryModal

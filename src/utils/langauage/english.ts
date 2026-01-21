@@ -232,22 +232,34 @@ export const english = {
     "editAddaddressSuccess": "Address updated successfully",
     "addaddressSuccess": "Address added successfully",
     "placeholders": {
+      "name": "Address Name",
       "streetAddress": "Street Address",
-      "apartment": "Apartment",
+      "apartment": "Apartment / Line 2",
+      "landmark": "Landmark",
       "city": "City",
+      "country": "Country",
       "state": "State",
-      "zipCode": "Zip Code",
+      "zipCode": "Pincode",
+      "contact": "Contact Number",
       "addressType": "Address Type",
       "save": "Save"
     },
     "validation": {
-      "addressEmpty": "Street address is required",
+      "nameEmpty": "Name is required",
+      "nameMinLength": "Name must be at least 2 characters",
+      "line1Empty": "Street address is required",
+      "line1MinLength": "Address must be at least 5 characters",
       "apartmentEmpty": "Apartment is required",
       "cityEmpty": "City is required",
+      "countryEmpty": "Country is required",
+      "pincodeEmpty": "Pincode is required",
+      "validPincode": "Please enter a valid pincode",
       "zipCodeEmpty": "Zip code is required",
       "validZipCode": "Please enter a valid zip code",
       "addressTypeEmpty": "Address type is required",
-      "stateEmpty": "State type is required"
+      "validAddressType": "Please select a valid address type",
+      "stateEmpty": "State type is required",
+      "contactEmpty": "Contact number is required"
     },
     "addressTypes": {
       "other": "Other",

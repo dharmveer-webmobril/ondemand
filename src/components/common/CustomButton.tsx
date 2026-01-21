@@ -45,7 +45,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     marginBottom = 0,
     buttonTextStyle = {},
 }) => {
-    const isButtonDisabled = isLoading;
+    const isButtonDisabled = isLoading || disable;
     const theme = useThemeContext();
     const styles = useMemo(
         () =>
@@ -87,6 +87,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
                 styles.buttonStyle,
                 { marginTop, marginBottom },
                 { backgroundColor: backgroundColor || theme.colors.primary },
+                isButtonDisabled && { opacity: 0.75 },
                 pressed && !isButtonDisabled && { opacity: 0.8 },
                 buttonStyle,
             ]}

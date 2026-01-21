@@ -1,58 +1,41 @@
-import { View, StyleSheet, FlatList, Pressable } from 'react-native'
-import React, { useMemo, useState } from 'react'
-import { Container, AppHeader, CustomButton, CustomText, VectoreIcons, ActionMenu, ActionMenuItem } from '@components';
+import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native'
+import React, { useMemo, useState, useEffect } from 'react'
+import { Container, AppHeader, CustomButton, CustomText } from '@components';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Platform } from 'react-native';
-
-interface AddressItem {
-  id: string;
-  title: string;
-  name: string;
-  address: string;
-  phone: string;
-  isDefault?: boolean;
-}
+import { useGetCustomerAddresses } from '@services/index';
 
 export default function SelectAddress() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
-  const navigation = useNavigation();
-  const [selectedAddressId, setSelectedAddressId] = useState<string>('1');
-  const [showMenu, setShowMenu] = useState(false);
-  const [selectedMenuAddressId, setSelectedMenuAddressId] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | undefined>(undefined);
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
 
-  // Mock data - replace with actual data from API/store
-  const [addresses] = useState<AddressItem[]>([
-    {
-      id: '1',
-      title: 'My Home',
-      name: 'Sophie Nowakowska',
-      address: 'Netherlands 12/2231-234 crowkon.poloe',
-      phone: '+31 6387 7355',
-      isDefault: true,
-    },
-    {
-      id: '2',
-      title: 'My Office',
-      name: 'Sophie Nowakowska',
-      address: 'Netherlands 12/2231-234 crowkon.poloe',
-      phone: '+31 6387 7355',
-    },
-    {
-      id: '3',
-      title: 'Lorem Ipsum',
-      name: 'Sophie Nowakowska',
-      address: 'Netherlands 12/2231-234 crowkon.poloe',
-      phone: '+31 6387 7355',
-    },
-  ]);
+  // Fetch addresses from API
+  const { data: addressesData, isLoading, refetch } = useGetCustomerAddresses();
+  const addresses = addressesData?.ResponseData || [];
+  const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0];
+
+  // Set default selected address
+  useEffect(() => {
+    if (defaultAddress && !selectedAddressId) {
+      setSelectedAddressId(defaultAddress._id);
+    }
+  }, [defaultAddress, selectedAddressId]);
+
+  const formatAddress = (address: any) => {
+    const parts = [address.line1];
+    if (address.line2) parts.push(address.line2);
+    if (address.landmark) parts.push(address.landmark);
+    return parts.join(', ');
+  };
 
   const handleAddNewAddress = () => {
-    navigation.navigate('AddAddress' as never, { mode: 'add' } as never);
+    navigation.navigate('AddAddress' as never, { addData: null } as never);
   };
 
   const handleSelectAddress = (addressId: string) => {
@@ -60,72 +43,47 @@ export default function SelectAddress() {
   };
 
   const handleConfirm = () => {
-    // Handle confirm logic here
-    console.log('Selected address:', selectedAddressId);
-    navigation.goBack();
+    const selectedAddress = addresses.find((addr) => addr._id === selectedAddressId);
+    if (selectedAddress) {
+      // Pass selected address back via route params callback or navigation
+      const onSelect = route.params?.onSelect;
+      if (onSelect) {
+        onSelect(selectedAddress);
+      }
+      navigation.goBack();
+    }
   };
 
-  const handleEditAddress = (addressId: string) => {
-    navigation.navigate('AddAddress' as never, { mode: 'edit', addressId } as never);
-    setShowMenu(false);
-  };
-
-  const handleDeleteAddress = (addressId: string) => {
-    // Handle delete logic here
-    console.log('Delete address:', addressId);
-    setShowMenu(false);
-  };
-
-  const handleOptionsPress = (addressId: string, event: any) => {
-    setSelectedMenuAddressId(addressId);
-    const { pageX, pageY } = event.nativeEvent;
-    setMenuPosition({ x: pageX, y: pageY });
-    setShowMenu(true);
-  };
-
-  const menuItems: ActionMenuItem[] = [
-    {
-      id: '1',
-      label: t('myAddress.menuEdit'),
-      icon: 'create-outline',
-      onPress: () => selectedMenuAddressId && handleEditAddress(selectedMenuAddressId),
-    },
-    {
-      id: '2',
-      label: t('myAddress.menuDelete'),
-      icon: 'trash-outline',
-      color: theme.colors.red,
-      onPress: () => selectedMenuAddressId && handleDeleteAddress(selectedMenuAddressId),
-    },
-  ];
-
-  const renderAddressItem = ({ item }: { item: AddressItem }) => {
-    const isSelected = selectedAddressId === item.id;
+  const renderAddressItem = ({ item }: { item: any }) => {
+    const isSelected = selectedAddressId === item._id;
     
     return (
       <Pressable
         style={[styles.addressItem, isSelected && styles.addressItemSelected]}
-        onPress={() => handleSelectAddress(item.id)}
+        onPress={() => handleSelectAddress(item._id)}
       >
         <View style={styles.addressContent}>
-          <CustomText style={styles.addressTitle} fontFamily={theme.fonts.BOLD}>
-            {item.title}
-          </CustomText>
-          <CustomText style={styles.addressName}>{item.name}</CustomText>
-          <CustomText style={styles.addressText}>{item.address}</CustomText>
-          <CustomText style={styles.addressPhone}>{item.phone}</CustomText>
+          <View style={styles.radioButtonContainer}>
+            <View
+              style={[
+                styles.radioButton,
+                isSelected && styles.radioButtonSelected,
+              ]}
+            >
+              {isSelected && <View style={styles.radioButtonInner} />}
+            </View>
+          </View>
+          <View style={styles.addressInfo}>
+            <CustomText style={styles.addressTitle} fontFamily={theme.fonts.BOLD}>
+              {item.name}
+            </CustomText>
+            <CustomText style={styles.addressText}>{formatAddress(item)}</CustomText>
+            <CustomText style={styles.addressPhone}>{item.contact}</CustomText>
+            {item.isDefault && (
+              <CustomText style={styles.defaultBadge}>Default</CustomText>
+            )}
+          </View>
         </View>
-        <Pressable
-          style={styles.optionsButton}
-          onPress={(e) => handleOptionsPress(item.id, e)}
-        >
-          <VectoreIcons
-            name="ellipsis-vertical"
-            size={theme.SF(20)}
-            icon="Ionicons"
-            color={theme.colors.lightText}
-          />
-        </Pressable>
       </Pressable>
     );
   };
@@ -138,20 +96,29 @@ export default function SelectAddress() {
         rightIconName="add-outline"
         rightIconFamily="Ionicons"
         onRightPress={handleAddNewAddress}
+        containerStyle={{ marginHorizontal: theme.SW(20) }}
       />
       
-      <FlatList
-        data={addresses}
-        keyExtractor={(item) => item.id}
-        renderItem={renderAddressItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <CustomText style={styles.emptyText}>{t('myAddress.notFound')}</CustomText>
-          </View>
-        }
-      />
+      {isLoading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={addresses}
+          keyExtractor={(item) => item._id}
+          renderItem={renderAddressItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshing={isLoading}
+          onRefresh={refetch}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <CustomText style={styles.emptyText}>{t('myAddress.notFound')}</CustomText>
+            </View>
+          }
+        />
+      )}
 
       <View style={styles.buttonContainer}>
         <CustomButton
@@ -160,15 +127,9 @@ export default function SelectAddress() {
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.white}
           buttonStyle={styles.confirmButton}
+          disable={!selectedAddressId || addresses.length === 0}
         />
       </View>
-
-      <ActionMenu
-        visible={showMenu}
-        items={menuItems}
-        onClose={() => setShowMenu(false)}
-        position={menuPosition}
-      />
     </Container>
   );
 }
@@ -194,12 +155,51 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     borderColor: theme.colors.secondary || '#EAEAEA',
   },
   addressItemSelected: {
-    backgroundColor: theme.colors.primary_light || '#E3F2FD',
+    backgroundColor: theme.colors.secondary,
     borderColor: theme.colors.primary,
-    borderWidth: 2,
+    borderWidth: 1,
   },
   addressContent: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  radioButtonContainer: {
+    paddingTop: theme.SH(2),
+    marginRight: theme.SW(12),
+  },
+  radioButton: {
+    width: theme.SF(20),
+    height: theme.SF(20),
+    borderRadius: theme.SF(10),
+    borderWidth: 2,
+    borderColor: theme.colors.gray || '#999',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
+    borderColor: theme.colors.primary,
+  },
+  radioButtonInner: {
+    width: theme.SF(10),
+    height: theme.SF(10),
+    borderRadius: theme.SF(5),
+    backgroundColor: theme.colors.primary,
+  },
+  addressInfo: {
+    flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: theme.SH(100),
+  },
+  defaultBadge: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.primary,
+    fontFamily: theme.fonts.MEDIUM,
+    marginTop: theme.SH(4),
   },
   addressTitle: {
     fontSize: theme.fontSize.md,

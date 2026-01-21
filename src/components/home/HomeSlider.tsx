@@ -6,6 +6,7 @@ import Swiper from 'react-native-swiper';
 import { Banner } from '@services/api/queries/appQueries';
 import ImageLoader from '@components/common/ImageLoader';
 import CustomButton from '@components/common/CustomButton';
+import HomeSliderSkeleton from './HomeSliderSkeleton';
 
 type HomeSliderProps = {
     banners?: Banner[];
@@ -19,15 +20,9 @@ export default function HomeSlider({ banners = [], isLoading = false, isError = 
     const styles = useMemo(() => createStyles(theme), [theme]);
     const { t } = useTranslation();
 console.log('banners', banners);
-    // Show loading state
+    // Show loading state with skeleton
     if (isLoading) {
-        return (
-            <View style={styles.container}>
-                <View style={styles.loaderContainer}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
-                </View>
-            </View>
-        );
+        return <HomeSliderSkeleton />;
     }
 
     // Show error state

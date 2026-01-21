@@ -1,7 +1,7 @@
 import { View, StyleSheet, Pressable } from 'react-native';
-import React, { useMemo } from 'react';
+import  { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+import { CustomText, CustomButton, VectoreIcons, ImageLoader } from '@components/common';
 
 type ServiceItemProps = {
   id: string;
@@ -10,6 +10,8 @@ type ServiceItemProps = {
   duration?: string;
   icon?: string;
   onBook?: () => void;
+  isShowBookButton?: boolean;
+  image?:ImageSourcePropType
 };
 
 export default function ServiceItem({
@@ -18,6 +20,8 @@ export default function ServiceItem({
   duration,
   icon = 'cut',
   onBook,
+  isShowBookButton = true,
+  image=null
 }: ServiceItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -31,7 +35,14 @@ export default function ServiceItem({
     >
       <View style={styles.content}>
         <View style={styles.leftSection}>
-          {icon && (
+          <View style={styles.serviceImageContainer}>
+            <ImageLoader
+              source={image}
+              mainImageStyle={styles.serviceImage}
+              resizeMode="cover"
+            />
+          </View>
+          {/* {icon && (
             <View style={styles.iconContainer}>
               <VectoreIcons
                 name={icon}
@@ -40,7 +51,7 @@ export default function ServiceItem({
                 color={theme.colors.primary}
               />
             </View>
-          )}
+          )} */}
           <View style={styles.infoContainer}>
             <CustomText style={styles.serviceName}>{name}</CustomText>
             <View style={styles.priceContainer}>
@@ -51,7 +62,7 @@ export default function ServiceItem({
             </View>
           </View>
         </View>
-        <CustomButton
+        {isShowBookButton && <CustomButton
           title="Book"
           onPress={onBook}
           buttonStyle={styles.bookButton}
@@ -59,7 +70,7 @@ export default function ServiceItem({
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}
           paddingHorizontal={theme.SW(24)}
-        />
+        />}
       </View>
     </Pressable>
   );
@@ -77,7 +88,7 @@ const createStyles = (theme: ThemeType) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: SW(20),
+      paddingHorizontal: SW(15),
       paddingVertical: SH(16),
     },
     leftSection: {
@@ -120,11 +131,25 @@ const createStyles = (theme: ThemeType) => {
     },
     bookButton: {
       borderRadius: SF(6),
-      paddingVertical: SH(6),
+      paddingVertical: SH(4),
+      paddingHorizontal: SW(0),
+      height: SH(30),
+      width: SW(90),
     },
     bookButtonText: {
       fontSize: SF(14),
       fontFamily: Fonts.SEMI_BOLD,
+    },
+    serviceImage: {
+      width: '100%',
+      height: '100%',
+    },
+    serviceImageContainer: {
+      width: SW(60),
+      height: SH(60),
+      borderRadius: SF(30),
+      marginRight: SW(12),
+      overflow: 'hidden',
     },
   });
 };

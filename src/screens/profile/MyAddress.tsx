@@ -1,112 +1,67 @@
-import { View, StyleSheet, FlatList, Pressable } from 'react-native'
-import   { useMemo, useState } from 'react'
-import { Container, AppHeader, CustomButton, CustomText, VectoreIcons, ActionMenu } from '@components';
+import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native'
+import { useMemo } from 'react'
+import { Container, AppHeader, CustomButton, CustomText } from '@components';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { Platform } from 'react-native';
-
-interface AddressItem {
-  id: string;
-  title: string;
-  name: string;
-  address: string;
-  phone: string;
-  isDefault?: boolean;
-}
+import { useGetCustomerAddresses } from '@services/index';
+// import { useQueryClient } from '@tanstack/react-query';
+import AddressMenu from './AddressMenu';
 
 export default function MyAddress() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation<any>();
   const navigation = useNavigation<any>();
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | undefined>(undefined);
 
-  // Mock data - replace with actual data from API/store
-  const [addresses] = useState<AddressItem[]>([
-    {
-      id: '1',
-      title: 'My Home',
-      name: 'Sophie Nowakowska',
-      address: 'Netherlands 12/2231-234 crowkon.poloe',
-      phone: '+31 6387 7355',
-      isDefault: true,
-    },
-    {
-      id: '2',
-      title: 'My Office',
-      name: 'Sophie Nowakowska',
-      address: 'Netherlands 12/2231-234 crowkon.poloe',
-      phone: '+31 6387 7355',
-    },
-    {
-      id: '3',
-      title: 'Lorem Ipsum',
-      name: 'Sophie Nowakowska',
-      address: 'Netherlands 12/2231-234 crowkon.poloe',
-      phone: '+31 6387 7355',
-    },
-  ]);
+  // Fetch addresses from API
+  const { data: addressesData, isLoading, refetch } = useGetCustomerAddresses();
+  const addresses = addressesData?.ResponseData || [];
 
   const handleAddNewAddress = () => {
-    navigation.navigate('AddAddress' , { mode: 'add' });
+    navigation.navigate('AddAddress', { mode: 'add' });
   };
 
-  const handleEditAddress = (addressId: string) => {
-    navigation.navigate('AddAddress' , { mode: 'edit', addressId });
-    setShowMenu(false);
+
+  const handleOptionsPress = (val: string, item: any) => {
+    switch (val) {
+      case 'edit':
+        navigation.navigate('AddAddress', { mode: 'edit', addData: item });
+        break;
+      case 'delete':
+        break;
+    }
+  }
+
+  const formatAddress = (address: any) => {
+    const parts = [address.line1];
+    if (address.line2) parts.push(address.line2);
+    if (address.landmark) parts.push(address.landmark);
+    return parts.join(', ');
   };
 
-  const handleDeleteAddress = (addressId: string) => {
-    // Handle delete logic here
-    console.log('Delete address:', addressId);
-    setShowMenu(false);
-  };
 
-  const handleOptionsPress = (addressId: string, event: any) => {
-    setSelectedAddressId(addressId);
-    const { pageX, pageY } = event.nativeEvent;
-    setMenuPosition({ x: pageX, y: pageY });
-    setShowMenu(true);
-  };
-
-  const menuItems  = [
-    {
-      id: '1',
-      label: t('myAddress.menuEdit'),
-      icon: 'create-outline',
-      onPress: () => selectedAddressId && handleEditAddress(selectedAddressId),
-    },
-    {
-      id: '2',
-      label: t('myAddress.menuDelete'),
-      icon: 'trash-outline',
-      color: theme.colors.red,
-      onPress: () => selectedAddressId && handleDeleteAddress(selectedAddressId),
-    },
-  ];
-
-  const renderAddressItem = ({ item }: { item: AddressItem }) => (
+  const renderAddressItem = ({ item }: { item: any }) => (
     <View style={styles.addressItem}>
       <View style={styles.addressContent}>
         <CustomText style={styles.addressTitle} fontFamily={theme.fonts.BOLD}>
-          {item.title}
+          {item.name}
         </CustomText>
-        <CustomText style={styles.addressName}>{item.name}</CustomText>
-        <CustomText style={styles.addressText}>{item.address}</CustomText>
-        <CustomText style={styles.addressPhone}>{item.phone}</CustomText>
+        <CustomText style={styles.addressText}>{formatAddress(item)}</CustomText>
+        <CustomText style={styles.addressPhone}>{item.contact}</CustomText>
+        {item.isDefault && (
+          <CustomText style={styles.defaultBadge}>Default</CustomText>
+        )}
       </View>
       <Pressable
         style={styles.optionsButton}
-        onPress={(e) => handleOptionsPress(item.id, e)}
       >
-        <VectoreIcons
-          name="ellipsis-vertical"
-          size={theme.SF(20)}
-          icon="Ionicons"
-          color={theme.colors.lightText}
+        <AddressMenu
+          isBlocked={true}
+          onSelect={(val) => {
+            handleOptionsPress(val, item);
+          }}
         />
       </Pressable>
     </View>
@@ -119,18 +74,26 @@ export default function MyAddress() {
         onLeftPress={() => navigation.goBack()}
       />
 
-      <FlatList
-        data={addresses}
-        keyExtractor={(item) => item.id}
-        renderItem={renderAddressItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <CustomText style={styles.emptyText}>{t('myAddress.notFound')}</CustomText>
-          </View>
-        }
-      />
+      {isLoading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={addresses}
+          keyExtractor={(item) => item._id}
+          renderItem={renderAddressItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshing={isLoading}
+          onRefresh={refetch}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <CustomText style={styles.emptyText}>{t('myAddress.notFound')}</CustomText>
+            </View>
+          }
+        />
+      )}
 
       <View style={styles.buttonContainer}>
         <CustomButton
@@ -142,12 +105,7 @@ export default function MyAddress() {
         />
       </View>
 
-      <ActionMenu
-        visible={showMenu}
-        items={menuItems}
-        onClose={() => setShowMenu(false)}
-        position={menuPosition}
-      />
+
     </Container>
   );
 }
@@ -209,6 +167,18 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   emptyText: {
     fontSize: theme.fontSize.md,
     color: theme.colors.lightText,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: theme.SH(100),
+  },
+  defaultBadge: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.primary,
+    fontFamily: theme.fonts.MEDIUM,
+    marginTop: theme.SH(4),
   },
   buttonContainer: {
     position: 'absolute',

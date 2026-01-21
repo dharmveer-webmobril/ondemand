@@ -13,7 +13,7 @@ type ImageLoaderProps = {
 
 const ImageLoader: React.FC<ImageLoaderProps> = ({
   source,
-  fallbackImage = imagePaths.no_image, // ✅ default fallback
+  fallbackImage = imagePaths.no_image,
   mainImageStyle,
   resizeMode = 'cover',
 }) => {

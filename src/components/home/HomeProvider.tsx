@@ -6,6 +6,7 @@ import HomeProviderItem from './HomeProviderItem';
 import { CustomText, CustomButton } from '@components/common';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import HomeProviderSkeleton from './HomeProviderSkeleton';
 
 type HomeProviderProps = {
   onViewAll?: () => void;
@@ -25,7 +26,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
   const providers = useMemo(() => {
     return providersData?.ResponseData || [];
   }, [providersData
-    
+
   ]);
 
   const handleProviderPress = (provider: any) => {
@@ -39,6 +40,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
         rating: typeof provider.rating === 'number' ? provider.rating : null,
         reviewCount: 0, // Add review count from API if available
       },
+      prevScreenFlag: 'without_data',
     });
   };
 
@@ -51,11 +53,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
   };
 
   if (providersLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="small" color={theme.colors.primary} />
-      </View>
-    );
+    return <HomeProviderSkeleton />;
   }
 
   if (providersError) {

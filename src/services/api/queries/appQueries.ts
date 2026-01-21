@@ -189,15 +189,15 @@ export interface GetServiceProvidersParams {
     search?: string;
 }
 
-export const useGetServiceProviders = (params: GetServiceProvidersParams = {}) => {
-    const { page = 1, limit = 10, categoryIds, search } = params;
+export const useGetServiceProviders = (params: any) => {
+    const { page = 1, limit = 10, categoryIds, search, currentCityId } = params;
 
     // Normalize query key - use null instead of undefined for consistent caching
     const normalizedCategoryIds = categoryIds && categoryIds.length > 0 ? categoryIds : null;
     const normalizedSearch = search && search.trim() ? search.trim() : null;
 
     return useQuery<ServiceProvidersResponse>({
-        queryKey: ['serviceProviders', page, limit, normalizedCategoryIds, normalizedSearch],
+        queryKey: ['serviceProviders', page, limit, normalizedCategoryIds, normalizedSearch, currentCityId],
         queryFn: async () => {
             // Convert page and limit to strings explicitly
             const pageStr = String(page);
@@ -210,7 +210,9 @@ export const useGetServiceProviders = (params: GetServiceProvidersParams = {}) =
                 const categoryIdsParam = JSON.stringify(categoryIds);
                 url += `&categoryIds=${encodeURIComponent(categoryIdsParam)}`;
             }
-
+            if (currentCityId) {
+                url += `&cityId=${currentCityId}`;
+            }
             // Add search query if provided
             if (search && search.trim()) {
                 url += `&search=${encodeURIComponent(search.trim())}`;
@@ -392,13 +394,18 @@ export const useGetServiceProviderDetail = (spId: string | null) => {
 };
 
 // Get Service Provider Services
-export const useGetServiceProviderServices = (spId: string | null) => {
+export const useGetServiceProviderServices = (spId: string | null, preference: string | null) => {
     return useQuery<any>({
-        queryKey: ['serviceProviderServices', spId],
+        queryKey: ['serviceProviderServices', spId, preference],
         queryFn: async () => {
             if (!spId) throw new Error('Service Provider ID is required');
+            let url = `${EndPoints.GET_SERVICE_PROVIDER_SERVICES}/${spId}/services`;
+            if (preference) {
+                url += `?preference=${preference}`;
+            }
+            console.log('url--------useGetServiceProviderServices', url);
             const response = await axiosInstance.get<any>(
-                `${EndPoints.GET_SERVICE_PROVIDER_SERVICES}/${spId}/services`
+                url
             );
             return response.data;
         },
@@ -438,5 +445,91 @@ export const useGetServiceProviderAvailability = (spId: string | null, date: str
         enabled: !!spId && !!date, // Only run query if spId and date exist
         staleTime: 0, // Always refetch
         gcTime: 0, // Don't cache
+    });
+};
+
+// Address interfaces
+export interface Address {
+    _id: string;
+    name: string;
+    line1: string;
+    line2?: string;
+    landmark?: string;
+    city: string;
+    country: string;
+    pincode: string;
+    contact: string;
+    addressType: 'home' | 'office' | 'other';
+    isDefault?: boolean;
+}
+
+export interface AddressesResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: Address[];
+}
+
+export interface AddAddressRequest {
+    name: string;
+    line1: string;
+    line2?: string;
+    landmark?: string;
+    city: string;
+    country: string;
+    pincode: string;
+    contact: string;
+    addressType: 'home' | 'office' | 'other';
+}
+
+// Get Customer Addresses
+export const useGetCustomerAddresses = () => {
+    return useQuery<AddressesResponse>({
+        queryKey: ['customerAddresses'],
+        queryFn: async () => {
+            const response = await axiosInstance.get<AddressesResponse>(
+                EndPoints.GET_CUSTOMER_ADDRESSES
+            );
+            return response.data;
+        },
+    });
+};
+
+// Add Customer Address
+export const useAddCustomerAddress = () => {
+    return useMutation<ApiResponse, Error, any>({
+        mutationFn: async (data: any) => {
+            const response = await axiosInstance.post<ApiResponse>(
+                EndPoints.ADD_CUSTOMER_ADDRESS,
+                data
+            );
+            return response.data;
+        },
+    });
+};
+
+// Update Customer Address
+export const useUpdateCustomerAddress = () => {
+    return useMutation<ApiResponse, Error, { addressId: string; data: any }>({
+        mutationFn: async ({ addressId, data }) => {
+            console.log('data------useUpdateCustomerAddress', data);
+            const response = await axiosInstance.put<ApiResponse>(
+                `${EndPoints.UPDATE_CUSTOMER_ADDRESS}/${addressId}`,
+                data
+            );
+            return response.data;
+        },
+    });
+};
+
+// Delete Customer Address
+export const useDeleteCustomerAddress = () => {
+    return useMutation<ApiResponse, Error, string>({
+        mutationFn: async (addressId: string) => {
+            const response = await axiosInstance.delete<ApiResponse>(
+                `${EndPoints.DELETE_CUSTOMER_ADDRESS}/${addressId}`
+            );
+            return response.data;
+        },
     });
 };

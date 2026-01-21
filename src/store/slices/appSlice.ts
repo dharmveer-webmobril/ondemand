@@ -6,6 +6,7 @@ interface AppState {
   theme: 'light' | 'dark';
   isUserActiveOrNotModal: boolean;
   inactiveMessage: string;
+  userCityId: string;
   // Add other app-level state here
 }
 
@@ -15,6 +16,7 @@ const initialState: AppState = {
   theme: 'light',
   isUserActiveOrNotModal: false,
   inactiveMessage: '',
+  userCityId: '',
 };
 
 const appSlice = createSlice({
@@ -36,8 +38,11 @@ const appSlice = createSlice({
     setInactiveMessage: (state, action: PayloadAction<string>) => {
       state.inactiveMessage = action.payload;
     },
+    setUserCityId: (state, action: PayloadAction<string>) => {
+      state.userCityId = action.payload;
+    },
   },
 });
 
-export const { setLoading, setLanguage, setTheme, setIsUserActiveOrNotModal, setInactiveMessage } = appSlice.actions;
+export const { setLoading, setLanguage, setTheme, setIsUserActiveOrNotModal, setInactiveMessage, setUserCityId } = appSlice.actions;
 export default appSlice.reducer;

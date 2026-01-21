@@ -21,4 +21,8 @@ export default {
     GET_SERVICE_PROVIDER_DETAIL: '/customer/service-provider',
     GET_SERVICE_PROVIDER_SERVICES: '/customer/service-provider',
     GET_SERVICE_PROVIDER_AVAILABILITY: '/customer/bookings/sp',
+    GET_CUSTOMER_ADDRESSES: '/auth/customer/addresses',
+    ADD_CUSTOMER_ADDRESS: '/auth/customer/addresses',
+    UPDATE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
+    DELETE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
 };
