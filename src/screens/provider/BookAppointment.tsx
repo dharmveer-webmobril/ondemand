@@ -9,7 +9,6 @@ import { generateTimeSlots } from '@utils/timeSlotUtils';
 import ServiceSelectionModal from '@components/provider/ServiceSelectionModal';
 import AddOnSelectionModal from '@components/provider/AddOnSelectionModal';
 import ServiceCart from '@components/provider/ServiceCart';
-import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 
 // Format date to YYYY-MM-DD
@@ -25,7 +24,7 @@ export default function BookAppointment() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { bookingDetails, providerId, selectedServices } = route?.params;
+  const { bookingDetails, providerId, selectedServices, providerData } = route?.params;
   const {
     data: servicesData,
     isLoading: isLoadingServices,
@@ -204,21 +203,22 @@ export default function BookAppointment() {
     if (!selectedTimeSlot) {
       return;
     }
-
+    const time = timeSlots.find((t: any) => t.id === selectedTimeSlot);
+    console.log('time--------time', time);
     // Prepare booking JSON with all selected details
     const bookingJson = {
       providerId: providerId,
       selectedServices: currentSelectedServices,
       date: selectedDateString,
-      timeSlot: selectedTimeSlot,
+      timeSlot: time?.time,
       // services: selectedServices,
       deliveryMode: bookingDetails.deliveryMode,
       totalPrice: totalPrice,
       totalDuration: `${totalDuration}m`,
+      providerData: providerData,
     };
 
-    console.log('Booking JSON:', JSON.stringify(bookingJson, null, 2));
-
+    // console.log('Booking JSON:', JSON.stringify(bookingJson, null, 2));
     // Navigate to Checkout page
     navigation.navigate(SCREEN_NAMES.BOOKING_SUMMARY, {
       bookingData: bookingJson,
@@ -317,7 +317,7 @@ export default function BookAppointment() {
                 const isAvailable = item.available;
                 return (
                   <Pressable
-                    onPress={() => isAvailable && setSelectedTimeSlot(item.id)}
+                    onPress={() => { isAvailable && setSelectedTimeSlot(item.id); console.log('item--------item', item); }}
                     disabled={!isAvailable}
                     style={({ pressed }) => [
                       styles.timeSlot,
@@ -353,18 +353,17 @@ export default function BookAppointment() {
 
       {/* Booking Summary */}
       <View style={styles.summaryContainer}>
-        <View style={styles.summaryRow}>
+        {/* <View style={styles.summaryRow}>
           <CustomText style={styles.summaryLabel}>
             ${totalPrice.toFixed(2)}
           </CustomText>
           <CustomText style={styles.summaryLabel}>
             {totalDuration}m
           </CustomText>
-        </View>
+        </View> */}
         <CustomButton
           title="Book"
           onPress={handleBook}
-
           buttonStyle={styles.bookButton}
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}

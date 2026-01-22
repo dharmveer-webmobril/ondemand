@@ -36,7 +36,7 @@ export default function BookingCard({
 }: BookingCardProps) {
   const theme = useThemeContext();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(theme ), [theme]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const getStatusColor = () => {
     switch (status) {
@@ -57,7 +57,7 @@ export default function BookingCard({
       onPress={onPress}
       android_ripple={{ color: theme.colors.gray || '#F5F5F5' }}
     >
-      {/* Image on the left */}
+      {/* Image container with status badge overlay */}
       <View style={styles.imageContainer}>
         <ImageLoader
           source={image || imagePaths.barber1}
@@ -65,23 +65,43 @@ export default function BookingCard({
           resizeMode="cover"
           fallbackImage={imagePaths.barber1}
         />
+        {/* Status badge in top right corner */}
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+          <CustomText
+            fontSize={theme.fontSize.xxs}
+            fontFamily={theme.fonts.SEMI_BOLD}
+            color={theme.colors.white}
+          >
+            {status}
+          </CustomText>
+        </View>
       </View>
 
-      {/* Content on the right */}
+      {/* Content below image */}
       <View style={styles.contentContainer}>
-        {/* Header with title and status badge */}
+        {/* Header with booking ID or friend name */}
         <View style={styles.headerRow}>
-          <View style={styles.titleContainer}>
-            {bookingId && (
+          {bookingId && (
+            <View style={styles.titleContainer}>
+              <CustomText
+                fontSize={theme.fontSize.xxs}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText || '#999999'}
+              >
+                Booking ID
+              </CustomText>
               <CustomText
                 fontSize={theme.fontSize.xs}
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
+                marginTop={theme.SH(2)}
               >
-                Booking ID
+                {bookingId}
               </CustomText>
-            )}
-            {friendName && (
+            </View>
+          )}
+          {friendName && (
+            <View style={styles.titleContainer}>
               <CustomText
                 fontSize={theme.fontSize.xs}
                 fontFamily={theme.fonts.SEMI_BOLD}
@@ -89,46 +109,12 @@ export default function BookingCard({
               >
                 {friendName}
               </CustomText>
-            )}
-            {bookingId && (
-              <CustomText
-                fontSize={theme.fontSize.xs}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.text}
-                marginTop={theme.SH(2)}
-              >
-                {bookingId}
-              </CustomText>
-            )}
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
-            <CustomText
-              fontSize={theme.fontSize.xxs}
-              fontFamily={theme.fonts.SEMI_BOLD}
-              color={theme.colors.white}
-            >
-              {status}
-            </CustomText>
-          </View>
+            </View>
+          )}
         </View>
 
         {/* Booking details */}
         <View style={styles.detailsContainer}>
-          <CustomText
-            fontSize={theme.fontSize.xs}
-            fontFamily={theme.fonts.REGULAR}
-            color={theme.colors.text}
-          >
-            {date}
-          </CustomText>
-          <CustomText
-            fontSize={theme.fontSize.xs}
-            fontFamily={theme.fonts.REGULAR}
-            color={theme.colors.text}
-            marginTop={theme.SH(2)}
-          >
-            {time}
-          </CustomText>
           <CustomText
             fontSize={theme.fontSize.xs}
             fontFamily={theme.fonts.MEDIUM}
@@ -137,21 +123,31 @@ export default function BookingCard({
           >
             {shopName}
           </CustomText>
+          
           <CustomText
             fontSize={theme.fontSize.xxs}
             fontFamily={theme.fonts.REGULAR}
-            color={theme.colors.gray || '#666666'}
+            color={theme.colors.lightText || '#999999'}
             marginTop={theme.SH(2)}
             numberOfLines={2}
           >
             {address}
+          </CustomText>
+
+          <CustomText
+            fontSize={theme.fontSize.xxs}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.text}
+            marginTop={theme.SH(4)}
+          >
+            {date}, {time}
           </CustomText>
         </View>
 
         {/* Footer with price and button */}
         <View style={styles.footerRow}>
           <CustomText
-            fontSize={theme.fontSize.lg}
+            fontSize={theme.fontSize.md}
             fontFamily={theme.fonts.SEMI_BOLD}
             color={theme.colors.primary || '#135D96'}
           >
@@ -176,10 +172,9 @@ export default function BookingCard({
 const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     card: {
-      flexDirection: 'row',
+      width: '48%',
       backgroundColor: theme.colors.white,
       borderRadius: theme.borderRadius.lg,
-      marginHorizontal: theme.SW(16),
       marginBottom: theme.SH(16),
       shadowColor: '#000',
       shadowOffset: {
@@ -190,52 +185,50 @@ const createStyles = (theme: ThemeType) =>
       shadowRadius: 4,
       elevation: 3,
       overflow: 'hidden',
-      minHeight: theme.SH(140),
     },
     imageContainer: {
-      width: theme.SW(90),
-      height: theme.SH(130),
+      width: '100%',
+      height: theme.SH(140),
+      position: 'relative',
       backgroundColor: theme.colors.gray || '#F5F5F5',
     },
     image: {
       width: '100%',
       height: '100%',
     },
-    contentContainer: {
-      flex: 1,
-      padding: theme.SW(16),
-      justifyContent: 'space-between',
-    },
-    headerRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: theme.SH(8),
-    },
-    titleContainer: {
-      flex: 1,
-      marginRight: theme.SW(8),
-    },
     statusBadge: {
+      position: 'absolute',
+      top: theme.SH(8),
+      right: theme.SW(8),
       paddingHorizontal: theme.SW(8),
       paddingVertical: theme.SH(4),
       borderRadius: theme.borderRadius.sm,
-      alignSelf: 'flex-start',
+      zIndex: 1,
+    },
+    contentContainer: {
+      padding: theme.SW(12),
+    },
+    headerRow: {
+      marginBottom: theme.SH(4),
+    },
+    titleContainer: {
+      flex: 1,
     },
     detailsContainer: {
-      flex: 1,
-      marginBottom: theme.SH(8),
+      marginTop: theme.SH(4),
     },
     footerRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginTop: theme.SH(8),
+      paddingTop: theme.SH(8),
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.gray || '#E0E0E0',
     },
     bookAgainButton: {
-      height: theme.SH(25),
-      width: theme.SW(76),
-      paddingHorizontal: theme.SW(0),
+      height: theme.SH(28),
+      paddingHorizontal: theme.SW(12),
       borderRadius: theme.borderRadius.md,
     },
     buttonText: {

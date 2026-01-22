@@ -533,3 +533,174 @@ export const useDeleteCustomerAddress = () => {
         },
     });
 };
+
+// Booking interfaces
+export interface CreateBookingRequest {
+    spId: string;
+    services: Array<{
+        serviceId: string;
+        addOnIds: string[];
+        promotionOfferId: string | null;
+    }>;
+    bookedFor: 'self' | 'other';
+    addressId?: string;
+    otherDetails?: {
+        name: string;
+        email: string;
+        contact: string;
+        countryCode: string;
+    } | null;
+    date: string;
+    time: string;
+    paymentType: string;
+    remark?: string;
+    preferences: string[];
+}
+
+export interface CreateBookingResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: {
+        _id: string;
+        bookingId?: string;
+        [key: string]: any;
+    };
+}
+
+// Create Booking
+export const useCreateBooking = () => {
+    return useMutation<CreateBookingResponse, Error, CreateBookingRequest>({
+        mutationFn: async (data: CreateBookingRequest) => {
+            const response = await axiosInstance.post<CreateBookingResponse>(
+                EndPoints.CREATE_BOOKING,
+                data
+            );
+            return response.data;
+        },
+    });
+};
+
+// Booking interfaces
+export interface BookedService {
+    _id: string;
+    serviceId: {
+        _id: string;
+        name: string;
+        description: string;
+        price: number;
+        discountPercentage: number;
+    };
+    categoryId: {
+        _id: string;
+        name: string;
+    };
+    promotionOfferId?: {
+        _id: string;
+        discountType: string;
+        discountValue: number;
+    } | null;
+    addOnServices: Array<{
+        _id: string;
+        name: string;
+        description: string;
+        price: number;
+    }>;
+    totalAmount: number;
+    promotionOfferAmount: number;
+    discountedAmount: number;
+}
+
+export interface Booking {
+    _id: string;
+    spId: {
+        _id: string;
+        name: string;
+        email: string;
+        contact: string;
+        profileImage: string;
+    };
+    customerId: string;
+    addressId?: {
+        _id: string;
+        line1: string;
+        line2?: string;
+        landmark?: string;
+        city: string;
+        country: string;
+        pincode: string;
+        name: string;
+        addressType: string;
+    } | null;
+    date: string;
+    time: string;
+    preferences: string[];
+    bookedFor: 'self' | 'other';
+    bookedForDetails: {
+        name: string;
+        email: string;
+        contact: string;
+    };
+    totalAmount: number;
+    promotionOfferAmount: number;
+    discountedAmount: number;
+    paymentType: string;
+    paymentStatus: string;
+    bookingStatus: string;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+    priceSummary: {
+        totalAmount: number;
+        promotionOfferAmount: number;
+        discountedAmount: number;
+    };
+    bookedServices: BookedService[];
+}
+
+export interface CustomerBookingsResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: Booking[];
+    pagination: Pagination;
+}
+
+// Get Customer Bookings
+export const useGetCustomerBookings = (page: number = 1, limit: number = 10) => {
+    return useQuery<CustomerBookingsResponse>({
+        queryKey: ['customerBookings', page, limit],
+        queryFn: async () => {
+            const response = await axiosInstance.get<CustomerBookingsResponse>(
+                `${EndPoints.GET_CUSTOMER_BOOKINGS}?page=${page}&limit=${limit}`
+            );
+            return response.data;
+        },
+    });
+};
+
+// Get Booking Detail Response
+export interface BookingDetailResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: {
+        booking: Booking;
+        bookedServices: BookedService[];
+    };
+}
+
+// Get Booking Detail by ID
+export const useGetBookingDetail = (bookingId: string | null) => {
+    return useQuery<any>({
+        queryKey: ['bookingDetail', bookingId],
+        queryFn: async () => {
+            if (!bookingId) throw new Error('Booking ID is required');
+            const response = await axiosInstance.get<any>(
+                `${EndPoints.GET_BOOKING_DETAIL}/${bookingId}`
+            );
+            return response.data;
+        },
+        enabled: !!bookingId,
+    });
+};

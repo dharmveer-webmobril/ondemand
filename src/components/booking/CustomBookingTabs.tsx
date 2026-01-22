@@ -50,7 +50,7 @@ const createStyles = (theme: ThemeType) =>
     container: {
       flexDirection: 'row',
       backgroundColor: theme.colors.white,
-      borderRadius: theme.borderRadius.lg,
+      borderRadius: theme.borderRadius.md,
       borderWidth: 1,
       borderColor: theme.colors.primary,
       padding: theme.SW(4),
@@ -58,7 +58,7 @@ const createStyles = (theme: ThemeType) =>
     },
     tab: {
       flex: 1,
-      height: theme.SH(48),
+      height: theme.SH(40),
       borderRadius: theme.borderRadius.md,
       justifyContent: 'center',
       alignItems: 'center',

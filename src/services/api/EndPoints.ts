@@ -25,4 +25,7 @@ export default {
     ADD_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     UPDATE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     DELETE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
+    CREATE_BOOKING: '/customer/bookings/bookings',
+    GET_CUSTOMER_BOOKINGS: '/customer/bookings/bookings',
+    GET_BOOKING_DETAIL: '/customer/bookings/bookings',
 };

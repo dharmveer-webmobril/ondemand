@@ -1,10 +1,13 @@
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useMemo, useState, } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Container, AppHeader, CustomText, CustomButton, VectoreIcons } from '@components/common';
+import { Container, AppHeader, CustomText, CustomButton, VectoreIcons, LoadingComp } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ServiceForModal from '@components/provider/ServiceForModal';
+import { ServiceSummeryCard, PaymentMethodModal } from '@components';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { useCreateBooking } from '@services/api/queries/appQueries';
+import { handleApiError, handleSuccessToast, handleApiFailureResponse } from '@utils/apiHelpers';
 
 type Address = {
   _id: string;
@@ -30,7 +33,9 @@ export default function Checkout() {
 
   const bookingData = route.params?.bookingData || {};
   const deliveryMode = bookingData.deliveryMode;
-  const needsAddress = deliveryMode === 'atHome' || deliveryMode === 'onPremises';
+  const selectedServices = bookingData.selectedServices || [];
+  // const needsAddress = deliveryMode === 'atHome' || deliveryMode === 'onPremises';
+  const needsAddress = deliveryMode === 'atHome';
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   // Service for state
@@ -38,13 +43,14 @@ export default function Checkout() {
   const [serviceFor, setServiceFor] = useState<'self' | 'other'>('self');
 
   // Other person details state
-  const [otherPersonDetails, setOtherPersonDetails] = useState<any>({
-    name: '',
-    email: '',
-    mobile: '',
-    countryCode: '+1',
-    address: undefined,
-  });
+  const [otherPersonDetails, setOtherPersonDetails] = useState<any>(null);
+
+  // Payment type state
+  const [paymentType, setPaymentType] = useState<'paypal' | 'stripe' | 'cash'>('cash');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Booking mutation
+  const { mutate: createBooking, isPending: isCreatingBooking } = useCreateBooking();
 
 
 
@@ -53,7 +59,7 @@ export default function Checkout() {
     if (serviceFor === selected) return;
     setServiceFor(selected);
     if (selected === 'other') {
-      navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
+      needsAddress && navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
         onSelect: (val: any) => {
           setOtherPersonDetails(val);
           setSelectedAddress(val?.address);
@@ -71,13 +77,13 @@ export default function Checkout() {
 
   const handleAddAddress = () => {
     if (serviceFor === 'self') {
-      navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS, {
+      needsAddress && navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS, {
         onSelect: (val: any) => {
           setSelectedAddress(val);
         }
       });
     } else {
-      navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS, {
+      needsAddress && navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
         onSelect: (val: any) => {
           setSelectedAddress(val);
         }
@@ -96,7 +102,7 @@ export default function Checkout() {
 
   const isFormValid = () => {
     if (needsAddress && !selectedAddress) return false;
-    if (serviceFor === 'other') {
+    if (!needsAddress && serviceFor === 'other') {
       if (!otherPersonDetails.name || !otherPersonDetails.email || !otherPersonDetails.mobile) {
         return false;
       }
@@ -109,25 +115,84 @@ export default function Checkout() {
     if (!isFormValid()) {
       return;
     }
+    // Show payment method modal first
+    setShowPaymentModal(true);
+  };
 
-    const finalBookingData = {
-      ...bookingData,
-      address: selectedAddress,
-      serviceFor,
-      ...(serviceFor === 'other' && {
-        otherPerson: {
-          name: otherPersonDetails.name,
-          email: otherPersonDetails.email,
-          mobile: otherPersonDetails.mobile,
-          countryCode: otherPersonDetails.countryCode,
-          address: otherPersonDetails.address,
-        },
-      }),
+  const handlePaymentMethodConfirm = (selectedPaymentMethod: 'paypal' | 'stripe' | 'cash') => {
+    setPaymentType(selectedPaymentMethod);
+    setShowPaymentModal(false);
+    // Proceed with booking after payment method is selected
+    submitBooking(selectedPaymentMethod);
+  };
+
+  const submitBooking = (selectedPaymentMethod: 'paypal' | 'stripe' | 'cash') => {
+    // const finalBookingData = {
+    //   spId: bookingData.providerData._id,
+    //   services: selectedServices.map((service: any) => ({
+    //     serviceId: service._id,
+    //     addOnIds: service.selectedAddOns?.map((addOn: any) => addOn._id) || [],
+    //     promotionOfferId: service.selectedOfferId || null,
+    //   })),
+    //   bookedFor: serviceFor,
+    //   addressId: selectedAddress?._id,
+    //   ...bookingData,
+    //   address: selectedAddress,
+    //   serviceFor,
+    //   ...(serviceFor === 'other' && {
+    //     otherPerson: {
+    //       name: otherPersonDetails.name,
+    //       email: otherPersonDetails.email,
+    //       mobile: otherPersonDetails.mobile,
+    //       countryCode: otherPersonDetails.countryCode,
+    //       address: otherPersonDetails.address,
+    //     },
+    //   }),
+    // };
+
+    const servicesForFinal = selectedServices.map((service: any) => ({
+      serviceId: service._id,
+      addOnIds: service.selectedAddOns?.map((addOn: any) => addOn._id) || [],
+      promotionOfferId: service.selectedOfferId || null,
+    }));
+
+    const fbookingData = {
+      spId: bookingData.providerData._id,
+      services: servicesForFinal,
+      bookedFor: serviceFor,
+      addressId: selectedAddress?._id,
+      otherDetails: otherPersonDetails ? {
+        name: otherPersonDetails.name,
+        email: otherPersonDetails.email,
+        contact: otherPersonDetails.countryCode + ' ' + otherPersonDetails.phone,
+        countryCode: otherPersonDetails.countryCode,
+      } : null,
+      date: bookingData.date,
+      time: bookingData.timeSlot,
+      paymentType: selectedPaymentMethod === 'paypal' ? 'paypal' : selectedPaymentMethod === 'stripe' ? 'stripe' : 'cash',
+      // remark: "Please ring the doorbell",
+      preferences: [bookingData.deliveryMode]
     };
 
-    console.log('Final Booking Data:', JSON.stringify(finalBookingData, null, 2));
-    // TODO: API call to create booking
-    // navigation.goBack();
+    console.log('Final Booking Data:', JSON.stringify(fbookingData, null, 2));
+
+    // API call to create booking
+    createBooking(fbookingData, {
+      onSuccess: (response) => {
+        console.log('Booking created successfully:', response);
+        if (response?.succeeded || response?.ResponseData) {
+          const successMessage = response?.ResponseMessage || 'Booking created successfully!';
+          handleSuccessToast(successMessage);
+          navigation.navigate(SCREEN_NAMES.HOME, { bookingData: fbookingData });
+        } else {
+          handleApiFailureResponse(response, 'Failed to create booking. Please try again.');
+        }
+      },
+      onError: (error) => {
+        console.error('Booking creation error:', error);
+        handleApiError(error);
+      },
+    });
   };
 
   return (
@@ -137,6 +202,7 @@ export default function Checkout() {
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}
+        containerStyle={{ marginHorizontal: theme.SW(20) }}
       />
       <ScrollView
         style={styles.scrollView}
@@ -162,7 +228,16 @@ export default function Checkout() {
           </View>
         </View>
 
-
+        {/* Selected Services - Hide offers by passing different pageName */}
+        {selectedServices && selectedServices.length > 0 && (
+          <ServiceSummeryCard
+            pageName={'checkout'}
+            services={selectedServices}
+            onRemoveService={() => { }}
+            onAddAddOns={() => { }}
+            onAddService={() => { }}
+          />
+        )}
 
         {/* Service For Selection =============*/}
         <View style={styles.section}>
@@ -210,11 +285,11 @@ export default function Checkout() {
             ) : (
               <View style={styles.emptyAddressCard}>
                 <CustomText style={styles.emptyAddressText}>No address selected</CustomText>
-
               </View>
             )}
           </View>
         )}
+
       </ScrollView>
 
       {/* Confirm Button */}
@@ -225,9 +300,13 @@ export default function Checkout() {
           buttonStyle={styles.confirmButton}
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.white}
-          disable={!isFormValid()}
+          disable={!isFormValid() || isCreatingBooking}
+          isLoading={isCreatingBooking}
         />
       </View>
+
+      {/* Loading Overlay */}
+      <LoadingComp visible={isCreatingBooking} />
 
 
 
@@ -239,6 +318,13 @@ export default function Checkout() {
         selectedServiceFor={serviceFor}
       />
 
+      {/* Payment Method Modal */}
+      <PaymentMethodModal
+        visible={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onConfirm={handlePaymentMethodConfirm}
+        selectedPaymentMethod={paymentType}
+      />
 
     </Container>
   );
@@ -255,11 +341,11 @@ const createStyles = (theme: ThemeType) => {
       flex: 1,
     },
     content: {
-      paddingBottom: SH(100),
+      paddingBottom: SH(90),
     },
     section: {
       paddingHorizontal: SW(20),
-      paddingVertical: SH(20),
+      paddingVertical: SH(14),
       borderBottomWidth: 1,
       borderBottomColor: Colors.gray || '#E0E0E0',
     },
@@ -267,24 +353,24 @@ const createStyles = (theme: ThemeType) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: SH(12),
+      marginBottom: SH(8),
     },
     sectionTitle: {
-      fontSize: SF(16),
+      fontSize: SF(14),
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
-      marginBottom: SH(12),
+      marginBottom: SH(8),
     },
     changeLink: {
-      fontSize: SF(14),
+      fontSize: SF(12),
       fontFamily: Fonts.MEDIUM,
       color: Colors.primary,
     },
     summaryCard: {
       backgroundColor: Colors.background || '#F5F5F5',
       borderRadius: SF(12),
-      padding: SW(16),
-      gap: SH(8),
+      padding: SW(12),
+      gap: SH(6),
     },
     summaryRow: {
       flexDirection: 'row',
@@ -292,46 +378,46 @@ const createStyles = (theme: ThemeType) => {
       alignItems: 'center',
     },
     summaryLabel: {
-      fontSize: SF(14),
+      fontSize: SF(12),
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
     },
     summaryValue: {
-      fontSize: SF(14),
+      fontSize: SF(12),
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
     },
     addressCard: {
       backgroundColor: Colors.background || '#F5F5F5',
       borderRadius: SF(12),
-      padding: SW(16),
+      padding: SW(12),
     },
     addressTitle: {
-      fontSize: SF(16),
+      fontSize: SF(14),
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
-      marginBottom: SH(4),
+      marginBottom: SH(3),
     },
     addressText: {
-      fontSize: SF(14),
+      fontSize: SF(12),
       fontFamily: Fonts.REGULAR,
       color: Colors.textAppColor || Colors.text,
-      marginBottom: SH(4),
+      marginBottom: SH(3),
     },
     addressPhone: {
-      fontSize: SF(12),
+      fontSize: SF(11),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText,
     },
     emptyAddressCard: {
       backgroundColor: Colors.background || '#F5F5F5',
       borderRadius: SF(12),
-      padding: SW(16),
+      padding: SW(12),
       alignItems: 'center',
-      gap: SH(12),
+      gap: SH(8),
     },
     emptyAddressText: {
-      fontSize: SF(14),
+      fontSize: SF(12),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText,
     },
@@ -345,15 +431,15 @@ const createStyles = (theme: ThemeType) => {
       justifyContent: 'space-between',
       backgroundColor: Colors.background || '#F5F5F5',
       borderRadius: SF(12),
-      padding: SW(16),
+      padding: SW(12),
     },
     serviceForContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: SW(12),
+      gap: SW(10),
     },
     serviceForText: {
-      fontSize: SF(16),
+      fontSize: SF(14),
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
     },
@@ -409,7 +495,7 @@ const createStyles = (theme: ThemeType) => {
       right: 0,
       backgroundColor: Colors.white,
       paddingHorizontal: SW(20),
-      paddingVertical: SH(16),
+      paddingVertical: SH(12),
       borderTopWidth: 1,
       borderTopColor: Colors.gray || '#E0E0E0',
     },

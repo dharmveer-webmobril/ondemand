@@ -116,6 +116,7 @@ export default function ProviderDetailsScreen() {
         services: services,
         selectedServices: [service],
         bookingDetails: { deliveryMode },
+        providerData: provider,
       });
       console.log('deliveryMode--------service yes show service for modal', service);
     } else {

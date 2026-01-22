@@ -30,6 +30,7 @@ export const Colors = {
     gray: '#D9D9D9',
     textAppColor: '#404040',
     warningColor: '#FAAC00',
+    
 }
 
 export enum Fonts {
