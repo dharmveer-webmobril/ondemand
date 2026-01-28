@@ -4,21 +4,28 @@ import {
   View,
   StyleSheet,
   Pressable,
+  Platform,
 } from 'react-native';
 import { CustomText, CustomButton, CustomInput, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
-type ReasonInputModalProps = {
+type CancelBookingModalProps = {
   visible: boolean;
   onClose: () => void;
   onSubmit: (reason: string) => void;
+  isLoading?: boolean;
+  title?: string;
+  message?: string;
 };
 
-export default function ReasonInputModal({
+export default function CancelBookingModal({
   visible,
   onClose,
   onSubmit,
-}: ReasonInputModalProps) {
+  isLoading = false,
+  title = 'Cancel Booking',
+  message = 'Please provide a reason for canceling (required)',
+}: CancelBookingModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [reason, setReason] = useState('');
@@ -26,14 +33,15 @@ export default function ReasonInputModal({
   const handleSubmit = useCallback(() => {
     if (reason.trim()) {
       onSubmit(reason.trim());
-      setReason('');
     }
   }, [reason, onSubmit]);
 
   const handleClose = useCallback(() => {
-    setReason('');
-    onClose();
-  }, [onClose]);
+    if (!isLoading) {
+      setReason('');
+      onClose();
+    }
+  }, [onClose, isLoading]);
 
   return (
     <Modal
@@ -52,9 +60,9 @@ export default function ReasonInputModal({
               fontFamily={theme.fonts.SEMI_BOLD}
               color={theme.colors.text}
             >
-              Reason for Change
+              {title}
             </CustomText>
-            <Pressable onPress={handleClose} style={styles.closeButton}>
+            <Pressable onPress={handleClose} style={styles.closeButton} disabled={isLoading}>
               <VectoreIcons
                 name="close"
                 icon="Ionicons"
@@ -70,12 +78,12 @@ export default function ReasonInputModal({
               fontSize={theme.fontSize.sm}
               fontFamily={theme.fonts.REGULAR}
               color={theme.colors.lightText}
-              marginBottom={theme.SH(12)}
+              style={{ marginBottom: theme.SH(12) }}
             >
-              Please provide a reason for changing the assigned member (required)
+              {message}
             </CustomText>
             <CustomInput
-              placeholder="Enter reason..."
+              placeholder="Enter reason for canceling..."
               value={reason}
               onChangeText={setReason}
               multiline
@@ -83,6 +91,7 @@ export default function ReasonInputModal({
               maxLength={500}
               inputTheme="default"
               withBackground={theme.colors.secondary}
+              isEditable={!isLoading}
             />
           </View>
 
@@ -94,15 +103,16 @@ export default function ReasonInputModal({
               backgroundColor={theme.colors.secondary}
               textColor={theme.colors.text}
               buttonStyle={styles.cancelButton}
-              marginRight={theme.SW(8)}
+              disable={isLoading}
             />
             <CustomButton
-              title="Submit"
+              title="Confirm"
               onPress={handleSubmit}
-              backgroundColor={theme.colors.primary}
+              backgroundColor={theme.colors.red || '#F44336'}
               textColor={theme.colors.white}
-              buttonStyle={styles.submitButton}
-              disable={!reason.trim()}
+              buttonStyle={styles.confirmButton}
+              disable={!reason.trim() || isLoading}
+              isLoading={isLoading}
             />
           </View>
         </View>
@@ -147,12 +157,13 @@ const createStyles = (theme: ThemeType) =>
       padding: theme.SW(16),
       borderTopWidth: 1,
       borderTopColor: theme.colors.gray,
+      gap: theme.SW(8),
     },
     cancelButton: {
       flex: 1,
       borderRadius: theme.borderRadius.md,
     },
-    submitButton: {
+    confirmButton: {
       flex: 1,
       borderRadius: theme.borderRadius.md,
     },

@@ -3,6 +3,7 @@ import {
   View,
   StyleSheet,
   ScrollView,
+  RefreshControl,
   Linking,
   Alert,
   Platform,
@@ -13,35 +14,30 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RescheduleModal from '@components/booking/RescheduleModal';
 import ReasonInputModal from '@components/booking/ReasonInputModal';
+import CancelBookingModal from '@components/booking/CancelBookingModal';
 import {
-  ServiceSummeryCard,
   BookingHeader,
   ProviderDetailsCard,
   OtherPersonDetailsCard,
   BookingForCard,
   DateTimeCard,
   AddressCard,
+  BookingServiceCard,
 } from '@components';
 import MemberSelectionModal, { Member } from '@components/booking/MemberSelectionModal';
 import { SweetAlert } from '@components/common';
-import { useGetBookingDetail } from '@services/api/queries/appQueries';
-import { handleApiError } from '@utils/apiHelpers';
+import {
+  useGetBookingDetail,
+  useCancelBooking,
+  useCancelService,
+  useRescheduleService,
+} from '@services/api/queries/appQueries';
+import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
+import { getStatusLabel, getStatusColor } from '@utils/tools';
 
-type BookingStatus = 'PENDING' | 'ACCEPTED' | 'RESCHEDULED' | 'CANCELLED' | 'COMPLETED';
 
 // Map API booking status to UI status
-const mapBookingStatus = (status: string): BookingStatus => {
-  const statusMap: Record<string, BookingStatus> = {
-    'requested': 'PENDING',
-    'pending': 'PENDING',
-    'accepted': 'ACCEPTED',
-    'ongoing': 'ACCEPTED',
-    'rescheduled': 'RESCHEDULED',
-    'cancelled': 'CANCELLED',
-    'completed': 'COMPLETED',
-  };
-  return statusMap[status?.toLowerCase()] || 'PENDING';
-};
+
 
 // Format date from API format (YYYY-MM-DD) to display format
 const formatDate = (dateString: string): string => {
@@ -55,7 +51,7 @@ const formatDate = (dateString: string): string => {
 // Format address from booking
 const formatBookingAddress = (booking: any): string => {
   if (!booking?.addressId) return '';
-  
+
   const address = booking?.addressId;
   const parts = [
     address?.line1,
@@ -63,7 +59,7 @@ const formatBookingAddress = (booking: any): string => {
     address?.landmark,
     address?.pincode,
   ].filter(Boolean);
-  
+
   return parts.join(', ') || '';
 };
 
@@ -86,6 +82,41 @@ export default function BookingDetail() {
     refetch: refetchBooking,
   } = useGetBookingDetail(bookingId);
 
+  // Common loader type state
+  type LoaderType = 'none' | 'cancelBooking' | 'cancelService' | 'rescheduleService';
+  const [loaderType, setLoaderType] = useState<LoaderType>('none');
+
+  // Cancel booking mutation
+  const {
+    mutate: cancelBooking,
+    isPending: isCancelingBooking,
+  } = useCancelBooking();
+
+  // Cancel service mutation
+  const {
+    mutate: cancelService,
+    isPending: isCancelingService,
+  } = useCancelService();
+
+  // Reschedule service mutation
+  const {
+    mutate: rescheduleService,
+    isPending: isReschedulingService,
+  } = useRescheduleService();
+
+  // Update loader type based on mutation states
+  React.useEffect(() => {
+    if (isCancelingBooking) {
+      setLoaderType('cancelBooking');
+    } else if (isCancelingService) {
+      setLoaderType('cancelService');
+    } else if (isReschedulingService) {
+      setLoaderType('rescheduleService');
+    } else {
+      setLoaderType('none');
+    }
+  }, [isCancelingBooking, isCancelingService, isReschedulingService]);
+
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [showMemberSelectionModal, setShowMemberSelectionModal] = useState(false);
@@ -94,6 +125,10 @@ export default function BookingDetail() {
   const [showAcceptConfirm, setShowAcceptConfirm] = useState(false);
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showCancelServiceModal, setShowCancelServiceModal] = useState(false);
+  const [cancelType, setCancelType] = useState<'booking' | 'service'>('booking');
+  const [serviceToCancel, setServiceToCancel] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Transform API booking data to component format
   const booking = useMemo(() => {
@@ -101,62 +136,61 @@ export default function BookingDetail() {
 
     const apiBooking = bookingDetailData?.ResponseData?.booking;
     const bookedServices = bookingDetailData?.ResponseData?.bookedServices || [];
-    
-    // Get reference arrays from booking object
-    const servicesArray = apiBooking?.services || [];
-    const addOnServicesArray = apiBooking?.addOnServices || [];
-    const promotionOffersArray = apiBooking?.promotionOffers || [];
-    const assignedMembersArray = apiBooking?.assignedMembers || [];
-    
-    // Transform bookedServices to ServiceSummeryCard format
+
+    // Transform bookedServices to BookingServiceCard format
     const services = bookedServices.map((bookedService: any) => {
-      // Find service by ID
-      const serviceId = bookedService?.serviceId;
-      const service = typeof serviceId === 'string' 
-        ? servicesArray.find((s: any) => s?._id === serviceId)
-        : serviceId;
-      
-      // Find add-ons by IDs
-      const addOnIds = bookedService?.addOnServices || [];
-      const selectedAddOns = Array.isArray(addOnIds)
-        ? addOnIds
-            .map((id: string) => addOnServicesArray.find((addon: any) => addon?._id === id))
-            .filter((addon: any) => addon !== undefined)
-        : [];
-      
-      // Find promotion offer by ID
-      const promotionOfferId = bookedService?.promotionOfferId;
-      const appliedOffer = promotionOfferId
-        ? promotionOffersArray.find((offer: any) => offer?._id === promotionOfferId)
-        : null;
-      
-      // Find assigned member if exists
-      const assignedMember = bookedService?.assignedMember
-        ? assignedMembersArray.find((member: any) => member?._id === bookedService?.assignedMember)
-        : undefined;
+      // Find service by ID (serviceId is a string ID)
+      // serviceId is already a full object in the new structure
+      const service = bookedService?.serviceId || {};
+
+      // addOnServices is already an array of full objects
+      const selectedAddOns = bookedService?.addOnServices || [];
+
+      // promotionOfferId is already a full object
+      const appliedOffer = bookedService?.promotionOfferId || null;
+
+      // assignedMemberId is already a full object
+      const assignedMember = bookedService?.assignedMemberId || null;
+
+      // Calculate service base price (from service object)
+      const serviceBasePrice = service?.price || 0;
+
+      // Get amounts from bookedService
+      const serviceTotalAmount = bookedService?.totalAmount || 0; // Original total (service + addons)
+      const servicePromotionOfferAmount = bookedService?.promotionOfferAmount || 0; // Discount amount
+      const serviceDiscountedAmount = bookedService?.discountedAmount || 0; // Final amount after discount
+
+      // Calculate add-ons total
+      const addOnsTotal = selectedAddOns.reduce((sum: number, addon: any) => {
+        return sum + (addon?.price || 0);
+      }, 0);
 
       return {
-        _id: service?._id || bookedService?._id,
+        _id: bookedService?._id,
+        serviceId: service?._id,
         name: service?.name || 'Service',
-        price: service?.price || 0,
-        time: service?.time || 0,
         images: service?.images || [],
         selectedAddOns: selectedAddOns,
-        appliedOffer: appliedOffer || null,
-        discountAmount: bookedService?.promotionOfferAmount || 0,
-        assignedMember: assignedMember ? {
-          id: assignedMember?._id || assignedMember?.id,
-          name: assignedMember?.name,
-          avatar: assignedMember?.avatar || assignedMember?.profileImage,
-          phone: assignedMember?.phone || assignedMember?.contact,
-        } : undefined,
+        appliedOffer: appliedOffer,
+        // Price information
+        price: serviceBasePrice, // Base service price
+        totalAmount: serviceTotalAmount, // Total amount (service + addons) before discount
+        discountAmount: servicePromotionOfferAmount, // Discount amount applied
+        discountedAmount: serviceDiscountedAmount, // Final amount after discount
+        promotionOfferAmount: servicePromotionOfferAmount, // Alias for discount amount
+        addOnsTotal: addOnsTotal, // Total of all add-ons
+        bookingStatus: bookedService?.bookingStatus,
+        assignedMember: assignedMember,
       };
     });
 
     return {
+      customerDetails: apiBooking.bookedFor === 'other' ? apiBooking.bookedForDetails : apiBooking.customerId,
       id: apiBooking?._id,
-      bookingId: apiBooking?._id,
-      status: mapBookingStatus(apiBooking?.bookingStatus),
+      bookingId: apiBooking?.bookingId || apiBooking?._id,
+      status: apiBooking?.bookingStatus,
+      bookingStatus: apiBooking?.bookingStatus,
+      originalStatus: apiBooking?.bookingStatus,
       providerName: apiBooking?.spId?.name || 'Provider',
       providerPhone: apiBooking?.spId?.contact || '',
       providerImage: apiBooking?.spId?.profileImage,
@@ -176,7 +210,6 @@ export default function BookingDetail() {
       spBusinessProfile: apiBooking?.spBusinessProfile,
     };
   }, [bookingDetailData]);
-
   // Handle API errors - show error toast but don't block UI if we have cached data
   useEffect(() => {
     if (isErrorBooking && bookingError && !bookingDetailData?.ResponseData) {
@@ -184,22 +217,7 @@ export default function BookingDetail() {
     }
   }, [isErrorBooking, bookingError, bookingDetailData]);
 
-  const getStatusColor = useCallback((status: BookingStatus) => {
-    switch (status) {
-      case 'PENDING':
-        return theme.colors.warningColor;
-      case 'ACCEPTED':
-        return '#4CAF50';
-      case 'RESCHEDULED':
-        return theme.colors.primary_light;
-      case 'CANCELLED':
-        return theme.colors.red;
-      case 'COMPLETED':
-        return '#4CAF50';
-      default:
-        return theme.colors.text;
-    }
-  }, [theme]);
+
 
   const handleCall = useCallback((phoneNumber: string) => {
     const url = `tel:${phoneNumber}`;
@@ -251,18 +269,103 @@ export default function BookingDetail() {
     refetchBooking();
   }, [refetchBooking]);
 
-  const handleCancel = useCallback(() => {
-    setShowCancelConfirm(false);
-    // TODO: API call to cancel booking
-    refetchBooking();
-  }, [refetchBooking]);
+  const handleCancelBookingPress = useCallback(() => {
+    setCancelType('booking');
+    setServiceToCancel(null);
+    setShowCancelConfirm(true);
+  }, []);
 
-  const handleReschedule = useCallback((_newDate: string, _newTime: string) => {
-    // TODO: API call to reschedule
-    setShowRescheduleModal(false);
-    // Refetch booking to get updated data
-    refetchBooking();
-  }, [refetchBooking]);
+  const handleCancelServicePress = useCallback((serviceId: string) => {
+    setCancelType('service');
+    setServiceToCancel(serviceId);
+    setShowCancelServiceModal(true);
+  }, []);
+
+  const handleCancelConfirm = useCallback((reason: string) => {
+    if (cancelType === 'booking' && booking?.id) {
+      setLoaderType('cancelBooking');
+      cancelBooking(
+        { bookingId: booking.id, reason },
+        {
+          onSuccess: (response: any) => {
+            if (response?.succeeded) {
+              handleSuccessToast(response?.ResponseMessage || 'Booking cancelled successfully');
+              setShowCancelConfirm(false);
+              setLoaderType('none');
+              refetchBooking();
+            } else {
+              setLoaderType('none');
+              handleApiError(new Error(response?.ResponseMessage || 'Failed to cancel booking'));
+            }
+          },
+          onError: (error: any) => {
+            setLoaderType('none');
+            handleApiError(error);
+          },
+        }
+      );
+    } else if (cancelType === 'service' && serviceToCancel) {
+      setLoaderType('cancelService');
+      cancelService(
+        { serviceId: serviceToCancel, reason },
+        {
+          onSuccess: (response: any) => {
+            if (response?.succeeded) {
+              handleSuccessToast(response?.ResponseMessage || 'Service cancelled successfully');
+              setShowCancelServiceModal(false);
+              setServiceToCancel(null);
+              setLoaderType('none');
+              refetchBooking();
+            } else {
+              setLoaderType('none');
+              handleApiError(new Error(response?.ResponseMessage || 'Failed to cancel service'));
+            }
+          },
+          onError: (error: any) => {
+            setLoaderType('none');
+            handleApiError(error);
+          },
+        }
+      );
+    }
+  }, [cancelType, booking, serviceToCancel, cancelBooking, cancelService, refetchBooking]);
+
+  const handleReschedule = useCallback((newDate: string, newTime: string, reason: string) => {
+    if (!selectedServiceId) {
+      handleApiError(new Error('Service ID is required'));
+      return;
+    }
+
+    setLoaderType('rescheduleService');
+    rescheduleService(
+      {
+        serviceId: selectedServiceId,
+        data: {
+          date: newDate,
+          time: newTime,
+          reason: reason,
+        },
+      },
+      {
+        onSuccess: (response: any) => {
+          if (response?.succeeded) {
+            handleSuccessToast(response?.ResponseMessage || 'Service rescheduled successfully');
+            setShowRescheduleModal(false);
+            setSelectedServiceId(null);
+            setLoaderType('none');
+            refetchBooking();
+          } else {
+            setLoaderType('none');
+            handleApiError(new Error(response?.ResponseMessage || 'Failed to reschedule service'));
+          }
+        },
+        onError: (error: any) => {
+          setLoaderType('none');
+          handleApiError(error);
+        },
+      }
+    );
+  }, [selectedServiceId, rescheduleService, refetchBooking]);
 
   const handleAssignMember = useCallback((service: any) => {
     setSelectedServiceId(service?._id);
@@ -317,10 +420,21 @@ export default function BookingDetail() {
     }
   }, [selectedServiceId, pendingMember, refetchBooking]);
 
-  const handleReschedulePress = useCallback(() => {
+  const handleReschedulePress = useCallback((serviceId: string) => {
+    setSelectedServiceId(serviceId);
     setShowRescheduleModal(true);
   }, []);
- 
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetchBooking();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBooking]);
+  // console.log('booking', JSON.stringify(booking, null, 2));
+
   return (
     <Container safeArea={false} statusBarColor={theme.colors.white} style={styles.container}>
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
@@ -363,12 +477,20 @@ export default function BookingDetail() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.colors.primary}
+              colors={[theme.colors.primary || '#135D96']}
+            />
+          }
         >
           {/* Booking Header */}
           <BookingHeader
-            bookingId={booking.bookingId}
-            status={booking.status}
-            statusColor={getStatusColor(booking.status)}
+            bookingId={booking?.bookingId || ''}
+            status={getStatusLabel(booking?.bookingStatus) || ''}
+            statusColor={getStatusColor(booking?.bookingStatus || '')}
           />
 
           {/* Provider Details Card */}
@@ -406,7 +528,7 @@ export default function BookingDetail() {
           <DateTimeCard
             date={booking?.bookingDate || ''}
             time={booking?.timeSlot || ''}
-            onReschedule={handleReschedulePress}
+
           />
 
           {/* Services List using ServiceSummeryCard */}
@@ -420,15 +542,18 @@ export default function BookingDetail() {
                 Services
               </CustomText>
             </View>
-            <ServiceSummeryCard
+            <BookingServiceCard
               pageName={'booking-detail'}
               services={booking?.services || []}
               onAssignMember={handleAssignMember}
               onCallMember={handleCallMember}
-              onAddAddOns={(service) => {
-                // TODO: Navigate to add addons screen
-                console.log('Add addons for service:', service);
+              onReschedule={(service) => {
+                handleReschedulePress(service?._id);
               }}
+              onCancelService={(serviceId) => {
+                handleCancelServicePress(serviceId);
+              }}
+              mainBookingStatus={booking?.bookingStatus}
             />
             <View style={styles.totalContainer}>
               <View>
@@ -465,46 +590,17 @@ export default function BookingDetail() {
       {/* Booking Actions */}
       {booking && (
         <View style={styles.actionsContainer}>
-          {booking?.status === 'PENDING' && (
-            <>
-              <View style={[styles.actionButton, styles.actionButtonLeft]}>
-                <CustomButton
-                  title="Accept"
-                  onPress={() => setShowAcceptConfirm(true)}
-                  backgroundColor={theme.colors.primary}
-                  textColor={theme.colors.white}
-                  buttonStyle={styles.actionButtonInner}
-                />
-              </View>
-              <View style={[styles.actionButton, styles.actionButtonRight]}>
-                <CustomButton
-                  title="Reject"
-                  onPress={() => setShowRejectConfirm(true)}
-                  backgroundColor={theme.colors.red}
-                  textColor={theme.colors.white}
-                  buttonStyle={styles.actionButtonInner}
-                />
-              </View>
-            </>
-          )}
-          {booking.status === 'ACCEPTED' && (
+          {(booking.bookingStatus === 'accepted' || booking.bookingStatus === 'requested') && (
             <>
               <View style={[styles.actionButton, styles.actionButtonLeft]}>
                 <CustomButton
                   title="Cancel Booking"
-                  onPress={() => setShowCancelConfirm(true)}
+                  onPress={handleCancelBookingPress}
                   backgroundColor={theme.colors.red}
                   textColor={theme.colors.white}
                   buttonStyle={styles.actionButtonInner}
-                />
-              </View>
-              <View style={[styles.actionButton, styles.actionButtonRight]}>
-                <CustomButton
-                  title="Reschedule"
-                  onPress={handleReschedulePress}
-                  backgroundColor={theme.colors.primary_light}
-                  textColor={theme.colors.white}
-                  buttonStyle={styles.actionButtonInner}
+                  disable={loaderType === 'cancelBooking'}
+                  isLoading={loaderType === 'cancelBooking'}
                 />
               </View>
             </>
@@ -517,10 +613,15 @@ export default function BookingDetail() {
         <>
           <RescheduleModal
             visible={showRescheduleModal}
-            onClose={() => setShowRescheduleModal(false)}
+            onClose={() => {
+              setShowRescheduleModal(false);
+              setSelectedServiceId(null);
+            }}
             onConfirm={handleReschedule}
-            currentDate={booking.bookingDate}
-            currentTime={booking.timeSlot}
+            currentDate={booking?.bookingDate || ''}
+            currentTime={booking?.timeSlot || ''}
+            spId={booking?.providerData?._id}
+            isLoading={loaderType === 'rescheduleService'}
           />
 
           <ReasonInputModal
@@ -563,12 +664,33 @@ export default function BookingDetail() {
         onCancel={() => setShowRejectConfirm(false)}
       />
 
-      <SweetAlert
+      {/* Cancel Booking Modal */}
+      <CancelBookingModal
         visible={showCancelConfirm}
-        message="Are you sure you want to cancel this booking?"
-        isConfirmType="delete"
-        onOk={handleCancel}
-        onCancel={() => setShowCancelConfirm(false)}
+        onClose={() => {
+          if (loaderType !== 'cancelBooking') {
+            setShowCancelConfirm(false);
+          }
+        }}
+        onSubmit={handleCancelConfirm}
+        isLoading={loaderType === 'cancelBooking'}
+        title="Cancel Booking"
+        message="Please provide a reason for canceling this booking (required)"
+      />
+
+      {/* Cancel Service Modal */}
+      <CancelBookingModal
+        visible={showCancelServiceModal}
+        onClose={() => {
+          if (loaderType !== 'cancelService') {
+            setShowCancelServiceModal(false);
+            setServiceToCancel(null);
+          }
+        }}
+        onSubmit={handleCancelConfirm}
+        isLoading={loaderType === 'cancelService'}
+        title="Cancel Service"
+        message="Please provide a reason for canceling this service (required)"
       />
     </Container>
   );

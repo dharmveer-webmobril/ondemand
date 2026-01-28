@@ -4,13 +4,13 @@ import { CustomText, CustomButton, ImageLoader } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import imagePaths from '@assets';
-
-type BookingStatus = 'COMPLETED' | 'ONGOING' | 'UPCOMING';
+import { getStatusLabel } from '@utils/tools';
 
 type BookingCardProps = {
   bookingId?: string;
   friendName?: string;
-  status: BookingStatus;
+  status: string; // Original booking status from API
+  statusColor?: string; // Optional color override
   date: string;
   time: string;
   shopName: string;
@@ -21,10 +21,13 @@ type BookingCardProps = {
   onPress?: () => void;
 };
 
+
+
 export default function BookingCard({
   bookingId,
   friendName,
   status,
+  statusColor,
   date,
   time,
   shopName,
@@ -38,19 +41,12 @@ export default function BookingCard({
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'COMPLETED':
-        return '#4CAF50'; // Green
-      case 'ONGOING':
-        return '#009BFF'; // Light blue
-      case 'UPCOMING':
-        return '#FF9800'; // Orange
-      default:
-        return theme.colors.text;
-    }
-  };
-
+  // Use provided statusColor or default to theme color
+  const badgeColor = statusColor || theme.colors.text;
+  const statusLabel = getStatusLabel(status);
+  console.log('statusLabel', statusLabel);
+  console.log('status', status);
+  console.log('badgeColor', badgeColor);
   return (
     <Pressable
       style={styles.card}
@@ -66,13 +62,13 @@ export default function BookingCard({
           fallbackImage={imagePaths.barber1}
         />
         {/* Status badge in top right corner */}
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+        <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
           <CustomText
             fontSize={theme.fontSize.xxs}
             fontFamily={theme.fonts.SEMI_BOLD}
             color={theme.colors.white}
           >
-            {status}
+            {statusLabel}
           </CustomText>
         </View>
       </View>
@@ -123,7 +119,7 @@ export default function BookingCard({
           >
             {shopName}
           </CustomText>
-          
+
           <CustomText
             fontSize={theme.fontSize.xxs}
             fontFamily={theme.fonts.REGULAR}

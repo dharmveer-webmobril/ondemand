@@ -35,6 +35,7 @@ export default function ActionMenu({ visible, items, onClose, position }: Action
 
   return (
     <Modal
+      statusBarTranslucent={true}
       transparent
       visible={visible}
       animationType="fade"

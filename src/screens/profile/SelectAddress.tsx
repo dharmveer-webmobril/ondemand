@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import { useGetCustomerAddresses } from '@services/index';
+import { useAppSelector } from '@store/hooks';
 
 export default function SelectAddress() {
   const theme = useThemeContext();
@@ -33,9 +34,11 @@ export default function SelectAddress() {
     if (address.landmark) parts.push(address.landmark);
     return parts.join(', ');
   };
-
+  const userCityName = useAppSelector((state) => state.app.userCity)?.name;
+  console.log('userCityName', userCityName);
+  console.log('addresses', addresses);
   const handleAddNewAddress = () => {
-    navigation.navigate('AddAddress' as never, { addData: null } as never);
+    navigation.navigate('AddAddress' as never, { addData: null, prevScreen: 'select-address' } as never);
   };
 
   const handleSelectAddress = (addressId: string) => {
@@ -59,8 +62,9 @@ export default function SelectAddress() {
     
     return (
       <Pressable
-        style={[styles.addressItem, isSelected && styles.addressItemSelected]}
+        style={[styles.addressItem, isSelected && styles.addressItemSelected, item.city?.name?.toLowerCase()?.trim() !== userCityName?.toLowerCase()?.trim() && styles.addressItemDisabled]}
         onPress={() => handleSelectAddress(item._id)}
+        disabled={item.city?.name?.toLowerCase()?.trim() !== userCityName?.toLowerCase()?.trim()}
       >
         <View style={styles.addressContent}>
           <View style={styles.radioButtonContainer}>
@@ -75,11 +79,11 @@ export default function SelectAddress() {
           </View>
           <View style={styles.addressInfo}>
             <CustomText style={styles.addressTitle} fontFamily={theme.fonts.BOLD}>
-              {item.name}
+              {item?.name}
             </CustomText>
             <CustomText style={styles.addressText}>{formatAddress(item)}</CustomText>
-            <CustomText style={styles.addressPhone}>{item.contact}</CustomText>
-            {item.isDefault && (
+            <CustomText style={styles.addressPhone}>{item?.contact}</CustomText>
+            {item?.isDefault && (
               <CustomText style={styles.defaultBadge}>Default</CustomText>
             )}
           </View>
@@ -251,6 +255,9 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   confirmButton: {
     borderRadius: theme.borderRadius.md,
     height: theme.SF(50),
+  },
+  addressItemDisabled: {
+    opacity: 0.5,
   },
 });
 

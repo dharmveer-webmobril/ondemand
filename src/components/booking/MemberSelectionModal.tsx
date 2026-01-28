@@ -238,6 +238,7 @@ export default function MemberSelectionModal({
       transparent
       animationType="slide"
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>

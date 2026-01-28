@@ -103,7 +103,7 @@ export default function Checkout() {
   const isFormValid = () => {
     if (needsAddress && !selectedAddress) return false;
     if (!needsAddress && serviceFor === 'other') {
-      if (!otherPersonDetails.name || !otherPersonDetails.email || !otherPersonDetails.mobile) {
+      if (!otherPersonDetails?.name || !otherPersonDetails?.email || !otherPersonDetails?.mobile) {
         return false;
       }
       if (needsAddress && !otherPersonDetails.address) return false;
@@ -162,10 +162,10 @@ export default function Checkout() {
       bookedFor: serviceFor,
       addressId: selectedAddress?._id,
       otherDetails: otherPersonDetails ? {
-        name: otherPersonDetails.name,
-        email: otherPersonDetails.email,
-        contact: otherPersonDetails.countryCode + ' ' + otherPersonDetails.phone,
-        countryCode: otherPersonDetails.countryCode,
+        name: otherPersonDetails?.name,
+        email: otherPersonDetails?.email,
+        contact: otherPersonDetails?.countryCode + ' ' + otherPersonDetails?.phone,
+        countryCode: otherPersonDetails?.countryCode,
       } : null,
       date: bookingData.date,
       time: bookingData.timeSlot,
@@ -183,7 +183,13 @@ export default function Checkout() {
         if (response?.succeeded || response?.ResponseData) {
           const successMessage = response?.ResponseMessage || 'Booking created successfully!';
           handleSuccessToast(successMessage);
-          navigation.navigate(SCREEN_NAMES.HOME, { bookingData: fbookingData });
+          setTimeout(() => {
+            // Navigate to BookingList tab using nested navigation
+            navigation.navigate(SCREEN_NAMES.HOME, {
+              screen: SCREEN_NAMES.BOOKING_LIST,
+              params: { bookingData: fbookingData },
+            });
+          }, 800);
         } else {
           handleApiFailureResponse(response, 'Failed to create booking. Please try again.');
         }

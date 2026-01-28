@@ -40,35 +40,35 @@ export default function PaymentMethodModal({
     onClose();
   };
 
-  const renderPaymentIcon = (method: PaymentMethod) => {
-    switch (method) {
-      case 'paypal':
-        return (
-          <View style={styles.paymentIconContainer}>
-            <CustomText style={styles.paypalLogo}>PayPal</CustomText>
-          </View>
-        );
-      case 'stripe':
-        return (
-          <View style={[styles.paymentIconContainer, styles.stripeIconContainer]}>
-            <CustomText style={styles.stripeLogo}>S</CustomText>
-          </View>
-        );
-      case 'cash':
-        return (
-          <View style={styles.paymentIconContainer}>
-            <VectoreIcons
-              name="cash"
-              icon="Ionicons"
-              size={theme.SF(24)}
-              color={theme.colors.primary}
-            />
-          </View>
-        );
-      default:
-        return null;
-    }
-  };
+  // const renderPaymentIcon = (method: PaymentMethod) => {
+  //   switch (method) {
+  //     case 'paypal':
+  //       return (
+  //         <View style={styles.paymentIconContainer}>
+  //           <CustomText style={styles.paypalLogo}>PayPal</CustomText>
+  //         </View>
+  //       );
+  //     case 'stripe':
+  //       return (
+  //         <View style={[styles.paymentIconContainer, styles.stripeIconContainer]}>
+  //           <CustomText style={styles.stripeLogo}>S</CustomText>
+  //         </View>
+  //       );
+  //     case 'cash':
+  //       return (
+  //         <View style={styles.paymentIconContainer}>
+  //           <VectoreIcons
+  //             name="cash"
+  //             icon="Ionicons"
+  //             size={theme.SF(24)}
+  //             color={theme.colors.primary}
+  //           />
+  //         </View>
+  //       );
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   return (
     <Modal
@@ -76,6 +76,7 @@ export default function PaymentMethodModal({
       transparent={true}
       animationType="slide"
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
@@ -104,7 +105,7 @@ export default function PaymentMethodModal({
                   onPress={() => setSelectedMethod(method.id)}
                 >
                   <View style={styles.paymentOptionContent}>
-                    {renderPaymentIcon(method.id)}
+                    {/* {renderPaymentIcon(method.id)} */}
                     <CustomText style={styles.paymentOptionText}>{method.label}</CustomText>
                   </View>
                   <Checkbox
@@ -213,7 +214,7 @@ const createStyles = (theme: ThemeType) => {
     },
     confirmButton: {
       borderRadius: SF(12),
-      paddingVertical: SH(14),
+      // paddingVertical: SH(14),
     },
   });
 };

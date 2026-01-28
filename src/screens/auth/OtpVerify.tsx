@@ -15,6 +15,8 @@ import { useAppDispatch } from '@store/hooks';
 import { setCityId, setCountryId, setCredentials } from '@store/slices/authSlice';
 import { showToast } from '@components/common/CustomToast';
 import { SCREEN_NAMES } from '@navigation';
+import { setUserCity } from '@store/slices/appSlice';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const OtpVerify = () => {
     const theme = useThemeContext();
@@ -55,7 +57,7 @@ const OtpVerify = () => {
             showToast({
                 type: 'error',
                 title: t('messages.error'),
-                message:  t('otpverify.enterValidOtp'),
+                message: t('otpverify.enterValidOtp'),
             });
             return;
         }
@@ -89,6 +91,7 @@ const OtpVerify = () => {
                     );
                     dispatch(setCityId(customer.city));
                     dispatch(setCountryId(customer.country));
+                    dispatch(setUserCity(customer.city));
                     showToast({
                         type: 'success',
                         title: t('messages.success'),
@@ -97,7 +100,7 @@ const OtpVerify = () => {
 
                     // Navigate to interest choose or home
                     setTimeout(() => {
-                        navigate(SCREEN_NAMES.INTEREST_CHOOSE,{prevScreen: 'auth'});
+                        navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
                     }, 1000);
 
                 } else {
@@ -189,66 +192,75 @@ const OtpVerify = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
-            <ImageComp
-                imageSource={imagePaths.otp_verify_img}
-                marginLeft={'auto'}
-                marginRight={'auto'}
-                marginBottom={20}
-                height={theme.SH(233)}
-                width={theme.SW(233)}
-                marginTop={10 + statusBarHeight}
-            />
-            <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
-                <CustomText
-                    variant="h3"
-                    textAlign={'center'}
-                    color={Colors.whitetext}
-                    fontFamily={fonts.SEMI_BOLD}
-                    marginTop={theme.margins.lg}
-                >
-                    {t('otpverify.title')}
-                </CustomText>
-                <CustomText
-                    variant="h5"
-                    textAlign={'center'}
-                    color={Colors.whitetext}
-                    fontFamily={fonts.REGULAR}
-                    marginTop={theme.margins.md}
-                >
-                    {t('otpverify.subtitle')}
-                </CustomText>
-
-                <OTPTextView
-                    ref={input}
-                    textInputStyle={styles.textInputContainer}
-                    handleTextChange={(val) => {
-                        setOtp(val);
-                    }}
-                    inputCount={4}
-                    keyboardType="numeric"
-                    tintColor={theme.colors.white}
-                    autoFocus
+            <KeyboardAwareScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+                enableOnAndroid={false}
+                extraScrollHeight={100}
+                keyboardShouldPersistTaps="handled"
+                enableResetScrollToCoords={false}
+            >
+                <ImageComp
+                    imageSource={imagePaths.otp_verify_img}
+                    marginLeft={'auto'}
+                    marginRight={'auto'}
+                    marginBottom={20}
+                    height={theme.SH(233)}
+                    width={theme.SW(233)}
+                    marginTop={10 + statusBarHeight}
                 />
-                <View style={styles.resteTextCont}>
+                <AuthBottomContainer style={{ paddingVertical: theme.SH(40), paddingHorizontal: theme.SW(25) }}>
                     <CustomText
-                        color={'#ffffff'}
-                        textAlign={'right'}
-                        onPress={handleResendOtp}
-                        style={styles.resteText}
+                        variant="h3"
+                        textAlign={'center'}
+                        color={Colors.whitetext}
+                        fontFamily={fonts.SEMI_BOLD}
+                        marginTop={theme.margins.lg}
                     >
-                        {status === 'running' ? formatTime(time) : t('otpverify.resendOTP')}
+                        {t('otpverify.title')}
                     </CustomText>
-                </View>
-                <CustomButton
-                    title={t('otpverify.verify')}
-                    backgroundColor={theme.colors.white}
-                    textColor={theme.colors.primary}
-                    marginTop={theme.SH(200)}
-                    onPress={handleVerifyOtp}
-                    isLoading={verifyOtpMutation.isPending}
-                    disable={verifyOtpMutation.isPending || otp.length !== 4}
-                />
-            </AuthBottomContainer>
+                    <CustomText
+                        variant="h5"
+                        textAlign={'center'}
+                        color={Colors.whitetext}
+                        fontFamily={fonts.REGULAR}
+                        marginTop={theme.margins.md}
+                    >
+                        {t('otpverify.subtitle')}
+                    </CustomText>
+
+                    <OTPTextView
+                        ref={input}
+                        textInputStyle={styles.textInputContainer}
+                        handleTextChange={(val) => {
+                            setOtp(val);
+                        }}
+                        inputCount={4}
+                        keyboardType="numeric"
+                        tintColor={theme.colors.white}
+                        autoFocus
+                    />
+                    <View style={styles.resteTextCont}>
+                        <CustomText
+                            color={'#ffffff'}
+                            textAlign={'right'}
+                            onPress={handleResendOtp}
+                            style={styles.resteText}
+                        >
+                            {status === 'running' ? formatTime(time) : t('otpverify.resendOTP')}
+                        </CustomText>
+                    </View>
+                    <CustomButton
+                        title={t('otpverify.verify')}
+                        backgroundColor={theme.colors.white}
+                        textColor={theme.colors.primary}
+                        marginTop={theme.SH(200)}
+                        onPress={handleVerifyOtp}
+                        isLoading={verifyOtpMutation.isPending}
+                        disable={verifyOtpMutation.isPending || otp.length !== 4}
+                    />
+                </AuthBottomContainer>
+            </KeyboardAwareScrollView>
         </Container>
     );
 };

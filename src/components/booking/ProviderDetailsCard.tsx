@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { CustomText, VectoreIcons, ImageLoader } from '@components/common';
+import { View, StyleSheet } from 'react-native';
+import { CustomText, ImageLoader } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
 
@@ -15,7 +15,7 @@ export default function ProviderDetailsCard({
   providerName,
   providerPhone,
   providerImage,
-  onCall,
+  // onCall,
 }: ProviderDetailsCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -50,8 +50,16 @@ export default function ProviderDetailsCard({
           >
             {providerName}
           </CustomText>
+          <CustomText
+            fontSize={theme.fontSize.xs}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.primary}
+            style={styles.detailText}
+          >
+            {providerPhone}
+          </CustomText>
         </View>
-        <Pressable
+        {/* <Pressable
           style={styles.callButton}
           onPress={() => onCall(providerPhone)}
         >
@@ -61,27 +69,9 @@ export default function ProviderDetailsCard({
             size={theme.SF(20)}
             color={theme.colors.primary}
           />
-        </Pressable>
+        </Pressable> */}
       </View>
-      <Pressable
-        style={styles.detailRow}
-        onPress={() => onCall(providerPhone)}
-      >
-        <VectoreIcons
-          name="call-outline"
-          icon="Ionicons"
-          size={theme.SF(18)}
-          color={theme.colors.lightText}
-        />
-        <CustomText
-          fontSize={theme.fontSize.sm}
-          fontFamily={theme.fonts.REGULAR}
-          color={theme.colors.primary}
-          style={styles.detailText}
-        >
-          {providerPhone}
-        </CustomText>
-      </Pressable>
+
     </View>
   );
 }
@@ -90,9 +80,10 @@ const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     card: {
       backgroundColor: theme.colors.white,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.SW(16),
-      marginBottom: theme.SH(16),
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(10),
+      marginBottom: theme.SH(10),
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
@@ -136,10 +127,9 @@ const createStyles = (theme: ThemeType) =>
       marginBottom: theme.SH(12),
     },
     detailText: {
-      marginLeft: theme.SW(12),
       flex: 1,
     },
     titleContainer: {
-      marginBottom: theme.SH(12),
+      marginBottom: theme.SH(10),
     },
   });

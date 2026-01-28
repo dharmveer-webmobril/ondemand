@@ -28,7 +28,7 @@ export default function Home() {
     refetch: refetchBanners
   } = useGetBanners();
 
-  const currentCityId = useAppSelector(state => state.app.userCityId);
+  const currentCityId = useAppSelector(state => state.app.userCity)?._id;
   const {
     data: providersData,
     isFetching: providerLoading,

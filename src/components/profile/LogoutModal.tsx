@@ -31,6 +31,7 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
             visible={visible}
             animationType="slide"
             onRequestClose={onClose}
+            statusBarTranslucent={true}
         >
             <Pressable style={styles.overlay} onPress={onClose}>
                 <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>

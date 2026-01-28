@@ -79,10 +79,14 @@ export default function ChangePassword() {
         title={t('profile.changePassword')}
         onLeftPress={() => navigation.goBack()}
       />
-      <KeyboardAwareScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+   <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
-        extraScrollHeight={theme.SH(40)}>
+        contentContainerStyle={styles.scrollViewContent}
+        enableOnAndroid={false}
+        extraScrollHeight={100}
+        keyboardShouldPersistTaps="handled"
+        enableResetScrollToCoords={false}
+      >
         <View style={styles.formSection}>
           <View style={styles.inputContainer}>
             <CustomText style={styles.label}>
@@ -158,6 +162,9 @@ export default function ChangePassword() {
 }
 
 const createStyles = (theme: ThemeType) => StyleSheet.create({
+  scrollViewContent: {
+  flexGrow: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background || '#F7F7F7',

@@ -284,12 +284,12 @@ export default function ProfileSetup() {
         onLeftPress={() => navigation.goBack()}
       />
       <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        enableOnAndroid={true}
+        enableOnAndroid={false}
         extraScrollHeight={100}
         keyboardShouldPersistTaps="handled"
         enableResetScrollToCoords={false}
-        showsVerticalScrollIndicator={false}
       >
 
         {/* Profile Picture Section */}

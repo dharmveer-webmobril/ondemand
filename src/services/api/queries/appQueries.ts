@@ -668,10 +668,10 @@ export interface CustomerBookingsResponse {
 
 // Get Customer Bookings
 export const useGetCustomerBookings = (page: number = 1, limit: number = 10) => {
-    return useQuery<CustomerBookingsResponse>({
+    return useQuery<any>({
         queryKey: ['customerBookings', page, limit],
         queryFn: async () => {
-            const response = await axiosInstance.get<CustomerBookingsResponse>(
+            const response = await axiosInstance.get<any>(
                 `${EndPoints.GET_CUSTOMER_BOOKINGS}?page=${page}&limit=${limit}`
             );
             return response.data;
@@ -702,5 +702,82 @@ export const useGetBookingDetail = (bookingId: string | null) => {
             return response.data;
         },
         enabled: !!bookingId,
+    });
+};
+
+// Cancel Booking Request/Response interfaces
+export interface CancelBookingRequest {
+    reason: string;
+}
+
+export interface CancelBookingResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: any;
+}
+
+// Cancel Booking (whole booking or service)
+export const useCancelBooking = () => {
+    return useMutation<CancelBookingResponse, Error, { bookingId: string; reason: string }>({
+        mutationFn: async ({ bookingId, reason }) => {
+            const response = await axiosInstance.put<CancelBookingResponse>(
+                `${EndPoints.CANCEL_BOOKING(bookingId)}`,
+                { reason }
+            );
+            return response.data;
+        },
+    });
+};
+
+// Cancel Service Request/Response interfaces
+export interface CancelServiceRequest {
+    reason: string;
+}
+
+export interface CancelServiceResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: any;
+}
+
+// Cancel Service (specific service in booking)
+export const useCancelService = () => {
+    return useMutation<CancelServiceResponse, Error, { serviceId: string; reason: string }>({
+        mutationFn: async ({ serviceId, reason }) => {
+            const response = await axiosInstance.put<CancelServiceResponse>(
+                `${EndPoints.CANCEL_BOOKING_SERVICE(serviceId)}`,
+                { reason }
+            );
+            return response.data;
+        },
+    });
+};
+
+// Reschedule Service Request/Response interfaces
+export interface RescheduleServiceRequest {
+    date: string;
+    time: string;
+    reason: string;
+}
+
+export interface RescheduleServiceResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: any;
+}
+
+// Reschedule Service
+export const useRescheduleService = () => {
+    return useMutation<RescheduleServiceResponse, Error, { serviceId: string; data: RescheduleServiceRequest }>({
+        mutationFn: async ({ serviceId, data }) => {
+            const response = await axiosInstance.put<RescheduleServiceResponse>(
+                `${EndPoints.RESCHEDULE_BOOKING_SERVICE(serviceId)}`,
+                data
+            );
+            return response.data;
+        },
     });
 };

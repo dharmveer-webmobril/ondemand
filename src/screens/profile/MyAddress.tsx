@@ -20,7 +20,7 @@ export default function MyAddress() {
   const addresses = addressesData?.ResponseData || [];
 
   const handleAddNewAddress = () => {
-    navigation.navigate('AddAddress', { mode: 'add' });
+    navigation.navigate('AddAddress', { prevScreen: 'my-address' });
   };
 
 

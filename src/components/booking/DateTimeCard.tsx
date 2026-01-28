@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+import { CustomText,  VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
 type DateTimeCardProps = {
   date: string;
   time: string;
-  onReschedule: () => void;
+  onReschedule?: () => void;
 };
 
-export default function DateTimeCard({ date, time, onReschedule }: DateTimeCardProps) {
+export default function DateTimeCard({ date, time }: DateTimeCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -56,15 +56,7 @@ export default function DateTimeCard({ date, time, onReschedule }: DateTimeCardP
           {time}
         </CustomText>
       </View>
-      <CustomButton
-        title="Reschedule"
-        onPress={onReschedule}
-        backgroundColor={theme.colors.primary}
-        textColor={theme.colors.white}
-        buttonStyle={styles.rescheduleButton}
-        buttonTextStyle={styles.rescheduleButtonText}
-        marginTop={theme.SH(12)}
-      />
+     
     </View>
   );
 }
@@ -73,9 +65,10 @@ const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     card: {
       backgroundColor: theme.colors.white,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.SW(16),
-      marginBottom: theme.SH(16),
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(10),
+      marginBottom: theme.SH(10),
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
@@ -88,7 +81,7 @@ const createStyles = (theme: ThemeType) =>
     detailRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: theme.SH(12),
+      marginBottom: theme.SH(8),
     },
     detailText: {
       marginLeft: theme.SW(12),
@@ -101,6 +94,6 @@ const createStyles = (theme: ThemeType) =>
       fontSize: theme.fontSize.sm,
     },
     titleContainer: {
-      marginBottom: theme.SH(12),
+      marginBottom: theme.SH(10),
     },
   });

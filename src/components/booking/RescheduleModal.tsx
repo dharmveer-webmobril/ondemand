@@ -6,106 +6,154 @@ import {
   Pressable,
   FlatList,
   Platform,
+  ScrollView,
 } from 'react-native';
-import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+import { Calendar, DateData } from 'react-native-calendars';
+import { CustomText, CustomButton, VectoreIcons, CustomInput, LoadingComp } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
+import { generateTimeSlots } from '@utils/timeSlotUtils';
+import { useGetServiceProviderAvailability } from '@services/index';
 
-type TimeSlot = {
-  id: string;
-  time: string;
-  available: boolean;
+// Format date to YYYY-MM-DD
+const formatDateToString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 type RescheduleModalProps = {
   visible: boolean;
   onClose: () => void;
-  onConfirm: (date: string, time: string) => void;
+  onConfirm: (date: string, time: string, reason: string) => void;
   currentDate: string;
   currentTime: string;
+  spId?: string | null;
+  isLoading?: boolean;
 };
-
-const generateCalendarDays = () => {
-  const days = [];
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  
-  for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(currentYear, currentMonth, i);
-    const dayOfWeek = date.getDay();
-    const isToday = i === today.getDate();
-    days.push({
-      day: i,
-      dayName: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][dayOfWeek],
-      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      date: date,
-      isToday,
-    });
-  }
-  return days;
-};
-
-const timeSlots: TimeSlot[] = [
-  { id: '1', time: '8:00 am', available: true },
-  { id: '2', time: '8:30 am', available: true },
-  { id: '3', time: '9:00 am', available: true },
-  { id: '4', time: '9:30 am', available: true },
-  { id: '5', time: '10:00 am', available: true },
-  { id: '6', time: '10:30 am', available: true },
-  { id: '7', time: '11:00 am', available: false },
-  { id: '8', time: '11:30 am', available: true },
-  { id: '9', time: '12:00 pm', available: true },
-  { id: '10', time: '12:30 pm', available: true },
-  { id: '11', time: '1:00 pm', available: true },
-  { id: '12', time: '1:30 pm', available: true },
-  { id: '13', time: '2:00 pm', available: true },
-  { id: '14', time: '2:30 pm', available: true },
-  { id: '15', time: '3:00 pm', available: true },
-  { id: '16', time: '3:30 pm', available: true },
-  { id: '17', time: '4:00 pm', available: true },
-  { id: '18', time: '4:30 pm', available: true },
-  { id: '19', time: '5:00 pm', available: true },
-  { id: '20', time: '5:30 pm', available: true },
-];
 
 export default function RescheduleModal({
   visible,
   onClose,
   onConfirm,
   currentDate,
-  currentTime,
+  currentTime: _currentTime,
+  spId,
+  isLoading = false,
 }: RescheduleModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const calendarDays = useMemo(() => generateCalendarDays(), []);
-  const monthName = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  const [selectedDate, setSelectedDate] = useState<number | null>(null);
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+  const todayString = useMemo(() => formatDateToString(today), [today]);
+
+  // Parse current date to set initial selected date
+  const initialDate = useMemo(() => {
+    try {
+      // Try to parse currentDate (could be in various formats)
+      const parsed = new Date(currentDate);
+      if (!isNaN(parsed.getTime())) {
+        const formatted = formatDateToString(parsed);
+        return parsed >= today ? formatted : todayString;
+      }
+    } catch {
+      // If parsing fails, use today
+    }
+    return todayString;
+  }, [currentDate, today, todayString]);
+
+  const [selectedDateString, setSelectedDateString] = useState<string>(initialDate);
+  const [currentMonth, setCurrentMonth] = useState<string>(() => {
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [reason, setReason] = useState<string>('');
+
+  // Fetch availability for selected date
+  const {
+    data: availabilityData,
+    isLoading: isLoadingAvailability,
+    isError: isErrorAvailability,
+    isFetching: isFetchingAvailability,
+  } = useGetServiceProviderAvailability(spId || null, selectedDateString);
+
+  // Generate time slots based on availability (in 24-hour format)
+  const timeSlots = useMemo(() => {
+    if (!availabilityData?.ResponseData?.availability) {
+      return [];
+    }
+    const availability = availabilityData.ResponseData.availability;
+    if (!availabilityData.ResponseData.available || availability.close) {
+      return [];
+    }
+    return generateTimeSlots(availability.startTime, availability.endTime, availability.close);
+  }, [availabilityData]);
+
+  // Handle date selection from Calendar
+  const handleDayPress = useCallback((day: DateData) => {
+    const selectedDate = new Date(day.dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    // Don't allow selecting past dates
+    if (selectedDate < today) {
+      return;
+    }
+
+    setSelectedDateString(day.dateString);
+    setSelectedTimeSlot(null); // Reset time slot when date changes
+  }, [today]);
+
+  // Handle month change
+  const handleMonthChange = useCallback((month: { month: number; year: number }) => {
+    const monthString = `${month.year}-${String(month.month).padStart(2, '0')}`;
+    setCurrentMonth(monthString);
+  }, []);
+
+  // Marked dates for calendar
+  const markedDates = useMemo(() => {
+    return {
+      [selectedDateString]: {
+        selected: true,
+        selectedColor: theme.colors.primary,
+        selectedTextColor: theme.colors.white,
+      },
+    };
+  }, [selectedDateString, theme.colors.primary, theme.colors.white]);
 
   const handleConfirm = useCallback(() => {
-    if (selectedDate && selectedTimeSlot) {
+    if (selectedDateString && selectedTimeSlot && reason.trim()) {
       const selectedTime = timeSlots.find(slot => slot.id === selectedTimeSlot);
       if (selectedTime) {
-        const dateStr = `${selectedDate}-${new Date().toLocaleString('default', { month: 'short', year: 'numeric' })}`;
-        onConfirm(dateStr, selectedTime.time);
+        onConfirm(selectedDateString, selectedTime.time, reason.trim());
+        // Reset form
+        setReason('');
+        setSelectedTimeSlot(null);
       }
     }
-  }, [selectedDate, selectedTimeSlot, onConfirm]);
+  }, [selectedDateString, selectedTimeSlot, reason, timeSlots, onConfirm]);
 
-  const formatDate = useCallback((day: number) => {
-    const today = new Date();
-    const date = new Date(today.getFullYear(), today.getMonth(), day);
-    return date.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' });
-  }, []);
+  const handleClose = useCallback(() => {
+    if (!isLoading) {
+      setReason('');
+      setSelectedTimeSlot(null);
+      setSelectedDateString(initialDate);
+      onClose();
+    }
+  }, [onClose, initialDate, isLoading]);
 
   return (
     <Modal
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
+      statusBarTranslucent={true}
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
@@ -118,7 +166,7 @@ export default function RescheduleModal({
             >
               Reschedule Booking
             </CustomText>
-            <Pressable onPress={onClose} style={styles.closeButton}>
+            <Pressable onPress={handleClose} style={styles.closeButton} disabled={isLoading}>
               <VectoreIcons
                 name="close"
                 icon="Ionicons"
@@ -128,121 +176,170 @@ export default function RescheduleModal({
             </Pressable>
           </View>
 
-          <View style={styles.content}>
-            {/* Date Selection */}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Calendar Section */}
             <View style={styles.section}>
               <CustomText
                 fontSize={theme.fontSize.md}
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
-                marginBottom={theme.SH(12)}
+                style={{ marginBottom: theme.SH(12) }}
               >
                 Select Date
+              </CustomText>
+              <View style={styles.calendarContainer}>
+                <Calendar
+                  current={currentMonth}
+                  onDayPress={handleDayPress}
+                  onMonthChange={handleMonthChange}
+                  markedDates={markedDates}
+                  minDate={todayString}
+                  disableAllTouchEventsForDisabledDays
+                  enableSwipeMonths
+                  theme={{
+                    backgroundColor: theme.colors.white,
+                    calendarBackground: theme.colors.white,
+                    textSectionTitleColor: theme.colors.text,
+                    selectedDayBackgroundColor: theme.colors.primary,
+                    selectedDayTextColor: theme.colors.white,
+                    todayTextColor: theme.colors.primary,
+                    dayTextColor: theme.colors.text,
+                    textDisabledColor: theme.colors.lightText,
+                    dotColor: theme.colors.primary,
+                    selectedDotColor: theme.colors.white,
+                    arrowColor: theme.colors.primary,
+                    monthTextColor: theme.colors.text,
+                    textDayFontFamily: theme.fonts.REGULAR,
+                    textMonthFontFamily: theme.fonts.SEMI_BOLD,
+                    textDayHeaderFontFamily: theme.fonts.MEDIUM,
+                    textDayFontSize: theme.fontSize.sm,
+                    textMonthFontSize: theme.fontSize.lg,
+                    textDayHeaderFontSize: theme.fontSize.xs,
+                  } as any}
+                  style={styles.calendar}
+                />
+              </View>
+            </View>
+
+            {/* Time Slots Section */}
+            <View style={styles.section}>
+              <CustomText
+                fontSize={theme.fontSize.md}
+                fontFamily={theme.fonts.SEMI_BOLD}
+                color={theme.colors.text}
+                style={{ marginBottom: theme.SH(12) }}
+              >
+                Select Time
+              </CustomText>
+              {isLoadingAvailability || isFetchingAvailability ? (
+                <View style={styles.slotsLoaderContainer}>
+                  <LoadingComp visible={true} />
+                  <CustomText
+                    fontSize={theme.fontSize.sm}
+                    fontFamily={theme.fonts.REGULAR}
+                    color={theme.colors.lightText}
+                    style={{ marginTop: theme.SH(8) }}
+                  >
+                    Loading available slots...
+                  </CustomText>
+                </View>
+              ) : isErrorAvailability || !availabilityData?.ResponseData?.available || timeSlots.length === 0 ? (
+                <View style={styles.notAvailableContainer}>
+                  <CustomText
+                    fontSize={theme.fontSize.sm}
+                    fontFamily={theme.fonts.REGULAR}
+                    color={theme.colors.lightText}
+                    textAlign="center"
+                  >
+                    {isErrorAvailability
+                      ? 'Not available'
+                      : availabilityData?.ResponseData?.availability?.close
+                        ? 'Closed on this date'
+                        : 'No slots available for this date'}
+                  </CustomText>
+                </View>
+              ) : (
+                <FlatList
+                  data={timeSlots}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.timeSlotsContainer}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => {
+                    const isSelected = selectedTimeSlot === item.id;
+                    const isAvailable = item.available;
+                    return (
+                      <Pressable
+                        onPress={() => { isAvailable && setSelectedTimeSlot(item.id); }}
+                        disabled={!isAvailable}
+                        style={({ pressed }) => [
+                          styles.timeSlot,
+                          isSelected && styles.selectedTimeSlot,
+                          !isAvailable && styles.unavailableTimeSlot,
+                          pressed && isAvailable && { opacity: 0.7 },
+                        ]}
+                      >
+                        <CustomText
+                          style={[
+                            styles.timeSlotText,
+                            isSelected ? styles.selectedTimeSlotText : {},
+                            !isAvailable ? styles.unavailableText : {},
+                          ]}
+                        >
+                          {item.time}
+                        </CustomText>
+                      </Pressable>
+                    );
+                  }}
+                />
+              )}
+            </View>
+
+            {/* Reason Input Section */}
+            <View style={styles.section}>
+              <CustomText
+                fontSize={theme.fontSize.md}
+                fontFamily={theme.fonts.SEMI_BOLD}
+                color={theme.colors.text}
+                style={{ marginBottom: theme.SH(12) }}
+              >
+                Reason for Rescheduling
               </CustomText>
               <CustomText
                 fontSize={theme.fontSize.sm}
                 fontFamily={theme.fonts.REGULAR}
                 color={theme.colors.lightText}
-                marginBottom={theme.SH(12)}
+                style={{ marginBottom: theme.SH(8) }}
               >
-                {monthName}
+                Please provide a reason for rescheduling (required)
               </CustomText>
-              <FlatList
-                data={calendarDays}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.day.toString()}
-                contentContainerStyle={styles.calendarContainer}
-                renderItem={({ item }) => {
-                  const isSelected = selectedDate === item.day;
-                  return (
-                    <Pressable
-                      onPress={() => setSelectedDate(item.day)}
-                      style={({ pressed }) => [
-                        styles.dateItem,
-                        isSelected && styles.selectedDateItem,
-                        item.isToday && !isSelected && styles.todayDateItem,
-                        pressed && { opacity: 0.7 },
-                      ]}
-                    >
-                      <CustomText
-                        fontSize={theme.fontSize.xxs}
-                        fontFamily={theme.fonts.REGULAR}
-                        color={isSelected ? theme.colors.white : theme.colors.lightText}
-                      >
-                        {item.dayName}
-                      </CustomText>
-                      <CustomText
-                        fontSize={theme.fontSize.sm}
-                        fontFamily={theme.fonts.SEMI_BOLD}
-                        color={isSelected ? theme.colors.white : theme.colors.text}
-                        marginTop={theme.SH(4)}
-                      >
-                        {item.day}
-                      </CustomText>
-                    </Pressable>
-                  );
-                }}
+              <CustomInput
+                placeholder="Enter reason for rescheduling..."
+                value={reason}
+                onChangeText={setReason}
+                multiline
+                numberOfLines={4}
+                maxLength={500}
+                inputTheme="default"
+                withBackground={theme.colors.secondary}
+                isEditable={!isLoading}
               />
             </View>
-
-            {/* Time Selection */}
-            <View style={styles.section}>
-              <CustomText
-                fontSize={theme.fontSize.md}
-                fontFamily={theme.fonts.SEMI_BOLD}
-                color={theme.colors.text}
-                marginBottom={theme.SH(12)}
-              >
-                Select Time
-              </CustomText>
-              <FlatList
-                data={timeSlots}
-                numColumns={4}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.timeSlotsContainer}
-                renderItem={({ item }) => {
-                  const isSelected = selectedTimeSlot === item.id;
-                  return (
-                    <Pressable
-                      onPress={() => item.available && setSelectedTimeSlot(item.id)}
-                      disabled={!item.available}
-                      style={({ pressed }) => [
-                        styles.timeSlot,
-                        isSelected && styles.selectedTimeSlot,
-                        !item.available && styles.unavailableTimeSlot,
-                        pressed && item.available && { opacity: 0.7 },
-                      ]}
-                    >
-                      <CustomText
-                        fontSize={theme.fontSize.xs}
-                        fontFamily={theme.fonts.MEDIUM}
-                        color={
-                          isSelected
-                            ? theme.colors.white
-                            : !item.available
-                            ? theme.colors.lightText
-                            : theme.colors.text
-                        }
-                      >
-                        {item.time}
-                      </CustomText>
-                    </Pressable>
-                  );
-                }}
-              />
-            </View>
-          </View>
+          </ScrollView>
 
           {/* Footer Buttons */}
           <View style={styles.footer}>
             <CustomButton
               title="Cancel"
-              onPress={onClose}
+              onPress={handleClose}
               backgroundColor={theme.colors.secondary}
               textColor={theme.colors.text}
               buttonStyle={styles.cancelButton}
-              marginRight={theme.SW(8)}
+              disable={isLoading}
             />
             <CustomButton
               title="Confirm"
@@ -250,7 +347,8 @@ export default function RescheduleModal({
               backgroundColor={theme.colors.primary}
               textColor={theme.colors.white}
               buttonStyle={styles.confirmButton}
-              disable={!selectedDate || !selectedTimeSlot}
+              disable={!selectedDateString || !selectedTimeSlot || !reason.trim() || isLoading}
+              isLoading={isLoading}
             />
           </View>
         </View>
@@ -287,57 +385,72 @@ const createStyles = (theme: ThemeType) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    scrollView: {
+      flexGrow: 1,
+    },
     content: {
       padding: theme.SW(16),
-      maxHeight: '70%',
     },
     section: {
       marginBottom: theme.SH(24),
     },
     calendarContainer: {
-      paddingVertical: theme.SH(8),
+      backgroundColor: theme.colors.white,
+      borderRadius: theme.borderRadius.lg,
+      overflow: 'hidden',
     },
-    dateItem: {
-      width: theme.SW(50),
-      height: theme.SH(70),
-      borderRadius: theme.borderRadius.md,
-      backgroundColor: theme.colors.secondary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: theme.SW(8),
-    },
-    selectedDateItem: {
-      backgroundColor: theme.colors.primary,
-    },
-    todayDateItem: {
-      borderWidth: 2,
-      borderColor: theme.colors.primary,
+    calendar: {
+      borderRadius: theme.borderRadius.lg,
+      paddingVertical: theme.SH(10),
     },
     timeSlotsContainer: {
+      gap: theme.SW(12),
       paddingVertical: theme.SH(8),
     },
     timeSlot: {
-      flex: 1,
-      minWidth: '22%',
-      margin: theme.SW(4),
-      paddingVertical: theme.SH(12),
-      paddingHorizontal: theme.SW(8),
+      paddingHorizontal: theme.SW(20),
+      paddingVertical: theme.SH(10),
       borderRadius: theme.borderRadius.md,
-      backgroundColor: theme.colors.secondary,
-      justifyContent: 'center',
-      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.gray || '#E0E0E0',
+      backgroundColor: theme.colors.white,
     },
     selectedTimeSlot: {
       backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
     },
     unavailableTimeSlot: {
       opacity: 0.5,
+    },
+    timeSlotText: {
+      fontSize: theme.fontSize.sm,
+      fontFamily: theme.fonts.MEDIUM,
+      color: theme.colors.text,
+    },
+    selectedTimeSlotText: {
+      color: theme.colors.white,
+    },
+    unavailableText: {
+      color: theme.colors.lightText,
+    },
+    slotsLoaderContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.SW(12),
+      paddingVertical: theme.SH(20),
+    },
+    notAvailableContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: theme.SH(20),
     },
     footer: {
       flexDirection: 'row',
       padding: theme.SW(16),
       borderTopWidth: 1,
       borderTopColor: theme.colors.gray,
+      gap: theme.SW(8),
     },
     cancelButton: {
       flex: 1,

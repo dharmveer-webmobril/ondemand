@@ -4,6 +4,7 @@ import {
   StyleSheet,
   View,
   TouchableWithoutFeedback,
+  Pressable,
   // TouchableOpacity,
 } from 'react-native';
 import {
@@ -15,6 +16,7 @@ import {
   // VectoreIcons,
   Checkbox,
   LoadingComp,
+  CountryModal,
 } from '@components';
 import { addAddressSchema, Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '@utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -49,10 +51,14 @@ const AddAddress: React.FC = () => {
   const { addData, prevScreen = '' } = route.params || {};
   const addressTypes = ['home', 'office', 'other'];
   const [selectedAddressType, setSelectedAddressType] = useState<string>('home');
-  const { location, retry, isLoading: isLocationLoading } = useLocation();
+  const { location, retry } = useLocation();
   console.log('location', location,retry);
   
   const [isDefault, setIsDefault] = useState<boolean>(false);
+  const [showCityModal, setShowCityModal] = useState<boolean>(false);
+  
+  // Determine if city dropdown should be enabled
+  const isCityDropdownEnabled = prevScreen === 'my-address';
 
   const [isLoading, setIsLoading] = useState(false);
   console.log('setIsLoading', setIsLoading);
@@ -63,7 +69,7 @@ const AddAddress: React.FC = () => {
   // Get user details from Redux
   const userDetails = useAppSelector((state) => state.auth.userDetails);
   // const cityId = useAppSelector((state) => state.auth.cityId);
-  const cityId = useAppSelector((state) => state.app.userCityId);
+  const cityId = useAppSelector((state) => state.app.userCity)?._id;
   
   const countryId = useAppSelector((state) => state.auth.countryId);
 
@@ -72,9 +78,14 @@ const AddAddress: React.FC = () => {
     return cityId || userDetails?.city?._id || userDetails?.city || '';
   }, [cityId, userDetails]);
 
+  // Get country from userDetails (stored in Redux)
+  const userCountryId = useMemo(() => {
+    return userDetails?.country?._id || userDetails?.country || countryId || '';
+  }, [userDetails, countryId]);
+
   const defaultCountryId = useMemo(() => {
-    return countryId || userDetails?.country?._id || userDetails?.country || '';
-  }, [countryId, userDetails]);
+    return userCountryId;
+  }, [userCountryId]);
 
   // Extract city and country IDs from addData (handle both string ID and nested object)
   const editCityId = useMemo(() => {
@@ -87,10 +98,10 @@ const AddAddress: React.FC = () => {
     return typeof addData.country === 'string' ? addData.country : addData.country._id;
   }, [addData]);
 
-  // Get countries and cities data - use edit country ID if editing, otherwise use default
-  const currentCountryId = editCountryId || countryId || defaultCountryId;
+  // Get countries and cities data - use edit country ID if editing, otherwise use country from userDetails
+  const currentCountryId = editCountryId || userCountryId || defaultCountryId;
   const { data: countriesData } = useGetCountries();
-  const { data: citiesData } = useGetCities(currentCountryId || null);
+  const { data: citiesData, isLoading: citiesLoading } = useGetCities(currentCountryId || null);
 
   const countries = useMemo(() => countriesData?.ResponseData || [], [countriesData]);
   const cities = useMemo(() => citiesData?.ResponseData || [], [citiesData]);
@@ -179,6 +190,13 @@ const AddAddress: React.FC = () => {
     const foundCountry = countries.find((c: any) => c._id === formik.values.country);
     return foundCountry?.name || '';
   }, [formik.values.country, countries]);
+
+  // Handle city selection (receives city object from CountryModal)
+  const handleCitySelect = (city: any) => {
+    formik.setFieldValue('city', city._id);
+    formik.setFieldTouched('city', true);
+    setShowCityModal(false);
+  };
 
   useEffect(() => {
     if (addData) {
@@ -300,7 +318,7 @@ const AddAddress: React.FC = () => {
 
   return (
     <Container safeArea={true}>
-      <LoadingComp visible={isLoading || addAddressMutation.isPending || updateAddressMutation.isPending || formik.isSubmitting || isLocationLoading} />
+      <LoadingComp visible={isLoading} />
 
       <AppHeader
         title={addData?._id ? t('addAddress.edittitle') : t('addAddress.title')}
@@ -313,11 +331,13 @@ const AddAddress: React.FC = () => {
         leftIconName="arrowleft"
         containerStyle={styles.header}
       /> */}
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollViewContent}
+     <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
-        extraScrollHeight={SH(40)}
-        keyboardShouldPersistTaps='handled'
+        contentContainerStyle={styles.scrollViewContent}
+        enableOnAndroid={false}
+        extraScrollHeight={100}
+        keyboardShouldPersistTaps="handled"
+        enableResetScrollToCoords={false}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
@@ -520,17 +540,26 @@ const AddAddress: React.FC = () => {
               <CustomText style={styles.errorText}>{formik.errors.country}</CustomText>
             )}
             <CustomText style={styles.label}>{t('addAddress.placeholders.city') || 'City'}</CustomText>
-            <CustomInput
-              placeholder={t('addAddress.placeholders.city') || 'City'}
-              value={cityName}
-              onChangeText={() => { }} // Read-only, display only
-              onBlur={() => formik.setFieldTouched('city', true)}
-              errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
-              keyboardType="default"
-              maxLength={50}
-              isEditable={false}
-              marginTop={SH(5)}
-            />
+            <Pressable
+              onPress={() => {
+                if (isCityDropdownEnabled) {
+                  setShowCityModal(true);
+                }
+              }}
+              disabled={!isCityDropdownEnabled}
+            >
+              <CustomInput
+                placeholder={t('addAddress.placeholders.city') || 'City'}
+                value={cityName}
+                onChangeText={() => { }} // Read-only, display only
+                onBlur={() => formik.setFieldTouched('city', true)}
+                errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
+                keyboardType="default"
+                maxLength={50}
+                isEditable={false}
+                marginTop={SH(5)}
+              />
+            </Pressable>
             {formik.touched.city && formik.errors.city && (
               <CustomText style={styles.errorText}>{formik.errors.city}</CustomText>
             )}
@@ -592,6 +621,15 @@ const AddAddress: React.FC = () => {
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAwareScrollView>
+      <CountryModal
+        type="city"
+        data={cities || []}
+        visible={showCityModal}
+        onClose={() => setShowCityModal(false)}
+        onSelect={handleCitySelect}
+        selectedId={formik.values.city || null}
+        isLoading={citiesLoading}
+      />
     </Container>
   );
 };

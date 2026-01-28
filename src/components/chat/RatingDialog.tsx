@@ -30,7 +30,7 @@ export default function RatingDialog({ visible, onClose, onSubmit }: RatingDialo
   return (
     <Modal
       transparent
-      visible={visible}
+      visible={visible} statusBarTranslucent={true}
       animationType="fade"
       onRequestClose={onClose}
     >

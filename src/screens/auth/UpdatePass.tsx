@@ -125,9 +125,13 @@ const UpdatePass = () => {
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
             <KeyboardAwareScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
-                extraScrollHeight={theme.SH(40)}>
+                contentContainerStyle={{ flexGrow: 1 }}
+                enableOnAndroid={false}
+                extraScrollHeight={theme.SH(40)}
+                keyboardShouldPersistTaps="handled"
+                enableResetScrollToCoords={false}
+            >
                 <ImageComp
                     imageSource={imagePaths.forgot_img}
                     marginLeft={'auto'}

@@ -54,7 +54,7 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
     }
     const styles = createStyles(theme);
     return (
-        <Modal animationType="slide" transparent={true} visible={visible}>
+        <Modal animationType="slide" transparent={true} visible={visible} statusBarTranslucent={true}>
             <View style={styles.setbgcolorgrsay}>
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>

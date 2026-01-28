@@ -9,8 +9,8 @@ import imagePaths from '@assets';
 import { useProfile, useUpdateProfile } from '@services/api/queries/authQueries';
 import { useGetCities } from '@services/api/queries/appQueries';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { useQueryClient } from '@tanstack/react-query';
-import { setUserCityId } from '@store/slices/appSlice';
+// import { useQueryClient } from '@tanstack/react-query';
+import { setUserCity } from '@store/slices/appSlice';
 
 interface City {
   _id: string;
@@ -56,7 +56,7 @@ export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
     return citiesData?.ResponseData || [];
   }, [citiesData]);
 
-  const currentCityId = useAppSelector(state => state.app.userCityId);
+  const currentCityId = useAppSelector(state => state.app.userCity)?._id;
   // console.log('currentCityId--------HomeHeader', currentCityId);
   // console.log('cities--------HomeHeader', cities);
   const currentCity = useMemo(() => {
@@ -76,7 +76,7 @@ export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
   }, [currentCityId, cities]);
 
   const handleCitySelect = async (city: City) => {
-    dispatch(setUserCityId(city._id));
+    dispatch(setUserCity(city._id));
     // try {
     //   // Update only city in profile
     //   const data = {

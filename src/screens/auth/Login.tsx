@@ -16,6 +16,7 @@ import { setCityId, setCountryId, setCredentials } from '@store/slices/authSlice
 import { useLogin } from '@services';
 import { SCREEN_NAMES } from '@navigation';
 import { useDisableGestures } from '@utils/hooks';
+import { setUserCity } from '@store/slices/appSlice';
 
 export const socialButtons = [
     {
@@ -79,6 +80,7 @@ const Login = () => {
                     );
                     dispatch(setCityId(customer.city));
                     dispatch(setCountryId(customer.country));
+                    dispatch(setUserCity(customer.city));
                     showToast({
                         type: 'success',
                         title: t('messages.success'),
@@ -92,7 +94,7 @@ const Login = () => {
                     } else {
                         navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
                     }
-                    
+
                 } else if (!response.succeeded && response.ResponseCode === 200 && otp && note) {
                     showToast({
                         type: 'error',
@@ -141,10 +143,15 @@ const Login = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
+
             <KeyboardAwareScrollView
-                contentContainerStyle={styles.scrollViewContainer}
                 showsVerticalScrollIndicator={false}
-                extraScrollHeight={theme.SH(40)}>
+                contentContainerStyle={styles.scrollViewContainer}
+                enableOnAndroid={false}
+                extraScrollHeight={theme.SH(40)}
+                keyboardShouldPersistTaps="handled"
+                enableResetScrollToCoords={false}
+            >
                 <ImageComp
                     imageSource={imagePaths.login_img}
                     marginLeft={'auto'}

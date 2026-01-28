@@ -64,6 +64,7 @@ export { default as ServiceSelectionModal } from './provider/ServiceSelectionMod
 export { default as AddOnSelectionModal } from './provider/AddOnSelectionModal'
 export { default as ServiceCart } from './provider/ServiceCart'
 export { default as AddressSelectionModal } from './checkout/AddressSelectionModal'
+export { default as BookingServiceCard } from './booking/BookingServiceCard'
 export { default as ServiceSummeryCard } from './booking/ServiceSummeryCard'
 export { default as PaymentMethodModal } from './checkout/PaymentMethodModal'
 export { default as BookingHeader } from './booking/BookingHeader'
@@ -72,3 +73,4 @@ export { default as OtherPersonDetailsCard } from './booking/OtherPersonDetailsC
 export { default as BookingForCard } from './booking/BookingForCard'
 export { default as DateTimeCard } from './booking/DateTimeCard'
 export { default as AddressCard } from './booking/AddressCard'
+export { default as CancelBookingModal } from './booking/CancelBookingModal'

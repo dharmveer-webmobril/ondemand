@@ -219,9 +219,17 @@ const Signup = () => {
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
 
-            <KeyboardAwareScrollView
+            {/* <KeyboardAwareScrollView
                 contentContainerStyle={styles.contentContainer}
                 // enableOnAndroid={true}
+                extraScrollHeight={100}
+                keyboardShouldPersistTaps="handled"
+                enableResetScrollToCoords={false}
+            > */}
+            <KeyboardAwareScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.contentContainer}
+                enableOnAndroid={false}
                 extraScrollHeight={100}
                 keyboardShouldPersistTaps="handled"
                 enableResetScrollToCoords={false}

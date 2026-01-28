@@ -53,9 +53,10 @@ const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     card: {
       backgroundColor: theme.colors.white,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.SW(16),
-      marginBottom: theme.SH(16),
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(10),
+      marginBottom: theme.SH(10),
       shadowColor: '#000',
       shadowOffset: {
         width: 0,

@@ -17,7 +17,6 @@ export default function BookingForCard({ bookedFor }: BookingForCardProps) {
         fontSize={theme.fontSize.md}
         fontFamily={theme.fonts.SEMI_BOLD}
         color={theme.colors.text}
-        marginBottom={theme.SH(12)}
       >
         Booking For
       </CustomText>
@@ -45,9 +44,10 @@ const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     card: {
       backgroundColor: theme.colors.white,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.SW(16),
-      marginBottom: theme.SH(16),
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(10),
+      marginBottom: theme.SH(10),
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
@@ -56,6 +56,9 @@ const createStyles = (theme: ThemeType) =>
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      flex: 1,
     },
     detailRow: {
       flexDirection: 'row',
@@ -63,7 +66,7 @@ const createStyles = (theme: ThemeType) =>
     },
     detailText: {
       marginLeft: theme.SW(12),
-      flex: 1,
+      // flex: 1,
     },
     titleContainer: {
       marginBottom: theme.SH(12),

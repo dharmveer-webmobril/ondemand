@@ -7,7 +7,7 @@ import { resetAndNavigate } from '@utils/NavigationUtils';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import SCREEN_NAMES from '../../navigation/ScreenNames';
 import { useProfileSplashScreen } from '@services/index';
-import { setUserCityId } from '@store/slices/appSlice';
+import { setUserCity, } from '@store/slices/appSlice';
 
 export default function SplashScreen() {
   const theme = useThemeContext();
@@ -18,7 +18,7 @@ export default function SplashScreen() {
   );
   const token = useAppSelector(state => state.auth.token);
   const { data: userData, isLoading, isFetching } = useProfileSplashScreen(true, token || '');
-const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   useEffect(() => {
     // Wait minimum splash time
     const timer = setTimeout(() => {
@@ -29,7 +29,7 @@ const dispatch = useAppDispatch();
 
       if (userData?.succeeded && !isFetching) {
         if (userData?.ResponseData?.interests && userData?.ResponseData?.interests?.length > 0) {
-          dispatch(setUserCityId(userData?.ResponseData?.city?._id || userData?.ResponseData?.city || ''));
+          dispatch(setUserCity(userData?.ResponseData?.city));
           resetAndNavigate(SCREEN_NAMES.HOME);
           return;
         } else {
@@ -38,7 +38,7 @@ const dispatch = useAppDispatch();
       } else {
         resetAndNavigate(SCREEN_NAMES.LOGIN, { prevScreen: 'auth' });
       }
-    }, 5000); // splash delay
+    }, 3000); // splash delay
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps

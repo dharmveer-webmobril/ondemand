@@ -182,10 +182,12 @@ const AddOtherPersonDetail: React.FC = () => {
       />
 
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}
+        enableOnAndroid={false}
         extraScrollHeight={SH(40)}
         keyboardShouldPersistTaps="handled"
+        enableResetScrollToCoords={false}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
