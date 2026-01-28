@@ -1,6 +1,7 @@
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useMemo, useState, } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText, CustomButton, VectoreIcons, LoadingComp } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ServiceForModal from '@components/provider/ServiceForModal';
@@ -27,6 +28,7 @@ type Address = {
 
 export default function Checkout() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -181,7 +183,7 @@ export default function Checkout() {
       onSuccess: (response) => {
         console.log('Booking created successfully:', response);
         if (response?.succeeded || response?.ResponseData) {
-          const successMessage = response?.ResponseMessage || 'Booking created successfully!';
+          const successMessage = response?.ResponseMessage || t('checkout.bookingCreatedSuccess');
           handleSuccessToast(successMessage);
           setTimeout(() => {
             // Navigate to BookingList tab using nested navigation
@@ -191,7 +193,7 @@ export default function Checkout() {
             });
           }, 800);
         } else {
-          handleApiFailureResponse(response, 'Failed to create booking. Please try again.');
+          handleApiFailureResponse(response, t('checkout.failedToCreateBooking'));
         }
       },
       onError: (error) => {
@@ -204,7 +206,7 @@ export default function Checkout() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title="Checkout"
+        title={t('checkout.title')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}
@@ -260,7 +262,7 @@ export default function Checkout() {
                 color={theme.colors.primary}
               />
               <CustomText style={styles.serviceForText}>
-                {serviceFor === 'self' ? 'Self' : 'Other'}
+                {serviceFor === 'self' ? t('checkout.self') : t('checkout.other')}
               </CustomText>
             </View>
             <VectoreIcons
@@ -279,7 +281,7 @@ export default function Checkout() {
             <View style={styles.sectionHeader}>
               <CustomText style={styles.sectionTitle}>Your Address</CustomText>
               <Pressable onPress={handleAddAddress}>
-                <CustomText style={styles.changeLink}>{selectedAddress ? 'Change' : 'Add Address'}</CustomText>
+                <CustomText style={styles.changeLink}>{selectedAddress ? t('checkout.changeAddress') : t('checkout.addAddress')}</CustomText>
               </Pressable>
             </View>
             {selectedAddress ? (
@@ -301,7 +303,7 @@ export default function Checkout() {
       {/* Confirm Button */}
       <View style={styles.footer}>
         <CustomButton
-          title="Confirm Booking"
+          title={t('checkout.confirmBooking')}
           onPress={handleConfirmBooking}
           buttonStyle={styles.confirmButton}
           backgroundColor={theme.colors.primary}

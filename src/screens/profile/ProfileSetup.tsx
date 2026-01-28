@@ -280,7 +280,7 @@ export default function ProfileSetup() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title="Profile Setup"
+        title={t('profile.profileSetup')}
         onLeftPress={() => navigation.goBack()}
       />
       <KeyboardAwareScrollView
@@ -344,7 +344,7 @@ export default function ProfileSetup() {
               Full Name
             </CustomText>
             <CustomInput
-              placeholder="Enter your full name"
+              placeholder={t('placeholders.enterFullName')}
               value={formik.values.name}
               onChangeText={formik.handleChange('name')}
               onBlur={formik.handleBlur('name')}
@@ -443,7 +443,7 @@ export default function ProfileSetup() {
               Email ID
             </CustomText>
             <CustomInput
-              placeholder="Enter your email ID"
+              placeholder={t('placeholders.enterEmail')}
               value={formik.values.email}
               editable={false}
               onChangeText={formik.handleChange('email')}
@@ -455,7 +455,7 @@ export default function ProfileSetup() {
           </View>
         </View>
         <CustomButton
-          title="Save"
+          title={t('placeholders.save')}
           isLoading={updateProfileMutation?.isPending}
           disable={updateProfileMutation?.isPending}
           onPress={handleFormSubmit}

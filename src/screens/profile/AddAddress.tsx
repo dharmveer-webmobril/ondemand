@@ -397,7 +397,7 @@ const AddAddress: React.FC = () => {
             /> */}
             {/* <GooglePlacesAutocomplete
               ref={placesRef}
-              placeholder="Search"
+              placeholder={t('addAddress.searchPlaceholder')}
               fetchDetails={true}
               keyboardShouldPersistTaps="handled"
               onPress={(data: any, details: any = null) => {

@@ -6,21 +6,22 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import { useGetCustomerBookings, Booking } from '@services/api/queries/appQueries';
-import { getStatusColor, getStatusLabel } from '@utils/tools';
+import { useGetCustomerBookings } from '@services/api/queries/appQueries';
+import { getStatusColor } from '@utils/tools';
 import imagePaths from '@assets';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
-// Format date from API format (YYYY-MM-DD) to display format
+// Format date from API (YYYY-MM-DD) to display e.g. 06-March-2025
 const formatDate = (dateString: string): string => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
 };
 
-// Format address from booking
-const formatBookingAddress = (booking: Booking): string => {
+// Format address from booking (t for i18n)
+const formatBookingAddress = (booking: any, t: (key: string) => string): string => {
   if (booking.addressId) {
     const addr = booking.addressId;
     const parts = [addr.line1];
@@ -28,21 +29,19 @@ const formatBookingAddress = (booking: Booking): string => {
     if (addr.landmark) parts.push(addr.landmark);
     return parts.join(', ');
   }
-  return 'Address not available';
+  return t('bookingList.addressNotAvailable');
 };
 
-// Booking status filter options
+// Booking status filter options (labels use translation in render)
 const bookingStatusOptions = [
-  { value: '', label: 'All Bookings' },
-  { value: 'requested', label: 'Requested' },
-  { value: 'accepted', label: 'Accepted' },
-  // { value: 'ontheway', label: 'On The Way' },
-  // { value: 'reached', label: 'Reached' },
-  { value: 'ongoing', label: 'Ongoing' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelledByCustomer', label: 'Cancelled by You' },
-  { value: 'cancelledBySp', label: 'Cancelled by Provider' },
-  { value: 'rejected', label: 'Rejected' },
+  { value: '', labelKey: 'myBookingScreen.filter.allBookings' },
+  { value: 'requested', labelKey: 'myBookingScreen.filter.requested' },
+  { value: 'accepted', labelKey: 'myBookingScreen.filter.accepted' },
+  { value: 'ongoing', labelKey: 'myBookingScreen.filter.ongoing' },
+  { value: 'completed', labelKey: 'myBookingScreen.filter.completed' },
+  { value: 'cancelledByCustomer', labelKey: 'myBookingScreen.filter.cancelledByYou' },
+  { value: 'cancelledBySp', labelKey: 'myBookingScreen.filter.cancelledByProvider' },
+  { value: 'rejected', labelKey: 'myBookingScreen.filter.rejected' },
 ];
 
 export default function BookingList() {
@@ -65,29 +64,24 @@ export default function BookingList() {
   // Transform API bookings to BookingItem format
   const transformedBookings = useMemo(() => {
     if (!bookingsData?.ResponseData) return [];
-
-    return bookingsData.ResponseData.map((booking: Booking): any => {
-      const imageSource = booking.spId?.profileImage
-        ? { uri: booking.spId.profileImage }
-        : imagePaths.no_image;
-
+    return bookingsData.ResponseData.map((booking: any): any => {
       const bookingData = booking as any;
       return {
         id: booking._id,
-        bookingId: bookingData?.bookingId || booking._id,
+        bookingId: bookingData?.bookingId || booking._id?.slice(-8)?.toUpperCase() || '—',
         friendName: booking.bookedFor === 'other' ? booking.bookedForDetails?.name : undefined,
-        status: booking.bookingStatus || 'requested', // Use original status
+        status: booking.bookingStatus || 'requested',
         statusColor: getStatusColor(booking.bookingStatus),
         date: formatDate(booking.date),
         time: booking.time || '',
-        shopName: booking.spId?.name || 'Service Provider',
-        address: formatBookingAddress(booking),
-        price: `$${booking.discountedAmount?.toFixed(2) || booking.totalAmount?.toFixed(2) || '0.00'}`,
-        image: imageSource,
-        originalBooking: booking, // Store original booking for filtering
+        shopName: booking.spId?.name || t('bookingList.serviceProviderDefault'),
+        address: formatBookingAddress(booking, t),
+        price: `$${(booking.discountedAmount ?? booking.totalAmount ?? 0).toFixed(2)}`,
+        image: booking?.spBusinessProfile?.bannerImage ?{ uri: booking.spBusinessProfile.bannerImage } : imagePaths.no_image,
+        originalBooking: booking,
       };
     });
-  }, [bookingsData]);
+  }, [bookingsData, t]);
 
   // Filter bookings based on selected status
   const currentBookings = useMemo(() => {
@@ -142,7 +136,7 @@ export default function BookingList() {
           <MenuTrigger>
             <View style={styles.filterButton}>
               <CustomText style={styles.filterButtonText}>
-                {bookingStatusOptions?.find(option => option.value === selectedStatus)?.label || 'All Bookings'}
+                {t(bookingStatusOptions?.find(option => option.value === selectedStatus)?.labelKey || 'myBookingScreen.filter.allBookings')}
               </CustomText>
               <CustomText style={styles.filterIcon}>▼</CustomText>
             </View>
@@ -165,7 +159,7 @@ export default function BookingList() {
                       isSelected ? styles.menuOptionTextSelected : {},
                     ]}
                   >
-                    {option.label}
+                    {t(option.labelKey)}
                   </CustomText>
                 </MenuOption>
               );
@@ -182,11 +176,9 @@ export default function BookingList() {
         <FlatList
           data={currentBookings}
           keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
           renderItem={({ item }) => (
             <BookingCard
-              bookingId={item.bookingId || item.id}
+              bookingId={item.bookingId}
               friendName={item.friendName}
               status={item.status}
               statusColor={item.statusColor}
@@ -197,8 +189,8 @@ export default function BookingList() {
               price={item.price}
               image={item.image}
               onBookAgain={
-                item.status === 'completed'
-                  ? () => handleBookAgain(item.bookingId || item.friendName || item.id)
+                item.status?.toLowerCase() === 'completed'
+                  ? () => handleBookAgain(item.bookingId || item.id)
                   : undefined
               }
               onPress={() => handleCardPress(item.id)}
@@ -301,11 +293,7 @@ const createStyles = (theme: any) =>
     listContent: {
       paddingTop: theme.SH(10),
       paddingBottom: theme.SH(90),
-      paddingHorizontal: theme.SW(8),
-    },
-    row: {
-      justifyContent: 'space-between',
-      paddingHorizontal: theme.SW(8),
+      paddingHorizontal: theme.SW(16),
     },
     emptyContainer: {
       flex: 1,

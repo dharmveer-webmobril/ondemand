@@ -1,12 +1,14 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import React, { useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ServiceFeePolicy() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -24,7 +26,7 @@ Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, ad
   return (
     <Container safeArea={false} style={styles.container}>
       <AppHeader
-        title="Service Fee & Policy"
+        title={t('serviceFeePolicy.title')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}

@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText, CustomButton, LoadingComp } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -65,6 +66,7 @@ const formatBookingAddress = (booking: any): string => {
 
 export default function BookingDetail() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const route = useRoute<any>();
   const navigation = useNavigation();
@@ -226,11 +228,11 @@ export default function BookingDetail() {
         if (supported) {
           Linking.openURL(url);
         } else {
-          Alert.alert('Error', 'Phone calls are not supported on this device');
+          Alert.alert(t('common.error'), t('common.phoneNotSupported'));
         }
       })
       .catch(() => {
-        Alert.alert('Error', 'Unable to make phone call');
+        Alert.alert(t('common.error'), t('common.unableToCall'));
       });
   }, []);
 
@@ -289,13 +291,13 @@ export default function BookingDetail() {
         {
           onSuccess: (response: any) => {
             if (response?.succeeded) {
-              handleSuccessToast(response?.ResponseMessage || 'Booking cancelled successfully');
+              handleSuccessToast(response?.ResponseMessage || t('bookingDetails.bookingCancelledSuccess'));
               setShowCancelConfirm(false);
               setLoaderType('none');
               refetchBooking();
             } else {
               setLoaderType('none');
-              handleApiError(new Error(response?.ResponseMessage || 'Failed to cancel booking'));
+              handleApiError(new Error(response?.ResponseMessage || t('bookingDetails.failedToCancelBooking')));
             }
           },
           onError: (error: any) => {
@@ -311,14 +313,14 @@ export default function BookingDetail() {
         {
           onSuccess: (response: any) => {
             if (response?.succeeded) {
-              handleSuccessToast(response?.ResponseMessage || 'Service cancelled successfully');
+              handleSuccessToast(response?.ResponseMessage || t('bookingDetails.serviceCancelledSuccess'));
               setShowCancelServiceModal(false);
               setServiceToCancel(null);
               setLoaderType('none');
               refetchBooking();
             } else {
               setLoaderType('none');
-              handleApiError(new Error(response?.ResponseMessage || 'Failed to cancel service'));
+              handleApiError(new Error(response?.ResponseMessage || t('bookingDetails.failedToCancelService')));
             }
           },
           onError: (error: any) => {
@@ -332,7 +334,7 @@ export default function BookingDetail() {
 
   const handleReschedule = useCallback((newDate: string, newTime: string, reason: string) => {
     if (!selectedServiceId) {
-      handleApiError(new Error('Service ID is required'));
+      handleApiError(new Error(t('bookingDetails.serviceIdRequired')));
       return;
     }
 
@@ -349,14 +351,14 @@ export default function BookingDetail() {
       {
         onSuccess: (response: any) => {
           if (response?.succeeded) {
-            handleSuccessToast(response?.ResponseMessage || 'Service rescheduled successfully');
+            handleSuccessToast(response?.ResponseMessage || t('bookingDetails.serviceRescheduledSuccess'));
             setShowRescheduleModal(false);
             setSelectedServiceId(null);
             setLoaderType('none');
             refetchBooking();
           } else {
             setLoaderType('none');
-            handleApiError(new Error(response?.ResponseMessage || 'Failed to reschedule service'));
+            handleApiError(new Error(response?.ResponseMessage || t('bookingDetails.failedToRescheduleService')));
           }
         },
         onError: (error: any) => {
@@ -379,11 +381,11 @@ export default function BookingDetail() {
         if (supported) {
           Linking.openURL(url);
         } else {
-          Alert.alert('Error', 'Phone calls are not supported on this device');
+          Alert.alert(t('common.error'), t('common.phoneNotSupported'));
         }
       })
       .catch(() => {
-        Alert.alert('Error', 'Unable to make phone call');
+        Alert.alert(t('common.error'), t('common.unableToCall'));
       });
   }, []);
 
@@ -439,7 +441,7 @@ export default function BookingDetail() {
     <Container safeArea={false} statusBarColor={theme.colors.white} style={styles.container}>
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <AppHeader
-          title="Booking Details"
+          title={t('bookingDetails.headerTitle')}
           onLeftPress={() => navigation.goBack()}
           backgroundColor={theme.colors.white}
           tintColor={theme.colors.text}
@@ -594,7 +596,7 @@ export default function BookingDetail() {
             <>
               <View style={[styles.actionButton, styles.actionButtonLeft]}>
                 <CustomButton
-                  title="Cancel Booking"
+                  title={t('bookingDetails.cancelBooking')}
                   onPress={handleCancelBookingPress}
                   backgroundColor={theme.colors.red}
                   textColor={theme.colors.white}
@@ -650,7 +652,7 @@ export default function BookingDetail() {
       {/* Confirmation Dialogs */}
       <SweetAlert
         visible={showAcceptConfirm}
-        message="Are you sure you want to accept this booking?"
+        message={t('bookingDetails.confirmAcceptBooking')}
         isConfirmType="confirm"
         onOk={handleAccept}
         onCancel={() => setShowAcceptConfirm(false)}
@@ -658,7 +660,7 @@ export default function BookingDetail() {
 
       <SweetAlert
         visible={showRejectConfirm}
-        message="Are you sure you want to reject this booking?"
+        message={t('bookingDetails.confirmRejectBooking')}
         isConfirmType="delete"
         onOk={handleReject}
         onCancel={() => setShowRejectConfirm(false)}
@@ -674,7 +676,7 @@ export default function BookingDetail() {
         }}
         onSubmit={handleCancelConfirm}
         isLoading={loaderType === 'cancelBooking'}
-        title="Cancel Booking"
+        title={t('bookingDetails.cancelBooking')}
         message="Please provide a reason for canceling this booking (required)"
       />
 
@@ -689,7 +691,7 @@ export default function BookingDetail() {
         }}
         onSubmit={handleCancelConfirm}
         isLoading={loaderType === 'cancelService'}
-        title="Cancel Service"
+        title={t('bookingDetails.cancelService')}
         message="Please provide a reason for canceling this service (required)"
       />
     </Container>

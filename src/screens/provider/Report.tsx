@@ -40,8 +40,8 @@ export default function Report() {
     if (!reportText.trim()) {
       showToast({
         type: 'error',
-        title: 'Error',
-        message: 'Please provide more details',
+        title: t('messages.error'),
+        message: t('report.provideMoreDetails'),
       });
       return;
     }

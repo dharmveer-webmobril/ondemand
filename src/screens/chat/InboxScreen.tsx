@@ -1,5 +1,6 @@
 import { View, FlatList, StyleSheet } from 'react-native'
 import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next';
 import { Container, AppHeader } from '@components';
 import ActionMenu, { ActionMenuItem } from '@components/chat/ActionMenu';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -38,6 +39,7 @@ const recentChats: ChatListItemData[] = [
 
 
 export default function InboxScreen() {
+  const { t } = useTranslation();
   const [showListItemMenu, setShowListItemMenu] = useState(false);
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -78,7 +80,7 @@ export default function InboxScreen() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title="Chat"
+        title={t('chat.title')}
         rightIconName="search-outline"
         rightIconFamily="Ionicons"
         onRightPress={() => { }}

@@ -6,6 +6,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
+import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText, ImageLoader, VectoreIcons } from '@components';
 import { useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
@@ -23,6 +24,7 @@ type Job = {
 };
 
 export default function MemberCalendar() {
+  const { t } = useTranslation();
   const theme = useThemeContext();
   const [selectedDate, setSelectedDate] = useState<string>('2025-03-06');
   const [currentMonth, setCurrentMonth] = useState<string>('2025-03');
@@ -312,7 +314,7 @@ export default function MemberCalendar() {
   return (
     <Container style={styles.container}>
       <AppHeader
-        title="Calendar"
+        title={t('member.calendar')}
         onLeftPress={() => {
           // TODO: Navigate back
           console.log('Navigate back');

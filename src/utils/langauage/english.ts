@@ -80,6 +80,7 @@ export const english = {
     "emailId": "Email ID",
     "password": "Password",
     "fullname": "Full Name",
+    "fullName": "Full Name",
     "mobileno": "Mobile Number",
     "selectAddress": "Select Address",
     "selectCity": "Select City",
@@ -92,9 +93,16 @@ export const english = {
     "newPassword": "New Password",
     "update": "Update",
     "search": "Search",
+    "emailPlaceholder": "Enter your email",
+    "enterFullName": "Enter your full name",
+    "enterEmail": "Enter your email ID",
+    "selectCityPlaceholder": "Select City",
+    "enterPassword": "Enter password",
+    "enterNewPassword": "Re-enter password",
   },
   "validation": {
     "fullNameMinLength": "Full name must be at least 3 characters.",
+    "fullnameMinLength": "Full name must be at least 3 characters.",
     "emptyFullName": "Please enter full name.",
     "validFullName": "Please enter a valid full name.",
     "validEmail": "Please enter a valid email.",
@@ -114,6 +122,7 @@ export const english = {
     "emotyOtp": "Please enter OTP.",
     "emptyCountry": "Please select a country.",
     "emptyCity": "Please select a city.",
+    "countryRequired": "Country is required",
   },
   "messages": {
     "otpSendTomail": "OTP sent to email.",
@@ -201,7 +210,16 @@ export const english = {
     "profileSetup": "Profile Setup",
     "paymentHistory": "Payments",
     "headerTitle": "Profile Menu",
-    "languageSettings": "Language Settings"
+    "languageSettings": "Language Settings",
+    "profileUpdated": "Profile updated successfully.",
+    "profileUpdateFailed": "Failed to update profile. Please try again.",
+    "imageUploadFailed": "Failed to upload image. Please try again.",
+    "fullName": "Full Name",
+    "mobileNumber": "Mobile Number",
+    "city": "City",
+    "emailID": "Email ID",
+    "enterEmailID": "Enter your email ID",
+    "save": "Save"
   },
   "changePasswordDetails": {
     "currentPassword": "Current Password",
@@ -227,6 +245,7 @@ export const english = {
   "addAddress": {
     "title": "Add Address",
     "edittitle": "Edit Address",
+    "searchPlaceholder": "Search",
     "useMyCurrentLocation": "Use My Current Location",
     "makeThisDefault": "Make This Default",
     "editAddaddressSuccess": "Address updated successfully",
@@ -272,6 +291,22 @@ export const english = {
     "title": "Select Address",
     "confirm": "Confirm",
     "addNewAddress": "Add New Address"
+  },
+  "checkout": {
+    "otherPersonDetails": "Other Person Details",
+    "title": "Checkout",
+    "confirmBooking": "Confirm Booking",
+    "bookingCreatedSuccess": "Booking created successfully!",
+    "failedToCreateBooking": "Failed to create booking. Please try again.",
+    "changeAddress": "Change",
+    "addAddress": "Add Address",
+    "self": "Self",
+    "other": "Other",
+    "selectPayment": "Select Payment Method",
+    "deliveryAddress": "Delivery Address",
+    "orderSummary": "Order Summary",
+    "placeOrder": "Place Order",
+    "addOtherPerson": "Add Other Person"
   },
   "imagePickerModal": {
     "title": "Select Image",
@@ -376,10 +411,17 @@ export const english = {
       "serviceCount": "({count}) Services"
     }
   },
+  "bookingSummery": {
+    "title": "Booking Summery",
+    "checkout": "Checkout"
+  },
   "bookAppointment": {
     "headerTitle": "Book an Appointment",
     "subHeader": "Select Member",
     "bookButton": "Book",
+    "notAvailable": "Not available",
+    "closedOnThisDate": "Closed on this date",
+    "noSlotsAvailable": "No slots available for this date",
     "modal": {
       "confirmBooking": "Confirmation",
       "forWhomLabel": "Booking for Other",
@@ -427,6 +469,7 @@ export const english = {
   },
   "myBookingScreen": {
     "headerTitle": "My Appointment",
+    "bookingId": "Booking ID",
     "tabs": {
       "myBookings": "My Bookings",
       "otherBookings": "Other Bookings"
@@ -438,15 +481,43 @@ export const english = {
       "error": "Something went wrong"
     },
     "bookAgain": "Book Again",
+    "filter": {
+      "allBookings": "All Bookings",
+      "requested": "Requested",
+      "accepted": "Accepted",
+      "ongoing": "Ongoing",
+      "completed": "Completed",
+      "cancelledByYou": "Cancelled by You",
+      "cancelledByProvider": "Cancelled by Provider",
+      "rejected": "Rejected"
+    },
     "status": {
       "completed": "COMPLETED",
       "ongoing": "ONGOING",
-      "upcoming": "UPCOMING"
+      "upcoming": "UPCOMING",
+      "requested": "REQUESTED",
+      "accepted": "ACCEPTED",
+      "cancelled": "CANCELLED",
+      "rejected": "REJECTED"
     }
   },
   "bookingDetails": {
     "headerTitle": "Booking Details",
+    "cancelBooking": "Cancel Booking",
+    "cancelService": "Cancel Service",
+    "bookingCancelledSuccess": "Booking cancelled successfully",
+    "failedToCancelBooking": "Failed to cancel booking",
+    "serviceCancelledSuccess": "Service cancelled successfully",
+    "failedToCancelService": "Failed to cancel service",
+    "serviceRescheduledSuccess": "Service rescheduled successfully",
+    "failedToRescheduleService": "Failed to reschedule service",
+    "confirmAcceptBooking": "Are you sure you want to accept this booking?",
+    "confirmRejectBooking": "Are you sure you want to reject this booking?",
+    "serviceIdRequired": "Service ID is required",
+    "addressNotAvailable": "Address not available",
     "defaultService": "Haircut",
+    "defaultServiceName": "Service",
+    "defaultProviderName": "Provider",
     "withProvider": "with ",
     "subtotal": "Subtotal",
     "ratingsTitle": "Ratings",
@@ -483,6 +554,52 @@ export const english = {
     "reviews": "Reviews",
     "portfolio": "Portfolio",
     "details": "Details"
+  },
+  "providerDetails": {
+    "failedToLoadProvider": "Failed to load provider details",
+    "serviceNotAvailableMode": "Service is not available for this delivery mode",
+    "noDescriptionAvailable": "No description available",
+    "addressNotAvailable": "Address not available",
+    "serviceProviderDefault": "Service Provider",
+    "share": "Share"
+  },
+  "paymentPolicy": {
+    "title": "Payment & Cancellation Policy"
+  },
+  "serviceFeePolicy": {
+    "title": "Service Fee & Policy"
+  },
+  "member": {
+    "calendar": "Calendar",
+    "allService": "All Service",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "pending": "Pending",
+    "inProgress": "In Progress"
+  },
+  "inbox": {
+    "title": "Chat"
+  },
+  "bookingList": {
+    "addressNotAvailable": "Address not available",
+    "serviceProviderDefault": "Service Provider"
+  },
+  "common": {
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "phoneNotSupported": "Phone calls are not supported on this device",
+    "unableToCall": "Unable to make phone call",
+    "loading": "Loading...",
+    "noData": "No data available"
+  },
+  "bookingDetail": {
+    "phoneNotSupported": "Phone calls are not supported on this device",
+    "unableToCall": "Unable to make phone call"
   },
   "report": {
     "title": "Report",

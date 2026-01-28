@@ -1,6 +1,7 @@
 import { StyleSheet, Linking, Alert, RefreshControl } from 'react-native';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Container, showToast } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ProviderTabs from '@components/provider/ProviderTabs';
@@ -97,7 +98,8 @@ export default function ProviderDetailsScreen() {
   const isLoading = isLoadingProvider || isLoadingServices;
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
-  const errorMessage = providerError?.message || servicesError?.message || 'Failed to load provider details';
+  const { t } = useTranslation();
+  const errorMessage = providerError?.message || servicesError?.message || t('providerDetails.failedToLoadProvider');
 
   const handleBookService = (serviceId: string) => {
     setPendingServiceId(serviceId);
@@ -120,7 +122,7 @@ export default function ProviderDetailsScreen() {
       });
       console.log('deliveryMode--------service yes show service for modal', service);
     } else {
-      showToast({ type: 'info', message: 'Service is not available for this delivery mode' });
+      showToast({ type: 'info', message: t('providerDetails.serviceNotAvailableMode') });
       return;
     }
 
@@ -185,11 +187,11 @@ export default function ProviderDetailsScreen() {
           if (supported) {
             Linking.openURL(url);
           } else {
-            Alert.alert('Error', 'Phone calls are not supported on this device');
+            Alert.alert(t('common.error'), t('common.phoneNotSupported'));
           }
         })
         .catch(() => {
-          Alert.alert('Error', 'Unable to make phone call');
+          Alert.alert(t('common.error'), t('common.unableToCall'));
         });
     }
   };

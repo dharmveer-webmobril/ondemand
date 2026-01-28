@@ -4,6 +4,7 @@ import Container from '@components/common/Container'
 import { AppHeader, CustomText, CustomButton } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { ServiceSummeryCard } from '@components';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 
@@ -16,6 +17,7 @@ type SelectedOffer = {
 
 export default function BookingSummery() {
     const theme = useThemeContext();
+    const { t } = useTranslation();
     const styles = useMemo(() => createStyles(theme), [theme]);
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
@@ -105,7 +107,7 @@ export default function BookingSummery() {
     return (
         <Container safeArea={true} style={styles.container}>
             <AppHeader
-                title="Booking Summery"
+                title={t('bookingSummery.title')}
                 onLeftPress={() => navigation.goBack()}
                 backgroundColor="transparent"
                 tintColor={theme.colors.text}
@@ -149,7 +151,7 @@ export default function BookingSummery() {
                     </View>
                 </View>
                 <CustomButton
-                    title="Checkout"
+                    title={t('bookingSummery.checkout')}
                     onPress={handleCheckout}
                     buttonStyle={styles.checkoutButton}
                     backgroundColor={theme.colors.primary}

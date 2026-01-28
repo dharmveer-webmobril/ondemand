@@ -1,6 +1,7 @@
 import { View, StyleSheet, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native';
 import { useMemo, useState, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Calendar, DateData } from 'react-native-calendars';
 import { Container, AppHeader, CustomText, CustomButton } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -21,6 +22,7 @@ const formatDateToString = (date: Date): string => {
 
 export default function BookAppointment() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -228,7 +230,7 @@ export default function BookAppointment() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title="Book an Appointment"
+        title={t('bookAppointment.headerTitle')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}
@@ -299,10 +301,10 @@ export default function BookAppointment() {
                 textAlign="center"
               >
                 {isErrorAvailability
-                  ? 'Not available'
+                  ? t('bookAppointment.notAvailable')
                   : availabilityData?.ResponseData?.availability?.close
-                    ? 'Closed on this date'
-                    : 'No slots available for this date'}
+                    ? t('bookAppointment.closedOnThisDate')
+                    : t('bookAppointment.noSlotsAvailable')}
               </CustomText>
             </View>
           ) : (
@@ -362,7 +364,7 @@ export default function BookAppointment() {
           </CustomText>
         </View> */}
         <CustomButton
-          title="Book"
+          title={t('bookAppointment.bookButton')}
           onPress={handleBook}
           buttonStyle={styles.bookButton}
           backgroundColor={theme.colors.primary}

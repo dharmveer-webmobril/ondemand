@@ -6,6 +6,7 @@ import {
   Pressable,
   RefreshControl,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText, ImageLoader, VectoreIcons } from '@components';
 import CustomBookingTabs from '@components/booking/CustomBookingTabs';
 import { useThemeContext } from '@utils/theme';
@@ -26,6 +27,7 @@ type Service = {
 };
 
 export default function MemberServices() {
+  const { t } = useTranslation();
   const theme = useThemeContext();
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -247,7 +249,7 @@ export default function MemberServices() {
   return (
     <Container style={styles.container}>
       <AppHeader
-        title="All Service"
+        title={t('member.allService')}
         onLeftPress={() => {
           // TODO: Navigate back
           console.log('Navigate back');
