@@ -18,6 +18,7 @@ import { useFormik } from 'formik';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { updateUserDetails } from '@store/slices/authSlice';
 import regex from '@utils/regexList';
+import { setUserCity } from '@store/slices/appSlice';
 
 
 interface Country {
@@ -172,6 +173,7 @@ export default function ProfileSetup() {
         const response = await updateProfileMutation.mutateAsync(data);
         if (response.succeeded && response.ResponseCode === 200) {
           dispatch(updateUserDetails(response.ResponseData));
+          dispatch(setUserCity(response.ResponseData?.city));
           showToast({
             type: 'success',
             title: t('messages.success'),

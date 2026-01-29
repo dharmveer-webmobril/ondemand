@@ -27,6 +27,7 @@ import {
 } from '@components';
 import MemberSelectionModal, { Member } from '@components/booking/MemberSelectionModal';
 import { SweetAlert } from '@components/common';
+import { queryClient } from '@services/api';
 import {
   useGetBookingDetail,
   useCancelBooking,
@@ -294,6 +295,7 @@ export default function BookingDetail() {
               handleSuccessToast(response?.ResponseMessage || t('bookingDetails.bookingCancelledSuccess'));
               setShowCancelConfirm(false);
               setLoaderType('none');
+              queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
               refetchBooking();
             } else {
               setLoaderType('none');
@@ -317,6 +319,7 @@ export default function BookingDetail() {
               setShowCancelServiceModal(false);
               setServiceToCancel(null);
               setLoaderType('none');
+              queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
               refetchBooking();
             } else {
               setLoaderType('none');
@@ -355,6 +358,7 @@ export default function BookingDetail() {
             setShowRescheduleModal(false);
             setSelectedServiceId(null);
             setLoaderType('none');
+            queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
             refetchBooking();
           } else {
             setLoaderType('none');

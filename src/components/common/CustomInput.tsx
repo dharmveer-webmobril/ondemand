@@ -1,5 +1,5 @@
 import { View, TextInput, ImageSourcePropType, KeyboardTypeOptions, TextInputProps, Image, Pressable } from 'react-native'
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 import { useThemeContext } from '@utils/theme';
 import { CustomInputStyle } from '@styles/index';
 import CustomText from './CustomText';
@@ -17,9 +17,12 @@ interface CustomTextInputProps extends TextInputProps {
     withBackground?: string;
     inputTheme?: string;
     transparentBackground?: boolean;
+    inputStyle?: TextInputProps;
 }
 
-const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline, ...textInputProps }, ref) => {
+const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline }, ref) => {
+    const theme = useThemeContext();
+    const styles = CustomInputStyle(theme, false, inputTheme, transparentBackground ? '' : withBackground, multiline);
     let localMaxLength:any = 70;
     if (multiline) {
         localMaxLength = undefined;
@@ -27,8 +30,6 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placehold
     if (maxLength) {
         localMaxLength = maxLength;
     }
-    const theme = useThemeContext();
-    const styles = CustomInputStyle(theme, false, inputTheme, transparentBackground ? '' : withBackground, multiline);
     return (
         <View style={[styles.container, { marginTop }]}>
             <View style={[styles.inputContainer, multiline && styles.inputContainerMultiline]}>
@@ -41,7 +42,7 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placehold
                 )}
                 <TextInput
                     ref={ref}
-                    style={styles.inputStyle}
+                    style={[styles.inputStyle]}
                     placeholderTextColor={inputTheme === 'white' ? theme.colors.white : theme.colors.placeholder}
                     placeholder={placeholder}
                     maxLength={localMaxLength}
@@ -50,7 +51,8 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placehold
                     value={value}
                     secureTextEntry={secureTextEntry}
                     editable={isEditable}
-                    {...textInputProps}
+                    multiline={multiline}
+                    autoCapitalize={keyboardType==='email-address' ? 'none' : 'sentences'}
                 />
                 {rightIcon && (
                     <Pressable

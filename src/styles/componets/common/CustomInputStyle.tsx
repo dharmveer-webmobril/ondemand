@@ -7,12 +7,7 @@ const CustomTextInputStyles = (theme: ThemeType, isDisabled: boolean, inputTheme
         container: {
             width: "100%",
         },
-        // label: {
-        //     fontSize: size.SF(14),
-        //     fontFamily: fonts.Medium,
-        //     marginBottom: size.SH(7),
-        //     color: colors.text,
-        // },
+       
         inputContainer: {
             flexDirection: "row",
             alignItems: "center",
@@ -35,10 +30,10 @@ const CustomTextInputStyles = (theme: ThemeType, isDisabled: boolean, inputTheme
             fontSize: fontSize.sm,
             paddingLeft: SF(10),
             fontFamily: fonts.REGULAR,
-            ...(multiline && {
-                paddingTop: Platform.OS === "ios" ? SF(12) : SF(10),
-                minHeight: size.SH(120),
-            }),
+            // ...(multiline && {
+            //     paddingTop: Platform.OS === "ios" ? SF(12) : SF(10),
+            //     minHeight: size.SH(120),
+            // }),
         },
         iconStyle: {
             width: SF(20),

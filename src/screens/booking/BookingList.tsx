@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Container, AppHeader, BookingCard, CustomText, LoadingComp } from '@components';
 import { useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
@@ -107,6 +108,13 @@ export default function BookingList() {
       setRefreshing(false);
     }
   }, [refetchBookings]);
+
+  // Refetch list when screen gains focus (e.g. after checkout or returning from detail)
+  useFocusEffect(
+    useCallback(() => {
+      refetchBookings();
+    }, [refetchBookings])
+  );
 
   const handleBookAgain = useCallback((bookingId: string) => {
     // TODO: Navigate to booking screen

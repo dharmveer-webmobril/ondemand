@@ -11,6 +11,7 @@ import { useGetCities } from '@services/api/queries/appQueries';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 // import { useQueryClient } from '@tanstack/react-query';
 import { setUserCity } from '@store/slices/appSlice';
+import { queryClient } from '@services/api';
 
 interface City {
   _id: string;
@@ -57,10 +58,8 @@ export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
   }, [citiesData]);
 
   const currentCityId = useAppSelector(state => state.app.userCity)?._id;
-  // console.log('currentCityId--------HomeHeader', currentCityId);
-  // console.log('cities--------HomeHeader', cities);
   const currentCity = useMemo(() => {
-    return cities && cities.length > 0 && cities.find((c: City) => c._id === currentCityId).name || 'Select City';
+    return cities && cities.length > 0 && cities.find((c: City) => c._id === currentCityId)?.name || 'Select City';
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCityId, cities]);
 
@@ -77,53 +76,36 @@ export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
 
   const handleCitySelect = async (city: City) => {
     dispatch(setUserCity(city._id));
-    // try {
-    //   // Update only city in profile
-    //   const data = {
-    //     city: city._id,
-    //   };
+    try {
+      // Update only city in profile
+      const data = {
+        city: city._id,
+      };
 
-    //   const response = await updateProfileMutation.mutateAsync(data);
+      const response = await updateProfileMutation.mutateAsync(data);
 
-    //   if (response.succeeded && response.ResponseCode === 200) {
-    //     // Update Redux store
-    //     dispatch(updateUserDetails(response.ResponseData));
-
-    //     // Refetch profile
-    //     await refetchProfile();
-
-    //     // Invalidate and refetch home data
-    //     queryClient.invalidateQueries({ queryKey: ['categories'] });
-    //     queryClient.invalidateQueries({ queryKey: ['banners'] });
-    //     queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
-
-    //     // Call parent refresh callback if provided
-    //     if (onCityUpdate) {
-    //       onCityUpdate();
-    //     }
-
-    //     // showToast({
-    //     //   type: 'success',
-    //     //   title: 'Success',
-    //     //   message: response.ResponseMessage || 'City updated successfully',
-    //     // });
-
-    //     setShowCityModal(false);
-    //   } else {
-    //     showToast({
-    //       type: 'error',
-    //       title: 'Error',
-    //       message: response.ResponseMessage || 'Failed to update city',
-    //     });
-    //   }
-    // } catch (error: any) {
-    //   console.error('Error updating city:', error);
-    //   showToast({
-    //     type: 'error',
-    //     title: 'Error',
-    //     message: error?.response?.data?.ResponseMessage || 'Failed to update city',
-    //   });
-    // }
+      if (response.succeeded && response.ResponseCode === 200) {
+        dispatch(setUserCity(city._id));
+        dispatch(setUserCity(response.ResponseData?.city));
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        queryClient.invalidateQueries({ queryKey: ['banners'] });
+        queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
+        setShowCityModal(false);
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: response.ResponseMessage || 'Failed to update city',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating city:', error);
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: error?.response?.data?.ResponseMessage || 'Failed to update city',
+      });
+    }
   };
 
   const handleLocationPress = () => {

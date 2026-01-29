@@ -7,6 +7,7 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import ServiceForModal from '@components/provider/ServiceForModal';
 import { ServiceSummeryCard, PaymentMethodModal } from '@components';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { queryClient } from '@services/api';
 import { useCreateBooking } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast, handleApiFailureResponse } from '@utils/apiHelpers';
 
@@ -185,6 +186,8 @@ export default function Checkout() {
         if (response?.succeeded || response?.ResponseData) {
           const successMessage = response?.ResponseMessage || t('checkout.bookingCreatedSuccess');
           handleSuccessToast(successMessage);
+          // Invalidate booking list so it refetches when we navigate there
+          queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
           setTimeout(() => {
             // Navigate to BookingList tab using nested navigation
             navigation.navigate(SCREEN_NAMES.HOME, {
