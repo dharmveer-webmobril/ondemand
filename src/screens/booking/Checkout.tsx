@@ -37,8 +37,10 @@ export default function Checkout() {
   const bookingData = route.params?.bookingData || {};
   const deliveryMode = bookingData.deliveryMode;
   const selectedServices = bookingData.selectedServices || [];
-  // const needsAddress = deliveryMode === 'atHome' || deliveryMode === 'onPremises';
+  // Only atHome needs address (for self: select address screen; for other: address in other person details)
   const needsAddress = deliveryMode === 'atHome';
+  // Address required in other person details only when atHome + other
+  const otherPersonAddressRequired = deliveryMode === 'atHome';
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   // Service for state
@@ -62,17 +64,30 @@ export default function Checkout() {
     if (serviceFor === selected) return;
     setServiceFor(selected);
     if (selected === 'other') {
-      needsAddress && navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
+      // Any case: service for other → need other person details → navigate to ADD_OTHER_PERSON_DETAIL
+      navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
+        addressRequired: otherPersonAddressRequired,
         onSelect: (val: any) => {
           setOtherPersonDetails(val);
-          setSelectedAddress(val?.address);
-        }
+          setSelectedAddress(val?.address ?? null);
+        },
       });
       setSelectedAddress(null);
     } else {
+      setOtherPersonDetails(null);
       setSelectedAddress(null);
     }
     setShowServiceForModal(false);
+  };
+
+  const navigateToAddOtherPersonDetail = () => {
+    navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
+      addressRequired: otherPersonAddressRequired,
+      onSelect: (val: any) => {
+        setOtherPersonDetails(val);
+        setSelectedAddress(val?.address ?? null);
+      },
+    });
   };
 
 
@@ -80,17 +95,15 @@ export default function Checkout() {
 
   const handleAddAddress = () => {
     if (serviceFor === 'self') {
-      needsAddress && navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS, {
-        onSelect: (val: any) => {
-          setSelectedAddress(val);
-        }
-      });
+      // atHome + self → select address screen
+      if (needsAddress) {
+        navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS, {
+          onSelect: (val: any) => setSelectedAddress(val),
+        });
+      }
     } else {
-      needsAddress && navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
-        onSelect: (val: any) => {
-          setSelectedAddress(val);
-        }
-      });
+      // serviceFor other → add other person details (address optional/mandatory per deliveryMode)
+      navigateToAddOtherPersonDetail();
     }
   };
 
@@ -104,12 +117,22 @@ export default function Checkout() {
   };
 
   const isFormValid = () => {
-    if (needsAddress && !selectedAddress) return false;
-    if (!needsAddress && serviceFor === 'other') {
+    // onPremises / online + self: no address, no other person needed
+    if ((deliveryMode === 'onPremises' || deliveryMode === 'online') && serviceFor === 'self') {
+      return true;
+    }
+    // atHome + self: need selected address
+    if (needsAddress && serviceFor === 'self') {
+      return !!selectedAddress;
+    }
+    // serviceFor other: need other person details (name, email, mobile)
+    if (serviceFor === 'other') {
       if (!otherPersonDetails?.name || !otherPersonDetails?.email || !otherPersonDetails?.mobile) {
         return false;
       }
-      if (needsAddress && !otherPersonDetails.address) return false;
+      // atHome + other: address mandatory in other person details
+      if (otherPersonAddressRequired && !otherPersonDetails?.address) return false;
+      return true;
     }
     return true;
   };
@@ -280,16 +303,39 @@ export default function Checkout() {
         </View>
 
 
-        {/* Address Selection (for atHome or onPremises) */}
-        {needsAddress && (
+        {/* Address (atHome + self) or Other Person Details (serviceFor other) */}
+        {(needsAddress && serviceFor === 'self') || serviceFor === 'other' ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <CustomText style={styles.sectionTitle}>Your Address</CustomText>
+              <CustomText style={styles.sectionTitle}>
+                {serviceFor === 'other' ? (t('checkout.otherPersonDetails') || 'Other Person Details') : t('checkout.yourAddress') || 'Your Address'}
+              </CustomText>
               <Pressable onPress={handleAddAddress}>
-                <CustomText style={styles.changeLink}>{selectedAddress ? t('checkout.changeAddress') : t('checkout.addAddress')}</CustomText>
+                <CustomText style={styles.changeLink}>
+                  {serviceFor === 'other'
+                    ? (otherPersonDetails ? (t('checkout.changeAddress') || 'Change') : (t('checkout.addAddress') || 'Add other person details'))
+                    : selectedAddress ? t('checkout.changeAddress') : t('checkout.addAddress')}
+                </CustomText>
               </Pressable>
             </View>
-            {selectedAddress ? (
+            {serviceFor === 'other' ? (
+              otherPersonDetails ? (
+                <View style={styles.addressCard}>
+                  <CustomText style={styles.addressTitle}>{otherPersonDetails.name}</CustomText>
+                  <CustomText style={styles.addressText}>{otherPersonDetails.email}</CustomText>
+                  <CustomText style={styles.addressPhone}>{otherPersonDetails.countryCode} {otherPersonDetails.phone}</CustomText>
+                  {otherPersonDetails.address && (
+                    <CustomText style={styles.addressText}>{formatAddress(otherPersonDetails.address)}</CustomText>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.emptyAddressCard}>
+                  <CustomText style={styles.emptyAddressText}>
+                    {t('checkout.addOtherPersonDetailsPrompt') || 'Add other person details to continue'}
+                  </CustomText>
+                </View>
+              )
+            ) : selectedAddress ? (
               <View style={styles.addressCard}>
                 <CustomText style={styles.addressTitle}>{selectedAddress.name}</CustomText>
                 <CustomText style={styles.addressText}>{formatAddress(selectedAddress)}</CustomText>
@@ -301,7 +347,7 @@ export default function Checkout() {
               </View>
             )}
           </View>
-        )}
+        ) : null}
 
       </ScrollView>
 

@@ -13,7 +13,6 @@ import {
   CustomButton,
   CustomInput,
   CustomText,
-  LoadingComp,
   CountryCodeSelector,
 } from '@components';
 import { CountryModal } from '@components';
@@ -41,6 +40,8 @@ const AddOtherPersonDetail: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const addressFromPreviousPage = route.params?.address || '';
+  // When true (atHome + other): address mandatory. When false (onPremises/online + other): address optional.
+  const addressRequired = route.params?.addressRequired !== false;
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showCountryModal, setShowCountryModal] = useState<boolean>(false);
 
@@ -51,25 +52,31 @@ const AddOtherPersonDetail: React.FC = () => {
   // Refetch addresses when returning from AddAddress screen
   const { refetch: refetchAddresses } = useGetCustomerAddresses();
 
-  const validationSchema = Yup.object().shape({
-    fname: Yup.string()
-      .trim()
-      .min(3, t('validation.fullnameMinLength'))
-      .required(t('validation.emptyFullName'))
-      .matches(regex.NAME_REGEX, t('validation.validFullName')),
-    email: Yup.string()
-      .trim()
-      .matches(regex.EMAIL_REGEX_WITH_EMPTY, t('validation.validEmail'))
-      .required(t('validation.emptyEmail')),
-    mobileno: Yup.string()
-      .trim()
-      .matches(regex.MOBILE, t('validation.validMobile'))
-      .required(t('validation.emptyMobile')),
-    address: Yup.string()
-      .trim()
-      .required(t('addAddress.validation.line1Empty') || 'Address is required')
-      .min(5, 'Minimum length 5'),
-  });
+  const validationSchema = useMemo(
+    () =>
+      Yup.object().shape({
+        fname: Yup.string()
+          .trim()
+          .min(3, t('validation.fullnameMinLength'))
+          .required(t('validation.emptyFullName'))
+          .matches(regex.NAME_REGEX, t('validation.validFullName')),
+        email: Yup.string()
+          .trim()
+          .matches(regex.EMAIL_REGEX_WITH_EMPTY, t('validation.validEmail'))
+          .required(t('validation.emptyEmail')),
+        mobileno: Yup.string()
+          .trim()
+          .matches(regex.MOBILE, t('validation.validMobile'))
+          .required(t('validation.emptyMobile')),
+        address: addressRequired
+          ? Yup.string()
+              .trim()
+              .required(t('addAddress.validation.line1Empty') || 'Address is required')
+              .min(5, 'Minimum length 5')
+          : Yup.string().trim(),
+      }),
+    [t, addressRequired]
+  );
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -83,7 +90,7 @@ const AddOtherPersonDetail: React.FC = () => {
     onSubmit: async (values, { setSubmitting }) => {
       Keyboard.dismiss();
       try {
-        if (!selectedAddress) {
+        if (addressRequired && !selectedAddress) {
           formik.setFieldTouched('address', true);
           setSubmitting(false);
           return;
@@ -94,7 +101,7 @@ const AddOtherPersonDetail: React.FC = () => {
           email: values.email,
           phone: values.mobileno,
           countryCode: values.countryCode,
-          address: selectedAddress,
+          address: selectedAddress ?? undefined,
         };
 
         console.log('Other Person Data:', data);
@@ -174,7 +181,7 @@ const AddOtherPersonDetail: React.FC = () => {
 
   return (
     <Container safeArea={true}>
-      <LoadingComp visible={formik.isSubmitting} />
+      {/* <LoadingComp visible={formik.isSubmitting} /> */}
       <AppHeader
         title={t('checkout.otherPersonDetails') || 'Other Person Details'}
         onLeftPress={() => navigation.goBack()}
@@ -251,18 +258,25 @@ const AddOtherPersonDetail: React.FC = () => {
                     formik.setFieldValue('mobileno', val);
                   }}
                   onBlur={() => formik.setFieldTouched('mobileno', true)}
-                  errortext={formik.touched.mobileno && formik.errors.mobileno ? formik.errors.mobileno : ''}
+                  // errortext={formik.touched.mobileno && formik.errors.mobileno ? formik.errors.mobileno : ''}
                   keyboardType="phone-pad"
                   maxLength={15}
                 />
               </View>
             </View>
+            {formik.touched.mobileno && formik.errors.mobileno && (
+              <CustomText style={styles.errorText}>{formik.errors.mobileno}</CustomText>
+            )}
 
-            {/* Address Selection */}
-            <CustomText style={styles.label}>{t('placeholders.selectAddress') || 'Select Address'}</CustomText>
+            {/* Address Selection (optional when addressRequired is false) */}
+            <CustomText style={styles.label}>
+              {addressRequired
+                ? (t('placeholders.selectAddress') || 'Select Address')
+                : (t('placeholders.selectAddressOptional') || 'Select Address (optional)')}
+            </CustomText>
             <TouchableOpacity onPress={handleSelectAddress} activeOpacity={0.7}>
               <CustomInput
-                placeholder={t('placeholders.selectAddress') || 'Select Address'}
+                placeholder={addressRequired ? (t('placeholders.selectAddress') || 'Select Address') : (t('placeholders.selectAddressOptional') || 'Select Address (optional)')}
                 value={formik.values.address}
                 onChangeText={() => { }} // Read-only
                 onBlur={() => formik.setFieldTouched('address', true)}
