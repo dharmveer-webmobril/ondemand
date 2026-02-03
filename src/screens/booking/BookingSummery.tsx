@@ -22,8 +22,8 @@ export default function BookingSummery() {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     console.log('route--------route', route.params?.bookingData);
-    const { bookingData } = route.params;
-    const { date, timeSlot, providerData, selectedServices } = bookingData;
+    const { bookingData } = route.params ?? {};
+    const { date, timeSlot, providerData, selectedServices = [] } = bookingData ?? {};
     
     // Track selected offers: { serviceId: { offerId, offer, discountAmount } }
     const [selectedOffers, setSelectedOffers] = useState<Record<string, SelectedOffer>>({});
@@ -63,7 +63,13 @@ export default function BookingSummery() {
             const discountAmount = selectedOffer?.discountAmount || 0;
             const discountedServicePrice = basePrice - discountAmount;
             
-            const addOnsPrice = service.selectedAddOns?.reduce((sum: number, addOn: any) => sum + (addOn.price || 0), 0) || 0;
+            const addOnsPrice = service.selectedAddOns?.reduce((sum: number, addOn: any) => {
+                if (!addOn) return sum;
+                const addOnPrice = Number(addOn.price) || 0;
+                const discountPct = Math.min(100, Math.max(0, Number(addOn.discountPercentage) || 0));
+                const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
+                return sum + (Number.isFinite(discountedAddOnPrice) ? discountedAddOnPrice : addOnPrice);
+            }, 0) || 0;
             price += discountedServicePrice + addOnsPrice;
 
             const baseDuration = service.time || 0;
@@ -146,7 +152,7 @@ export default function BookingSummery() {
                 <View style={styles.totalContainer}>
                     <CustomText style={styles.totalLabel}>Total</CustomText>
                     <View style={styles.totalDetails}>
-                        <CustomText style={styles.totalPrice}>${totalPrice.toFixed(2)}</CustomText>
+                        <CustomText style={styles.totalPrice}>${(Number.isFinite(totalPrice) ? totalPrice : 0).toFixed(2)}</CustomText>
                         <CustomText style={styles.totalDuration}>• {totalDuration}m</CustomText>
                     </View>
                 </View>

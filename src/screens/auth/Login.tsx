@@ -56,8 +56,8 @@ const Login = () => {
 
     const formik = useFormik({
         initialValues: {
-            email: 'jack@mailinator.com',
-            password: 'Qwerty@1',
+            email: '',
+            password: '',
         },
         validationSchema,
         onSubmit: async (values) => {

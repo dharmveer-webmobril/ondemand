@@ -153,14 +153,16 @@ export default function Checkout() {
     //   }),
     // };
 
-    const servicesForFinal = selectedServices.map((service: any) => ({
-      serviceId: service._id,
-      addOnIds: service.selectedAddOns?.map((addOn: any) => addOn._id) || [],
-      promotionOfferId: service.selectedOfferId || null,
-    }));
+    const servicesForFinal = (Array.isArray(selectedServices) ? selectedServices : [])
+      .filter((service: any) => service != null)
+      .map((service: any) => ({
+        serviceId: service?._id,
+        addOnIds: (service?.selectedAddOns || []).filter((a: any) => a != null).map((addOn: any) => addOn?._id).filter(Boolean) || [],
+        promotionOfferId: service?.selectedOfferId || null,
+      }));
 
     const fbookingData = {
-      spId: bookingData.providerData._id,
+      spId: bookingData?.providerData?._id,
       services: servicesForFinal,
       bookedFor: serviceFor,
       addressId: selectedAddress?._id,
@@ -234,7 +236,7 @@ export default function Checkout() {
             </View>
             <View style={styles.summaryRow}>
               <CustomText style={styles.summaryLabel}>Total:</CustomText>
-              <CustomText style={styles.summaryValue}>${bookingData.totalPrice?.toFixed(2)}</CustomText>
+              <CustomText style={styles.summaryValue}>${(Number.isFinite(bookingData?.totalPrice) ? bookingData.totalPrice : 0).toFixed(2)}</CustomText>
             </View>
           </View>
         </View>

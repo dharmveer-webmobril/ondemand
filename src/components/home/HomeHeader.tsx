@@ -75,29 +75,30 @@ export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
   }, [currentCityId, cities]);
 
   const handleCitySelect = async (city: City) => {
-    dispatch(setUserCity(city._id));
+    // dispatch(setUserCity(city._id));
     try {
       // Update only city in profile
-      const data = {
-        city: city._id,
-      };
+      // const data = {
+      //   city: city._id,
+      // };
+      dispatch(setUserCity(city));
+      queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
+      // const response = await updateProfileMutation.mutateAsync(data);
 
-      const response = await updateProfileMutation.mutateAsync(data);
-
-      if (response.succeeded && response.ResponseCode === 200) {
-        dispatch(setUserCity(city._id));
-        dispatch(setUserCity(response.ResponseData?.city));
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
-        queryClient.invalidateQueries({ queryKey: ['banners'] });
-        queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
-        setShowCityModal(false);
-      } else {
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: response.ResponseMessage || 'Failed to update city',
-        });
-      }
+      // if (response.succeeded && response.ResponseCode === 200) {
+      //   dispatch(setUserCity(city._id));
+      //   dispatch(setUserCity(response.ResponseData?.city));
+      //   queryClient.invalidateQueries({ queryKey: ['categories'] });
+      //   queryClient.invalidateQueries({ queryKey: ['banners'] });
+      //   queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
+      //   setShowCityModal(false);
+      // } else {
+      //   showToast({
+      //     type: 'error',
+      //     title: 'Error',
+      //     message: response.ResponseMessage || 'Failed to update city',
+      //   });
+      // }
     } catch (error: any) {
       console.error('Error updating city:', error);
       showToast({

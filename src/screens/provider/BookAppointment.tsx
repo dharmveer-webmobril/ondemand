@@ -67,7 +67,8 @@ export default function BookAppointment() {
     isFetching: isFetchingAvailability,
   } = useGetServiceProviderAvailability(providerId, selectedDateString);
 
-  // Generate time slots based on availability (in 24-hour format)
+  // Generate time slots based on availability (in 24-hour format).
+  // If selected date is today, show only slots that are at least 1 hour from now.
   const timeSlots = useMemo(() => {
     if (!availabilityData?.ResponseData?.availability) {
       return [];
@@ -76,8 +77,22 @@ export default function BookAppointment() {
     if (!availabilityData.ResponseData.available || availability.close) {
       return [];
     }
-    return generateTimeSlots(availability.startTime, availability.endTime, availability.close);
-  }, [availabilityData]);
+    const slots = generateTimeSlots(availability.startTime, availability.endTime, availability.close);
+
+    // For today: only show slots that start at least 1 hour from now
+    if (selectedDateString === todayString) {
+      const now = new Date();
+      const cutoff = new Date(now.getTime() + 60 * 60 * 1000); // now + 1 hr
+      return slots.filter((slot) => {
+        const [hours, minutes] = slot.time.split(':').map(Number);
+        const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+        return slotDate >= cutoff;
+      });
+    }
+
+    // Future date: show all slots
+    return slots;
+  }, [availabilityData, selectedDateString, todayString]);
 
   // Handle date selection from Calendar
   const handleDayPress = useCallback((day: DateData) => {
@@ -113,17 +128,21 @@ export default function BookAppointment() {
 
 
   const totalPrice = useMemo(() => {
-    let price = currentSelectedServices.reduce((sum: number, service: any) => {
-      let servicePrice = service.price || 0;
-      // Add add-ons price
-      if (service.selectedAddOns && service.selectedAddOns.length > 0) {
+    const price = (currentSelectedServices || []).reduce((sum: number, service: any) => {
+      const basePrice = Number(service?.price) || 0;
+      let addOnsTotal = 0;
+      if (service?.selectedAddOns?.length > 0) {
         service.selectedAddOns.forEach((addOn: any) => {
-          servicePrice += addOn.price || 0;
+          if (!addOn) return;
+          const addOnPrice = Number(addOn.price) || 0;
+          const discountPct = Math.min(100, Math.max(0, Number(addOn.discountPercentage) || 0));
+          const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
+          addOnsTotal += Number.isFinite(discountedAddOnPrice) ? discountedAddOnPrice : addOnPrice;
         });
       }
-      return sum + servicePrice;
+      return sum + basePrice + addOnsTotal;
     }, 0);
-    return price;
+    return Number.isFinite(price) ? price : 0;
   }, [currentSelectedServices]);
 
   const totalDuration = useMemo(() => {
@@ -205,7 +224,7 @@ export default function BookAppointment() {
     if (!selectedTimeSlot) {
       return;
     }
-    const time = timeSlots.find((t: any) => t.id === selectedTimeSlot);
+    const time = timeSlots.find((slot: any) => slot.id === selectedTimeSlot);
     console.log('time--------time', time);
     // Prepare booking JSON with all selected details
     const bookingJson = {

@@ -38,7 +38,7 @@ const appSlice = createSlice({
     setInactiveMessage: (state, action: PayloadAction<string>) => {
       state.inactiveMessage = action.payload;
     },
-    setUserCity: (state, action: PayloadAction<string>) => {
+    setUserCity: (state, action: PayloadAction<any>) => {
       state.userCity = action.payload;
     },
   },

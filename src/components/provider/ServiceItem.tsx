@@ -1,7 +1,12 @@
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, ImageSourcePropType } from 'react-native';
 import  { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons, ImageLoader } from '@components/common';
+
+type BestOffer = {
+  title: string;
+  discountValue: number;
+};
 
 type ServiceItemProps = {
   id: string;
@@ -11,7 +16,9 @@ type ServiceItemProps = {
   icon?: string;
   onBook?: () => void;
   isShowBookButton?: boolean;
-  image?:ImageSourcePropType
+  image?: ImageSourcePropType;
+  /** Highest discount offer to show (e.g. from activeOffers) */
+  bestOffer?: BestOffer | null;
 };
 
 export default function ServiceItem({
@@ -21,10 +28,16 @@ export default function ServiceItem({
   icon = 'cut',
   onBook,
   isShowBookButton = true,
-  image=null
+  image = null,
+  bestOffer = null,
 }: ServiceItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const hasOffer = bestOffer != null && Number(bestOffer?.discountValue) > 0;
+  const discountValue = hasOffer ? Math.min(100, Math.max(0, Number(bestOffer?.discountValue) || 0)) : 0;
+  const discountedPrice = hasOffer && Number.isFinite(price) ? price * (1 - discountValue / 100) : price;
+  const displayPrice = Number.isFinite(discountedPrice) ? discountedPrice : price;
 
   return (
     <Pressable
@@ -42,20 +55,25 @@ export default function ServiceItem({
               resizeMode="cover"
             />
           </View>
-          {/* {icon && (
-            <View style={styles.iconContainer}>
-              <VectoreIcons
-                name={icon}
-                icon="Ionicons"
-                size={theme.SF(20)}
-                color={theme.colors.primary}
-              />
-            </View>
-          )} */}
           <View style={styles.infoContainer}>
             <CustomText style={styles.serviceName}>{name}</CustomText>
+            {/* {hasOffer && (
+              <View style={styles.offerBadge}>
+                <CustomText style={styles.offerBadgeText}>
+                  {bestOffer?.title ?? 'Offer'} – {discountValue}% off
+                </CustomText>
+              </View>
+            )} */}
             <View style={styles.priceContainer}>
-              <CustomText style={styles.price}>${price.toFixed(2)}</CustomText>
+              {/* {hasOffer 
+              ? (
+                <>
+                  <CustomText style={styles.originalPrice}>${(Number.isFinite(price) ? price : 0).toFixed(2)}</CustomText>
+                  <CustomText style={styles.price}>${displayPrice.toFixed(2)}</CustomText>
+                </>
+              ) : ( */}
+                <CustomText style={styles.price}>${(Number.isFinite(price) ? price : 0).toFixed(2)}</CustomText>
+              {/* )} */}
               {duration && (
                 <CustomText style={styles.duration}>{duration}</CustomText>
               )}
@@ -113,6 +131,25 @@ const createStyles = (theme: ThemeType) => {
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
       marginBottom: SH(4),
+    },
+    offerBadge: {
+      alignSelf: 'flex-start',
+      backgroundColor: Colors.gray || '#135D96',
+      paddingHorizontal: SW(8),
+      paddingVertical: SH(1),
+      borderRadius: SF(4),
+      marginBottom: SH(4),
+    },
+    offerBadgeText: {
+      fontSize: SF(11),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.white,
+    },
+    originalPrice: {
+      fontSize: SF(12),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.lightText,
+      textDecorationLine: 'line-through',
     },
     priceContainer: {
       flexDirection: 'row',

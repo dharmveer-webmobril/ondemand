@@ -31,8 +31,14 @@ export default function ServiceCart({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const calculateServiceTotal = (service: Service) => {
-    const basePrice = service.price || 0;
-    const addOnsPrice = service.selectedAddOns?.reduce((sum: number, addOn: any) => sum + (addOn.price || 0), 0) || 0;
+    const basePrice = Number(service.price) || 0;
+    const addOnsPrice = service.selectedAddOns?.reduce((sum: number, addOn: any) => {
+      if (!addOn) return sum;
+      const addOnPrice = Number(addOn.price) || 0;
+      const discountPct = Math.min(100, Math.max(0, Number(addOn.discountPercentage) || 0));
+      const discounted = addOnPrice * (1 - discountPct / 100);
+      return sum + (Number.isFinite(discounted) ? discounted : addOnPrice);
+    }, 0) || 0;
     return basePrice + addOnsPrice;
   };
 
@@ -42,15 +48,20 @@ export default function ServiceCart({
     return baseDuration + addOnsDuration;
   };
 
+  const safeServices = Array.isArray(services) ? services : [];
+
   return (
     <View style={styles.section}>
       <CustomText style={styles.sectionTitle}>Selected Services</CustomText>
-      {services.map((service) => {
+      {safeServices.map((service, index) => {
+        if (service == null) return null;
         const serviceTotalPrice = calculateServiceTotal(service);
         const serviceTotalDuration = calculateServiceDuration(service);
         const serviceImage = service?.images?.[0] ? { uri: service?.images?.[0] } : imagePaths.no_image;
+        const displayPrice = Number.isFinite(serviceTotalPrice) ? serviceTotalPrice : 0;
+        const displayDuration = Number.isFinite(serviceTotalDuration) ? serviceTotalDuration : 0;
         return (
-          <View key={service._id} style={styles.serviceCard}>
+          <View key={service._id ?? `service-${index}`} style={styles.serviceCard}>
             <View style={styles.serviceInfo}>
               <View style={styles.serviceImageContainer}>
                 <ImageLoader
@@ -62,7 +73,7 @@ export default function ServiceCart({
               <View style={styles.serviceDetails}>
                 <CustomText style={styles.serviceName}>{service?.name}</CustomText>
                 <CustomText style={styles.servicePrice}>
-                  ${serviceTotalPrice.toFixed(2)} • {serviceTotalDuration}m
+                  ${displayPrice.toFixed(2)} • {displayDuration}m
                 </CustomText>
               </View>
             </View>
@@ -70,13 +81,25 @@ export default function ServiceCart({
             {/* Selected Add-ons */}
             {service.selectedAddOns && service.selectedAddOns.length > 0 && (
               <View style={styles.addOnsContainer}>
-                {service.selectedAddOns.map((addOn: any) => (
-                  <View key={addOn._id} style={styles.addOnTag}>
-                    <CustomText style={styles.addOnTagText}>
-                      {addOn.name} (+${addOn.price?.toFixed(2)})
-                    </CustomText>
-                  </View>
-                ))}
+                {service.selectedAddOns
+                  .filter((addOn: any) => addOn != null)
+                  .map((addOn: any, index: number) => {
+                    const addOnPrice = Number(addOn?.price) || 0;
+                    const discountPct = Math.min(100, Math.max(0, Number(addOn?.discountPercentage) || 0));
+                    const discounted = addOnPrice * (1 - discountPct / 100);
+                    const cutPrice = Number.isFinite(discounted) ? discounted : addOnPrice;
+                    const hasDiscount = discountPct > 0;
+                    const displayOriginal = (Number.isFinite(addOnPrice) ? addOnPrice : 0).toFixed(2);
+                    const displayCut = (Number.isFinite(cutPrice) ? cutPrice : addOnPrice).toFixed(2);
+                    return (
+                      <View key={addOn._id ?? `addon-${index}`} style={styles.addOnTag}>
+                        <CustomText style={styles.addOnTagText}>
+                          {addOn?.name ?? ''}: ${displayOriginal}
+                          {hasDiscount ? ` → $${displayCut} (${discountPct}% off)` : ''}
+                        </CustomText>
+                      </View>
+                    );
+                  })}
               </View>
             )}
             <View style={styles.serviceActions}>

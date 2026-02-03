@@ -10,6 +10,7 @@ type AddOn = {
   price: number;
   duration: number;
   description?: string;
+  discountPercentage?: number;
 };
 
 type AddOnSelectionModalProps = {
@@ -53,8 +54,23 @@ export default function AddOnSelectionModal({
     onClose();
   };
 
+  const getAddOnDisplayPrice = (addOn: AddOn | null | undefined) => {
+    if (addOn == null) return { original: 0, discounted: 0, discountPct: 0, hasDiscount: false };
+    const price = Number(addOn?.price) || 0;
+    const discountPct = Math.min(100, Math.max(0, Number(addOn?.discountPercentage) || 0));
+    const discounted = price * (1 - discountPct / 100);
+    return {
+      original: price,
+      discounted: Number.isFinite(discounted) ? discounted : price,
+      discountPct,
+      hasDiscount: discountPct > 0,
+    };
+  };
+
   const renderAddOnItem = ({ item }: { item: AddOn }) => {
-    const isSelected = selectedIds.includes(item._id);
+    if (item == null) return null;
+    const isSelected = selectedIds.includes(item?._id ?? '');
+    const { original, discounted, discountPct, hasDiscount } = getAddOnDisplayPrice(item);
     return (
       <Pressable
         style={({ pressed }) => [
@@ -62,7 +78,7 @@ export default function AddOnSelectionModal({
           isSelected && styles.selectedAddOnItem,
           pressed && { opacity: 0.7 },
         ]}
-        onPress={() => handleToggleAddOn(item._id)}
+        onPress={() => handleToggleAddOn(item?._id ?? '')}
       >
         <View style={styles.addOnContent}>
           <View
@@ -84,19 +100,23 @@ export default function AddOnSelectionModal({
             <CustomText
               style={[
                 styles.addOnName,
-                isSelected && styles.selectedAddOnName,
+                ...(isSelected ? [styles.selectedAddOnName] : []),
               ]}
             >
-              {item.name}
+              {item?.name ?? ''}
             </CustomText>
             {item.description && (
               <CustomText style={styles.addOnDescription} numberOfLines={2}>
                 {item.description}
               </CustomText>
             )}
-            <CustomText style={styles.addOnPrice}>
-              ${item.price.toFixed(2)} • {item.duration}m
-            </CustomText>
+            <View style={styles.priceRow}>
+              <CustomText style={styles.addOnPrice}>
+                ${(Number.isFinite(original) ? original : 0).toFixed(2)}
+                {hasDiscount ? ` → $${(Number.isFinite(discounted) ? discounted : original).toFixed(2)} (${discountPct}% off)` : ''}
+                {' • '}{item?.duration ?? 0}m
+              </CustomText>
+            </View>
           </View>
         </View>
       </Pressable>
@@ -126,14 +146,14 @@ export default function AddOnSelectionModal({
               </Pressable>
             </View>
 
-            {addOns.length === 0 ? (
+            {(Array.isArray(addOns) ? addOns : []).length === 0 ? (
               <View style={styles.emptyContainer}>
                 <CustomText style={styles.emptyText}>No add-ons available</CustomText>
               </View>
             ) : (
               <FlatList
-                data={addOns}
-                keyExtractor={(item) => item._id}
+                data={Array.isArray(addOns) ? addOns : []}
+                keyExtractor={(item) => item?._id ?? ''}
                 renderItem={renderAddOnItem}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
@@ -246,10 +266,27 @@ const createStyles = (theme: ThemeType) => {
       color: Colors.textAppColor || Colors.text,
       marginBottom: SH(4),
     },
+    priceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SW(8),
+      flexWrap: 'wrap',
+    },
     addOnPrice: {
       fontSize: SF(14),
       fontFamily: Fonts.REGULAR,
       color: Colors.textAppColor || Colors.text,
+    },
+    discountBadge: {
+      fontSize: SF(12),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.primary,
+    },
+    originalPriceLine: {
+      fontSize: SF(12),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.lightText,
+      marginTop: SH(2),
     },
     emptyContainer: {
       paddingVertical: SH(40),

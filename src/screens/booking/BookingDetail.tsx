@@ -38,13 +38,10 @@ import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor } from '@utils/tools';
 
 
-// Map API booking status to UI status
-
-
-// Format date from API format (YYYY-MM-DD) to display format
 const formatDate = (dateString: string): string => {
-  if (!dateString) return '';
+  if (!dateString || typeof dateString !== 'string') return '';
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
   const months = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
   return `${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
@@ -138,7 +135,7 @@ export default function BookingDetail() {
     if (!bookingDetailData?.ResponseData?.booking) return null;
 
     const apiBooking = bookingDetailData?.ResponseData?.booking;
-    const bookedServices = bookingDetailData?.ResponseData?.bookedServices || [];
+    const bookedServices = (bookingDetailData?.ResponseData?.bookedServices || []).filter((s: any) => s != null);
 
     // Transform bookedServices to BookingServiceCard format
     const services = bookedServices.map((bookedService: any) => {
@@ -163,9 +160,13 @@ export default function BookingDetail() {
       const servicePromotionOfferAmount = bookedService?.promotionOfferAmount || 0; // Discount amount
       const serviceDiscountedAmount = bookedService?.discountedAmount || 0; // Final amount after discount
 
-      // Calculate add-ons total
+      // Calculate add-ons total (with add-on discount percentage applied)
       const addOnsTotal = selectedAddOns.reduce((sum: number, addon: any) => {
-        return sum + (addon?.price || 0);
+        if (!addon) return sum;
+        const addOnPrice = Number(addon?.price) || 0;
+        const discountPct = Math.min(100, Math.max(0, Number(addon?.discountPercentage) || 0));
+        const discounted = addOnPrice * (1 - discountPct / 100);
+        return sum + (Number.isFinite(discounted) ? discounted : addOnPrice);
       }, 0);
 
       return {
@@ -175,13 +176,12 @@ export default function BookingDetail() {
         images: service?.images || [],
         selectedAddOns: selectedAddOns,
         appliedOffer: appliedOffer,
-        // Price information
-        price: serviceBasePrice, // Base service price
-        totalAmount: serviceTotalAmount, // Total amount (service + addons) before discount
-        discountAmount: servicePromotionOfferAmount, // Discount amount applied
-        discountedAmount: serviceDiscountedAmount, // Final amount after discount
-        promotionOfferAmount: servicePromotionOfferAmount, // Alias for discount amount
-        addOnsTotal: addOnsTotal, // Total of all add-ons
+        price: serviceBasePrice,
+        totalAmount: serviceTotalAmount,
+        discountAmount: servicePromotionOfferAmount,
+        discountedAmount: serviceDiscountedAmount,
+        promotionOfferAmount: servicePromotionOfferAmount,
+        addOnsTotal: addOnsTotal,
         bookingStatus: bookedService?.bookingStatus,
         assignedMember: assignedMember,
       };
@@ -235,6 +235,7 @@ export default function BookingDetail() {
       .catch(() => {
         Alert.alert(t('common.error'), t('common.unableToCall'));
       });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOpenMaps = useCallback((address: string) => {
@@ -333,6 +334,7 @@ export default function BookingDetail() {
         }
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelType, booking, serviceToCancel, cancelBooking, cancelService, refetchBooking]);
 
   const handleReschedule = useCallback((newDate: string, newTime: string, reason: string) => {
@@ -371,6 +373,7 @@ export default function BookingDetail() {
         },
       }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedServiceId, rescheduleService, refetchBooking]);
 
   const handleAssignMember = useCallback((service: any) => {
@@ -391,6 +394,7 @@ export default function BookingDetail() {
       .catch(() => {
         Alert.alert(t('common.error'), t('common.unableToCall'));
       });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -522,7 +526,7 @@ export default function BookingDetail() {
 
           {/* Address Card - Show only if address exists */}
           {
-            booking.preferences.length > 0 && booking.preferences.includes('atHome') && (
+            Array.isArray(booking?.preferences) && booking.preferences.length > 0 && booking.preferences.includes('atHome') && (
               <AddressCard
                 address={booking.serviceAddress}
                 onViewLocation={() => handleOpenMaps(booking.serviceAddress)}
@@ -570,7 +574,7 @@ export default function BookingDetail() {
                     color={theme.colors.lightText}
                     style={styles.originalPriceText}
                   >
-                    Original: ${(booking?.originalPrice || 0).toFixed(2)}
+                    Original: ${(Number.isFinite(booking?.originalPrice) ? booking.originalPrice : 0).toFixed(2)}
                   </CustomText>
                 )}
                 <CustomText
@@ -586,7 +590,7 @@ export default function BookingDetail() {
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.primary}
               >
-                ${(booking?.totalPrice || 0).toFixed(2)}
+                ${(Number.isFinite(booking?.totalPrice) ? booking.totalPrice : 0).toFixed(2)}
               </CustomText>
             </View>
           </View>

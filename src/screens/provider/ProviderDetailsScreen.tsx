@@ -94,7 +94,8 @@ export default function ProviderDetailsScreen() {
   const provider = providerData?.ResponseData || {};
   const services = servicesData?.ResponseData?.services || [];
   const businessProfile = provider?.businessProfile || {};
-
+  
+console.log('services--------services', services);
   const isLoading = isLoadingProvider || isLoadingServices;
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
@@ -109,8 +110,7 @@ export default function ProviderDetailsScreen() {
   const handleDeliveryModeConfirm = (deliveryMode: any) => {
 
     const service = services.find((s: any) => s._id === pendingServiceId);
-    console.log('deliveryMode--------service', service);
-    console.log('deliveryMode--------deliveryMode', deliveryMode);
+  
     if (service?.preferences?.length > 0 && service?.preferences.includes(deliveryMode)) {
       navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
         providerId: provider._id || spId,
@@ -120,7 +120,6 @@ export default function ProviderDetailsScreen() {
         bookingDetails: { deliveryMode },
         providerData: provider,
       });
-      console.log('deliveryMode--------service yes show service for modal', service);
     } else {
       showToast({ type: 'info', message: t('providerDetails.serviceNotAvailableMode') });
       return;
