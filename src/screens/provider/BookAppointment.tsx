@@ -3,7 +3,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Calendar, DateData } from 'react-native-calendars';
-import { Container, AppHeader, CustomText, CustomButton } from '@components/common';
+import { Container, AppHeader, CustomText, CustomButton, showToast } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useGetServiceProviderAvailability, useGetServiceProviderServices } from '@services/index';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
@@ -82,7 +82,7 @@ export default function BookAppointment() {
     // For today: only show slots that start at least 1 hour from now
     if (selectedDateString === todayString) {
       const now = new Date();
-      const cutoff = new Date(now.getTime() + 60 * 60 * 1000); // now + 1 hr
+      const cutoff = new Date(now.getTime() + 60 * 30 * 1000); // now + 1 hr
       return slots.filter((slot) => {
         const [hours, minutes] = slot.time.split(':').map(Number);
         const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
@@ -222,6 +222,11 @@ export default function BookAppointment() {
 
   const handleBook = () => {
     if (!selectedTimeSlot) {
+      showToast({
+        title: 'Error',
+        type: 'error',
+        message: 'Please select a time slot',
+      })
       return;
     }
     const time = timeSlots.find((slot: any) => slot.id === selectedTimeSlot);
@@ -232,7 +237,6 @@ export default function BookAppointment() {
       selectedServices: currentSelectedServices,
       date: selectedDateString,
       timeSlot: time?.time,
-      // services: selectedServices,
       deliveryMode: bookingDetails.deliveryMode,
       totalPrice: totalPrice,
       totalDuration: `${totalDuration}m`,
@@ -388,7 +392,7 @@ export default function BookAppointment() {
           buttonStyle={styles.bookButton}
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}
-          disable={!selectedTimeSlot || currentSelectedServices.length === 0}
+        // disable={!selectedTimeSlot || currentSelectedServices.length === 0}
         />
       </View>
 

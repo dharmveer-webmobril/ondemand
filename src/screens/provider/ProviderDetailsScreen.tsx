@@ -17,6 +17,7 @@ import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { ProviderHeader, ProviderSubHeader } from '@components';
 import { useGetServiceProviderDetail, useGetServiceProviderServices } from '@services/index';
+import { formatAddress } from '@utils/tools';
 
 type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
 
@@ -329,13 +330,13 @@ console.log('services--------services', services);
   return (
     <Container safeArea={true} style={styles.container}>
       <ProviderHeader
-        name={provider.name || 'Provider'}
+        name={provider.name  || 'Provider'}
         logo={provider.profileImage}
       />
       <ProviderSubHeader
         logo={provider.profileImage}
         name={provider.name || 'Provider'}
-        address={businessProfile.address || provider.city?.name || 'Address not available'}
+        address={formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || 'Address not available'}
         serviceType={businessProfile.name || 'Service Provider'}
         rating={provider.rating || undefined}
         reviewCount={0} // TODO: Get from API if available

@@ -26,6 +26,7 @@ import * as Yup from 'yup';
 import { useGetCountries, useGetCustomerAddresses } from '@services/index';
 import { Address } from '@services/api/queries/appQueries';
 import imagePaths from '@assets';
+import { formatAddress } from '@utils/tools';
 
 interface FormValues {
   fname: string;
@@ -129,13 +130,7 @@ const AddOtherPersonDetail: React.FC = () => {
   });
 
   // Format address for display
-  const formatAddress = (address: Address | null) => {
-    if (!address) return '';
-    const parts = [address.line1];
-    if (address.line2) parts.push(address.line2);
-    if (address.landmark) parts.push(address.landmark);
-    return parts.join(', ');
-  };
+   
 
   // Handle address selection when returning from SelectAddress or AddAddress screens
   useEffect(() => {
@@ -150,7 +145,7 @@ const AddOtherPersonDetail: React.FC = () => {
       const addressFromRoute = route.params?.selectedAddress || route.params?.address;
       if (addressFromRoute) {
         setSelectedAddress(addressFromRoute);
-        formik.setFieldValue('address', formatAddress(addressFromRoute));
+        formik.setFieldValue('address', formatAddress({ line1: addressFromRoute?.line1 ?? '', line2: addressFromRoute?.line2 ?? '', landmark: addressFromRoute?.landmark ?? '', pincode: addressFromRoute?.pincode ?? '', city: addressFromRoute?.city?.name ?? '', country: addressFromRoute?.country?.name ?? '' }));
         setTimeout(() => {
           formik.setFieldTouched('address', true);
         }, 100);
@@ -165,7 +160,7 @@ const AddOtherPersonDetail: React.FC = () => {
     navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS as never, {
       onSelect: (address: Address) => {
         setSelectedAddress(address);
-        formik.setFieldValue('address', formatAddress(address));
+        formik.setFieldValue('address', formatAddress({ line1: address?.line1 ?? '', line2: address?.line2 ?? '', landmark: address?.landmark ?? '', pincode: address?.pincode ?? '', city: address?.city?.name ?? '', country: address?.country?.name ?? '' }));
         setTimeout(() => {
           formik.setFieldTouched('address', true);
         }, 100);

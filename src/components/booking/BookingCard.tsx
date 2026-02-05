@@ -71,22 +71,35 @@ export default function BookingCard({
         </View>
 
         {/* Booking ID */}
-        <CustomText
+        {/* <CustomText
           fontSize={theme.fontSize.xxs}
           fontFamily={theme.fonts.REGULAR}
           color={theme.colors.lightText || '#999999'}
         >
           {t('myBookingScreen.bookingId')}
-        </CustomText>
+        </CustomText> */}
+
         <CustomText
           fontSize={theme.fontSize.sm}
-          fontFamily={theme.fonts.SEMI_BOLD}
+          fontFamily={theme.fonts.MEDIUM}
           color={theme.colors.text}
           style={styles.bookingIdText}
+          numberOfLines={2}
         >
-          {bookingId || '—'}
+          {
+            shopName
+          }
+          {/* {bookingId || '—'} */}
         </CustomText>
-
+        {/* Service Provider */}
+        <CustomText
+          fontSize={theme.fontSize.xxs}
+          fontFamily={theme.fonts.REGULAR}
+          color={theme.colors.lightText || '#999999'}
+          style={styles.detailLine}
+        >
+          {bookingId}
+        </CustomText>
         {/* Date */}
         <CustomText
           fontSize={theme.fontSize.xxs}
@@ -98,17 +111,9 @@ export default function BookingCard({
         </CustomText>
         {/* Time */}
 
-        {/* Service Provider */}
-        <CustomText
-          fontSize={theme.fontSize.xxs}
-          fontFamily={theme.fonts.REGULAR}
-          color={theme.colors.lightText || '#999999'}
-          style={styles.detailLine}
-        >
-          {shopName}
-        </CustomText>
+
         {/* Address */}
-        <CustomText
+        {address && <CustomText
           fontSize={theme.fontSize.xxs}
           fontFamily={theme.fonts.REGULAR}
           color={theme.colors.lightText || '#999999'}
@@ -116,7 +121,7 @@ export default function BookingCard({
           style={styles.detailLine}
         >
           {address}
-        </CustomText>
+        </CustomText>}
 
         {/* Footer: Price + Book Again */}
         <View style={styles.footerRow}>
@@ -127,7 +132,9 @@ export default function BookingCard({
           >
             {price}
           </CustomText>
-          {status === 'completed' && onBookAgain && (
+          
+        </View>
+        {status === 'completed' && onBookAgain && (
             <CustomButton
               title={t('myBookingScreen.bookAgain')}
               onPress={onBookAgain}
@@ -137,7 +144,6 @@ export default function BookingCard({
               buttonTextStyle={styles.buttonText}
             />
           )}
-        </View>
       </View>
     </Pressable>
   );
@@ -190,6 +196,7 @@ const createStyles = (theme: ThemeType) =>
     },
     bookingIdText: {
       marginTop: theme.SH(2),
+      width: '70%',
     },
     detailLine: {
       marginTop: theme.SH(4),
@@ -202,9 +209,11 @@ const createStyles = (theme: ThemeType) =>
       paddingTop: theme.SH(8),
     },
     bookAgainButton: {
-      height: theme.SH(36),
-      paddingHorizontal: theme.SW(16),
+      height: theme.SH(25),
+      // paddingHorizontal: theme.SW(16),
       borderRadius: theme.borderRadius.md || 8,
+      width:100,
+      marginTop:5
     },
     buttonText: {
       fontSize: theme.fontSize.xs,

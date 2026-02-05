@@ -1,0 +1,99 @@
+{
+  "project_info": {
+    "project_number": "892821136177",
+    "firebase_url": "https://ssnap-d80b4-default-rtdb.firebaseio.com",
+    "project_id": "ssnap-d80b4",
+    "storage_bucket": "ssnap-d80b4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892821136177:android:487e70e61ebe6d9ab1c610",
+        "android_client_info": {
+          "package_name": "com.squedio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "892821136177-a5g7cgmcq72j87a3n2dhpomans3lhmjd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.squedio",
+            "certificate_hash": "f8e17c5cdde52acade7e335451cf054d55b68acd"
+          }
+        },
+        {
+          "client_id": "892821136177-bm6io5lcquvn4lloalf22tink4hoietr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhrCz9naj4x-rLT7hvhJZPy3-MH_PpkBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "892821136177-bm6io5lcquvn4lloalf22tink4hoietr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "892821136177-43a5q6h543t1v8m2i94crebqs4aadagv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.squediopro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892821136177:android:eb4198e0b96fc435b1c610",
+        "android_client_info": {
+          "package_name": "com.squediopro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "892821136177-636asr5vgqklpdbbliqb4o41d2et843j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.squediopro",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "892821136177-bm6io5lcquvn4lloalf22tink4hoietr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhrCz9naj4x-rLT7hvhJZPy3-MH_PpkBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "892821136177-bm6io5lcquvn4lloalf22tink4hoietr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "892821136177-43a5q6h543t1v8m2i94crebqs4aadagv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.squediopro"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

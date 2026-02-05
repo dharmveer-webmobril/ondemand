@@ -7,10 +7,12 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import CategoryTabs from '@components/category/CategoryTabs';
 import ServiceProviderListItem from '@components/category/ServiceProviderListItem';
 import DeliveryModeModal from '@components/category/DeliveryModeModal';
-import { Category, useGetCategories, useGetServiceProviders, ServiceProvider, ServiceProvidersResponse, GetServiceProvidersParams } from '@services/api/queries/appQueries';
+import { Category, useGetCategories, useGetServiceProviders, ServiceProvidersResponse } from '@services/api/queries/appQueries';
 import imagePaths from '@assets';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import useDebounce from '@utils/hooks/useDebounce';
+import { useAppSelector } from '@store/hooks';
+import { formatAddress } from '@utils/tools';
 
 type DeliveryMode = 'at_home' | 'online' | 'on_premises';
 
@@ -29,7 +31,7 @@ export default function CategoryProviders() {
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('at_home');
   const [currentPage, setCurrentPage] = useState(1);
-  const [allProviders, setAllProviders] = useState<ServiceProvider[]>([]);
+  const [allProviders, setAllProviders] = useState<any[]>([]);
   const [hasReceivedData, setHasReceivedData] = useState(false);
 
   // Get all categories for tabs
@@ -38,11 +40,13 @@ export default function CategoryProviders() {
     return categoriesData?.ResponseData?.filter((cat: Category) => cat.status) || [];
   }, [categoriesData]);
 
+  const currentCityId = useAppSelector(state => state.app.userCity)?._id;
   // Build query params - only include categoryIds if a specific category is selected (not "All")
   const queryParams = useMemo(() => {
-    const params: GetServiceProvidersParams = {
+    const params: any = {
       page: currentPage,
       limit: 10,
+      currentCityId: currentCityId,
     };
 
     // Only add categoryIds if a specific category is selected (not "All")
@@ -57,7 +61,7 @@ export default function CategoryProviders() {
 
     console.log('Query params:', params);
     return params;
-  }, [currentPage, selectedCategory, debouncedSearchQuery]);
+  }, [currentPage, selectedCategory, debouncedSearchQuery, currentCityId]);
 
   // Fetch providers with pagination and search
   const {
@@ -77,24 +81,24 @@ export default function CategoryProviders() {
   // Accumulate providers from all pages
   React.useEffect(() => {
     const data = providersData as ServiceProvidersResponse | undefined;
-    console.log('providersData changed:', data ? 'has data' : 'no data', 'currentPage:', currentPage);
+    // console.log('providersData changed:', data ? 'has data' : 'no data', 'currentPage:', currentPage);
     if (data?.ResponseData) {
-      console.log('Setting providers data:', data.ResponseData.length, 'items, page:', currentPage);
+      // console.log('Setting providers data:', data.ResponseData.length, 'items, page:', currentPage);
       setHasReceivedData(true);
       if (currentPage === 1) {
-        console.log('Setting allProviders for page 1:', data.ResponseData.length);
+        // console.log('Setting allProviders for page 1:', data.ResponseData.length);
         setAllProviders(data.ResponseData);
       } else {
-        console.log('Appending to allProviders for page:', currentPage);
+        // console.log('Appending to allProviders for page:', currentPage);
         setAllProviders(prev => {
           const newProviders = [...prev, ...data.ResponseData];
-          console.log('New total providers:', newProviders.length);
+          // console.log('New total providers:', newProviders.length);
           return newProviders;
         });
       }
     } else if (data && Array.isArray(data.ResponseData) && data.ResponseData.length === 0) {
       // Empty response - still mark as received
-      console.log('Empty ResponseData received');
+      // console.log('Empty ResponseData received');
       setHasReceivedData(true);
       if (currentPage === 1) {
         setAllProviders([]);
@@ -106,7 +110,6 @@ export default function CategoryProviders() {
 
   // Use providers directly from API (search is handled server-side)
   const filteredProviders = useMemo(() => {
-    console.log('filteredProviders memo - allProviders length:', allProviders.length);
     return allProviders;
   }, [allProviders]);
 
@@ -135,13 +138,13 @@ export default function CategoryProviders() {
     }
   }, [hasMore, providersLoading]);
 
-  const handleProviderPress = useCallback((provider: ServiceProvider) => {
+  const handleProviderPress = useCallback((provider: any) => {
     (navigation as any).navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
       provider: {
         id: provider._id,
         name: provider.name,
-        logo: provider.profileImage,
-        address: provider.businessProfile?.address || provider.city?.name || '',
+        logo: provider.businessProfile?.bannerImage ? { uri: provider.businessProfile?.bannerImage } : imagePaths.no_image,
+        address: formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '',
         serviceType: provider.businessProfile?.name || 'Service Provider',
         rating: provider.rating,
         reviewCount: 0,
@@ -181,17 +184,17 @@ export default function CategoryProviders() {
             color={theme.colors.text}
           />
         </Pressable>
-          <View style={styles.searchInputWrapper}>
-            <CustomInput
-              placeholder={t('category.search')}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              leftIcon={imagePaths.Search}
-              rightIcon={searchQuery.length > 0 ? imagePaths.remove : null}
-              onRightIconPress={handleClearSearch}
-            />
-          </View>
-      
+        <View style={styles.searchInputWrapper}>
+          <CustomInput
+            placeholder={t('category.search')}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            leftIcon={imagePaths.Search}
+            rightIcon={searchQuery.length > 0 ? imagePaths.remove : null}
+            onRightIconPress={handleClearSearch}
+          />
+        </View>
+
       </View>
       {/* Category Tabs */}
       <CategoryTabs
@@ -243,9 +246,9 @@ export default function CategoryProviders() {
             <ServiceProviderListItem
               id={item._id}
               name={item.name}
-              logo={item.profileImage}
+              logo={item.businessProfile?.bannerImage ? { uri: item.businessProfile?.bannerImage } : imagePaths.no_image}
               images={item.businessProfile?.portfolioImages || []}
-              address={item.businessProfile?.address || item.city?.name || ''}
+              address={formatAddress({ line1: item.businessProfile?.line1, line2: item.businessProfile?.line2, landmark: item.businessProfile?.landmark, pincode: item.businessProfile?.pincode, city: item.businessProfile?.city?.name, country: item.businessProfile?.country?.name }) || item.city?.name || ''}
               rating={typeof item.rating === 'number' ? item.rating : 0}
               reviewCount={0}
               serviceType={item.businessProfile?.name}
@@ -277,7 +280,7 @@ export default function CategoryProviders() {
       <DeliveryModeModal
         visible={showDeliveryModal}
         onClose={() => setShowDeliveryModal(false)}
-        onConfirm={handleDeliveryModeConfirm}
+        onConfirm={(mode: any) => handleDeliveryModeConfirm(mode)}
         selectedMode={deliveryMode}
       />
     </Container>

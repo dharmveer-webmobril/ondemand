@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useGetCustomerBookings } from '@services/api/queries/appQueries';
-import { getStatusColor } from '@utils/tools';
+import { formatAddress, getStatusColor } from '@utils/tools';
 import imagePaths from '@assets';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
@@ -22,15 +22,23 @@ const formatDate = (dateString: string): string => {
 };
 
 // Format address from booking (t for i18n)
-const formatBookingAddress = (booking: any, t: (key: string) => string): string => {
-  if (booking.addressId) {
-    const addr = booking.addressId;
-    const parts = [addr.line1];
-    if (addr.line2) parts.push(addr.line2);
-    if (addr.landmark) parts.push(addr.landmark);
-    return parts.join(', ');
+const formatBookingAddress = (booking: any,): string => {
+  console.log('booking.addressId', booking);
+
+  const preferences = booking.preferences[0]?.toLowerCase()?.trim();
+  // const bookedFor = booking.bookedFor?.toLowerCase()?.trim();
+  let addressData: any = null;
+  if (preferences === 'athome') {
+    addressData = booking.addressId;
+  } 
+  if (preferences !== 'athome') {
+    addressData = booking.spBusinessProfile;
   }
-  return t('bookingList.addressNotAvailable');
+
+  if (addressData) {
+    return formatAddress({ line1: addressData.line1, line2: addressData.line2, landmark: addressData.landmark, pincode: addressData.pincode, city: addressData.city?.name, country: addressData.country?.name });
+  }
+  return '';
 };
 
 // Booking status filter options (labels use translation in render)
@@ -76,9 +84,9 @@ export default function BookingList() {
         date: formatDate(booking.date),
         time: booking.time || '',
         shopName: booking.spId?.name || t('bookingList.serviceProviderDefault'),
-        address: formatBookingAddress(booking, t),
+        address: formatBookingAddress(booking),
         price: `$${(booking.discountedAmount ?? booking.totalAmount ?? 0).toFixed(2)}`,
-        image: booking?.spBusinessProfile?.bannerImage ?{ uri: booking.spBusinessProfile.bannerImage } : imagePaths.no_image,
+        image: booking?.spBusinessProfile?.bannerImage ? { uri: booking.spBusinessProfile.bannerImage } : imagePaths.no_image,
         originalBooking: booking,
       };
     });

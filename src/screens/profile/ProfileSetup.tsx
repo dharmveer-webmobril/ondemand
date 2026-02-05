@@ -430,7 +430,6 @@ export default function ProfileSetup() {
                 withBackground={theme.colors.white}
                 value={selectedCity?.name || ''}
                 editable={false}
-                isEditable={false}
                 marginTop={theme.SH(5)}
                 rightIcon={imagePaths.right_icon}
               />
@@ -447,7 +446,7 @@ export default function ProfileSetup() {
             <CustomInput
               placeholder={t('placeholders.enterEmail')}
               value={formik.values.email}
-              editable={false}
+              isEditable={false}
               onChangeText={formik.handleChange('email')}
               keyboardType="email-address"
               withBackground={theme.colors.white}

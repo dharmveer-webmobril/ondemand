@@ -7,6 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import { useGetCustomerAddresses } from '@services/index';
 import { useAppSelector } from '@store/hooks';
+import { formatAddress } from '@utils/tools';
 
 export default function SelectAddress() {
   const theme = useThemeContext();
@@ -28,12 +29,7 @@ export default function SelectAddress() {
     }
   }, [defaultAddress, selectedAddressId]);
 
-  const formatAddress = (address: any) => {
-    const parts = [address.line1];
-    if (address.line2) parts.push(address.line2);
-    if (address.landmark) parts.push(address.landmark);
-    return parts.join(', ');
-  };
+   
   const userCityName = useAppSelector((state) => state.app.userCity)?.name;
   console.log('userCityName', userCityName);
   console.log('addresses', addresses);
@@ -59,7 +55,7 @@ export default function SelectAddress() {
 
   const renderAddressItem = ({ item }: { item: any }) => {
     const isSelected = selectedAddressId === item._id;
-    
+    let formattedAddress = formatAddress({ line1: item.line1, line2: item.line2, landmark: item.landmark, pincode: item.pincode, city: item.city?.name, country: item.country?.name })
     return (
       <Pressable
         style={[styles.addressItem, isSelected && styles.addressItemSelected, item.city?.name?.toLowerCase()?.trim() !== userCityName?.toLowerCase()?.trim() && styles.addressItemDisabled]}
@@ -81,7 +77,7 @@ export default function SelectAddress() {
             <CustomText style={styles.addressTitle} fontFamily={theme.fonts.BOLD}>
               {item?.name}
             </CustomText>
-            <CustomText style={styles.addressText}>{formatAddress(item)}</CustomText>
+            <CustomText style={styles.addressText}>{formattedAddress}</CustomText>
             <CustomText style={styles.addressPhone}>{item?.contact}</CustomText>
             {item?.isDefault && (
               <CustomText style={styles.defaultBadge}>Default</CustomText>

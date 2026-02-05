@@ -107,10 +107,30 @@ const getStatusColor = (status: any) => {
             return Colors.text;
     }
 };
+const formatAddress = ({
+    line1 = '',
+    line2 = '',
+    landmark = '',
+    pincode = '',
+    city = '',
+    country = '',
+  }: {
+    line1: string;
+    line2: string;
+    landmark: string;
+    pincode: string;
+    city: string;
+    country: string;
+  }): string => {
+    return [line1, line2, landmark, pincode, city, country]
+      .filter(value => value && value.trim() !== '')
+      .join(', ');
+  };
+  
 // Check if status is cancelled or rejected
 const isCancelledOrRejected = (status: string): boolean => {
     const cancelledStatuses = ['rejected', 'cancelledByCustomer', 'cancelledBySp'];
     return cancelledStatuses.includes(status);
 };
 
-export { formatDate, formatBookingAddress, mapBookingStatusToDisplay, mapBookingStatusToList, getStatusLabel, isCancelledOrRejected, getStatusColor };
+export { formatDate, formatBookingAddress, mapBookingStatusToDisplay, mapBookingStatusToList, getStatusLabel, isCancelledOrRejected, getStatusColor ,formatAddress};

@@ -10,6 +10,7 @@ import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
 import { useCreateBooking } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast, handleApiFailureResponse } from '@utils/apiHelpers';
+import { formatAddress } from '@utils/tools';
 
 type Address = {
   _id: string;
@@ -109,25 +110,23 @@ export default function Checkout() {
 
 
 
-  const formatAddress = (address: Address) => {
-    const parts = [address.line1];
-    if (address.line2) parts.push(address.line2);
-    if (address.landmark) parts.push(address.landmark);
-    return parts.join(', ');
-  };
+ 
 
   const isFormValid = () => {
     // onPremises / online + self: no address, no other person needed
     if ((deliveryMode === 'onPremises' || deliveryMode === 'online') && serviceFor === 'self') {
       return true;
     }
+
     // atHome + self: need selected address
     if (needsAddress && serviceFor === 'self') {
       return !!selectedAddress;
     }
-    // serviceFor other: need other person details (name, email, mobile)
+
+    // serviceFor other: need other person details (name, email, phone)
     if (serviceFor === 'other') {
-      if (!otherPersonDetails?.name || !otherPersonDetails?.email || !otherPersonDetails?.mobile) {
+      console.log('otherPersonDetails', otherPersonDetails);
+      if (!otherPersonDetails?.name || !otherPersonDetails?.email || !otherPersonDetails?.phone) {
         return false;
       }
       // atHome + other: address mandatory in other person details
@@ -136,6 +135,8 @@ export default function Checkout() {
     }
     return true;
   };
+
+  console.log('otherPersonDetails', isFormValid());
 
   const handleConfirmBooking = () => {
     if (!isFormValid()) {
@@ -153,29 +154,7 @@ export default function Checkout() {
   };
 
   const submitBooking = (selectedPaymentMethod: 'paypal' | 'stripe' | 'cash') => {
-    // const finalBookingData = {
-    //   spId: bookingData.providerData._id,
-    //   services: selectedServices.map((service: any) => ({
-    //     serviceId: service._id,
-    //     addOnIds: service.selectedAddOns?.map((addOn: any) => addOn._id) || [],
-    //     promotionOfferId: service.selectedOfferId || null,
-    //   })),
-    //   bookedFor: serviceFor,
-    //   addressId: selectedAddress?._id,
-    //   ...bookingData,
-    //   address: selectedAddress,
-    //   serviceFor,
-    //   ...(serviceFor === 'other' && {
-    //     otherPerson: {
-    //       name: otherPersonDetails.name,
-    //       email: otherPersonDetails.email,
-    //       mobile: otherPersonDetails.mobile,
-    //       countryCode: otherPersonDetails.countryCode,
-    //       address: otherPersonDetails.address,
-    //     },
-    //   }),
-    // };
-
+ 
     const servicesForFinal = (Array.isArray(selectedServices) ? selectedServices : [])
       .filter((service: any) => service != null)
       .map((service: any) => ({
@@ -230,7 +209,7 @@ export default function Checkout() {
       },
     });
   };
-
+// console.log('otherPersonDetails', otherPersonDetails);
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
@@ -325,7 +304,7 @@ export default function Checkout() {
                   <CustomText style={styles.addressText}>{otherPersonDetails.email}</CustomText>
                   <CustomText style={styles.addressPhone}>{otherPersonDetails.countryCode} {otherPersonDetails.phone}</CustomText>
                   {otherPersonDetails.address && (
-                    <CustomText style={styles.addressText}>{formatAddress(otherPersonDetails.address)}</CustomText>
+                    <CustomText style={styles.addressText}>{formatAddress({ line1: otherPersonDetails?.address?.line1, line2: otherPersonDetails?.address?.line2, landmark: otherPersonDetails?.address?.landmark, pincode: otherPersonDetails?.address?.pincode, city: otherPersonDetails?.address?.city?.name, country: otherPersonDetails?.address?.country?.name })}</CustomText>
                   )}
                 </View>
               ) : (
@@ -338,7 +317,7 @@ export default function Checkout() {
             ) : selectedAddress ? (
               <View style={styles.addressCard}>
                 <CustomText style={styles.addressTitle}>{selectedAddress.name}</CustomText>
-                <CustomText style={styles.addressText}>{formatAddress(selectedAddress)}</CustomText>
+                <CustomText style={styles.addressText}>{formatAddress({ line1: selectedAddress.line1 ?? '', line2: selectedAddress.line2 ?? '', landmark: selectedAddress.landmark ?? '', pincode: selectedAddress.pincode ?? '', city: selectedAddress.city?.name ?? '', country: selectedAddress.country?.name ?? '' })}</CustomText>
                 <CustomText style={styles.addressPhone}>{selectedAddress.contact}</CustomText>
               </View>
             ) : (

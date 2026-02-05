@@ -35,7 +35,7 @@ import {
   useRescheduleService,
 } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
-import { getStatusLabel, getStatusColor } from '@utils/tools';
+import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
 
 
 const formatDate = (dateString: string): string => {
@@ -50,16 +50,8 @@ const formatDate = (dateString: string): string => {
 // Format address from booking
 const formatBookingAddress = (booking: any): string => {
   if (!booking?.addressId) return '';
-
   const address = booking?.addressId;
-  const parts = [
-    address?.line1,
-    address?.line2,
-    address?.landmark,
-    address?.pincode,
-  ].filter(Boolean);
-
-  return parts.join(', ') || '';
+  return formatAddress({ line1: address?.line1, line2: address?.line2, landmark: address?.landmark, pincode: address?.pincode, city: address?.city?.name, country: address?.country?.name }) || '';
 };
 
 export default function BookingDetail() {
@@ -600,7 +592,7 @@ export default function BookingDetail() {
       {/* Booking Actions */}
       {booking && (
         <View style={styles.actionsContainer}>
-          {(booking.bookingStatus === 'accepted' || booking.bookingStatus === 'requested') && (
+          {(booking.bookingStatus === 'requested') && (
             <>
               <View style={[styles.actionButton, styles.actionButtonLeft]}>
                 <CustomButton

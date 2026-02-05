@@ -556,7 +556,7 @@ const AddAddress: React.FC = () => {
                 errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
                 keyboardType="default"
                 maxLength={50}
-                isEditable={false}
+                editable={false}
                 marginTop={SH(5)}
               />
             </Pressable>

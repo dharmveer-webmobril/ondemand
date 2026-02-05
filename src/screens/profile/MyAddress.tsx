@@ -1,13 +1,15 @@
 import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native'
-import { useMemo } from 'react'
-import { Container, AppHeader, CustomButton, CustomText } from '@components';
+import { useMemo, useState } from 'react'
+import { Container, AppHeader, CustomButton, CustomText, SweetAlert } from '@components';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { Platform } from 'react-native';
-import { useGetCustomerAddresses } from '@services/index';
-// import { useQueryClient } from '@tanstack/react-query';
+import { useGetCustomerAddresses, useDeleteCustomerAddress } from '@services/index';
+import { queryClient } from '@services/api';
+import { handleApiError, handleSuccessToast, handleApiFailureResponse } from '@utils/apiHelpers';
 import AddressMenu from './AddressMenu';
+import { formatAddress } from '@utils/tools';
 
 export default function MyAddress() {
   const theme = useThemeContext();
@@ -18,11 +20,37 @@ export default function MyAddress() {
   // Fetch addresses from API
   const { data: addressesData, isLoading, refetch } = useGetCustomerAddresses();
   const addresses = addressesData?.ResponseData || [];
+  console.log("addresses", addresses);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState<any>(null);
+
+  const { mutate: deleteAddress, isPending: isDeleting } = useDeleteCustomerAddress();
 
   const handleAddNewAddress = () => {
     navigation.navigate('AddAddress', { prevScreen: 'my-address' });
   };
 
+  const handleDeleteConfirm = () => {
+    if (!addressToDelete?._id) return;
+    deleteAddress(addressToDelete._id, {
+      onSuccess: (response: any) => {
+        setShowDeleteAlert(false);
+        setAddressToDelete(null);
+        if (response?.succeeded) {
+          handleSuccessToast(response?.ResponseMessage || t('myAddress.deleteSuccess'));
+          queryClient.invalidateQueries({ queryKey: ['customerAddresses'] });
+          refetch();
+        } else {
+          handleApiFailureResponse(response, t('myAddress.deleteFailure'));
+        }
+      },
+      onError: (error) => {
+        handleApiError(error);
+        setShowDeleteAlert(false);
+        setAddressToDelete(null);
+      },
+    });
+  };
 
   const handleOptionsPress = (val: string, item: any) => {
     switch (val) {
@@ -30,25 +58,23 @@ export default function MyAddress() {
         navigation.navigate('AddAddress', { mode: 'edit', addData: item });
         break;
       case 'delete':
+        setAddressToDelete(item);
+        setShowDeleteAlert(true);
         break;
     }
-  }
-
-  const formatAddress = (address: any) => {
-    const parts = [address.line1];
-    if (address.line2) parts.push(address.line2);
-    if (address.landmark) parts.push(address.landmark);
-    return parts.join(', ');
   };
 
 
-  const renderAddressItem = ({ item }: { item: any }) => (
-    <View style={styles.addressItem}>
+
+
+  const renderAddressItem = ({ item }: { item: any }) => {
+    let formattedAddress = formatAddress({ line1: item.line1, line2: item.line2, landmark: item.landmark, pincode: item.pincode, city: item.city?.name, country: item.country?.name })
+    return <View style={styles.addressItem}>
       <View style={styles.addressContent}>
         <CustomText style={styles.addressTitle} fontFamily={theme.fonts.BOLD}>
           {item.name}
         </CustomText>
-        <CustomText style={styles.addressText}>{formatAddress(item)}</CustomText>
+        <CustomText style={styles.addressText}>{formattedAddress}</CustomText>
         <CustomText style={styles.addressPhone}>{item.contact}</CustomText>
         {item.isDefault && (
           <CustomText style={styles.defaultBadge}>Default</CustomText>
@@ -65,7 +91,8 @@ export default function MyAddress() {
         />
       </Pressable>
     </View>
-  );
+  }
+
 
   return (
     <Container safeArea={true} style={styles.container}>
@@ -105,7 +132,17 @@ export default function MyAddress() {
         />
       </View>
 
-
+      <SweetAlert
+        visible={showDeleteAlert}
+        message={t('myAddress.confirmDelete')}
+        isConfirmType="delete"
+        onOk={handleDeleteConfirm}
+        onCancel={() => {
+          setShowDeleteAlert(false);
+          setAddressToDelete(null);
+        }}
+        isOkButtonLoading={isDeleting}
+      />
     </Container>
   );
 }

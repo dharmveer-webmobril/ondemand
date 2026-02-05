@@ -330,7 +330,6 @@ const Signup = () => {
                             inputTheme={'white'}
                             value={selectedCity?.name || ''}
                             editable={false}
-                            isEditable={false}
                             marginTop={theme.SH(15)}
                             rightIcon={imagePaths.right_icon}
                         />

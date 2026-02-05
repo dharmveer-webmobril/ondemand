@@ -1,4 +1,4 @@
-import { View, StyleSheet, Pressable, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable, Image, ScrollView, ImageSourcePropType } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import StarRating from 'react-native-star-rating-widget';
@@ -8,7 +8,7 @@ import imagePaths from '@assets';
 type ServiceProviderListItemProps = {
   id: string;
   name: string;
-  logo?: string;
+  logo?: ImageSourcePropType;
   images?: string[];
   address: string;
   rating: number;
@@ -21,7 +21,6 @@ type ServiceProviderListItemProps = {
 };
 
 export default function ServiceProviderListItem({
-  id,
   name,
   logo,
   images = [],
@@ -30,13 +29,13 @@ export default function ServiceProviderListItem({
   reviewCount,
   serviceType,
   isVerified = false,
-  isOpen = true,
+  // isOpen = true,
   onPress,
-  providerId,
+  // providerId,
 }: ServiceProviderListItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-
+console.log('------logo------->', logo);
   return (
     <Pressable
       onPress={onPress}
@@ -49,7 +48,7 @@ export default function ServiceProviderListItem({
         {/* Logo and Name Section */}
         <View style={styles.header}>
           <ImageLoader
-            source={logo ? { uri: logo } : imagePaths.no_image}
+            source={logo}
             mainImageStyle={styles.logo}
             resizeMode="cover"
           />

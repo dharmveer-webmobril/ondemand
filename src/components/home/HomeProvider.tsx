@@ -1,4 +1,4 @@
-import { View, FlatList, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import { View, FlatList, StyleSheet, Pressable } from 'react-native';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useThemeContext } from '@utils/theme';
@@ -7,6 +7,7 @@ import { CustomText, CustomButton } from '@components/common';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import HomeProviderSkeleton from './HomeProviderSkeleton';
+import { formatAddress } from '@utils/tools';
 
 type HomeProviderProps = {
   onViewAll?: () => void;
@@ -21,7 +22,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
 
-  console.log('providersData', providersData);
+  console.log('------providersData------->', providersData);
 
   const providers = useMemo(() => {
     return providersData?.ResponseData || [];
@@ -30,12 +31,13 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
   ]);
 
   const handleProviderPress = (provider: any) => {
+  
     navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
       provider: {
         id: provider._id,
         name: provider.name,
         logo: provider.profileImage,
-        address: provider.businessProfile?.address || provider.city?.name || '',
+        address: formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '',
         serviceType: provider.businessProfile?.name || 'Service Provider',
         rating: typeof provider.rating === 'number' ? provider.rating : null,
         reviewCount: 0, // Add review count from API if available

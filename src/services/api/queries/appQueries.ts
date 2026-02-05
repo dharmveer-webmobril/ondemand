@@ -181,13 +181,7 @@ export const useGetBanners = () => {
         },
     });
 };
-
-export interface GetServiceProvidersParams {
-    page?: number;
-    limit?: number;
-    categoryIds?: string[];
-    search?: string;
-}
+ 
 
 export const useGetServiceProviders = (params: any) => {
     const { page = 1, limit = 10, categoryIds, search, currentCityId } = params;
@@ -196,7 +190,7 @@ export const useGetServiceProviders = (params: any) => {
     const normalizedCategoryIds = categoryIds && categoryIds.length > 0 ? categoryIds : null;
     const normalizedSearch = search && search.trim() ? search.trim() : null;
 
-    return useQuery<ServiceProvidersResponse>({
+    return useQuery<any>({
         queryKey: ['serviceProviders', page, limit, normalizedCategoryIds, normalizedSearch, currentCityId],
         queryFn: async () => {
             // Convert page and limit to strings explicitly
@@ -219,7 +213,7 @@ export const useGetServiceProviders = (params: any) => {
             }
 
             console.log('Fetching providers with URL:', url);
-            const response = await axiosInstance.get<ServiceProvidersResponse>(url);
+            const response = await axiosInstance.get<any>(url);
             console.log('Providers response:', response.data);
             return response.data;
         },
@@ -403,7 +397,7 @@ export const useGetServiceProviderServices = (spId: string | null, preference: s
             if (preference) {
                 url += `?preference=${preference}`;
             }
-            console.log('url--------useGetServiceProviderServices', url);
+            
             const response = await axiosInstance.get<any>(
                 url
             );

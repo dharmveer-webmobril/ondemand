@@ -237,7 +237,7 @@ export const english = {
     "retry": "Retry",
     "notFound": "No addresses found",
     "addNewAddress": "Add New Address",
-    "confirmDelete": "Are you sure you want to delete this?",
+    "confirmDelete": "Are you sure you want to delete this address ?",
     "deleteSuccess": "Address deleted successfully",
     "deleteFailure": "Failed to delete address",
     "menuEdit": "Edit",
@@ -415,7 +415,7 @@ export const english = {
     }
   },
   "bookingSummery": {
-    "title": "Booking Summery",
+    "title": "Booking Summary",
     "checkout": "Checkout"
   },
   "bookAppointment": {

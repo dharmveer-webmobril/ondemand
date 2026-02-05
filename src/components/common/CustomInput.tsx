@@ -10,6 +10,7 @@ interface CustomTextInputProps extends TextInputProps {
     rightIcon?: ImageSourcePropType;
     onRightIconPress?: () => void;
     isEditable?: boolean,
+    editable?: boolean,
     errortext?: string,
     keyboardType?: KeyboardTypeOptions,
     maxLength?: number | undefined;
@@ -20,10 +21,10 @@ interface CustomTextInputProps extends TextInputProps {
     inputStyle?: TextInputProps;
 }
 
-const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline }, ref) => {
+const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, editable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline }, ref) => {
     const theme = useThemeContext();
-    const styles = CustomInputStyle(theme, false, inputTheme, transparentBackground ? '' : withBackground, multiline);
-    let localMaxLength:any = 70;
+    const styles = CustomInputStyle(theme, !isEditable, inputTheme, transparentBackground ? '' : withBackground, multiline);
+    let localMaxLength: any = 70;
     if (multiline) {
         localMaxLength = undefined;
     }
@@ -50,9 +51,9 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placehold
                     onChangeText={onChangeText}
                     value={value}
                     secureTextEntry={secureTextEntry}
-                    editable={isEditable}
+                    editable={isEditable && editable}
                     multiline={multiline}
-                    autoCapitalize={keyboardType==='email-address' ? 'none' : 'sentences'}
+                    autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
                 />
                 {rightIcon && (
                     <Pressable

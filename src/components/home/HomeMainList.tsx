@@ -113,6 +113,7 @@ export default function HomeMainList({
         onRetryProviders={onRetryProviders}
       />,
     },
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   ], [bannersData, bannersLoading, bannersError, onRetryBanners, categoriesData, categoriesLoading, categoriesError, onRetryCategories,providersLoading,providersError,onRetryProviders]);
 
   return (

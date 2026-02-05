@@ -1,10 +1,11 @@
-import { View, StyleSheet, Pressable, Image } from 'react-native'
+import { View, StyleSheet, Pressable } from 'react-native'
 import React, { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import StarRating from 'react-native-star-rating-widget';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import { ServiceProvider } from '@services/api/queries/appQueries';
+import { formatAddress } from '@utils/tools';
 
 type HomeProviderItemProps = {
   provider: ServiceProvider;
@@ -15,13 +16,11 @@ export default function HomeProviderItem({ provider, onPress }: HomeProviderItem
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const address = provider.businessProfile?.address || provider.city?.name || '';
+  const address = formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '';
   const rating = typeof provider?.rating === 'number' ? provider.rating : 0;
-  const isVerified = provider?.isVerified || false;
-  const profileImage = provider?.profileImage ? { uri: provider?.profileImage } : imagePaths.no_image;
-  const bannerImage = provider.businessProfile?.bannerImage;
+  const bannerImage = provider.businessProfile?.bannerImage ? { uri: provider.businessProfile?.bannerImage } : imagePaths.no_image;
   const serviceType = provider.businessProfile?.name || 'Service Provider';
-
+  console.log('------bannerImage------->', bannerImage);
   return (
     <Pressable
       onPress={onPress}
@@ -53,7 +52,7 @@ export default function HomeProviderItem({ provider, onPress }: HomeProviderItem
           <View style={styles.profileImageContainer}>
             <View style={styles.profileImageWrapper}>
               <ImageLoader
-                source={profileImage}
+                source={bannerImage}
                 mainImageStyle={styles.profileImage}
                 resizeMode="cover"
               />
@@ -78,7 +77,7 @@ export default function HomeProviderItem({ provider, onPress }: HomeProviderItem
               starStyle={styles.starStyle}
               starSize={theme.SF(14)}
               rating={rating}
-              onChange={() => {}}
+              onChange={() => { }}
               color="#FAAC00"
             />
             <CustomText style={styles.ratingText}>
@@ -122,7 +121,7 @@ const createStyles = (theme: ThemeType) => {
       shadowOpacity: 0.1,
       shadowRadius: 8,
       elevation: 4,
-      
+
     },
     pressedContainer: {
       opacity: 0.9,
@@ -141,9 +140,9 @@ const createStyles = (theme: ThemeType) => {
       borderColor: Colors.primary,
       overflow: 'hidden',
     },
-    profileImage: {  
-     width: '100%',
-     height: '100%',
+    profileImage: {
+      width: '100%',
+      height: '100%',
     },
     verifiedIcon: {
       width: SF(16),
@@ -181,7 +180,7 @@ const createStyles = (theme: ThemeType) => {
       shadowRadius: 2,
       elevation: 2,
     },
- 
+
     verifiedBadgeSmall: {
       position: 'absolute',
       // bottom: -SF(2),
