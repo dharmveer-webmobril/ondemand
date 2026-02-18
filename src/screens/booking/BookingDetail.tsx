@@ -109,6 +109,10 @@ export default function BookingDetail() {
     }
   }, [isCancelingBooking, isCancelingService, isReschedulingService]);
 
+  useEffect(() => {
+    refetchBooking();
+  }, []);
+
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [showMemberSelectionModal, setShowMemberSelectionModal] = useState(false);
@@ -227,7 +231,7 @@ export default function BookingDetail() {
       .catch(() => {
         Alert.alert(t('common.error'), t('common.unableToCall'));
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOpenMaps = useCallback((address: string) => {
@@ -386,7 +390,7 @@ export default function BookingDetail() {
       .catch(() => {
         Alert.alert(t('common.error'), t('common.unableToCall'));
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
