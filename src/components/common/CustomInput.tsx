@@ -1,4 +1,4 @@
-import { View, TextInput, ImageSourcePropType, KeyboardTypeOptions, TextInputProps, Image, Pressable } from 'react-native'
+import { View, TextInput, ImageSourcePropType, KeyboardTypeOptions, TextInputProps, Image, Pressable, ImageProps } from 'react-native'
 import React, { forwardRef } from 'react'
 import { useThemeContext } from '@utils/theme';
 import { CustomInputStyle } from '@styles/index';
@@ -19,9 +19,10 @@ interface CustomTextInputProps extends TextInputProps {
     inputTheme?: string;
     transparentBackground?: boolean;
     inputStyle?: TextInputProps;
+    rightIconStyle?: ImageProps;
 }
 
-const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, editable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline }, ref) => {
+const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placeholder = '', secureTextEntry = false, value, onChangeText, leftIcon, rightIcon, onRightIconPress = () => { }, isEditable = true, editable = true, errortext: _errortext, keyboardType = "default", maxLength, withBackground = '', inputTheme = '', marginTop = 0, transparentBackground = false, multiline ,rightIconStyle={}}, ref) => {
     const theme = useThemeContext();
     const styles = CustomInputStyle(theme, !isEditable, inputTheme, transparentBackground ? '' : withBackground, multiline);
     let localMaxLength: any = 70;
@@ -61,7 +62,7 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({ placehold
                     >
                         <Image
                             source={rightIcon}
-                            style={styles.iconStyle}
+                            style={[styles.iconStyle,rightIconStyle]}
                             resizeMode="contain"
                         />
                     </Pressable>

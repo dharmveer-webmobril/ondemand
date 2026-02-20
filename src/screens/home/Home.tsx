@@ -34,8 +34,8 @@ export default function Home() {
     isFetching: providerLoading,
     isError: providerError,
     refetch: providerReftech
-  } = useGetServiceProviders({ page: 1, limit: 10,currentCityId });
-  
+  } = useGetServiceProviders({ page: 1, limit: 10, currentCityId });
+
   console.log('providersData', providersData);
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
@@ -73,6 +73,7 @@ export default function Home() {
     // TODO: Implement filter functionality
     console.log('Filter pressed');
   }, []);
+  
 
   return (
     <View style={styles.container}>

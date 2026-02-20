@@ -2,7 +2,6 @@ import { View, StyleSheet, Pressable } from 'react-native'
 import React, { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
-import { useTranslation } from 'react-i18next';
 
 interface ChatHeaderProps {
   name: string;
@@ -12,11 +11,13 @@ interface ChatHeaderProps {
   onBackPress: () => void;
   onCallPress?: () => void;
   onOptionsPress?: () => void;
+  bookingId?: string;
 }
 
 export default function ChatHeader({
+  bookingId,
   name,
-  lastSeen,
+  // lastSeen,
   time,
   image,
   onBackPress,
@@ -25,7 +26,6 @@ export default function ChatHeader({
 }: ChatHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
@@ -46,9 +46,10 @@ export default function ChatHeader({
       )}
       <View style={styles.infoContainer}>
         <CustomText style={styles.nameText}>{name}</CustomText>
-        {lastSeen && (
+        {bookingId && (
           <CustomText style={styles.lastSeenText}>
-            {t('chat.lastSeen', { time: lastSeen })}
+            {/* {t('chat.lastSeen', { time: lastSeen })} */}
+            {bookingId}
           </CustomText>
         )}
         {time && (
@@ -83,21 +84,20 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: theme.SW(16),
-    paddingVertical: theme.SH(12),
+    paddingHorizontal: theme.SW(10),
+    paddingVertical: theme.SH(8),
     backgroundColor: theme.colors.white,
-    borderBottomWidth: 2,
     borderBottomColor: theme.colors.secondary || '#EAEAEA',
   },
   backButton: {
     padding: theme.SF(8),
-    marginRight: theme.SW(8),
+    marginRight: theme.SW(7),
   },
   profileImage: {
-    width: theme.SF(60),
-    height: theme.SF(60),
-    borderRadius: theme.SF(30),
-    marginRight: theme.SW(12),
+    width: theme.SF(50),
+    height: theme.SF(50),
+    borderRadius: theme.SF(25),
+    marginRight: theme.SW(8),
   },
   infoContainer: {
     flex: 1,
@@ -109,7 +109,7 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     marginBottom: theme.SF(2),
   },
   lastSeenText: {
-    fontSize: theme.fontSize.xs,
+    fontSize: theme.fontSize.xxs,
     color: theme.colors.lightText,
     fontFamily: theme.fonts.MEDIUM,
     marginBottom: theme.SF(2),
@@ -125,7 +125,7 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   },
   iconButton: {
     padding: theme.SF(8),
-    marginLeft: theme.SW(8),
+    // marginLeft: theme.SW(8),
   },
 });
 

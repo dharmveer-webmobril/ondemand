@@ -1,5 +1,15 @@
 
 import { Colors } from "./theme";
+import { Platform, Alert } from 'react-native';
+import {
+  check,
+  request,
+  openSettings,
+  PERMISSIONS,
+  RESULTS,
+  Permission,
+} from 'react-native-permissions';
+
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return '';
@@ -133,4 +143,58 @@ const isCancelledOrRejected = (status: string): boolean => {
     return cancelledStatuses.includes(status);
 };
 
-export { formatDate, formatBookingAddress, mapBookingStatusToDisplay, mapBookingStatusToList, getStatusLabel, isCancelledOrRejected, getStatusColor ,formatAddress};
+
+ const requestContactsPermission = async (): Promise<boolean> => {
+  try {
+    const permission: Permission | undefined = Platform.select({
+      ios: PERMISSIONS.IOS.CONTACTS,
+      android: PERMISSIONS.ANDROID.READ_CONTACTS,
+    });
+
+    if (!permission) return false;
+
+    // 🔹 Check current status
+    const status = await check(permission);
+
+    // ✅ Already granted
+    if (status === RESULTS.GRANTED) {
+      return true;
+    }
+
+    // 🔹 First time or denied
+    if (status === RESULTS.DENIED) {
+      const requestStatus = await request(permission);
+      return requestStatus === RESULTS.GRANTED;
+    }
+
+    // 🔹 Blocked (Don't ask again selected)
+    if (status === RESULTS.BLOCKED) {
+      Alert.alert(
+        'Contacts Permission Required',
+        'Contacts access is blocked. Please enable it from settings.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => openSettings() },
+        ],
+      );
+      return false;
+    }
+
+    // 🔹 Unavailable (device restriction / simulator)
+    if (status === RESULTS.UNAVAILABLE) {
+      Alert.alert(
+        'Contacts Unavailable',
+        'Contacts are not available on this device.',
+      );
+      return false;
+    }
+
+    return false;
+  } catch (error) {
+    console.log('Contacts Permission Error:', error);
+    return false;
+  }
+};
+
+
+export { formatDate, formatBookingAddress, mapBookingStatusToDisplay, mapBookingStatusToList, getStatusLabel, isCancelledOrRejected, getStatusColor ,formatAddress,requestContactsPermission};

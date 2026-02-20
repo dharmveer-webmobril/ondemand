@@ -317,7 +317,9 @@ export default function Checkout() {
             ) : selectedAddress ? (
               <View style={styles.addressCard}>
                 <CustomText style={styles.addressTitle}>{selectedAddress.name}</CustomText>
-                <CustomText style={styles.addressText}>{formatAddress({ line1: selectedAddress.line1 ?? '', line2: selectedAddress.line2 ?? '', landmark: selectedAddress.landmark ?? '', pincode: selectedAddress.pincode ?? '', city: selectedAddress.city?.name ?? '', country: selectedAddress.country?.name ?? '' })}</CustomText>
+                <CustomText style={styles.addressText}>{
+                  // @ts-ignore
+                formatAddress({ line1: selectedAddress.line1 ?? '', line2: selectedAddress.line2 ?? '', landmark: selectedAddress.landmark ?? '', pincode: selectedAddress.pincode ?? '', city: selectedAddress.city?.name ?? '', country: selectedAddress.country?.name ?? '' })}</CustomText>
                 <CustomText style={styles.addressPhone}>{selectedAddress.contact}</CustomText>
               </View>
             ) : (

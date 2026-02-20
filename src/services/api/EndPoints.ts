@@ -31,4 +31,9 @@ export default {
     CANCEL_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/cancel`,
     RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reschedule`,
     CANCEL_BOOKING: (bookingId: string) => `/customer/bookings/bookings/${bookingId}/cancel`,
+    GET_CONVERSATIONS: '/chat/conversations',
+    GET_CONVERSATION_MESSAGES: '/chat/conversations',
+    CREATE_OR_GET_CONVERSATION: '/chat/conversations/create-or-get',
+    MARK_CONVERSATION_AS_READ: '/chat/conversations',
+    GET_BOOKING_CHAT_DETAILS: '/chat/conversations/booking',
 };

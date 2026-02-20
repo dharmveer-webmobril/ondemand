@@ -57,6 +57,9 @@
 	<string>App needs access to save images to your gallery</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Squedio would like to access your Photo Library to upload profile pictures. Your photos won’t be shared without permission.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Squedio needs access to your contacts to connect with friends.</string>
+
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
