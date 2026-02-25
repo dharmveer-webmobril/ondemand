@@ -273,3 +273,16 @@ export const useChangePassword = () => {
     },
   });
 };
+
+export interface UpdateFcmTokenPayload {
+  fcmToken: string;
+  deviceToken: string;
+  deviceType: 'android' | 'ios';
+}
+
+/**
+ * Update FCM token on backend (call when app opens / Home focused).
+ */
+export const updateFcmToken = async (payload: UpdateFcmTokenPayload): Promise<void> => {
+  await axiosInstance.post(EndPoints.UPDATE_FCM_TOKEN, payload);
+};

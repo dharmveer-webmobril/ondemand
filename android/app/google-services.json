@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "892821136177-cnh2trt07hhde0ls5n73ovqcfdlnjjqv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.squedio",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
           "client_id": "892821136177-bm6io5lcquvn4lloalf22tink4hoietr.apps.googleusercontent.com",
           "client_type": 3
         }

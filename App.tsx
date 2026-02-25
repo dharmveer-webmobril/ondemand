@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import toastConfig from '@components/common/CustomToast'
 import { MenuProvider } from 'react-native-popup-menu'
 import { SocketProvider } from '@services/socket/SocketProvider'
+import { notificationListener, requestUserPermission } from '@services/PushNotification'
 
 LogBox.ignoreLogs([
   'Open debugger to view warnings',
@@ -29,7 +30,9 @@ const App = () => {
   }, [])
   async function init() {
     let language = await StorageProvider.getItem('language');
-    i18next.changeLanguage(language || 'en')
+    i18next.changeLanguage(language || 'en');
+    await requestUserPermission();
+    notificationListener();
   }
   return (
     <Provider store={store}>

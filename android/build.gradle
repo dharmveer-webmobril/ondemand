@@ -20,3 +20,13 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Notifee: local Maven repo for app.notifee:core (required for @notifee/react-native)
+def notifeeLibs = file("${rootDir}/../node_modules/@notifee/react-native/android/libs")
+if (notifeeLibs.exists()) {
+    allprojects { prj ->
+        prj.repositories.maven { repo ->
+            repo.url = notifeeLibs.toURI()
+        }
+    }
+}

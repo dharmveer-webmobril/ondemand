@@ -13,6 +13,7 @@ export default {
     UPDATE_PROFILE: '/users/profile',
     UPDATE_PROFILE_1: '/auth/customer/update-profile',
     GET_PROFILE: '/auth/customer/profile',
+    UPDATE_FCM_TOKEN: '/auth/customer/update-fcm-token',
     ADD_CUSTOMER_INTEREST: '/customer/interest',
     SUBMIT_INTERESTS: '/auth/customer/interests',
     UPLOAD_DOCUMENT: '/auth/customer/upload-document',

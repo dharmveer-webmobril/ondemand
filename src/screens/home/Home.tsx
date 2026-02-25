@@ -1,15 +1,45 @@
 import { useState, useCallback } from "react";
-import { StatusBar, View, StyleSheet } from "react-native";
+import { StatusBar, View, StyleSheet, Platform } from "react-native";
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 import { HomeHeader, HomeMainList, HomeSearchBar } from "@components";
 import { LoadingComp } from "@components/common";
 import { useDisableGestures } from "@utils/hooks";
 import { useGetCategories, useGetBanners, useGetServiceProviders } from "@services/api/queries/appQueries";
 import { useAppSelector } from "@store/hooks";
+import { checkPermissionAndGetFcmToken } from "@services/PushNotification";
+import { updateFcmToken } from "@services/api/queries/authQueries";
 
 export default function Home() {
-  useDisableGestures()
+  useDisableGestures();
+
   const { t } = useTranslation();
+  const authToken = useAppSelector((state) => state.auth.token);
+
+  // Whenever Home is focused (app open / user navigates to Home): check permission and update FCM token on backend
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      const run = async () => {
+        if (!authToken) return;
+        const fcmToken = await checkPermissionAndGetFcmToken();
+        if (cancelled || !fcmToken) return;
+        try {
+          await updateFcmToken({
+            fcmToken,
+            deviceToken: fcmToken,
+            deviceType: Platform.OS === 'ios' ? 'ios' : 'android',
+          });
+        } catch (err) {
+          console.warn('Failed to update FCM token:', err);
+        }
+      };
+      run();
+      return () => {
+        cancelled = true;
+      };
+    }, [authToken])
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [isCityUpdating, setIsCityUpdating] = useState(false);
 

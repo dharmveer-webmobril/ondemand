@@ -1,5 +1,5 @@
 import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native'
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, } from '@components';
 import { useSelector } from 'react-redux';
@@ -11,8 +11,10 @@ import { SH } from '@utils/dimensions';
 import ChatListItem, { ChatListItemData } from '@components/chat/ChatListItem';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import { useGetConversations, Conversation } from '@services/index';
+import { Conversation } from '@services/index';
 import { useSocket } from '@services/socket/SocketProvider';
+
+const PAGE_SIZE = 14;
 
 
 /**
@@ -88,25 +90,86 @@ export default function InboxScreen() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  // Get current user ID from Redux store
   const currentUserId = useSelector((state: any) => state.auth.userId);
+  const { emit, on, off } = useSocket();
 
-  // Fetch conversations
-  const { data: conversationsData, isLoading, error, refetch } = useGetConversations(
-    { page: 1, limit: 10 },
-    !!currentUserId // Only fetch if user is authenticated
-  );
+  // Socket-driven conversation list state
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loadingMoreRef = useRef(false);
 
-  // Map conversations to ChatListItemData format
-  const chatListItems = useMemo(() => {
-    if (!conversationsData?.ResponseData || !currentUserId) {
-      return [];
+  const getConversations = useCallback((pageNum: number = 1, limit: number = PAGE_SIZE, append: boolean = false) => {
+    if (!emit || !currentUserId) return;
+    if (pageNum === 1) {
+      setIsLoading(true);
+      setError(null);
+    } else if (!append) {
+      return;
+    } else {
+      loadingMoreRef.current = true;
+      setIsLoadingMore(true);
     }
+    emit('chat:get-conversations', { page: pageNum, limit });
+  }, [emit, currentUserId]);
 
-    return conversationsData.ResponseData.map(conversation =>
+  useEffect(() => {
+    if (!currentUserId) {
+      setIsLoading(false);
+      return;
+    }
+    getConversations(1, PAGE_SIZE, false);
+  }, [currentUserId, getConversations]);
+
+  useEffect(() => {
+    const handler = (data: any) => {
+      console.log('data------', JSON.stringify(data));
+      const list = data?.ResponseData ?? data?.data ?? (Array.isArray(data) ? data : []);
+      const pagination = data?.pagination;
+      const currentPage = pagination?.page ?? page;
+      const totalPages = pagination?.pages ?? 1;
+      const hasMorePages = currentPage < totalPages;
+
+      if (currentPage === 1) {
+        setConversations(Array.isArray(list) ? list : []);
+      } else {
+        setConversations((prev) => {
+          const newList = Array.isArray(list) ? list : [];
+          const ids = new Set(prev.map((c) => c._id));
+          const toAppend = newList.filter((c: Conversation) => !ids.has(c._id));
+          return [...prev, ...toAppend];
+        });
+      }
+      setPage(currentPage);
+      setHasMore(hasMorePages);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      loadingMoreRef.current = false;
+    };
+    on('chat:conversations-response', handler);
+    return () => off('chat:conversations-response', handler);
+  }, [on, off, page]);
+
+  const loadMore = useCallback(() => {
+    if (loadingMoreRef.current || !hasMore || isLoading || isLoadingMore) return;
+    getConversations(page + 1, PAGE_SIZE, true);
+  }, [getConversations, hasMore, isLoading, isLoadingMore, page]);
+
+  const refetch = useCallback(() => {
+    setPage(1);
+    setHasMore(true);
+    getConversations(1, PAGE_SIZE, false);
+  }, [getConversations]);
+
+  const chatListItems = useMemo(() => {
+    if (!conversations.length || !currentUserId) return [];
+    return conversations.map((conversation) =>
       mapConversationToChatListItem(conversation, currentUserId)
     );
-  }, [conversationsData, currentUserId]);
+  }, [conversations, currentUserId]);
 
   const handleChatPress = (chat: ChatListItemData & { conversationId?: string; bookingId?: string }) => {
     navigate(SCREEN_NAMES.CHAT_SCREEN, {
@@ -114,34 +177,6 @@ export default function InboxScreen() {
       bookingId: (chat as any).bookingId,
     });
   };
-
-
-  const { emit, on, off } = useSocket();
-
-  useEffect(() => {
-    getConversations(1)
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const getConversations = React.useCallback((page: number = 1, limit: number = 101) => {
-    if (emit) {
-      emit('chat:get-conversations', {
-        page: page,
-        limit: limit,
-      });
-    }
-  }, [emit]);
-
-  useEffect(() => {
-    const handler = (data: any) => {
-      console.log('chat:conversations-response------', data);
-    };
-    on('chat:conversations-response', handler);
-    return () => {
-      off('chat:conversations-response', handler);
-    };
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
 
   // Recent Chats List View
@@ -188,8 +223,17 @@ export default function InboxScreen() {
               </CustomText>
             </View>
           }
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={styles.loadingMoreFooter}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              </View>
+            ) : null
+          }
           refreshing={isLoading}
           onRefresh={refetch}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
         />
       )}
 
@@ -246,5 +290,10 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: theme.SH(40),
+  },
+  loadingMoreFooter: {
+    paddingVertical: theme.SH(16),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
