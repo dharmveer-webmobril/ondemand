@@ -1,7 +1,7 @@
 import imagePaths from '@assets';
 import { ChatHeader } from '@components';
 import { useRoute, useFocusEffect } from '@react-navigation/native';
-import { fetchMessages, markConversationAsRead, useGetBookingChatDetails } from '@services/api/queries/chatQueries';
+import { markConversationAsRead, useGetBookingChatDetails } from '@services/api/queries/chatQueries';
 import { useSocket } from '@services/socket/SocketProvider';
 import { store } from '@store/index';
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
@@ -17,6 +17,8 @@ export default function ChatScreen() {
     const totalPages = useRef<number>(1);
     const page = useRef<number>(1);
     const loadMoreLoader = useRef<boolean>(false);
+    const MESSAGE_LIMIT = 15;
+    const pendingPageRef = useRef<number | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [loadingInitial, setLoadingInitial] = useState(true);
     const [headerData, setHeaderData] = useState<any>(null);
@@ -88,8 +90,22 @@ export default function ChatScreen() {
         [],
     );
 
+    const getMessages = useCallback(
+        (targetPage: number) => {
+            if (!conversationId || !bookingId || !emit) return false;
+            emit('chat:get-messages', {
+                conversationId,
+                bookingId,
+                page: targetPage,
+                limit: MESSAGE_LIMIT,
+            });
+            return true;
+        },
+        [conversationId, bookingId, emit],
+    );
+
     const loadMessages = useCallback(
-        async (targetPage: number) => {
+        (targetPage: number) => {
             if (!conversationId) return;
 
             const isInitial = targetPage === 1;
@@ -99,41 +115,46 @@ export default function ChatScreen() {
                 setIsLoadingMore(true);
                 loadMoreLoader.current = true;
             }
-
-            try {
-                const res = await fetchMessages(conversationId, targetPage, 15);
-                const newMsgs = apiToGifted(res?.ResponseData || []);
-                const pages = res?.pagination?.pages ?? 1;
-                if (isInitial && res?.ResponseData?.length > 0) {
-                    console.log('newMsgs------', res?.ResponseData[0]);
-                    // setHeaderData(res?.ResponseData[0]);
-                }
-                totalPages.current = pages;
-                page.current = targetPage;
-
-                if (isInitial) {
-                    setMessages(newMsgs);
-                } else {
-                    setMessages((prev) => [...prev, ...newMsgs]);
-                }
-            } catch (err) {
-                console.error('Failed to load messages:', err);
-            } finally {
-                if (isInitial) setLoadingInitial(false);
-                else {
-                    loadMoreLoader.current = false;
-                    setIsLoadingMore(false);
-                }
-            }
+            pendingPageRef.current = targetPage;
+            getMessages(targetPage);
         },
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+        [conversationId, getMessages],
     );
 
+    // Listen for socket messages-response: apply to state and clear loading
     useEffect(() => {
-        loadMessages(1);
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        const handler = (data: any) => {
+            const targetPage = pendingPageRef.current;
+            if (targetPage == null) return;
+
+            const rawList = data?.ResponseData ?? data?.data ?? (Array.isArray(data) ? data : []);
+            const newMsgs = apiToGifted(rawList);
+            const pagination = data?.pagination;
+            const pages = pagination?.pages ?? 1;
+            totalPages.current = pages;
+            page.current = targetPage;
+            pendingPageRef.current = null;
+
+            if (targetPage === 1) {
+                setMessages(newMsgs);
+                setLoadingInitial(false);
+            } else {
+                setMessages((prev) => {
+                    const existingIds = new Set(prev.map((m) => m._id));
+                    const toAppend = newMsgs.filter((m) => !existingIds.has(m._id));
+                    return [...prev, ...toAppend];
+                });
+                loadMoreLoader.current = false;
+                setIsLoadingMore(false);
+            }
+        };
+        on('chat:messages-response', handler);
+        return () => off('chat:messages-response', handler);
+    }, [on, off, apiToGifted]);
+
+    useEffect(() => {
+        if (conversationId && bookingId) loadMessages(1);
+    }, [conversationId, bookingId, loadMessages]);
 
     // Mark conversation as read when screen is focused and messages are loaded
     useFocusEffect(

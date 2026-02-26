@@ -8,6 +8,7 @@ import notifee, {
   EventType,
   Event,
 } from '@notifee/react-native';
+import imagePaths from '@assets';
 // import { updateFcmToken } from '@services/api/queries/authQueries';
 // import { navigate } from '../navigators/NavigationService';
 // import ScreenName from './screenName';
@@ -95,6 +96,8 @@ const onDisplayNotification = async (
     data: remoteMessage?.data,
     android: {
       channelId,
+      largeIcon:  imagePaths.app_icon,
+      smallIcon:  imagePaths.app_icon,
       pressAction: {
         id: 'default',
         launchActivity: 'default',
