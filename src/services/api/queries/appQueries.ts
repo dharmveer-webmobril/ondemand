@@ -575,6 +575,99 @@ export const useCreateBooking = () => {
     });
 };
 
+// Wallet
+export interface WalletResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: {
+        balance?: number;
+        amount?: number;
+        [key: string]: any;
+    };
+}
+
+export const useGetWallet = () => {
+    return useQuery<WalletResponse>({
+        queryKey: ['customerWallet'],
+        queryFn: async () => {
+            const response = await axiosInstance.get<WalletResponse>(EndPoints.GET_WALLET);
+            return response.data;
+        },
+    });
+};
+
+// Initiate Booking Payment
+export interface InitiateBookingPaymentRequest {
+    bookingId: string;
+    amount: number;
+    paymentGateway: 'stripe' | 'paypal';
+    paymentMethod: string;
+    useWallet: boolean;
+}
+
+export interface InitiateBookingPaymentResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: {
+        transaction: {
+            _id: string;
+            transactionId: string;
+            amount: number;
+            paymentGateway: string;
+            status: string;
+            [key: string]: any;
+        };
+        paymentIntent?: {
+            id: string;
+            client_secret: string;
+            status: string;
+            [key: string]: any;
+        };
+        redirectUrl?: string | null;
+        [key: string]: any;
+    };
+}
+
+export const useInitiateBookingPayment = () => {
+    return useMutation<InitiateBookingPaymentResponse, Error, InitiateBookingPaymentRequest>({
+        mutationFn: async (data: InitiateBookingPaymentRequest) => {
+            const response = await axiosInstance.post<InitiateBookingPaymentResponse>(
+                EndPoints.INITIATE_BOOKING_PAYMENT,
+                data
+            );
+            return response.data;
+        },
+    });
+};
+
+// Confirm Booking Payment
+export interface ConfirmBookingPaymentRequest {
+    transactionId?: string;
+    bookingId?: string;
+    [key: string]: any;
+}
+
+export interface ConfirmBookingPaymentResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData?: any;
+}
+
+export const useConfirmBookingPayment = () => {
+    return useMutation<ConfirmBookingPaymentResponse, Error, ConfirmBookingPaymentRequest>({
+        mutationFn: async (data: ConfirmBookingPaymentRequest) => {
+            const response = await axiosInstance.post<ConfirmBookingPaymentResponse>(
+                EndPoints.CONFIRM_BOOKING_PAYMENT,
+                data
+            );
+            return response.data;
+        },
+    });
+};
+
 // Booking interfaces
 export interface BookedService {
     _id: string;

@@ -4,19 +4,21 @@ import { useMemo, useState, useEffect } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons, Checkbox } from '@components/common';
 
-type PaymentMethod = 'paypal' | 'stripe' | 'cash';
+export type PaymentMethod = 'paypal' | 'stripe' | 'cash';
 
 type PaymentMethodModalProps = {
   visible: boolean;
   onClose: () => void;
   onConfirm: (paymentMethod: PaymentMethod) => void;
   selectedPaymentMethod?: PaymentMethod;
+  /** When provided, only these options are shown (e.g. ['paypal', 'stripe'] for online only) */
+  allowedMethods?: PaymentMethod[];
 };
 
-const paymentMethods = [
-  { id: 'paypal' as PaymentMethod, label: 'PayPal' },
-  { id: 'stripe' as PaymentMethod, label: 'Stripe' },
-  { id: 'cash' as PaymentMethod, label: 'Pay Onsite' },
+const ALL_PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
+  { id: 'paypal', label: 'PayPal' },
+  { id: 'stripe', label: 'Stripe' },
+  { id: 'cash', label: 'Pay Onsite' },
 ];
 
 export default function PaymentMethodModal({
@@ -24,16 +26,30 @@ export default function PaymentMethodModal({
   onClose,
   onConfirm,
   selectedPaymentMethod = 'cash',
+  allowedMethods,
 }: PaymentMethodModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(selectedPaymentMethod);
 
+  const paymentMethods = useMemo(
+    () =>
+      allowedMethods && allowedMethods.length > 0
+        ? ALL_PAYMENT_METHODS.filter((m) => allowedMethods.includes(m.id))
+        : ALL_PAYMENT_METHODS,
+    [allowedMethods],
+  );
+
+  const defaultMethod = paymentMethods[0]?.id ?? 'cash';
+
   useEffect(() => {
     if (visible) {
-      setSelectedMethod(selectedPaymentMethod);
+      const validSelected = paymentMethods.some((m) => m.id === selectedPaymentMethod)
+        ? selectedPaymentMethod
+        : defaultMethod;
+      setSelectedMethod(validSelected);
     }
-  }, [visible, selectedPaymentMethod]);
+  }, [visible, selectedPaymentMethod, defaultMethod, paymentMethods]);
 
   const handleConfirm = () => {
     onConfirm(selectedMethod);
@@ -81,7 +97,11 @@ export default function PaymentMethodModal({
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
           <View style={styles.header}>
-            <CustomText style={styles.title}>Online Payment</CustomText>
+            <CustomText style={styles.title}>
+            {allowedMethods?.length === 2 && !allowedMethods.includes('cash')
+              ? 'Pay with card'
+              : 'Select payment method'}
+          </CustomText>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <VectoreIcons
                 name="close"
