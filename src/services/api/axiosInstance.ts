@@ -5,7 +5,7 @@ import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigationRef } from '@utils/NavigationUtils';
 
 // Base URL - Update this with your API base URL
-const BASE_URL = 'http://52.22.241.165:10054/api'; // Replace with your actual base URL
+const BASE_URL = 'https://indoredev.webmobrildemo.com:10054/api'; // Replace with your actual base URL
 
 // Create axios instance
 const axiosInstance: AxiosInstance = axios.create({

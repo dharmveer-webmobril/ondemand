@@ -97,7 +97,7 @@ const onDisplayNotification = async (
     android: {
       channelId,
       largeIcon:  imagePaths.app_icon,
-      smallIcon:  imagePaths.app_icon,
+      // smallIcon:  imagePaths.app_icon,
       pressAction: {
         id: 'default',
         launchActivity: 'default',
@@ -124,6 +124,7 @@ export const notificationListener = (): (() => void) => {
 
   messaging().onNotificationOpenedApp(
     (remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
+      console.log('Notification received in background:', JSON.stringify(remoteMessage));
       if (remoteMessage) {
         // navigate(ScreenName.NOTIFICATION, {});
       }
@@ -134,6 +135,7 @@ export const notificationListener = (): (() => void) => {
     .getInitialNotification()
     .then((remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
       if (remoteMessage) {
+        console.log('Notification received in background:', JSON.stringify(remoteMessage));
         // navigate(ScreenName.NOTIFICATION, {});
       }
     });
@@ -156,7 +158,7 @@ messaging().setBackgroundMessageHandler(
  */
 notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
   const { notification } = detail;
-  console.log('Notification received in background:', notification);
+  console.log('Notification received in background:', JSON.stringify(notification));
   switch (type) {
     case EventType.DISMISSED:
       console.log('Notification dismissed:', notification?.id);
@@ -173,7 +175,7 @@ notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
  */
 notifee.onForegroundEvent(({ type, detail }: Event) => {
   const { notification } = detail;
-  console.log('Notification received in foreground:', notification);
+  console.log('Notification received in foreground:', JSON.stringify(notification));
   switch (type) {
     case EventType.DISMISSED:
       console.log('Notification dismissed:', notification?.id);

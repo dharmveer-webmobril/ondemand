@@ -604,6 +604,7 @@ export interface InitiateBookingPaymentRequest {
     paymentGateway: 'stripe' | 'paypal';
     paymentMethod: string;
     useWallet: boolean;
+    walletAmount?: number;
 }
 
 export interface InitiateBookingPaymentResponse {
@@ -631,9 +632,9 @@ export interface InitiateBookingPaymentResponse {
 }
 
 export const useInitiateBookingPayment = () => {
-    return useMutation<InitiateBookingPaymentResponse, Error, InitiateBookingPaymentRequest>({
+    return useMutation<any, Error, InitiateBookingPaymentRequest>({
         mutationFn: async (data: InitiateBookingPaymentRequest) => {
-            const response = await axiosInstance.post<InitiateBookingPaymentResponse>(
+            const response = await axiosInstance.post<any>(
                 EndPoints.INITIATE_BOOKING_PAYMENT,
                 data
             );
@@ -761,6 +762,7 @@ export const useGetCustomerBookings = (page: number = 1, limit: number = 10) => 
             const response = await axiosInstance.get<any>(
                 `${EndPoints.GET_CUSTOMER_BOOKINGS}?page=${page}&limit=${limit}`
             );
+            console.log('response.data------useGetCustomerBookings', response.data);
             return response.data;
         },
     });
