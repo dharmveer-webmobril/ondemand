@@ -39,12 +39,12 @@ const useDisableGestures = (enabled: boolean = true) => {
 
         showToast({
           type: 'exit',
-          message: t('messages.doubletab'), // "Press back again to exit"
+          message: t('messages.doubletab'),
           timeout: 1550,
           position: 'bottom'
         });
 
-        return true; // ⛔ block default navigation
+        return true;
       };
 
       const backHandler = BackHandler.addEventListener(

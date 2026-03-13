@@ -396,7 +396,7 @@ export default function BookingList() {
           ListFooterComponent={
             bookingsFetching && page > 1 ? (
               <View style={styles.paginationLoader}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <ActivityIndicator size="large" color={theme.colors.primary} />
               </View>
             ) : null
           }

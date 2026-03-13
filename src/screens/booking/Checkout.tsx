@@ -209,20 +209,23 @@ export default function Checkout() {
     }
 
     const { error: presentError, didCancel } = await presentPaymentSheet();
+
+    if (transactionId) {
+      await confirmPayment({ transactionId, bookingId });
+    }
+
     if (presentError) {
       handleApiError(presentError);
       return false;
     }
 
     if (didCancel) {
+      handleApiError(new Error('Payment cancelled'));
       return false;
     }
 
-    if (transactionId) {
-      await confirmPayment({ transactionId, bookingId });
-    }
-
     return true;
+
   };
 
   const confirmGatewayPayment = async (
@@ -231,13 +234,14 @@ export default function Checkout() {
     transactionId: string | null,
     clientSecret: string | null,
   ) => {
+
     if (selectedPaymentMethod === 'stripe') {
       return handleStripePayment(bookingId, transactionId, clientSecret);
     }
 
-    if (transactionId) {
-      await confirmPayment({ transactionId, bookingId });
-    }
+    // if (transactionId) {
+    //   await confirmPayment({ transactionId, bookingId });
+    // }
 
     return true;
   };
@@ -265,7 +269,7 @@ export default function Checkout() {
     }
 
     const { transactionId, clientSecret } = getPaymentResponseDetails(initiateRes);
-
+    console.log('transactionId---------------- 272', transactionId, clientSecret);
     const paymentCompleted = await confirmGatewayPayment(
       selectedPaymentMethod,
       bookingId,
