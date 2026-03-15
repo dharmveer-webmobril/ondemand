@@ -14,29 +14,25 @@ import {
   CustomInput,
   CustomText,
   // VectoreIcons,
-  // Checkbox,
+  Checkbox,
   LoadingComp,
   CountryModal,
-  showToast,
 } from '@components';
 import { addAddressSchema, Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '@utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@store/hooks';
+import useLocation from '@utils/hooks/useLocation';
 import { useFormik } from 'formik';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import Geocoder from 'react-native-geocoding';
-import {
+// import Geocoder from 'react-native-geocoding';
+import { 
   // GooglePlacesAutocomplete,
-  GooglePlacesAutocompleteRef
-} from 'react-native-google-places-autocomplete';
+   GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
 import { useAddCustomerAddress, useUpdateCustomerAddress, useGetCities, useGetCountries } from '@services/index';
 import { useQueryClient } from '@tanstack/react-query';
-import useCurrentLocation from '@utils/hooks/useLocation';
+// const GOOGLE_MAPS_API_KEY = 'AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s';
-Geocoder.init(GOOGLE_MAPS_API_KEY);
 interface FormValues {
   name: string;
   line1: string;
@@ -46,35 +42,35 @@ interface FormValues {
   country: string;
   pincode: string;
   addressType: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
 }
 
 const AddAddress: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-
   const { addData, prevScreen = '' } = route.params || {};
-  // const addressTypes = ['home', 'office', 'other'];
+  const addressTypes = ['home', 'office', 'other'];
   const [selectedAddressType, setSelectedAddressType] = useState<string>('home');
-
-  const [_, setIsDefault] = useState<boolean>(false);
+  const { location, retry } = useLocation();
+  console.log('location', location,retry);
+  
+  const [isDefault, setIsDefault] = useState<boolean>(false);
   const [showCityModal, setShowCityModal] = useState<boolean>(false);
-
+  
   // Determine if city dropdown should be enabled
   const isCityDropdownEnabled = prevScreen === 'my-address';
 
+  const [isLoading, setIsLoading] = useState(false);
+  console.log('setIsLoading', setIsLoading);
   const addAddressMutation = useAddCustomerAddress();
   const updateAddressMutation = useUpdateCustomerAddress();
   const queryClient = useQueryClient();
 
   // Get user details from Redux
   const userDetails = useAppSelector((state) => state.auth.userDetails);
+  // const cityId = useAppSelector((state) => state.auth.cityId);
   const cityId = useAppSelector((state) => state.app.userCity)?._id;
-
+  
   const countryId = useAppSelector((state) => state.auth.countryId);
 
   // Get default city and country from userDetails
@@ -110,7 +106,6 @@ const AddAddress: React.FC = () => {
   const countries = useMemo(() => countriesData?.ResponseData || [], [countriesData]);
   const cities = useMemo(() => citiesData?.ResponseData || [], [citiesData]);
 
-
   // Initialize formik
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -122,21 +117,9 @@ const AddAddress: React.FC = () => {
       country: editCountryId || defaultCountryId,
       pincode: addData?.pincode || '',
       addressType: addData?.addressType || 'home',
-      coordinates: addData?.coordinates ? {
-        lat: addData?.coordinates?.lat,
-        lng: addData?.coordinates?.lng,
-      } : undefined,
     },
     validationSchema: addAddressSchema(t, regex),
     onSubmit: async (values, { setSubmitting }) => {
-      if (!values.coordinates) {
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: 'Please select a location on the map',
-        });
-        return;
-      }
       Keyboard.dismiss();
       try {
         const data = {
@@ -148,10 +131,11 @@ const AddAddress: React.FC = () => {
           country: values.country,
           pincode: values.pincode,
           addressType: selectedAddressType as 'home' | 'office' | 'other',
-          ...(values.coordinates && { coordinates: values.coordinates })
         };
-        console.log('payload----', data);
+
         if (prevScreen === 'other_user') {
+          // For other user, navigate back with address data
+          // Pass data back via navigation params
           navigation.goBack();
           return;
         }
@@ -171,7 +155,9 @@ const AddAddress: React.FC = () => {
         // Check response format - API returns { ResponseCode, ResponseMessage, succeeded, ResponseData }
         const apiResponse = response as any;
         const isSuccess =
-          apiResponse?.succeeded === true || apiResponse?.ResponseCode === 200 || apiResponse?.ResponseCode === 201;
+          apiResponse?.succeeded === true ||
+          apiResponse?.ResponseCode === 200 ||
+          apiResponse?.ResponseCode === 201;
 
         if (isSuccess) {
           // Invalidate and refetch addresses
@@ -248,160 +234,104 @@ const AddAddress: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addData, defaultCityId, defaultCountryId, editCityId, editCountryId]);
 
+  // const handleUseCurrentLocation = async () => {
+  //   if (!location) {
+  //     retry();
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await Geocoder.from(location.latitude, location.longitude);
+  //     console.log('Geocoder response:', response);
+
+  //     if (response.results.length > 0) {
+  //       const result = response.results[0];
+  //       const components = result.address_components;
+
+  //       const getComp = (types: string[]) => components.find((c: any) => types.every(t => c.types.includes(t)))?.long_name || "";
+
+  //       console.log('Parsed address components:', components);
+
+  //       const street = getComp(["route"]);
+  //       const city = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
+  //       const state = getComp(["administrative_area_level_1"]);
+  //       const postalCode = getComp(["postal_code"]);
+
+  //       formik.setValues({
+  //         ...formik.values,
+  //         address: result.formatted_address || street,
+  //         city,
+  //         state,
+  //         zipCode: postalCode,
+  //         location: { coordinates: [location.latitude, location.longitude] },
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Geocoding error:", err);
+  //     handleApiError(err);
+  //   }
+  // };
 
   const placesRef = useRef<GooglePlacesAutocompleteRef>(null);
 
+  // const handleUseCurrentLocation = async () => {
+  //   if (!location) {
+  //     retry();
+  //     return;
+  //   }
+  //   setIsLoading(true)
+  //   try {
+  //     const response = await Geocoder.from(location.latitude, location.longitude);
+  //     console.log('Geocoder response:', response);
 
+  //     if (response.results.length > 0) {
+  //       const result = response.results[0];
+  //       const components = result.address_components;
 
-  //mapppps and location ========================
-  const [region, setRegion] = useState({
-    latitude: 22.7196,
-    longitude: 75.8577,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
+  //       const getComp = (types: string[]) => components.find((c: any) => types.every((type) => c.types.includes(type)))?.long_name || "";
 
+  //       const street = getComp(["route"]);
+  //       const geocodedCityName = getComp(["locality"]) || getComp(["administrative_area_level_2"]);
+  //       const postalCode = getComp(["postal_code"]);
 
-  const { hasPermission, location, loading: locationLoading, error: locationError, retry } = useCurrentLocation();
-  useEffect(() => {
-    retry(); // call once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  useEffect(() => {
-    if (location) {
-      setRegion({
-        ...region,
-        latitude: addData?.coordinates?.lat || location.latitude,
-        longitude: addData?.coordinates?.lng || location.longitude,
-      });
-      if (!addData) {
-        getAddress(location.latitude, location.longitude);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]);
-  console.log('location', location, hasPermission, locationError);
-  console.log('addData', addData);
-  // const handleDragEnd = (e: any) => {
-  //   console.log('handleDragEnd', e);
-  //   const { latitude, longitude } = e.nativeEvent.coordinate;
-  //   setRegion({
-  //     ...region,
-  //     latitude,
-  //     longitude,
-  //   });
-  // }
+  //       // Find city ID from cities data if city name matches
+  //       const foundCity = citiesData?.ResponseData?.find((c: any) =>
+  //         c.name?.toLowerCase() === geocodedCityName?.toLowerCase()
+  //       );
 
-  const handleMapPress = (e: any) => {
-    console.log('handleMapPress', e);
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-
-    setRegion({
-      ...region,
-      latitude,
-      longitude,
-    });
-    getAddress(latitude, longitude);
-  }
-  const extractAddress = (components: any) => {
-    let streetNumber = "";
-    let route = "";
-    let sublocality = "";
-    let city = "";
-    let state = "";
-    let postalCode = "";
-    let country = "";
-    let landmark = "";
-
-    components.forEach((component: any) => {
-      const types = component.types;
-
-      if (types.includes("street_number")) {
-        streetNumber = component.long_name;
-      }
-
-      if (types.includes("route")) {
-        route = component.long_name;
-      }
-
-      if (types.includes("sublocality") || types.includes("neighborhood")) {
-        sublocality = component.long_name;
-      }
-
-      if (types.includes("locality")) {
-        city = component.long_name;
-      }
-
-      if (types.includes("administrative_area_level_1")) {
-        state = component.long_name;
-      }
-
-      if (types.includes("postal_code")) {
-        postalCode = component.long_name;
-      }
-
-      if (types.includes("country")) {
-        country = component.long_name;
-      }
-
-      if (types.includes("point_of_interest") || types.includes("premise")) {
-        landmark = component.long_name;
-      }
-    });
-
-    return {
-      addressLine1: `${streetNumber} ${route}`.trim(),
-      addressLine2: sublocality,
-      city,
-      state,
-      postalCode,
-      country,
-      landmark
-    };
-  };
-  const getAddress = async (lat: number, lng: number) => {
-    try {
-      const response = await Geocoder.from(lat, lng);
-
-      if (response.results.length > 0) {
-        const result = response.results[0];
-        const components = result.address_components;
-        let addressdata = extractAddress(components);
-        console.log('addressdata', addressdata);
-        formik.setFieldValue('line1', addressdata?.addressLine1 || '');
-        formik.setFieldValue('line2', addressdata?.addressLine2 || '');
-        formik.setFieldValue('landmark', addressdata?.landmark || '');
-        formik.setFieldValue('pincode', addressdata?.postalCode || '');
-        formik.setFieldValue('coordinates', {
-          lat,
-          lng,
-        });
-        setTimeout(() => {
-          formik.setFieldTouched('line1', true);
-          formik.setFieldTouched('pincode', true);
-          formik.setFieldTouched('line2', true);
-          formik.setFieldTouched('landmark', true);
-        }, 100);
-      }
-
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-
-
+  //       formik.setValues({
+  //         ...formik.values,
+  //         line1: result?.formatted_address || street,
+  //         // Don't set landmark from state - landmark is for nearby places, not state
+  //         city: foundCity?._id || defaultCityId,
+  //         pincode: postalCode || '',
+  //       });
+  //       placesRef?.current?.setAddressText(result?.formatted_address || street);
+  //       setIsLoading(false)
+  //     }
+  //   } catch (err) {
+  //     console.error("Geocoding error:", err);
+  //     setIsLoading(false)
+  //     handleApiError(err);
+  //   }
+  // };
 
   return (
     <Container safeArea={true}>
-      <LoadingComp visible={locationLoading} />
+      <LoadingComp visible={isLoading} />
+
       <AppHeader
         title={addData?._id ? t('addAddress.edittitle') : t('addAddress.title')}
         onLeftPress={() => navigation.goBack()}
         containerStyle={styles.header}
       />
-
-      <KeyboardAwareScrollView
+      {/* <AppHeader
+        title={addData?._id ? t('addAddress.edittitle') : t('addAddress.title')}
+        onLeftPress={() => navigation.goBack()}
+        leftIconName="arrowleft"
+        containerStyle={styles.header}
+      /> */}
+     <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
         enableOnAndroid={false}
@@ -410,193 +340,284 @@ const AddAddress: React.FC = () => {
         enableResetScrollToCoords={false}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
-
           <View style={styles.container}>
+            {/* <TouchableOpacity onPress={handleUseCurrentLocation} style={styles.locationRow}>
+              <CustomText style={styles.locationText}>
+                <VectoreIcons size={SF(14)} color={Colors.primary} icon='FontAwesome6' name='location-dot' /> {t('addAddress.useMyCurrentLocation')}
+              </CustomText>
+              <VectoreIcons size={SF(26)} color={Colors.primary} icon='Feather' name='chevron-right' />
+            </TouchableOpacity> */}
+            {/* Name Field */}
+            <CustomText style={styles.label}>{t('addAddress.placeholders.name') || 'Address Name'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.name') || 'Address Name'}
+              value={formik.values.name}
+              onChangeText={(val: string) => {
+                formik.setFieldValue('name', val);
+              }}
+              onBlur={() => formik.setFieldTouched('name', true)}
+              errortext={formik.touched.name && formik.errors.name ? formik.errors.name : ''}
+              keyboardType="default"
+              maxLength={50}
+              marginTop={SH(5)}
+            />
 
-            {hasPermission && location ? (
-              <View style={{ height: SH(300), width: '100%' }}>
-                <MapView
-                  style={{ height: '100%', width: '100%' }}
-                  provider={PROVIDER_GOOGLE}
-                  initialRegion={region}
-                  onPress={handleMapPress}
-                >
+            <CustomText style={styles.addressTypeLabel}>{t('addAddress.placeholders.streetAddress') || 'Street Address'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.streetAddress') || 'Street Address'}
+              value={formik.values.line1}
+              onChangeText={(val: string) => formik.setFieldValue('line1', val)}
+              onBlur={() => formik.setFieldTouched('line1', true)}
+              errortext={formik.touched.line1 && formik.errors.line1 ? formik.errors.line1 : ''}
+              keyboardType="default"
+              maxLength={80}
+              marginTop={SH(5)}
+            />
+            {/* <AddressSearch
+              inputStyle={{ borderColor: Colors.textAppColor, height: SF(45), borderWidth: 1, color: Colors.textAppColor, marginTop: SH(10), paddingVertical: 4 }}
+              placeholderTextColor={Colors.textAppColor}
+              countryCode="in"
+              value={formik.values.address}
+              placeholder={""}
+              onSelect={(parsed: ParsedAddress) => {
+                formik.setValues({
+                  ...formik.values,
+                  address: parsed.formattedAddress,
+                  city: parsed.city,
+                  state: parsed.state,
+                  zipCode: parsed.postalCode,
+                  appartment: '',
+                  location: { coordinates: [parsed.lng, parsed.lat] },
+                });
+                formik.setFieldTouched('address', true);
+                formik.setFieldTouched('city', true);
+                formik.setFieldTouched('state', true);
+                formik.setFieldTouched('zipCode', true);
+              }}
+            /> */}
+            {/* <GooglePlacesAutocomplete
+              ref={placesRef}
+              placeholder={t('addAddress.searchPlaceholder')}
+              fetchDetails={true}
+              keyboardShouldPersistTaps="handled"
+              onPress={(data: any, details: any = null) => {
+                if (!details) {
+                  console.log('❌ No details found');
+                  return;
+                }
 
-                  <Marker
-                    // draggable
-                    coordinate={{
-                      latitude: region.latitude,
-                      longitude: region.longitude,
-                    }}
-                  // title="Hello"
-                  // description="Hello"
-                  // onDragEnd={handleDragEnd}
+                console.log('📍 Full Data:', data);
+                console.log('📍 Details:', details);
 
-                  />
-                </MapView>
-              </View>
-            ) :
-              <View style={{ padding: SW(20), alignItems: 'center' }}>
-                <CustomText fontFamily={Fonts.REGULAR} fontSize={SF(16)} textAlign={'center'} color={Colors.textAppColor}>{"To use the map and detect your current location, please enable location permission. You can also manually choose a location on the map."}</CustomText>
-                <View style={{ width: '50%', alignItems: 'center' }}>
-                  <CustomButton
-                    buttonStyle={{ backgroundColor: Colors.primary, marginTop: SH(20) }}
-                    textColor={Colors.textWhite}
-                    title={'Retry'}
-                    onPress={retry}
-                  />
-                </View>
-              </View>
-            }
+                // Extract lat/lng
+                const { lat, lng } = details.geometry.location;
 
-            <View style={{ paddingHorizontal: SW(20), marginTop: SH(20) }}>
+                // Extract address components
+                const components: any[] = details.address_components || [];
+                const geocodedCityName = components.find((c) => c.types.includes('locality'))?.long_name;
+                const postalCode = components.find((c) => c.types.includes('postal_code'))?.long_name;
 
-              <CustomText style={styles.label}>{t('addAddress.placeholders.name') || 'Address Name'}</CustomText>
+                // Find city ID from cities data if city name matches
+                const foundCity = citiesData?.ResponseData?.find((c: any) =>
+                  c.name?.toLowerCase() === geocodedCityName?.toLowerCase()
+                );
+
+                formik.setFieldValue('line1', data.description);
+                // Don't set landmark from state - landmark is for nearby places, not state
+                // User will manually enter landmark if needed
+                formik.setFieldValue('city', foundCity?._id || defaultCityId);
+                formik.setFieldValue('pincode', postalCode || '');
+                setTimeout(() => {
+                  formik.setFieldTouched('city', true);
+                  formik.validateField('city');
+                  formik.setFieldTouched('line1', true);
+                  formik.validateField('line1');
+                  formik.setFieldTouched('pincode', true);
+                  formik.validateField('pincode');
+                }, 100);
+                console.log('✅ Latitude:', lat);
+                console.log('✅ Longitude:', lng);
+                console.log('🏙️ City:', geocodedCityName, 'ID:', foundCity?._id);
+                console.log('📮 Postal Code:', postalCode);
+              }}
+              query={{
+                key: GOOGLE_MAPS_API_KEY,
+                language: 'en',
+              }}
+              GooglePlacesDetailsQuery={{
+                fields: 'geometry,address_components',
+              }}
+              onFail={(error: any) => console.error('❌ API Error:', error)}
+              onNotFound={() => console.log('⚠️ No results found')}
+              styles={{
+                textInput: styles.input,
+                container: styles.autocompleteContainer,
+                listView: {
+                  backgroundColor: 'white',
+                  position: 'absolute',
+                  zIndex: 999,
+                  width: '100%',
+                  top: SH(58),
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                  elevation: 5,
+                  borderRadius: 5,
+                },
+                separator: {
+                  height: 0.5,
+                  backgroundColor: 'gray',
+                },
+              }}
+              debounce={200}
+              timeout={20000}
+              minLength={3}
+              predefinedPlaces={[]}
+
+
+              textInputProps={{
+                onFocus: () => console.log('✏️ Input Focused'),
+                onBlur: () => {
+                  console.warn('Blur');
+                },
+                // defaultValue: initialAddress,
+              }}
+            />
+            {formik.touched.line1 && formik.errors.line1 && (
+              <CustomText style={styles.errorText}>{formik.errors.line1}</CustomText>
+            )} */}
+            <CustomText style={styles.label}>{t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}
+              value={formik.values.line2}
+              onChangeText={(val: string) => formik.setFieldValue('line2', val)}
+              onBlur={() => formik.setFieldTouched('line2', true)}
+              errortext={formik.touched.line2 && formik.errors.line2 ? formik.errors.line2 : ''}
+              keyboardType="default"
+              maxLength={80}
+              marginTop={SH(5)}
+            />
+            <CustomText style={styles.label}>{t('addAddress.placeholders.landmark') || 'Landmark (Optional)'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.landmark') || 'e.g., Near ABC Shop, Behind XYZ Mall'}
+              value={formik.values.landmark}
+              onChangeText={(val: string) => formik.setFieldValue('landmark', val)}
+              onBlur={() => formik.setFieldTouched('landmark', true)}
+              errortext={formik.touched.landmark && formik.errors.landmark ? formik.errors.landmark : ''}
+              keyboardType="default"
+              maxLength={80}
+              marginTop={SH(5)}
+            />
+            {/* <CustomText style={styles.label}>{t('addAddress.placeholders.contact') || 'Contact Number'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.contact') || 'Contact Number'}
+              value={formik.values.contact}
+              onChangeText={(val: string) => formik.setFieldValue('contact', val)}
+              onBlur={() => formik.setFieldTouched('contact', true)}
+              errortext={formik.touched.contact && formik.errors.contact ? formik.errors.contact : ''}
+              keyboardType="phone-pad"
+              maxLength={15}
+              marginTop={SH(5)}
+            /> */}
+
+            <CustomText style={styles.label}>{t('addAddress.placeholders.country') || 'Country'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.country') || 'Country'}
+              value={countryName}
+              onChangeText={() => { }} // Read-only, display only
+              onBlur={() => formik.setFieldTouched('country', true)}
+              errortext={formik.touched.country && formik.errors.country ? formik.errors.country : ''}
+              keyboardType="default"
+              maxLength={50}
+              isEditable={false}
+              marginTop={SH(5)}
+            />
+            {formik.touched.country && formik.errors.country && (
+              <CustomText style={styles.errorText}>{formik.errors.country}</CustomText>
+            )}
+            <CustomText style={styles.label}>{t('addAddress.placeholders.city') || 'City'}</CustomText>
+            <Pressable
+              onPress={() => {
+                if (isCityDropdownEnabled) {
+                  setShowCityModal(true);
+                }
+              }}
+              disabled={!isCityDropdownEnabled}
+            >
               <CustomInput
-                placeholder={t('addAddress.placeholders.name') || 'Address Name'}
-                value={formik.values.name}
-                onChangeText={(val: string) => {
-                  formik.setFieldValue('name', val);
-                }}
-                onBlur={() => formik.setFieldTouched('name', true)}
-                errortext={formik.touched.name && formik.errors.name ? formik.errors.name : ''}
-                keyboardType="default"
-                maxLength={50}
-                marginTop={SH(5)}
-              />
-
-              <CustomText style={styles.addressTypeLabel}>{t('addAddress.placeholders.streetAddress') || 'Street Address'}</CustomText>
-              <CustomInput
-                placeholder={t('addAddress.placeholders.streetAddress') || 'Street Address'}
-                value={formik.values.line1}
-                onChangeText={(val: string) => formik.setFieldValue('line1', val)}
-                onBlur={() => formik.setFieldTouched('line1', true)}
-                errortext={formik.touched.line1 && formik.errors.line1 ? formik.errors.line1 : ''}
-                keyboardType="default"
-                maxLength={80}
-                marginTop={SH(5)}
-              />
-
-              <CustomText style={styles.label}>{t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}</CustomText>
-              <CustomInput
-                placeholder={t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}
-                value={formik.values.line2}
-                onChangeText={(val: string) => formik.setFieldValue('line2', val)}
-                onBlur={() => formik.setFieldTouched('line2', true)}
-                errortext={formik.touched.line2 && formik.errors.line2 ? formik.errors.line2 : ''}
-                keyboardType="default"
-                maxLength={80}
-                marginTop={SH(5)}
-              />
-              <CustomText style={styles.label}>{t('addAddress.placeholders.landmark') || 'Landmark (Optional)'}</CustomText>
-              <CustomInput
-                placeholder={t('addAddress.placeholders.landmark') || 'e.g., Near ABC Shop, Behind XYZ Mall'}
-                value={formik.values.landmark}
-                onChangeText={(val: string) => formik.setFieldValue('landmark', val)}
-                onBlur={() => formik.setFieldTouched('landmark', true)}
-                errortext={formik.touched.landmark && formik.errors.landmark ? formik.errors.landmark : ''}
-                keyboardType="default"
-                maxLength={80}
-                marginTop={SH(5)}
-              />
-
-
-              <CustomText style={styles.label}>{t('addAddress.placeholders.country') || 'Country'}</CustomText>
-              <CustomInput
-                placeholder={t('addAddress.placeholders.country') || 'Country'}
-                value={countryName}
+                placeholder={t('addAddress.placeholders.city') || 'City'}
+                value={cityName}
                 onChangeText={() => { }} // Read-only, display only
-                onBlur={() => formik.setFieldTouched('country', true)}
-                errortext={formik.touched.country && formik.errors.country ? formik.errors.country : ''}
+                onBlur={() => formik.setFieldTouched('city', true)}
+                errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
                 keyboardType="default"
                 maxLength={50}
                 isEditable={false}
                 marginTop={SH(5)}
               />
-              {formik.touched.country && formik.errors.country && (
-                <CustomText style={styles.errorText}>{formik.errors.country}</CustomText>
-              )}
-              <CustomText style={styles.label}>{t('addAddress.placeholders.city') || 'City'}</CustomText>
-              <Pressable
-                onPress={() => {
-                  if (isCityDropdownEnabled) {
-                    setShowCityModal(true);
-                  }
-                }}
-                disabled={!isCityDropdownEnabled}
-              >
-                <CustomInput
-                  placeholder={t('addAddress.placeholders.city') || 'City'}
-                  value={cityName}
-                  onChangeText={() => { }} // Read-only, display only
-                  onBlur={() => formik.setFieldTouched('city', true)}
-                  errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
-                  keyboardType="default"
-                  maxLength={50}
-                  editable={false}
-                  marginTop={SH(5)}
-                />
-              </Pressable>
-              {formik.touched.city && formik.errors.city && (
-                <CustomText style={styles.errorText}>{formik.errors.city}</CustomText>
-              )}
-              <CustomText style={styles.label}>{t('addAddress.placeholders.zipCode') || 'Pincode'}</CustomText>
-              <CustomInput
-                placeholder={t('addAddress.placeholders.zipCode') || 'Pincode'}
-                value={formik.values.pincode}
-                onChangeText={(val: string) => formik.setFieldValue('pincode', val)}
-                onBlur={() => formik.setFieldTouched('pincode', true)}
-                errortext={formik.touched.pincode && formik.errors.pincode ? formik.errors.pincode : ''}
-                keyboardType="numeric"
-                maxLength={12}
-                marginTop={SH(5)}
-              />
-              {
-                // prevScreen !== 'other_user' &&
-                // <>
+            </Pressable>
+            {formik.touched.city && formik.errors.city && (
+              <CustomText style={styles.errorText}>{formik.errors.city}</CustomText>
+            )}
+            <CustomText style={styles.label}>{t('addAddress.placeholders.zipCode') || 'Pincode'}</CustomText>
+            <CustomInput
+              placeholder={t('addAddress.placeholders.zipCode') || 'Pincode'}
+              value={formik.values.pincode}
+              onChangeText={(val: string) => formik.setFieldValue('pincode', val)}
+              onBlur={() => formik.setFieldTouched('pincode', true)}
+              errortext={formik.touched.pincode && formik.errors.pincode ? formik.errors.pincode : ''}
+              keyboardType="numeric"
+              maxLength={12}
+              marginTop={SH(5)}
+            />
+            {
+              prevScreen !== 'other_user' &&
+              <>
 
-                //   <CustomText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType') || 'Address Type'}</CustomText>
-                //   <View style={styles.addressTypeContainer}>
-                //     {addressTypes.map((type) => (
-                //       <Checkbox
-                //         key={type}
-                //         checked={selectedAddressType === type}
-                //         onChange={() => {
-                //           setSelectedAddressType(type);
-                //           formik.setFieldValue('addressType', type);
-                //           // Auto-fill name if empty
-                //           if (!formik.values.name) {
-                //             formik.setFieldValue('name', type.charAt(0).toUpperCase() + type.slice(1));
-                //           }
-                //           formik.setFieldTouched('addressType', true);
-                //         }}
-                //         size={SF(14)}
-                //         label={type.charAt(0).toUpperCase() + type.slice(1)}
-                //       />
-                //     ))}
-                //   </View>
-                //   {formik.touched.addressType && formik.errors.addressType && (
-                //     <CustomText style={styles.errorText}>{formik.errors.addressType}</CustomText>
-                //   )}
-                //   {/* <View style={styles.checkboxContainer}>
-                //     <Checkbox
-                //       checked={isDefault}
-                //       onChange={() => setIsDefault(!isDefault)}
-                //       size={SF(14)}
-                //       label={t('addAddress.makeThisDefault')}
-                //     />
-                //   </View> */}
-                // </>
-              }
-              <CustomButton
-                buttonStyle={styles.submitButton}
-                textColor={Colors.textWhite}
-                title={t('addAddress.placeholders.save')}
-                onPress={formik.handleSubmit}
-                isLoading={addAddressMutation.isPending || updateAddressMutation.isPending || formik.isSubmitting}
-              />
-            </View>
+                <CustomText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType') || 'Address Type'}</CustomText>
+                <View style={styles.addressTypeContainer}>
+                  {addressTypes.map((type) => (
+                    <Checkbox
+                      key={type}
+                      checked={selectedAddressType === type}
+                      onChange={() => {
+                        setSelectedAddressType(type);
+                        formik.setFieldValue('addressType', type);
+                        // Auto-fill name if empty
+                        if (!formik.values.name) {
+                          formik.setFieldValue('name', type.charAt(0).toUpperCase() + type.slice(1));
+                        }
+                        formik.setFieldTouched('addressType', true);
+                      }}
+                      size={SF(14)}
+                      label={type.charAt(0).toUpperCase() + type.slice(1)}
+                    />
+                  ))}
+                </View>
+                {formik.touched.addressType && formik.errors.addressType && (
+                  <CustomText style={styles.errorText}>{formik.errors.addressType}</CustomText>
+                )}
+                <View style={styles.checkboxContainer}>
+                  <Checkbox
+                    checked={isDefault}
+                    onChange={() => setIsDefault(!isDefault)}
+                    size={SF(14)}
+                    label={t('addAddress.makeThisDefault')}
+                  />
+                </View>
+              </>
+            }
+            <CustomButton
+              buttonStyle={styles.submitButton}
+              textColor={Colors.textWhite}
+              title={t('addAddress.placeholders.save')}
+              onPress={formik.handleSubmit}
+              isLoading={addAddressMutation.isPending || updateAddressMutation.isPending || formik.isSubmitting}
+            />
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAwareScrollView>
@@ -623,7 +644,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   container: {
-    paddingBottom: SH(20),
+    paddingHorizontal: SW(25),
+    paddingVertical: SH(20),
     flex: 1,
   },
   input: {

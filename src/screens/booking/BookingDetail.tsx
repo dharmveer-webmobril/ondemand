@@ -10,7 +10,13 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Container, AppHeader, CustomText, CustomButton, LoadingComp } from '@components/common';
+import {
+  Container,
+  AppHeader,
+  CustomText,
+  CustomButton,
+  LoadingComp,
+} from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RescheduleModal from '@components/booking/RescheduleModal';
@@ -21,11 +27,14 @@ import {
   ProviderDetailsCard,
   OtherPersonDetailsCard,
   BookingForCard,
+  PaymentStatusCard,
   DateTimeCard,
   AddressCard,
   BookingServiceCard,
 } from '@components';
-import MemberSelectionModal, { Member } from '@components/booking/MemberSelectionModal';
+import MemberSelectionModal, {
+  Member,
+} from '@components/booking/MemberSelectionModal';
 import { SweetAlert } from '@components/common';
 import { queryClient } from '@services/api';
 import {
@@ -37,13 +46,24 @@ import {
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
 
-
 const formatDate = (dateString: string): string => {
   if (!dateString || typeof dateString !== 'string') return '';
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return '';
-  const months = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
   return `${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
 };
 
@@ -51,7 +71,16 @@ const formatDate = (dateString: string): string => {
 const formatBookingAddress = (booking: any): string => {
   if (!booking?.addressId) return '';
   const address = booking?.addressId;
-  return formatAddress({ line1: address?.line1, line2: address?.line2, landmark: address?.landmark, pincode: address?.pincode, city: address?.city?.name, country: address?.country?.name }) || '';
+  return (
+    formatAddress({
+      line1: address?.line1,
+      line2: address?.line2,
+      landmark: address?.landmark,
+      pincode: address?.pincode,
+      city: address?.city?.name,
+      country: address?.country?.name,
+    }) || ''
+  );
 };
 
 export default function BookingDetail() {
@@ -63,7 +92,10 @@ export default function BookingDetail() {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Get booking ID from route params
-  const bookingId = route.params?.bookingId || route.params?.booking?.id || route.params?.booking?.bookingId;
+  const bookingId =
+    route.params?.bookingId ||
+    route.params?.booking?.id ||
+    route.params?.booking?.bookingId;
 
   // Fetch booking details from API
   const {
@@ -75,26 +107,24 @@ export default function BookingDetail() {
   } = useGetBookingDetail(bookingId);
 
   // Common loader type state
-  type LoaderType = 'none' | 'cancelBooking' | 'cancelService' | 'rescheduleService';
+  type LoaderType =
+    | 'none'
+    | 'cancelBooking'
+    | 'cancelService'
+    | 'rescheduleService';
   const [loaderType, setLoaderType] = useState<LoaderType>('none');
 
   // Cancel booking mutation
-  const {
-    mutate: cancelBooking,
-    isPending: isCancelingBooking,
-  } = useCancelBooking();
+  const { mutate: cancelBooking, isPending: isCancelingBooking } =
+    useCancelBooking();
 
   // Cancel service mutation
-  const {
-    mutate: cancelService,
-    isPending: isCancelingService,
-  } = useCancelService();
+  const { mutate: cancelService, isPending: isCancelingService } =
+    useCancelService();
 
   // Reschedule service mutation
-  const {
-    mutate: rescheduleService,
-    isPending: isReschedulingService,
-  } = useRescheduleService();
+  const { mutate: rescheduleService, isPending: isReschedulingService } =
+    useRescheduleService();
 
   // Update loader type based on mutation states
   React.useEffect(() => {
@@ -115,14 +145,19 @@ export default function BookingDetail() {
 
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
-  const [showMemberSelectionModal, setShowMemberSelectionModal] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [showMemberSelectionModal, setShowMemberSelectionModal] =
+    useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
+    null,
+  );
   const [pendingMember, setPendingMember] = useState<Member | null>(null);
   const [showAcceptConfirm, setShowAcceptConfirm] = useState(false);
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showCancelServiceModal, setShowCancelServiceModal] = useState(false);
-  const [cancelType, setCancelType] = useState<'booking' | 'service'>('booking');
+  const [cancelType, setCancelType] = useState<'booking' | 'service'>(
+    'booking',
+  );
   const [serviceToCancel, setServiceToCancel] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -131,8 +166,10 @@ export default function BookingDetail() {
     if (!bookingDetailData?.ResponseData?.booking) return null;
 
     const apiBooking = bookingDetailData?.ResponseData?.booking;
-    const bookedServices = (bookingDetailData?.ResponseData?.bookedServices || []).filter((s: any) => s != null);
-
+    const bookedServices = (
+      bookingDetailData?.ResponseData?.bookedServices || []
+    ).filter((s: any) => s != null);
+    console.log('apiBooking -----BookingDetail', apiBooking);
     // Transform bookedServices to BookingServiceCard format
     const services = bookedServices.map((bookedService: any) => {
       // Find service by ID (serviceId is a string ID)
@@ -153,14 +190,18 @@ export default function BookingDetail() {
 
       // Get amounts from bookedService
       const serviceTotalAmount = bookedService?.totalAmount || 0; // Original total (service + addons)
-      const servicePromotionOfferAmount = bookedService?.promotionOfferAmount || 0; // Discount amount
+      const servicePromotionOfferAmount =
+        bookedService?.promotionOfferAmount || 0; // Discount amount
       const serviceDiscountedAmount = bookedService?.discountedAmount || 0; // Final amount after discount
 
       // Calculate add-ons total (with add-on discount percentage applied)
       const addOnsTotal = selectedAddOns.reduce((sum: number, addon: any) => {
         if (!addon) return sum;
         const addOnPrice = Number(addon?.price) || 0;
-        const discountPct = Math.min(100, Math.max(0, Number(addon?.discountPercentage) || 0));
+        const discountPct = Math.min(
+          100,
+          Math.max(0, Number(addon?.discountPercentage) || 0),
+        );
         const discounted = addOnPrice * (1 - discountPct / 100);
         return sum + (Number.isFinite(discounted) ? discounted : addOnPrice);
       }, 0);
@@ -184,11 +225,16 @@ export default function BookingDetail() {
     });
 
     return {
-      customerDetails: apiBooking.bookedFor === 'other' ? apiBooking.bookedForDetails : apiBooking.customerId,
+      customerDetails:
+        apiBooking.bookedFor === 'other'
+          ? apiBooking.bookedForDetails
+          : apiBooking.customerId,
       id: apiBooking?._id,
       bookingId: apiBooking?.bookingId || apiBooking?._id,
       status: apiBooking?.bookingStatus,
       bookingStatus: apiBooking?.bookingStatus,
+      paymentStatus: apiBooking?.paymentStatus,
+      paymentType: apiBooking?.paymentType,
       originalStatus: apiBooking?.bookingStatus,
       providerName: apiBooking?.spId?.name || 'Provider',
       providerPhone: apiBooking?.spId?.contact || '',
@@ -200,8 +246,7 @@ export default function BookingDetail() {
       totalPrice: apiBooking?.discountedAmount || apiBooking?.totalAmount || 0,
       originalPrice: apiBooking?.totalAmount || 0,
       discountAmount: apiBooking?.promotionOfferAmount || 0,
-      paymentType: apiBooking?.paymentType,
-      paymentStatus: apiBooking?.paymentStatus,
+
       bookedFor: apiBooking?.bookedFor,
       bookedForDetails: apiBooking?.bookedForDetails,
       providerData: apiBooking?.spId,
@@ -216,12 +261,10 @@ export default function BookingDetail() {
     }
   }, [isErrorBooking, bookingError, bookingDetailData]);
 
-
-
   const handleCall = useCallback((phoneNumber: string) => {
     const url = `tel:${phoneNumber}`;
     Linking.canOpenURL(url)
-      .then((supported) => {
+      .then(supported => {
         if (supported) {
           Linking.openURL(url);
         } else {
@@ -243,16 +286,20 @@ export default function BookingDetail() {
 
     if (url) {
       Linking.canOpenURL(url)
-        .then((supported) => {
+        .then(supported => {
           if (supported) {
             Linking.openURL(url);
           } else {
             // Fallback to web maps
-            Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`);
+            Linking.openURL(
+              `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+            );
           }
         })
         .catch(() => {
-          Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`);
+          Linking.openURL(
+            `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+          );
         });
     }
   }, []);
@@ -281,96 +328,137 @@ export default function BookingDetail() {
     setShowCancelServiceModal(true);
   }, []);
 
-  const handleCancelConfirm = useCallback((reason: string) => {
-    if (cancelType === 'booking' && booking?.id) {
-      setLoaderType('cancelBooking');
-      cancelBooking(
-        { bookingId: booking.id, reason },
-        {
-          onSuccess: (response: any) => {
-            if (response?.succeeded) {
-              handleSuccessToast(response?.ResponseMessage || t('bookingDetails.bookingCancelledSuccess'));
-              setShowCancelConfirm(false);
+  const handleCancelConfirm = useCallback(
+    (reason: string) => {
+      if (cancelType === 'booking' && booking?.id) {
+        setLoaderType('cancelBooking');
+        cancelBooking(
+          { bookingId: booking.id, reason },
+          {
+            onSuccess: (response: any) => {
+              if (response?.succeeded) {
+                handleSuccessToast(
+                  response?.ResponseMessage ||
+                    t('bookingDetails.bookingCancelledSuccess'),
+                );
+                setShowCancelConfirm(false);
+                setLoaderType('none');
+                queryClient.invalidateQueries({
+                  queryKey: ['customerBookings'],
+                });
+                refetchBooking();
+              } else {
+                setLoaderType('none');
+                handleApiError(
+                  new Error(
+                    response?.ResponseMessage ||
+                      t('bookingDetails.failedToCancelBooking'),
+                  ),
+                );
+              }
+            },
+            onError: (error: any) => {
               setLoaderType('none');
-              queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
-              refetchBooking();
-            } else {
+              handleApiError(error);
+            },
+          },
+        );
+      } else if (cancelType === 'service' && serviceToCancel) {
+        setLoaderType('cancelService');
+        cancelService(
+          { serviceId: serviceToCancel, reason },
+          {
+            onSuccess: (response: any) => {
+              if (response?.succeeded) {
+                handleSuccessToast(
+                  response?.ResponseMessage ||
+                    t('bookingDetails.serviceCancelledSuccess'),
+                );
+                setShowCancelServiceModal(false);
+                setServiceToCancel(null);
+                setLoaderType('none');
+                queryClient.invalidateQueries({
+                  queryKey: ['customerBookings'],
+                });
+                refetchBooking();
+              } else {
+                setLoaderType('none');
+                handleApiError(
+                  new Error(
+                    response?.ResponseMessage ||
+                      t('bookingDetails.failedToCancelService'),
+                  ),
+                );
+              }
+            },
+            onError: (error: any) => {
               setLoaderType('none');
-              handleApiError(new Error(response?.ResponseMessage || t('bookingDetails.failedToCancelBooking')));
-            }
+              handleApiError(error);
+            },
           },
-          onError: (error: any) => {
-            setLoaderType('none');
-            handleApiError(error);
-          },
-        }
-      );
-    } else if (cancelType === 'service' && serviceToCancel) {
-      setLoaderType('cancelService');
-      cancelService(
-        { serviceId: serviceToCancel, reason },
-        {
-          onSuccess: (response: any) => {
-            if (response?.succeeded) {
-              handleSuccessToast(response?.ResponseMessage || t('bookingDetails.serviceCancelledSuccess'));
-              setShowCancelServiceModal(false);
-              setServiceToCancel(null);
-              setLoaderType('none');
-              queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
-              refetchBooking();
-            } else {
-              setLoaderType('none');
-              handleApiError(new Error(response?.ResponseMessage || t('bookingDetails.failedToCancelService')));
-            }
-          },
-          onError: (error: any) => {
-            setLoaderType('none');
-            handleApiError(error);
-          },
-        }
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cancelType, booking, serviceToCancel, cancelBooking, cancelService, refetchBooking]);
-
-  const handleReschedule = useCallback((newDate: string, newTime: string, reason: string) => {
-    if (!selectedServiceId) {
-      handleApiError(new Error(t('bookingDetails.serviceIdRequired')));
-      return;
-    }
-
-    setLoaderType('rescheduleService');
-    rescheduleService(
-      {
-        serviceId: selectedServiceId,
-        data: {
-          date: newDate,
-          time: newTime,
-          reason: reason,
-        },
-      },
-      {
-        onSuccess: (response: any) => {
-          if (response?.succeeded) {
-            handleSuccessToast(response?.ResponseMessage || t('bookingDetails.serviceRescheduledSuccess'));
-            setShowRescheduleModal(false);
-            setSelectedServiceId(null);
-            setLoaderType('none');
-            queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
-            refetchBooking();
-          } else {
-            setLoaderType('none');
-            handleApiError(new Error(response?.ResponseMessage || t('bookingDetails.failedToRescheduleService')));
-          }
-        },
-        onError: (error: any) => {
-          setLoaderType('none');
-          handleApiError(error);
-        },
+        );
       }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedServiceId, rescheduleService, refetchBooking]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [
+      cancelType,
+      booking,
+      serviceToCancel,
+      cancelBooking,
+      cancelService,
+      refetchBooking,
+    ],
+  );
+
+  const handleReschedule = useCallback(
+    (newDate: string, newTime: string, reason: string) => {
+      if (!selectedServiceId) {
+        handleApiError(new Error(t('bookingDetails.serviceIdRequired')));
+        return;
+      }
+
+      setLoaderType('rescheduleService');
+      rescheduleService(
+        {
+          serviceId: selectedServiceId,
+          data: {
+            date: newDate,
+            time: newTime,
+            reason: reason,
+          },
+        },
+        {
+          onSuccess: (response: any) => {
+            if (response?.succeeded) {
+              handleSuccessToast(
+                response?.ResponseMessage ||
+                  t('bookingDetails.serviceRescheduledSuccess'),
+              );
+              setShowRescheduleModal(false);
+              setSelectedServiceId(null);
+              setLoaderType('none');
+              queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
+              refetchBooking();
+            } else {
+              setLoaderType('none');
+              handleApiError(
+                new Error(
+                  response?.ResponseMessage ||
+                    t('bookingDetails.failedToRescheduleService'),
+                ),
+              );
+            }
+          },
+          onError: (error: any) => {
+            setLoaderType('none');
+            handleApiError(error);
+          },
+        },
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [selectedServiceId, rescheduleService, refetchBooking],
+  );
 
   const handleAssignMember = useCallback((service: any) => {
     setSelectedServiceId(service?._id);
@@ -380,7 +468,7 @@ export default function BookingDetail() {
   const handleCallMember = useCallback((phone: string) => {
     const url = `tel:${phone}`;
     Linking.canOpenURL(url)
-      .then((supported) => {
+      .then(supported => {
         if (supported) {
           Linking.openURL(url);
         } else {
@@ -393,38 +481,45 @@ export default function BookingDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleMemberSelect = useCallback(
+    (member: Member) => {
+      if (selectedServiceId && booking) {
+        const service = booking?.services?.find(
+          (s: any) => s?._id === selectedServiceId,
+        );
+        const isChangingMember = service?.assignedMember !== undefined;
 
-  const handleMemberSelect = useCallback((member: Member) => {
-    if (selectedServiceId && booking) {
-      const service = booking?.services?.find((s: any) => s?._id === selectedServiceId);
-      const isChangingMember = service?.assignedMember !== undefined;
+        if (isChangingMember && service?.assignedMember?.id !== member.id) {
+          // If changing member, show reason modal first
+          setPendingMember(member);
+          setShowMemberSelectionModal(false);
+          setShowReasonModal(true);
+        } else {
+          // Direct assignment (new member or same member)
+          // Update local state - TODO: API call to assign member to service
+          setShowMemberSelectionModal(false);
+          setSelectedServiceId(null);
+          // Refetch booking to get updated data
+          refetchBooking();
+        }
+      }
+    },
+    [selectedServiceId, booking, refetchBooking],
+  );
 
-      if (isChangingMember && service?.assignedMember?.id !== member.id) {
-        // If changing member, show reason modal first
-        setPendingMember(member);
-        setShowMemberSelectionModal(false);
-        setShowReasonModal(true);
-      } else {
-        // Direct assignment (new member or same member)
-        // Update local state - TODO: API call to assign member to service
-        setShowMemberSelectionModal(false);
+  const handleMemberChangeWithReason = useCallback(
+    (_reason: string) => {
+      if (selectedServiceId && pendingMember) {
+        // TODO: API call to change member with reason
+        setPendingMember(null);
+        setShowReasonModal(false);
         setSelectedServiceId(null);
         // Refetch booking to get updated data
         refetchBooking();
       }
-    }
-  }, [selectedServiceId, booking, refetchBooking]);
-
-  const handleMemberChangeWithReason = useCallback((_reason: string) => {
-    if (selectedServiceId && pendingMember) {
-      // TODO: API call to change member with reason
-      setPendingMember(null);
-      setShowReasonModal(false);
-      setSelectedServiceId(null);
-      // Refetch booking to get updated data
-      refetchBooking();
-    }
-  }, [selectedServiceId, pendingMember, refetchBooking]);
+    },
+    [selectedServiceId, pendingMember, refetchBooking],
+  );
 
   const handleReschedulePress = useCallback((serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -442,7 +537,11 @@ export default function BookingDetail() {
   // console.log('booking', JSON.stringify(booking, null, 2));
 
   return (
-    <Container safeArea={false} statusBarColor={theme.colors.white} style={styles.container}>
+    <Container
+      safeArea={false}
+      statusBarColor={theme.colors.white}
+      style={styles.container}
+    >
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <AppHeader
           title={t('bookingDetails.headerTitle')}
@@ -498,7 +597,6 @@ export default function BookingDetail() {
             status={getStatusLabel(booking?.bookingStatus) || ''}
             statusColor={getStatusColor(booking?.bookingStatus || '')}
           />
-
           {/* Provider Details Card */}
           <ProviderDetailsCard
             providerName={booking?.providerName}
@@ -506,10 +604,18 @@ export default function BookingDetail() {
             providerImage={booking?.providerImage}
             onCall={handleCall}
           />
-
           {/* Booking For Card */}
-          <BookingForCard bookedFor={booking?.bookedFor} />
-
+          <BookingForCard
+            value={booking?.bookedFor}
+            type="bookedFor"
+            title={'Booked For'}
+          />
+          {/* Payment Status Card */}
+          <PaymentStatusCard
+            paymentStatus={booking?.paymentStatus}
+            paymentType={booking?.paymentType}
+          />
+          
           {/* Other Person Details - Show only if bookedFor is 'other' */}
           {booking?.bookedFor === 'other' && booking?.bookedForDetails && (
             <OtherPersonDetailsCard
@@ -519,29 +625,25 @@ export default function BookingDetail() {
               onCall={handleCall}
             />
           )}
-
           {/* Address Card - Show only if address exists */}
-          {
-            Array.isArray(booking?.preferences) && booking.preferences.length > 0 && booking.preferences.includes('atHome') && (
+          {Array.isArray(booking?.preferences) &&
+            booking.preferences.length > 0 &&
+            booking.preferences.includes('atHome') && (
               <AddressCard
                 address={booking.serviceAddress}
                 onViewLocation={() => handleOpenMaps(booking.serviceAddress)}
               />
-            )
-          }
-
+            )}
           {/* Date & Time Card */}
           <DateTimeCard
             date={booking?.bookingDate || ''}
             time={booking?.timeSlot || ''}
-
           />
-
           {/* Services List using ServiceSummeryCard */}
           <View style={styles.card}>
             <View style={styles.titleContainer}>
               <CustomText
-                fontSize={theme.fontSize.md}
+                fontSize={theme.SF(15)}
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
               >
@@ -553,10 +655,10 @@ export default function BookingDetail() {
               services={booking?.services || []}
               onAssignMember={handleAssignMember}
               onCallMember={handleCallMember}
-              onReschedule={(service) => {
+              onReschedule={service => {
                 handleReschedulePress(service?._id);
               }}
-              onCancelService={(serviceId) => {
+              onCancelService={serviceId => {
                 handleCancelServicePress(serviceId);
               }}
               mainBookingStatus={booking?.bookingStatus}
@@ -570,7 +672,11 @@ export default function BookingDetail() {
                     color={theme.colors.lightText}
                     style={styles.originalPriceText}
                   >
-                    Original: ${(Number.isFinite(booking?.originalPrice) ? booking.originalPrice : 0).toFixed(2)}
+                    Original: $
+                    {(Number.isFinite(booking?.originalPrice)
+                      ? booking.originalPrice
+                      : 0
+                    ).toFixed(2)}
                   </CustomText>
                 )}
                 <CustomText
@@ -586,7 +692,11 @@ export default function BookingDetail() {
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.primary}
               >
-                ${(Number.isFinite(booking?.totalPrice) ? booking.totalPrice : 0).toFixed(2)}
+                $
+                {(Number.isFinite(booking?.totalPrice)
+                  ? booking.totalPrice
+                  : 0
+                ).toFixed(2)}
               </CustomText>
             </View>
           </View>
@@ -596,7 +706,7 @@ export default function BookingDetail() {
       {/* Booking Actions */}
       {booking && (
         <View style={styles.actionsContainer}>
-          {(booking.bookingStatus === 'requested') && (
+          {booking.bookingStatus === 'requested' && (
             <>
               <View style={[styles.actionButton, styles.actionButtonLeft]}>
                 <CustomButton
@@ -647,8 +757,14 @@ export default function BookingDetail() {
               setSelectedServiceId(null);
             }}
             onSelect={handleMemberSelect}
-            serviceName={booking?.services?.find((s: any) => s?._id === selectedServiceId)?.name}
-            currentMemberId={booking?.services?.find((s: any) => s?._id === selectedServiceId)?.assignedMember?.id}
+            serviceName={
+              booking?.services?.find((s: any) => s?._id === selectedServiceId)
+                ?.name
+            }
+            currentMemberId={
+              booking?.services?.find((s: any) => s?._id === selectedServiceId)
+                ?.assignedMember?.id
+            }
           />
         </>
       )}

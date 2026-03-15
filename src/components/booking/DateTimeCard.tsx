@@ -17,7 +17,7 @@ export default function DateTimeCard({ date, time }: DateTimeCardProps) {
     <View style={styles.card}>
       <View style={styles.titleContainer}>
         <CustomText
-          fontSize={theme.fontSize.md}
+          fontSize={theme.SF(15)}
           fontFamily={theme.fonts.SEMI_BOLD}
           color={theme.colors.text}
         >

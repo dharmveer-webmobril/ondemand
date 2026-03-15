@@ -22,7 +22,7 @@ export default function OtherPersonDetailsCard({
   return (
     <View style={styles.card}>
       <CustomText
-        fontSize={theme.fontSize.md}
+        fontSize={theme.SF(15)}
         fontFamily={theme.fonts.SEMI_BOLD}
         color={theme.colors.text}
         marginBottom={theme.SH(12)}

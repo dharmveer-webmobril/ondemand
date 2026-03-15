@@ -3,49 +3,29 @@ import { View, StyleSheet } from 'react-native';
 import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
-type BookingForCardProps = {
-  type: 'bookedFor' | 'paymentStatus' | 'paymentType';
-  value: string;
-  title: string;
+type PaymentStatusCardProps = {
+  paymentStatus: string;
+  paymentType: string;
 };
 
-export default function BookingForCard({
-  type,
-  value,
-  title,
-}: BookingForCardProps) {
+export default function PaymentStatusCard({
+  paymentStatus,
+  paymentType,
+}: PaymentStatusCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <View style={styles.card}>
-      <CustomText
-        fontSize={theme.fontSize.md}
-        fontFamily={theme.fonts.SEMI_BOLD}
-        color={theme.colors.text}
-      >
-        {title}
-      </CustomText>
-      <View style={styles.detailRow}>
-        {type === 'bookedFor' && (
-          <>
-            <VectoreIcons
-              name={value === 'self' ? 'person' : 'people'}
-              icon="Ionicons"
-              size={theme.SF(18)}
-              color={theme.colors.lightText}
-            />
-            <CustomText
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.REGULAR}
-              color={theme.colors.text}
-              style={styles.detailText}
-            >
-              {value === 'self' ? 'Self' : 'Other Person'}
-            </CustomText>
-          </>
-        )}
-        {type === 'paymentStatus' && (
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <CustomText
+          fontSize={theme.SF(15)}
+          fontFamily={theme.fonts.SEMI_BOLD}
+          color={theme.colors.text}
+        >
+          Payment Status
+        </CustomText>
+        <View style={styles.detailRow}>
           <>
             {/*  ̰ */}
             <CustomText
@@ -54,22 +34,32 @@ export default function BookingForCard({
               color={theme.colors.text}
               style={styles.detailText}
             >
-              {value === 'completed' ? 'Completed' : 'Pending'}
+              {paymentStatus === 'completed' ? 'Completed' : 'Pending'}
             </CustomText>
           </>
-        )}
-        {type === 'paymentType' && (
+        </View>
+      </View>
+      <View style={styles.card}>
+        <CustomText
+          fontSize={theme.SF(15)}
+          fontFamily={theme.fonts.SEMI_BOLD}
+          color={theme.colors.text}
+        >
+          Payment Type
+        </CustomText>
+        <View style={styles.detailRow}>
           <>
+            {/*  ̰ */}
             <CustomText
               fontSize={theme.fontSize.sm}
               fontFamily={theme.fonts.REGULAR}
               color={theme.colors.text}
               style={styles.detailText}
             >
-              {value === 'wallet_partial' ? 'Partial Wallet' : value === 'wallet' ? 'Full Wallet' : value === 'online' ? 'Online' : 'Cash'}
+              {paymentType === 'wallet_partial' ? 'Partial Wallet' : paymentType === 'wallet' ? 'Full Wallet' : paymentType === 'online' ? 'Online' : 'Cash'}
             </CustomText>
           </>
-        )}
+        </View>
       </View>
     </View>
   );
@@ -77,7 +67,7 @@ export default function BookingForCard({
 
 const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
-    card: {
+    container: {
       backgroundColor: theme.colors.white,
       borderRadius: theme.borderRadius.md,
       paddingHorizontal: theme.SW(16),
@@ -91,6 +81,8 @@ const createStyles = (theme: ThemeType) =>
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
+    },
+    card: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       flex: 1,

@@ -203,6 +203,7 @@ export default function Checkout() {
       merchantDisplayName: 'Squedio',
     });
 
+    
     if (initError) {
       handleApiError(initError);
       return false;
@@ -213,14 +214,15 @@ export default function Checkout() {
     if (transactionId) {
       await confirmPayment({ transactionId, bookingId });
     }
-
     if (presentError) {
       handleApiError(presentError);
+      navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
       return false;
     }
 
     if (didCancel) {
       handleApiError(new Error('Payment cancelled'));
+      navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
       return false;
     }
 
@@ -329,7 +331,12 @@ export default function Checkout() {
           t('checkout.bookingCreatedSuccess'),
         );
       } catch (error) {
+        console.log('error------ 233', error);
+
         handleApiError(error);
+        setTimeout(() => {
+          navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
+        }, 300);
         return;
       }
     } else {
