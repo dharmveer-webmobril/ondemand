@@ -407,6 +407,58 @@ export const useGetServiceProviderServices = (spId: string | null, preference: s
     });
 };
 
+// Service Provider Members
+export interface SPMemberService {
+    _id: string;
+    name: string;
+}
+
+export interface SPMember {
+    _id: string;
+    spId: string;
+    name: string;
+    email?: string;
+    contact?: string;
+    profileImage?: string | null;
+    city?: string | null;
+    country?: { _id: string; name: string } | null;
+    description?: string;
+    services?: SPMemberService[];
+    status?: boolean;
+    createdAt: string;
+    updatedAt?: string;
+    coordinates?: unknown;
+}
+
+export interface SPMembersResponse {
+    ResponseCode?: number;
+    ResponseMessage?: string;
+    succeeded?: boolean;
+    ResponseData?: SPMember[];
+    pagination?: { page: number; limit: number; total: number; pages: number };
+}
+
+export const useGetServiceProviderMembers = (
+    spId: string | null,
+    params: { page: number; limit: number } = { page: 1, limit: 10 }
+) => {
+    const { page, limit } = params;
+    return useQuery<SPMembersResponse>({
+        queryKey: ['serviceProviderMembers', spId, page, limit],
+        queryFn: async () => {
+            if (!spId) throw new Error('Service Provider ID is required');
+            const query = new URLSearchParams();
+            query.append('page', String(page));
+            query.append('limit', String(limit));
+            const response = await axiosInstance.get<SPMembersResponse>(
+                `${EndPoints.GET_SERVICE_PROVIDER_MEMBERS(spId)}?${query.toString()}`
+            );
+            return response.data;
+        },
+        enabled: !!spId,
+    });
+};
+
 // Availability interfaces
 export interface AvailabilityData {
     date: string;
@@ -650,6 +702,80 @@ export const useGetWalletTransactions = (params: WalletTransactionParams) => {
             const queryString = search.toString();
             const url = `${EndPoints.GET_WALLET_TRANSACTIONS}${queryString ? `?${queryString}` : ''}`;
             const response = await axiosInstance.get<WalletTransactionsResponse>(url);
+            return response.data;
+        },
+    });
+};
+
+// Withdraw (wallet settlement) request and list
+export interface WithdrawRequestBankDetails {
+    accountNumber: string;
+    accountHolderName: string;
+    bankName: string;
+    ifscCode: string;
+}
+
+export interface RequestWalletSettlementPayload {
+    amount: number;
+    bankDetails: WithdrawRequestBankDetails;
+}
+
+export interface WithdrawRequestItem {
+    _id: string;
+    amount: number;
+    currency?: string;
+    status: string;
+    bankDetails?: WithdrawRequestBankDetails;
+    createdAt: string;
+    [key: string]: any;
+}
+
+export interface SettlementRequestsResponse {
+    ResponseCode?: number;
+    ResponseMessage?: string;
+    succeeded?: boolean;
+    ResponseData?: {
+        data?: WithdrawRequestItem[];
+        requests?: WithdrawRequestItem[];
+        page?: number;
+        limit?: number;
+        total?: number;
+        totalPages?: number;
+        [key: string]: any;
+    };
+}
+
+export type SettlementRequestsParams = {
+    page?: number;
+    limit?: number;
+    status?: string;
+};
+
+export const useGetSettlementRequests = (params: SettlementRequestsParams & { enabled?: boolean } = {}) => {
+    const { page = 1, limit = 10, status, enabled = true } = params;
+    return useQuery<SettlementRequestsResponse>({
+        queryKey: ['customerSettlementRequests', page, limit, status],
+        enabled,
+        queryFn: async () => {
+            const search = new URLSearchParams();
+            if (page) search.append('page', String(page));
+            if (limit) search.append('limit', String(limit));
+            if (status && status !== 'all') search.append('status', status);
+            const queryString = search.toString();
+            const url = `${EndPoints.GET_SETTLEMENT_REQUESTS}${queryString ? `?${queryString}` : ''}`;
+            const response = await axiosInstance.get<SettlementRequestsResponse>(url);
+            return response.data;
+        },
+    });
+};
+
+export const useRequestWalletSettlement = () => {
+    return useMutation<any, Error, RequestWalletSettlementPayload>({
+        mutationFn: async (data: RequestWalletSettlementPayload) => {
+            const response = await axiosInstance.post<any>(
+                EndPoints.REQUEST_WALLET_SETTLEMENT,
+                data
+            );
             return response.data;
         },
     });

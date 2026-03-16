@@ -6,7 +6,7 @@ import axiosInstance from '../axiosInstance';
 import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
 import axios from 'axios';
-const BASE_URL = 'http://52.22.241.165:10054/api';
+const BASE_URL = 'https://indoredev.webmobrildemo.com:10054/api';
 // Example: Get user profile
 export const useGetUserProfile = (userId: string | null) => {
   return useQuery({
@@ -33,6 +33,7 @@ export const useProfile = (enabled: boolean = true) => {
 };
 
 export const useProfileSplashScreen = (enabled: boolean = true, token: string | null) => {
+  console.log('token------ 36', token);
   return useQuery({
     queryKey: ['profileSplashScreen', token],
     queryFn: async () => {

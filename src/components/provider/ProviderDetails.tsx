@@ -15,6 +15,8 @@ type ProviderDetailsProps = {
   onPaymentPolicyPress?: () => void;
   onReportPress?: () => void;
   refreshControl?: React.ReactElement<RefreshControl>;
+  /** Rendered below the About Us section (e.g. members list) */
+  membersSection?: React.ReactNode;
 };
 
 export default function ProviderDetails({
@@ -29,6 +31,7 @@ export default function ProviderDetails({
   onPaymentPolicyPress,
   onReportPress,
   refreshControl,
+  membersSection,
 }: ProviderDetailsProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -53,6 +56,9 @@ export default function ProviderDetails({
         <CustomText style={styles.sectionTitle}>About Us</CustomText>
         <CustomText style={styles.aboutText}>{aboutUs}</CustomText>
       </View>
+
+      {/* Members (e.g. team list) */}
+      {membersSection}
 
       {/* Contact */}
       {phoneNumber && (

@@ -12,6 +12,18 @@ const regex = {
     PAN: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
     PPOSITIVE_INTEGER: /^[1-9]\d*$/,
     ZIP_CODE: /^[A-Za-z0-9\s-]{3,12}$/,
-    MOBILE: /^[1-9][0-9]{6,14}$/
+    MOBILE: /^[1-9][0-9]{6,14}$/,
+
+    // Withdraw / bank details (multi-country: IFSC, SWIFT, IBAN, routing, etc.)
+    /** Positive amount with optional 1-2 decimal places */
+    AMOUNT_POSITIVE_DECIMAL: /^[0-9]+(\.[0-9]{1,2})?$/,
+    /** Account holder name: letters, spaces, dots, apostrophe, hyphen (Latin + common accents) */
+    ACCOUNT_HOLDER_NAME: /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.'\-]+$/,
+    /** Bank name: letters, numbers, spaces, common punctuation */
+    BANK_NAME: /^[a-zA-Z0-9\u00C0-\u024F\s.'\-&()]+$/,
+    /** Bank account number: alphanumeric, spaces, hyphens (IBAN, local account numbers) */
+    BANK_ACCOUNT_NUMBER: /^[A-Za-z0-9\s\-]{6,34}$/,
+    /** Bank code: IFSC (11), SWIFT/BIC (8 or 11), routing (9), sort code, etc. */
+    BANK_CODE: /^[A-Za-z0-9]{6,17}$/,
 }
 export default regex

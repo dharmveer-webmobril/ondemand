@@ -34,3 +34,50 @@ export const addAddressSchema = (t: any, regexList: typeof regex) => {
       .required(t('addAddress.validation.addressTypeEmpty') || 'Address type is required'),
   });
 };
+
+export interface WithdrawRequestFormValues {
+  amount: string;
+  accountHolderName: string;
+  bankName: string;
+  accountNumber: string;
+  ifscCode: string;
+}
+
+export const withdrawRequestSchema = (
+  t: (key: string) => string,
+  regexList: typeof regex,
+  maxAmount: number
+) =>
+  Yup.object().shape({
+    amount: Yup.string()
+      .trim()
+      .required(t('wallet.validation.emptyAmount'))
+      .test('valid-amount', t('wallet.validation.validAmount'), (val) => {
+        if (!val) return false;
+        const num = parseFloat(val);
+        return Number.isFinite(num) && num > 0 && regexList.AMOUNT_POSITIVE_DECIMAL.test(val);
+      })
+      .test('max-amount', t('wallet.withdrawExceedsBalance'), (val) => {
+        if (!val) return true;
+        const num = parseFloat(val);
+        return Number.isFinite(num) && num <= maxAmount;
+      }),
+    accountHolderName: Yup.string()
+      .trim()
+      .required(t('wallet.validation.emptyAccountHolderName'))
+      .min(2, t('wallet.validation.minAccountHolderName'))
+      .matches(regexList.ACCOUNT_HOLDER_NAME, t('wallet.validation.validAccountHolderName')),
+    bankName: Yup.string()
+      .trim()
+      .required(t('wallet.validation.emptyBankName'))
+      .min(2, t('wallet.validation.minBankName'))
+      .matches(regexList.BANK_NAME, t('wallet.validation.validBankName')),
+    accountNumber: Yup.string()
+      .trim()
+      .required(t('wallet.validation.emptyAccountNumber'))
+      .matches(regexList.BANK_ACCOUNT_NUMBER, t('wallet.validation.validAccountNumber')),
+    ifscCode: Yup.string()
+      .trim()
+      .required(t('wallet.validation.emptyBankCode'))
+      .matches(regexList.BANK_CODE, t('wallet.validation.validBankCode')),
+  });

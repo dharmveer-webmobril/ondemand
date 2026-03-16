@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { Container, showToast } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ProviderTabs from '@components/provider/ProviderTabs';
-import ProviderDetails from '@components/provider/ProviderDetails';
 import ProviderLoadingState from '@components/provider/ProviderLoadingState';
 import ProviderErrorState from '@components/provider/ProviderErrorState';
 import ProviderServicesTab from '@components/provider/ProviderServicesTab';
@@ -15,7 +14,7 @@ import DeliveryModeModal from '@components/category/DeliveryModeModal';
 import ServiceForModal from '@components/provider/ServiceForModal';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import { ProviderHeader, ProviderSubHeader } from '@components';
+import { ProviderHeader, ProviderSubHeader, ProviderDetails, ProviderMembersList } from '@components';
 import { useGetServiceProviderDetail, useGetServiceProviderServices } from '@services/index';
 import { formatAddress } from '@utils/tools';
 
@@ -290,6 +289,7 @@ console.log('services--------services', services);
             onServiceFeePress={handleServiceFeePress}
             onPaymentPolicyPress={handlePaymentPolicyPress}
             onReportPress={handleReportPress}
+            membersSection={<ProviderMembersList spId={spId} />}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing || isFetching}
