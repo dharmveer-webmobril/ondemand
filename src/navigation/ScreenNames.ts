@@ -48,6 +48,8 @@ export const SCREEN_NAMES = {
   CHECKOUT: 'Checkout',
   ADD_OTHER_PERSON_DETAIL: 'AddOtherPersonDetail',
   BOOKING_SUMMARY: 'BookingSummary',
+  PAYMENT_WEBVIEW: 'PaymentWebView',
+  WALLET: 'Wallet',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

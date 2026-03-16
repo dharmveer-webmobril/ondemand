@@ -4,6 +4,7 @@ import { Container, AppHeader, ProfileHeader, ProfileMenuItem, LogoutModal } fro
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
+import SCREEN_NAMES from '@navigation/ScreenNames';
 import { SH } from '@utils/dimensions';
 
 type IconType =
@@ -41,6 +42,7 @@ export default function ProfileScreen() {
     // { id: '1', label: t('profile.profileSetup'), icon: { name: 'person-outline', icon: 'Ionicons' } },
     { id: '2', label: t('profile.changePassword'), icon: { name: 'lock-closed-outline', icon: 'Ionicons' } },
     { id: '3', label: t('profile.myAddress'), icon: { name: 'location-outline', icon: 'Ionicons' } },
+    { id: 'wallet', label: t('profile.wallet'), icon: { name: 'wallet-outline', icon: 'Ionicons' } },
     { id: '4', label: t('profile.paymentHistory1'), icon: { name: 'card-outline', icon: 'Ionicons' } },
     // { id: '5', label: t('profile.ratingsReviews'), icon: { name: 'star-outline', icon: 'Ionicons' } },
     { id: '6', label: t('profile.loyaltyReferralDiscounts'), icon: { name: 'gift-outline', icon: 'Ionicons' } },
@@ -52,19 +54,16 @@ export default function ProfileScreen() {
 
   const handleMenuItemPress = (item: MenuItem) => {
     if (item.id === '1') {
-      // Profile Setup
       navigation.navigate('ProfileSetup' as never);
     } else if (item.id === '2') {
-      // Change Password
       navigation.navigate('ChangePassword' as never);
     } else if (item.id === '3') {
-      // My Address
       navigation.navigate('MyAddress' as never);
+    } else if (item.id === 'wallet') {
+      navigation.navigate(SCREEN_NAMES.WALLET as never);
     } else if (item.id === '10') {
-      // Logout
       setShowLogoutModal(true);
     } else {
-      // Handle other menu items
       console.log('Pressed:', item.label);
     }
   };

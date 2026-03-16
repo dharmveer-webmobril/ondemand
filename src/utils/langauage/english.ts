@@ -202,6 +202,7 @@ export const english = {
     "myAddress": "My Address",
     "myCalendar": "My Calendar",
     "paymentHistory1": "Payment History",
+    "wallet": "Wallet",
     "ratingsReviews": "Ratings & Reviews",
     "loyaltyReferralDiscounts": "Loyalty & Referral Discounts",
     "multiLanguageCurrency": "Multi Language",
@@ -221,6 +222,20 @@ export const english = {
     "emailID": "Email ID",
     "enterEmailID": "Enter your email ID",
     "save": "Save"
+  },
+  "wallet": {
+    "title": "Wallet",
+    "totalBalance": "Total Balance",
+    "transactions": "Transactions",
+    "noTransactions": "No transactions yet",
+    "filterAll": "All",
+    "filterCompleted": "Completed",
+    "filterProcessing": "Processing",
+    "filterFailed": "Failed",
+    "filterRefunded": "Refunded",
+    "loadError": "Unable to load transactions.",
+    "totalCredited": "Total credited",
+    "totalUsed": "Total used"
   },
   "changePasswordDetails": {
     "currentPassword": "Current Password",

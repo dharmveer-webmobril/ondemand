@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -40,6 +40,8 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.CHECKOUT} component={Checkout} />
         <Stack.Screen name={SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL} component={AddOtherPersonDetail} />
         <Stack.Screen name={SCREEN_NAMES.BOOKING_SUMMARY} component={BookingSummery} />
+        <Stack.Screen name={SCREEN_NAMES.PAYMENT_WEBVIEW} component={PaymentWebViewScreen} />
+        <Stack.Screen name={SCREEN_NAMES.WALLET} component={WalletScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   )

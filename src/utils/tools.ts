@@ -196,5 +196,58 @@ const isCancelledOrRejected = (status: string): boolean => {
   }
 };
 
+// Utility functions for time conversion between local and UTC
+
+export const convertLocalTimeToUTC = (localTime: string): string => {
+  if (!localTime) return '';
+
+  // localTime is in "HH:mm" format
+  const [hours, minutes] = localTime.split(':').map(Number);
+
+  if (isNaN(hours) || isNaN(minutes)) return localTime;
+
+  // Create a date object for today with the local time
+  const today = new Date();
+  const localDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+    hours,
+    minutes
+  );
+
+  // Get UTC time
+  const utcHours = String(localDate.getUTCHours()).padStart(2, '0');
+  const utcMinutes = String(localDate.getUTCMinutes()).padStart(2, '0');
+
+  return `${utcHours}:${utcMinutes}`;
+};
+
+export const convertUTCToLocalTime = (utcTime: string): string => {
+  if (!utcTime) return '';
+
+  // utcTime is in "HH:mm" format (UTC)
+  const [hours, minutes] = utcTime.split(':').map(Number);
+
+  if (isNaN(hours) || isNaN(minutes)) return utcTime;
+
+  // Create a date object for today with the UTC time
+  const today = new Date();
+  const utcDate = new Date(
+    Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate(),
+      hours,
+      minutes
+    )
+  );
+
+  // Get local time
+  const localHours = String(utcDate.getHours()).padStart(2, '0');
+  const localMinutes = String(utcDate.getMinutes()).padStart(2, '0');
+
+  return `${localHours}:${localMinutes}`;
+};
 
 export { formatDate, formatBookingAddress, mapBookingStatusToDisplay, mapBookingStatusToList, getStatusLabel, isCancelledOrRejected, getStatusColor ,formatAddress,requestContactsPermission};

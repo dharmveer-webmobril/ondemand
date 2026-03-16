@@ -1,24 +1,18 @@
-import { useMemo, useState } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useMemo, useState, useCallback } from 'react';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { AppHeader, Container, LoadingComp } from '@components/common';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
-import {
-  InitiateBookingPaymentRequest,
-  useConfirmBookingPayment,
-  useCreateBooking,
-  useGetWallet,
-  useInitiateBookingPayment,
-} from '@services/api/queries/appQueries';
+import { useCreateBooking, useGetWallet } from '@services/api/queries/appQueries';
+import { useGatewayPayment } from '@services/payment';
 import {
   handleApiError,
   handleApiFailureResponse,
   handleSuccessToast,
 } from '@utils/apiHelpers';
 import { useThemeContext } from '@utils/theme';
-import { usePaymentSheet } from '@stripe/stripe-react-native';
 import { createStyles } from './Checkout.styles';
 import {
   AddressSection,
@@ -44,8 +38,6 @@ import {
   isWalletFullyCovered,
   shouldUseGatewayPayment,
 } from './checkoutHelpers';
-
-type GatewayPaymentMethod = Extract<BookingPaymentMethod, 'paypal' | 'stripe'>;
 
 export default function Checkout() {
   const theme = useThemeContext();
@@ -74,11 +66,7 @@ export default function Checkout() {
     Number(walletData?.ResponseData?.balance ?? walletData?.ResponseData?.amount ?? 0) || 0;
 
   const { mutate: createBooking, isPending: isCreatingBooking } = useCreateBooking();
-  const { mutateAsync: initiatePayment, isPending: isInitiatingPayment } =
-    useInitiateBookingPayment();
-  const { mutateAsync: confirmPayment, isPending: isConfirmingPayment } =
-    useConfirmBookingPayment();
-  const { initPaymentSheet, presentPaymentSheet } = usePaymentSheet();
+  const { runGatewayPayment, isPending: isGatewayPaymentPending } = useGatewayPayment();
 
   const totalPrice = Number.isFinite(bookingData?.totalPrice)
     ? Number(bookingData.totalPrice)
@@ -101,7 +89,7 @@ export default function Checkout() {
     totalPrice,
     walletPartialAmount,
   );
-  const isLoading = isCreatingBooking || isInitiatingPayment || isConfirmingPayment;
+  const isLoading = isCreatingBooking || isGatewayPaymentPending;
   const isFormValid = isCheckoutFormValid({
     deliveryMode,
     needsAddress,
@@ -166,125 +154,24 @@ export default function Checkout() {
     queryClient.invalidateQueries({ queryKey: ['customerWallet'] });
   };
 
-  const isSuccessfulPaymentInitiation = (response: any) => {
-    const hasPaymentData =
-      !!response?.ResponseData?.transaction ||
-      !!response?.ResponseData?.gatewayTransaction ||
-      !!response?.ResponseData?.paymentIntent;
-
-    return (response?.succeeded || response?.ResponseCode === 200) && hasPaymentData;
-  };
-
-  const getPaymentResponseDetails = (response: any) => {
-    const transactionId =
-      response?.ResponseData?.transaction?.transactionId ??
-      response?.ResponseData?.gatewayTransaction?.transactionId ??
-      null;
-
-    const clientSecret =
-      response?.ResponseData?.paymentIntent?.client_secret ??
-      response?.ResponseData?.gatewayTransaction?.gatewayResponse?.client_secret ??
-      null;
-
-    return { transactionId, clientSecret };
-  };
-
-  const handleStripePayment = async (
-    bookingId: string,
-    transactionId: string | null,
-    clientSecret: string | null,
-  ) => {
-    if (!clientSecret) {
-      return false;
-    }
-
-    const { error: initError } = await initPaymentSheet({
-      paymentIntentClientSecret: clientSecret,
-      merchantDisplayName: 'Squedio',
-    });
-
-    
-    if (initError) {
-      handleApiError(initError);
-      return false;
-    }
-
-    const { error: presentError, didCancel } = await presentPaymentSheet();
-
-    if (transactionId) {
-      await confirmPayment({ transactionId, bookingId });
-    }
-    if (presentError) {
-      handleApiError(presentError);
-      navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
-      return false;
-    }
-
-    if (didCancel) {
-      handleApiError(new Error('Payment cancelled'));
-      navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
-      return false;
-    }
-
-    return true;
-
-  };
-
-  const confirmGatewayPayment = async (
-    selectedPaymentMethod: GatewayPaymentMethod,
-    bookingId: string,
-    transactionId: string | null,
-    clientSecret: string | null,
-  ) => {
-
-    if (selectedPaymentMethod === 'stripe') {
-      return handleStripePayment(bookingId, transactionId, clientSecret);
-    }
-
-    // if (transactionId) {
-    //   await confirmPayment({ transactionId, bookingId });
-    // }
-
-    return true;
-  };
-
-  const processGatewayPayment = async (
-    bookingId: string,
-    selectedPaymentMethod: GatewayPaymentMethod,
-    walletAmountUsed: number,
-  ) => {
-    const paymentRequest: InitiateBookingPaymentRequest = {
-      bookingId,
-      amount: totalPrice,
-      paymentGateway: selectedPaymentMethod,
-      paymentMethod: 'card',
-      useWallet: walletAmountUsed > 0,
-      walletAmount: walletAmountUsed,
-    };
-
-    const initiateRes = await initiatePayment(paymentRequest);
-    console.log('initiateRes------', initiateRes, paymentRequest);
-
-    if (!isSuccessfulPaymentInitiation(initiateRes)) {
-      handleApiFailureResponse('No transaction or payment intent found', t('checkout.failedToCreateBooking'));
-      return null;
-    }
-
-    const { transactionId, clientSecret } = getPaymentResponseDetails(initiateRes);
-    console.log('transactionId---------------- 272', transactionId, clientSecret);
-    const paymentCompleted = await confirmGatewayPayment(
-      selectedPaymentMethod,
-      bookingId,
-      transactionId,
-      clientSecret,
-    );
-
-    if (!paymentCompleted) {
-      return null;
-    }
-
-    return initiateRes;
-  };
+  // Handle return from PayPal WebView (success/cancel/failure)
+  useFocusEffect(
+    useCallback(() => {
+      const result = route.params?.paymentResult;
+      const payload = route.params?.checkoutPayload;
+      const message = route.params?.paymentMessage;
+      if (result === 'success' && payload) {
+        handleSuccessToast(message || t('checkout.bookingCreatedSuccess'));
+        invalidateCheckoutQueries();
+        setTimeout(() => navigateToBookingList(payload), 300);
+        navigation.setParams({ paymentResult: undefined, checkoutPayload: undefined, paymentMessage: undefined });
+      }
+      if (result === 'failure' && route.params?.paymentError) {
+        handleApiFailureResponse(route.params.paymentError, t('checkout.failedToCreateBooking'));
+        navigation.setParams({ paymentResult: undefined, paymentError: undefined });
+      }
+    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentError]),
+  );
 
   const handleBookingCreated = async (
     response: any,
@@ -314,39 +201,48 @@ export default function Checkout() {
     );
 
     if (shouldUseGatewayPayment(selectedPaymentMethod) && amountToCharge > 0) {
-      try {
-        const initiateRes = await processGatewayPayment(
-          bookingId,
-          selectedPaymentMethod as GatewayPaymentMethod,
-          walletAmountUsed,
-        );
+      const walletTransactionId =
+        paymentMode === 'wallet_partial'
+          ? response?.ResponseData?.walletTransaction?.transactionId ||
+            response?.ResponseData?.walletTransactionId ||
+            null
+          : null;
 
-        if (!initiateRes) {
-          return;
-        }
-
-        handleSuccessToast(
-          initiateRes?.ResponseMessage ||
-          response?.ResponseMessage ||
-          t('checkout.bookingCreatedSuccess'),
-        );
-      } catch (error) {
-        console.log('error------ 233', error);
-
-        handleApiError(error);
-        setTimeout(() => {
+      runGatewayPayment(navigation, {
+        bookingId,
+        amount: totalPrice,
+        paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal',
+        walletAmountUsed,
+        walletTransactionId,
+        returnTo: SCREEN_NAMES.CHECKOUT,
+        returnParams: { bookingData, checkoutPayload: payload },
+        handleApiError,
+        handleApiFailureResponse,
+        failureMessage: t('checkout.failedToCreateBooking'),
+        onSuccess: (initiateRes: any) => {
+          handleSuccessToast(
+            initiateRes?.ResponseMessage ||
+              response?.ResponseMessage ||
+              t('checkout.bookingCreatedSuccess'),
+          );
+          invalidateCheckoutQueries();
+          setTimeout(() => navigateToBookingList(payload), 800);
+        },
+        onCancel: () => {
           navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
-        }, 300);
-        return;
-      }
-    } else {
-      handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
+        },
+        onError: (_error: any) => {
+          console.log('onError------ 227', _error);
+          handleApiError(_error);
+          setTimeout(() => navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId }), 300);
+        },
+      });
+      return;
     }
 
+    handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
     invalidateCheckoutQueries();
-    setTimeout(() => {
-      navigateToBookingList(payload);
-    }, 800);
+    setTimeout(() => navigateToBookingList(payload), 800);
   };
 
   const submitBooking = (

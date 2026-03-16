@@ -575,14 +575,18 @@ export const useCreateBooking = () => {
     });
 };
 
-// Wallet
+// Wallet (response: balance, currency, totalCredited, totalUsed, totalSettled)
 export interface WalletResponse {
-    ResponseCode: number;
-    ResponseMessage: string;
-    succeeded: boolean;
+    ResponseCode?: number;
+    ResponseMessage?: string;
+    succeeded?: boolean;
     ResponseData?: {
         balance?: number;
         amount?: number;
+        currency?: string;
+        totalCredited?: number;
+        totalUsed?: number;
+        totalSettled?: number;
         [key: string]: any;
     };
 }
@@ -592,6 +596,60 @@ export const useGetWallet = () => {
         queryKey: ['customerWallet'],
         queryFn: async () => {
             const response = await axiosInstance.get<WalletResponse>(EndPoints.GET_WALLET);
+            return response.data;
+        },
+    });
+};
+
+// Wallet transactions (bookingId can be object with _id, bookingId, totalAmount)
+export interface WalletTransaction {
+    _id: string;
+    transactionId: string;
+    amount: number;
+    currency?: string;
+    status: string;
+    paymentGateway?: string;
+    paymentType?: string;
+    description?: string;
+    createdAt: string;
+    isRefund?: boolean;
+    bookingId?: { _id: string; bookingId: string; totalAmount?: number };
+    [key: string]: any;
+}
+
+export interface WalletTransactionsResponse {
+    ResponseCode?: number;
+    ResponseMessage?: string;
+    succeeded?: boolean;
+    ResponseData?: {
+        data?: WalletTransaction[];
+        transactions?: WalletTransaction[];
+        page?: number;
+        limit?: number;
+        total?: number;
+        totalPages?: number;
+        [key: string]: any;
+    };
+}
+
+export type WalletTransactionParams = {
+    page?: number;
+    limit?: number;
+    status?: string;
+};
+
+export const useGetWalletTransactions = (params: WalletTransactionParams) => {
+    const { page = 1, limit = 10, status } = params;
+    return useQuery<WalletTransactionsResponse>({
+        queryKey: ['customerWalletTransactions', page, limit, status],
+        queryFn: async () => {
+            const search = new URLSearchParams();
+            if (page) search.append('page', String(page));
+            if (limit) search.append('limit', String(limit));
+            if (status && status !== 'all') search.append('status', status);
+            const queryString = search.toString();
+            const url = `${EndPoints.GET_WALLET_TRANSACTIONS}${queryString ? `?${queryString}` : ''}`;
+            const response = await axiosInstance.get<WalletTransactionsResponse>(url);
             return response.data;
         },
     });
@@ -643,10 +701,11 @@ export const useInitiateBookingPayment = () => {
     });
 };
 
-// Confirm Booking Payment
+// Confirm Booking Payment (for wallet_partial send walletTransactionId instead of bookingId)
 export interface ConfirmBookingPaymentRequest {
     transactionId?: string;
     bookingId?: string;
+    walletTransactionId?: string;
     [key: string]: any;
 }
 
