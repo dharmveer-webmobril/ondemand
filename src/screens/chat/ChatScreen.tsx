@@ -272,11 +272,12 @@ export default function ChatScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <KeyboardAvoidingView
+            {/* <KeyboardAvoidingView
                 style={styles.keyboardAvoidingView}
+                contentContainerStyle={{flexGrow:1}}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             // keyboardVerticalOffset={Platform.OS === 'ios' ? topPadding.top : 0}
-            >
+            > */}
                 <View style={[styles.contentContainer,]}>
                     <ChatHeader
                         name={headerData?.name || ''}
@@ -326,7 +327,7 @@ export default function ChatScreen() {
                         />
                     </View>
                 </View>
-            </KeyboardAvoidingView>
+            {/* </KeyboardAvoidingView> */}
         </SafeAreaView>
     );
 }

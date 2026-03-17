@@ -42,6 +42,7 @@ import {
   useCancelBooking,
   useCancelService,
   useRescheduleService,
+  useAcceptRescheduleService,
 } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
@@ -111,8 +112,10 @@ export default function BookingDetail() {
     | 'none'
     | 'cancelBooking'
     | 'cancelService'
-    | 'rescheduleService';
+    | 'rescheduleService'
+    | 'acceptReschedule';
   const [loaderType, setLoaderType] = useState<LoaderType>('none');
+  const [acceptingServiceId, setAcceptingServiceId] = useState<string | null>(null);
 
   // Cancel booking mutation
   const { mutate: cancelBooking, isPending: isCancelingBooking } =
@@ -126,6 +129,10 @@ export default function BookingDetail() {
   const { mutate: rescheduleService, isPending: isReschedulingService } =
     useRescheduleService();
 
+  // Accept reschedule mutation (booked service id)
+  const { mutateAsync: acceptRescheduleService, isPending: isAcceptingReschedule } =
+    useAcceptRescheduleService();
+
   // Update loader type based on mutation states
   React.useEffect(() => {
     if (isCancelingBooking) {
@@ -134,10 +141,13 @@ export default function BookingDetail() {
       setLoaderType('cancelService');
     } else if (isReschedulingService) {
       setLoaderType('rescheduleService');
+    } else if (isAcceptingReschedule) {
+      setLoaderType('acceptReschedule');
     } else {
       setLoaderType('none');
+      setAcceptingServiceId(null);
     }
-  }, [isCancelingBooking, isCancelingService, isReschedulingService]);
+  }, [isCancelingBooking, isCancelingService, isReschedulingService, isAcceptingReschedule]);
 
   useEffect(() => {
     refetchBooking();
@@ -212,6 +222,9 @@ export default function BookingDetail() {
         name: service?.name || 'Service',
         images: service?.images || [],
         selectedAddOns: selectedAddOns,
+        rescheduleDate: bookedService?.rescheduleDate || '',
+        rescheduleTime: bookedService?.rescheduleTime || '',
+        rescheduleReason: bookedService?.rescheduleReason || '',
         appliedOffer: appliedOffer,
         price: serviceBasePrice,
         totalAmount: serviceTotalAmount,
@@ -526,6 +539,25 @@ export default function BookingDetail() {
     setShowRescheduleModal(true);
   }, []);
 
+  const handleAcceptReschedule = useCallback(
+    async (bookedServiceId: string) => {
+      setAcceptingServiceId(bookedServiceId);
+      try {
+        const res = await acceptRescheduleService(bookedServiceId);
+        if (res?.succeeded) {
+          handleSuccessToast(res?.ResponseMessage || t('bookingDetail.rescheduleAccepted') || 'Reschedule accepted');
+          queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingId] });
+          refetchBooking();
+        }
+      } catch (err) {
+        handleApiError(err);
+      } finally {
+        setAcceptingServiceId(null);
+      }
+    },
+    [acceptRescheduleService, refetchBooking, bookingId, t]
+  );
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -661,6 +693,12 @@ export default function BookingDetail() {
               onCancelService={serviceId => {
                 handleCancelServicePress(serviceId);
               }}
+              onAcceptService={handleAcceptReschedule}
+              serviceLoadingStates={
+                acceptingServiceId
+                  ? { [acceptingServiceId]: 'accept' }
+                  : undefined
+              }
               mainBookingStatus={booking?.bookingStatus}
             />
             <View style={styles.totalContainer}>

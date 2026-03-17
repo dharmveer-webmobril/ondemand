@@ -101,6 +101,8 @@ const getStatusColor = (status: any) => {
             return Colors.red || '#F44336';
         case 'rescheduledByCustomer':
             return Colors.primary_light || Colors.primary;
+        case 'rescheduledBySp':
+            return Colors.warningColor || '#FF9800';
         case 'cancelledByCustomer':
             return Colors.red || '#F44336';
         case 'cancelledBySp':

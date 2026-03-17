@@ -32,6 +32,7 @@ export default {
     GET_BOOKING_DETAIL: '/customer/bookings/bookings',
     CANCEL_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/cancel`,
     RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reschedule`,
+    ACCEPT_RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/accept`,
     CANCEL_BOOKING: (bookingId: string) => `/customer/bookings/bookings/${bookingId}/cancel`,
     GET_WALLET: '/customer/payments/wallet',
     GET_WALLET_TRANSACTIONS: '/customer/payments/wallet/transactions',

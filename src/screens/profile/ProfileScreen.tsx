@@ -42,8 +42,10 @@ export default function ProfileScreen() {
     // { id: '1', label: t('profile.profileSetup'), icon: { name: 'person-outline', icon: 'Ionicons' } },
     { id: '2', label: t('profile.changePassword'), icon: { name: 'lock-closed-outline', icon: 'Ionicons' } },
     { id: '3', label: t('profile.myAddress'), icon: { name: 'location-outline', icon: 'Ionicons' } },
-    { id: 'wallet', label: t('profile.wallet'), icon: { name: 'wallet-outline', icon: 'Ionicons' } },
+    // { id: 'wallet', label: t('profile.wallet'), icon: { name: 'wallet-outline', icon: 'Ionicons' } },
     { id: '4', label: t('profile.paymentHistory1'), icon: { name: 'card-outline', icon: 'Ionicons' } },
+
+    // { id: '4', label: t('profile.paymentHistory1'), icon: { name: 'card-outline', icon: 'Ionicons' } },
     // { id: '5', label: t('profile.ratingsReviews'), icon: { name: 'star-outline', icon: 'Ionicons' } },
     { id: '6', label: t('profile.loyaltyReferralDiscounts'), icon: { name: 'gift-outline', icon: 'Ionicons' } },
     { id: '7', label: t('profile.multiLanguageCurrency'), icon: { name: 'language-outline', icon: 'Ionicons' } },
@@ -59,7 +61,7 @@ export default function ProfileScreen() {
       navigation.navigate('ChangePassword' as never);
     } else if (item.id === '3') {
       navigation.navigate('MyAddress' as never);
-    } else if (item.id === 'wallet') {
+    } else if (item.id === '4') {
       navigation.navigate(SCREEN_NAMES.WALLET as never);
     } else if (item.id === '10') {
       setShowLogoutModal(true);

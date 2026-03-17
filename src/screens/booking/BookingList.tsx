@@ -247,11 +247,11 @@ export default function BookingList() {
     setPage((prev) => prev + 1);
   }, [bookingsFetching, bookingsLoading, refreshing, hasMorePages]);
 
-  // Refetch list when screen gains focus (e.g. after checkout or returning from detail)
+  // Refetch list when screen gains focus (e.g. after checkout or returning from detail).
+  // Do not clear allBookings here — keep showing existing data until new data arrives to avoid a flash of empty state.
   useFocusEffect(
     useCallback(() => {
       setPage(1);
-      setAllBookings([]);
       refetchBookings();
     }, [refetchBookings])
   );

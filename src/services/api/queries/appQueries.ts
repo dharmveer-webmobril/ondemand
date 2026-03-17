@@ -1055,3 +1055,15 @@ export const useRescheduleService = () => {
         },
     });
 };
+
+// Accept Reschedule (booked service id)
+export const useAcceptRescheduleService = () => {
+    return useMutation<RescheduleServiceResponse, Error, string>({
+        mutationFn: async (bookedServiceId: string) => {
+            const response = await axiosInstance.put<RescheduleServiceResponse>(
+                EndPoints.ACCEPT_RESCHEDULE_BOOKING_SERVICE(bookedServiceId)
+            );
+            return response.data;
+        },
+    });
+};

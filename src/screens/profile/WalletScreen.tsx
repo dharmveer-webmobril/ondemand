@@ -305,7 +305,7 @@ export default function WalletScreen() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title={t('wallet.title')}
+        title={t('profile.paymentHistory1')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor={theme.colors.background}
         tintColor={theme.colors.text}

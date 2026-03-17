@@ -201,7 +201,7 @@ export const english = {
     "changePassword": "Change Password",
     "myAddress": "My Address",
     "myCalendar": "My Calendar",
-    "paymentHistory1": "Payment History",
+    "paymentHistory1": "Payments Withdraw & History",
     "wallet": "Wallet",
     "ratingsReviews": "Ratings & Reviews",
     "loyaltyReferralDiscounts": "Loyalty & Referral Discounts",

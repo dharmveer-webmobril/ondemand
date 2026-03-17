@@ -45,7 +45,10 @@ export default function ProfileMenuItem({ label, onPress, showArrow = true, icon
             color={theme.colors.primary || '#135D96'}
           />
         )}
+        <View style={{flex:1}}>
+
         <CustomText style={styles.labelText}>{label}</CustomText>
+        </View>
       </View>
       {showArrow && (
         <VectoreIcons
@@ -88,12 +91,13 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     elevation: 2,
   },
   leftSection: {
+    flex:1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.SW(12),
   },
   labelText: {
-    fontSize: theme.fontSize.md,
+    fontSize: theme.SF(15),
     color: theme.colors.text,
     fontFamily: theme.fonts.MEDIUM,
   },
