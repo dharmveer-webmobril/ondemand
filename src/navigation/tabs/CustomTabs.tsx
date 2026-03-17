@@ -1,14 +1,17 @@
 import React, { useMemo } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import {  StyleSheet, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemeType, useThemeContext } from "@utils";
 import { CustomText } from "@components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TabImages from "./TabImages";
 
+const MIN_BOTTOM_INSET = Platform.OS === "android" ? 24 : 0;
+
 export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
     const theme = useThemeContext();
-    const bottom = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
+    const bottomInset = Math.max(insets.bottom, MIN_BOTTOM_INSET);
     const styles = useMemo(() => createStyles(theme), [theme]);
     const getName = (name: string) => {
         switch (name) {
@@ -25,7 +28,7 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
         }
     };
     return (
-        <View style={{ paddingBottom: bottom.bottom }} pointerEvents="box-none">
+        <View style={[styles.tabBarWrap, { paddingBottom: bottomInset }]} pointerEvents="box-none">
             <View style={styles.tabContainer}>
 
                 {state.routes.map((route, index) => {
@@ -74,8 +77,11 @@ const createStyles = (theme: ThemeType) => {
     const { colors } = theme;
 
     return StyleSheet.create({
+        tabBarWrap: {
+            backgroundColor: "#fff",
+        },
         tabContainer: {
-            position: "absolute",
+            position: "absolute" as const,
             bottom: 0,
             left: 0,
             right: 0,

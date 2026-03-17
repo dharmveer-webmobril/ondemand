@@ -3,7 +3,7 @@ import { store } from '@store/index';
 import NetInfo from '@react-native-community/netinfo';
 
 // Base URL from axios instance (remove /api for socket)
-const BASE_URL = 'http://52.22.241.165:10054';
+const BASE_URL = 'https://indoredev.webmobrildemo.com:10054';
 const SOCKET_URL = BASE_URL.replace('/api', '');
 
 interface ConnectionCallbacks {

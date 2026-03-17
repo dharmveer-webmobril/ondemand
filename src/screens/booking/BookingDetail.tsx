@@ -634,6 +634,8 @@ export default function BookingDetail() {
             providerName={booking?.providerName}
             providerPhone={booking?.providerPhone}
             providerImage={booking?.providerImage}
+            providerId={booking?.providerData?._id}
+            bookingId={bookingId}
             onCall={handleCall}
           />
           {/* Booking For Card */}

@@ -1,13 +1,18 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { CustomText, ImageLoader } from '@components/common';
+import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { CustomText, ImageLoader, showToast, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
+import { createOrGetConversation } from '@services/api/queries/chatQueries';
+import { SCREEN_NAMES } from '@navigation/ScreenNames';
 
 type ProviderDetailsCardProps = {
   providerName: string;
   providerPhone: string;
   providerImage?: string;
+  providerId?: string;
+  bookingId?: string;
   onCall: (phone: string) => void;
 };
 
@@ -15,12 +20,53 @@ export default function ProviderDetailsCard({
   providerName,
   providerPhone,
   providerImage,
-  // onCall,
+  providerId,
+  bookingId,
+  onCall,
 }: ProviderDetailsCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-
+  const navigation = useNavigation();
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
   const imageSource = providerImage ? { uri: providerImage } : imagePaths.no_image;
+
+  const handleChatPress = async () => {
+    if (!providerId) {
+      showToast({
+        type: 'error',
+        message: 'Provider ID is required',
+      });
+      return;
+    }
+
+    setIsLoadingChat(true);
+    try {
+      const response = await createOrGetConversation({
+        participantTwoId: providerId,
+        participantTwoType: 'serviceProvider',
+        bookingId: bookingId,
+      });
+
+      if (response?.succeeded && response?.ResponseData?._id) {
+        (navigation as any).navigate(SCREEN_NAMES.CHAT_SCREEN, {
+          conversationId: response.ResponseData._id,
+          bookingId: bookingId,
+        });
+      } else {
+        showToast({
+          type: 'error',
+          message: response?.ResponseMessage || 'Failed to start conversation',
+        });
+      }
+    } catch (error: any) {
+      showToast({
+        type: 'error',
+        message: error?.response?.data?.ResponseMessage || 'Failed to start conversation',
+      });
+    } finally {
+      setIsLoadingChat(false);
+    }
+  };
 
   return (
     <View style={styles.card}>
@@ -59,17 +105,22 @@ export default function ProviderDetailsCard({
             {providerPhone}
           </CustomText>
         </View>
-        {/* <Pressable
+        <Pressable
           style={styles.callButton}
-          onPress={() => onCall(providerPhone)}
+          onPress={handleChatPress}
+          disabled={isLoadingChat}
         >
-          <VectoreIcons
-            name="phone"
-            icon="Ionicons"
-            size={theme.SF(20)}
-            color={theme.colors.primary}
-          />
-        </Pressable> */}
+          {isLoadingChat ? (
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+          ) : (
+            <VectoreIcons
+              name="chatbubble-ellipses-sharp"
+              icon="Ionicons"
+              size={theme.SF(20)}
+              color={theme.colors.primary}
+            />
+          )}
+        </Pressable>  
       </View>
 
     </View>

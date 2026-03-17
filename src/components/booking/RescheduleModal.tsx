@@ -179,7 +179,7 @@ export default function RescheduleModal({
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
+            // showsVerticalScrollIndicator={false}
           >
             {/* Calendar Section */}
             <View style={styles.section}>
@@ -187,7 +187,7 @@ export default function RescheduleModal({
                 fontSize={theme.fontSize.md}
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
-                style={{ marginBottom: theme.SH(12) }}
+                // style={{ marginBottom: theme.SH(12) }}
               >
                 Select Date
               </CustomText>
@@ -309,14 +309,7 @@ export default function RescheduleModal({
               >
                 Reason for Rescheduling
               </CustomText>
-              <CustomText
-                fontSize={theme.fontSize.sm}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.lightText}
-                style={{ marginBottom: theme.SH(8) }}
-              >
-                Please provide a reason for rescheduling (required)
-              </CustomText>
+               
               <CustomInput
                 placeholder="Enter reason for rescheduling..."
                 value={reason}
@@ -401,7 +394,7 @@ const createStyles = (theme: ThemeType) =>
     },
     calendar: {
       borderRadius: theme.borderRadius.lg,
-      paddingVertical: theme.SH(10),
+      // paddingVertical: theme.SH(10),
     },
     timeSlotsContainer: {
       gap: theme.SW(12),
