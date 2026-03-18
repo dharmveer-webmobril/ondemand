@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { StatusBar, View, StyleSheet, Platform } from "react-native";
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { HomeHeader, HomeMainList, HomeSearchBar } from "@components";
+import { SCREEN_NAMES } from '@navigation/ScreenNames';
 import { LoadingComp } from "@components/common";
 import { useDisableGestures } from "@utils/hooks";
 import { useGetCategories, useGetBanners, useGetServiceProviders } from "@services/api/queries/appQueries";
@@ -12,6 +13,7 @@ import { updateFcmToken } from "@services/api/queries/authQueries";
 
 export default function Home() {
   useDisableGestures();
+  const navigation = useNavigation<any>();
 
   const { t } = useTranslation();
   const authToken = useAppSelector((state) => state.auth.token);
@@ -111,6 +113,7 @@ export default function Home() {
       <HomeHeader
         onCityUpdate={handleCityUpdate}
         onCityUpdateLoading={setIsCityUpdating}
+        onNotificationPress={() => navigation.navigate(SCREEN_NAMES.NOTIFICATIONS)}
       />
       <HomeSearchBar
         onSearch={handleSearch}

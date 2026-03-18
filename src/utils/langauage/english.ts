@@ -276,6 +276,14 @@ export const english = {
       "validBankCode": "Code must be 6–17 letters and numbers (IFSC, SWIFT, or routing)."
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "loadMore": "Load more",
+    "deleteConfirm": "Delete this notification?",
+    "deleteSuccess": "Notification deleted",
+    "loadError": "Unable to load notifications."
+  },
   "changePasswordDetails": {
     "currentPassword": "Current Password",
     "newPassword": "New Password",

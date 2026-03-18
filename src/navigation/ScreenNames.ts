@@ -50,6 +50,7 @@ export const SCREEN_NAMES = {
   BOOKING_SUMMARY: 'BookingSummary',
   PAYMENT_WEBVIEW: 'PaymentWebView',
   WALLET: 'Wallet',
+  NOTIFICATIONS: 'Notifications',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

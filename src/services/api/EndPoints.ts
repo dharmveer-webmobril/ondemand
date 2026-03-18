@@ -45,4 +45,6 @@ export default {
     CREATE_OR_GET_CONVERSATION: '/chat/conversations/create-or-get',
     MARK_CONVERSATION_AS_READ: '/chat/conversations',
     GET_BOOKING_CHAT_DETAILS: '/chat/conversations/booking',
+    GET_NOTIFICATIONS: '/notifications/customer',
+    DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
 };

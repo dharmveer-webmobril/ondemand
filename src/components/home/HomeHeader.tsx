@@ -21,9 +21,10 @@ interface City {
 type HomeHeaderProps = {
   onCityUpdate?: () => void;
   onCityUpdateLoading?: (isLoading: boolean) => void;
+  onNotificationPress?: () => void;
 };
 
-export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
+export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }: HomeHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
@@ -161,7 +162,7 @@ export default function HomeHeader({ onCityUpdateLoading }: HomeHeaderProps) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => { }}
+              onPress={() => onNotificationPress?.()}
             >
               <Image source={imagePaths.notification_icon} style={styles.icon} />
             </TouchableOpacity>

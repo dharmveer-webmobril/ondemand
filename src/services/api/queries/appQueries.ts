@@ -1067,3 +1067,65 @@ export const useAcceptRescheduleService = () => {
         },
     });
 };
+
+// Notifications (customer)
+export interface NotificationItem {
+    _id: string;
+    receiverId: string;
+    serviceId: { _id: string; name: string } | null;
+    bookingId: string | null;
+    conversationId: string | null;
+    title: string;
+    description: string;
+    flag: string;
+    image: string | null;
+    status: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface NotificationsListResponse {
+    ResponseCode: number;
+    ResponseMessage: string;
+    succeeded: boolean;
+    ResponseData: {
+        notifications: NotificationItem[];
+    };
+    pagination: {
+        totalRecords: number;
+        currentPage: number;
+        totalPages: number;
+        limit: number;
+    };
+}
+
+export interface NotificationsParams {
+    page?: number;
+    limit?: number;
+}
+
+export const useGetNotifications = (params: NotificationsParams) => {
+    const { page = 1, limit = 10 } = params;
+    return useQuery<NotificationsListResponse>({
+        queryKey: ['customerNotifications', page, limit],
+        queryFn: async () => {
+            const search = new URLSearchParams();
+            search.append('page', String(page));
+            search.append('limit', String(limit));
+            const url = `${EndPoints.GET_NOTIFICATIONS}?${search.toString()}`;
+            const response = await axiosInstance.get<NotificationsListResponse>(url);
+            return response.data;
+        },
+    });
+};
+
+export const useDeleteNotification = () => {
+    return useMutation<{ ResponseCode: number; ResponseMessage: string; succeeded: boolean }, Error, string>({
+        mutationFn: async (notificationId: string) => {
+            const response = await axiosInstance.delete(
+                EndPoints.DELETE_NOTIFICATION(notificationId)
+            );
+            return response.data as { ResponseCode: number; ResponseMessage: string; succeeded: boolean };
+        },
+    });
+};
