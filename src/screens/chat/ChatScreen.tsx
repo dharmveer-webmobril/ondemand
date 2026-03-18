@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { GiftedChat, IMessage, User } from 'react-native-gifted-chat';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -44,8 +45,8 @@ export default function ChatScreen() {
   const bookingId = route.params?.bookingId;
   const currentUserId = store.getState().auth.userId ?? '';
   const { joinConversation, leaveConversation, emit, on, off } = useSocket();
-console.log('conversationId------', conversationId);
-console.log('bookingId------', bookingId);
+  console.log('conversationId------', conversationId);
+  console.log('bookingId------', bookingId);
   useEffect(() => {
     if (!conversationId || !bookingId) return;
     joinConversation(conversationId, bookingId);
@@ -300,28 +301,73 @@ console.log('bookingId------', bookingId);
   const theme = useThemeContext();
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-     
-      <View style={[styles.contentContainer]}>
-        <ChatHeader
-          name={headerData?.name || ''}
-          lastSeen=""
-          bookingId={
-            chatBookingDetails?.ResponseData?.conversation?.bookingId
-              ?.bookingId || ''
-          }
-          image={
-            headerData?.profileImage
-              ? { uri: headerData?.profileImage }
-              : imagePaths.no_user_img
-          }
-          onBackPress={() => {
-            goBack();
-          }}
-          onCallPress={() => {}}
-          onOptionsPress={() => {}}
-        />
-        <View style={styles.chatContainer}>
-          <GiftedChat
+      <KeyboardAvoidingView style={styles.keyboardAvoidingView}>
+        <View style={[styles.contentContainer]}>
+          <ChatHeader
+            name={headerData?.name || ''}
+            lastSeen=""
+            bookingId={
+              chatBookingDetails?.ResponseData?.conversation?.bookingId
+                ?.bookingId || ''
+            }
+            image={
+              headerData?.profileImage
+                ? { uri: headerData?.profileImage }
+                : imagePaths.no_user_img
+            }
+            onBackPress={() => {
+              goBack();
+            }}
+            onCallPress={() => {}}
+            onOptionsPress={() => {}}
+          />
+          <View style={styles.chatContainer}>
+            <GiftedChat
+              messages={messages}
+              user={currentUser}
+              onSend={onSend}
+              isInverted={true}
+              // listViewProps={{
+              //   }}
+              keyboardAvoidingViewProps={{
+                keyboardVerticalOffset: insets.bottom + theme.SH(90),
+              }}
+              renderLoading={() => (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#999" />
+                  <Text style={styles.loadingSubText}>Loading chat...</Text>
+                </View>
+              )}
+              listProps={{
+                onEndReached: handleLoadOlder,
+                onEndReachedThreshold: 0.5,
+                scrollEventThrottle: 16,
+                ListFooterComponent: isLoadingMore ? (
+                  <View style={styles.footerLoader}>
+                    <ActivityIndicator size="small" />
+                    <Text style={styles.footerText}>
+                      Loading older messages...
+                    </Text>
+                  </View>
+                ) : page.current >= totalPages.current &&
+                  messages.length > 0 ? (
+                  <View style={styles.footerLoader}>
+                    <Text style={styles.beginningText}>
+                      Beginning of conversation
+                    </Text>
+                  </View>
+                ) : null,
+                initialNumToRender: 15,
+                windowSize: 11,
+                maxToRenderPerBatch: 10,
+              }}
+              textInputProps={{
+                placeholder: 'Type a message...',
+                style: { fontSize: 16 },
+              }}
+              isScrollToBottomEnabled={true}
+            />
+            {/* <GiftedChat
             messages={messages}
             user={currentUser}
             onSend={onSend}
@@ -336,11 +382,11 @@ console.log('bookingId------', bookingId);
               keyboardVerticalOffset: insets.bottom + theme.SH(90),
             }}
             listProps={{
-              contentContainerStyle: {
-                flexGrow: 1,
-                justifyContent: 'flex-start',
-              },
-              keyboardShouldPersistTaps: 'never',
+              // contentContainerStyle: {
+              //   flexGrow: 1,
+              //   justifyContent: 'flex-start',
+              // },
+              // keyboardShouldPersistTaps: 'never',
               onEndReached: handleLoadOlder,
               onEndReachedThreshold: 0.5,
               scrollEventThrottle: 16,
@@ -367,9 +413,10 @@ console.log('bookingId------', bookingId);
               style: { fontSize: 16 },
             }}
             isScrollToBottomEnabled={true}
-          />
+          /> */}
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

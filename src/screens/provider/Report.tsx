@@ -56,13 +56,14 @@ export default function Report() {
   };
 
   return (
-    <Container safeArea={false} style={styles.container}>
+    <Container safeArea={true} style={styles.container}>
       <AppHeader
         title={t('report.title')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}
-        containerStyle={{ paddingTop: insets.top }}
+        containerStyle={{ marginHorizontal: theme.SW(20) }}
+        // containerStyle={{ paddingTop: insets.top }}
       />
       <ScrollView
         style={styles.scrollView}

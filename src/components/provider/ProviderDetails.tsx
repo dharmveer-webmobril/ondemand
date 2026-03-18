@@ -139,7 +139,7 @@ export default function ProviderDetails({
 
       {/* Service Links */}
       <View style={styles.section}>
-        {onServiceFeePress && (
+        {/* {onServiceFeePress && (
           <Pressable
             style={styles.linkItem}
             onPress={onServiceFeePress}
@@ -154,7 +154,7 @@ export default function ProviderDetails({
               color={theme.colors.text}
             />
           </Pressable>
-        )}
+        )} */}
         {onPaymentPolicyPress && (
           <Pressable
             style={styles.linkItem}

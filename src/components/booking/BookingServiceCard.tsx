@@ -4,6 +4,8 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, CustomButton } from '@components/common';
 import imagePaths from '@assets';
 import { getStatusColor, mapBookingStatusToDisplay } from '@utils/tools';
+import SCREEN_NAMES from '@navigation/ScreenNames';
+import { navigate } from '@utils/NavigationUtils';
 
 type Service = {
   _id: string;
@@ -459,6 +461,7 @@ export default function BookingServiceCard({
                       buttonStyle={styles.cancelServiceButton}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
+                  
                   </View>
                 )}
               </View>
@@ -766,6 +769,13 @@ const createStyles = (theme: ThemeType) => {
     serviceActionButtonWrap: {
       flexShrink: 0,
       marginBottom: SH(8),
+    },
+    cancelPolicyText: {
+      fontSize: SF(12),
+      fontFamily: Fonts.REGULAR,
+      marginTop: SH(8),
+      textDecorationLine: 'underline',
+      color: Colors.primary,
     },
   });
 };

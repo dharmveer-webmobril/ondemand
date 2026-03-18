@@ -37,7 +37,7 @@ const Container: React.FC<ContainerProps> = ({
         barStyle={barStyle}
       />
 
-      <SafeAreaView style={[{flex:1},style]}>
+      <SafeAreaView style={[{flex:1},style]} edges={['top', 'bottom']}>
         {children}
       </SafeAreaView>
     </>

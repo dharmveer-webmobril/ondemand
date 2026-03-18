@@ -7,6 +7,7 @@ import {
   Linking,
   Alert,
   Platform,
+  Pressable,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,7 @@ import {
   CustomText,
   CustomButton,
   LoadingComp,
+  VectoreIcons,
 } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +48,8 @@ import {
 } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
+import SCREEN_NAMES from '@navigation/ScreenNames';
+import { navigate } from '@utils/NavigationUtils';
 
 const formatDate = (dateString: string): string => {
   if (!dateString || typeof dateString !== 'string') return '';
@@ -115,7 +119,9 @@ export default function BookingDetail() {
     | 'rescheduleService'
     | 'acceptReschedule';
   const [loaderType, setLoaderType] = useState<LoaderType>('none');
-  const [acceptingServiceId, setAcceptingServiceId] = useState<string | null>(null);
+  const [acceptingServiceId, setAcceptingServiceId] = useState<string | null>(
+    null,
+  );
 
   // Cancel booking mutation
   const { mutate: cancelBooking, isPending: isCancelingBooking } =
@@ -130,8 +136,10 @@ export default function BookingDetail() {
     useRescheduleService();
 
   // Accept reschedule mutation (booked service id)
-  const { mutateAsync: acceptRescheduleService, isPending: isAcceptingReschedule } =
-    useAcceptRescheduleService();
+  const {
+    mutateAsync: acceptRescheduleService,
+    isPending: isAcceptingReschedule,
+  } = useAcceptRescheduleService();
 
   // Update loader type based on mutation states
   React.useEffect(() => {
@@ -147,7 +155,12 @@ export default function BookingDetail() {
       setLoaderType('none');
       setAcceptingServiceId(null);
     }
-  }, [isCancelingBooking, isCancelingService, isReschedulingService, isAcceptingReschedule]);
+  }, [
+    isCancelingBooking,
+    isCancelingService,
+    isReschedulingService,
+    isAcceptingReschedule,
+  ]);
 
   useEffect(() => {
     refetchBooking();
@@ -545,8 +558,14 @@ export default function BookingDetail() {
       try {
         const res = await acceptRescheduleService(bookedServiceId);
         if (res?.succeeded) {
-          handleSuccessToast(res?.ResponseMessage || t('bookingDetail.rescheduleAccepted') || 'Reschedule accepted');
-          queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingId] });
+          handleSuccessToast(
+            res?.ResponseMessage ||
+              t('bookingDetail.rescheduleAccepted') ||
+              'Reschedule accepted',
+          );
+          queryClient.invalidateQueries({
+            queryKey: ['bookingDetail', bookingId],
+          });
           refetchBooking();
         }
       } catch (err) {
@@ -555,7 +574,7 @@ export default function BookingDetail() {
         setAcceptingServiceId(null);
       }
     },
-    [acceptRescheduleService, refetchBooking, bookingId, t]
+    [acceptRescheduleService, refetchBooking, bookingId, t],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -570,7 +589,7 @@ export default function BookingDetail() {
 
   return (
     <Container
-      safeArea={false}
+      safeArea={true}
       statusBarColor={theme.colors.white}
       style={styles.container}
     >
@@ -649,7 +668,7 @@ export default function BookingDetail() {
             paymentStatus={booking?.paymentStatus}
             paymentType={booking?.paymentType}
           />
-          
+
           {/* Other Person Details - Show only if bookedFor is 'other' */}
           {booking?.bookedFor === 'other' && booking?.bookedForDetails && (
             <OtherPersonDetailsCard
@@ -740,6 +759,34 @@ export default function BookingDetail() {
               </CustomText>
             </View>
           </View>
+          {(booking?.status === 'requested' ||
+            booking?.status === 'accepted' ||
+            booking?.status === 'rescheduledBySp' ||
+            booking?.status === 'rescheduledByCustomer') && (
+            <Pressable
+              style={styles.cancelPolicyContainer}
+              onPress={() => {
+                navigate(SCREEN_NAMES.TERMS_AND_CONDITIONS, {
+                  type: 'Cancel Policies',
+                });
+              }}
+            >
+              <VectoreIcons
+                icon="Ionicons"
+                name="information-circle-outline"
+                size={theme.SF(16)}
+                color={theme.colors.red}
+              />
+              <CustomText
+                fontSize={theme.fontSize.xs}
+                fontFamily={theme.fonts.MEDIUM}
+                style={styles.cancelPolicyText}
+                color={theme.colors.red}
+              >
+                Cancel Policy
+              </CustomText>
+            </Pressable>
+          )}
         </ScrollView>
       )}
 
@@ -938,5 +985,18 @@ const createStyles = (theme: ThemeType) =>
     originalPriceText: {
       textDecorationLine: 'line-through',
       marginBottom: theme.SH(2),
+    },
+    cancelPolicyContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: theme.SW(20),
+      marginBottom: theme.SH(16),
+      paddingVertical: theme.SH(10),
+      backgroundColor: '#f500001a',
+      borderRadius: theme.borderRadius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cancelPolicyText: {
+      marginLeft: theme.SW(8),
     },
   });

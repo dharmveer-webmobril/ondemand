@@ -14,8 +14,16 @@ import DeliveryModeModal from '@components/category/DeliveryModeModal';
 import ServiceForModal from '@components/provider/ServiceForModal';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import { ProviderHeader, ProviderSubHeader, ProviderDetails, ProviderMembersList } from '@components';
-import { useGetServiceProviderDetail, useGetServiceProviderServices } from '@services/index';
+import {
+  ProviderHeader,
+  ProviderSubHeader,
+  ProviderDetails,
+  ProviderMembersList,
+} from '@components';
+import {
+  useGetServiceProviderDetail,
+  useGetServiceProviderServices,
+} from '@services/index';
 import { formatAddress } from '@utils/tools';
 
 type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
@@ -26,7 +34,8 @@ const mockReviews = [
     id: '1',
     userName: 'Guy Hawkins',
     rating: 5,
-    reviewText: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    reviewText:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     timeAgo: '1 week ago',
     isVerified: true,
     likes: 10,
@@ -59,7 +68,11 @@ export default function ProviderDetailsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('services');
   const prevScreenFlag = route.params?.prevScreenFlag;
   // Get spId from route params - could be provider.id or provider._id or direct spId
-  const spId = route.params?.provider?.id || route.params?.provider?._id || route.params?.spId || route.params?.providerId;
+  const spId =
+    route.params?.provider?.id ||
+    route.params?.provider?._id ||
+    route.params?.spId ||
+    route.params?.providerId;
   const isShowBookButton = prevScreenFlag === 'without_data';
   const [bookingDetails, setBookingDetails] = useState<{
     deliveryMode?: any;
@@ -73,7 +86,7 @@ export default function ProviderDetailsScreen() {
     isFetching: isFetchingProvider,
     isError: isErrorProvider,
     error: providerError,
-    refetch: refetchProvider
+    refetch: refetchProvider,
   } = useGetServiceProviderDetail(spId);
 
   const {
@@ -82,7 +95,7 @@ export default function ProviderDetailsScreen() {
     isFetching: isFetchingServices,
     isError: isErrorServices,
     error: servicesError,
-    refetch: refetchServices
+    refetch: refetchServices,
   } = useGetServiceProviderServices(spId, bookingDetails.deliveryMode);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -94,13 +107,16 @@ export default function ProviderDetailsScreen() {
   const provider = providerData?.ResponseData || {};
   const services = servicesData?.ResponseData?.services || [];
   const businessProfile = provider?.businessProfile || {};
-  
-console.log('services--------services', services);
+
+  console.log('services--------services', services);
   const isLoading = isLoadingProvider || isLoadingServices;
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
   const { t } = useTranslation();
-  const errorMessage = providerError?.message || servicesError?.message || t('providerDetails.failedToLoadProvider');
+  const errorMessage =
+    providerError?.message ||
+    servicesError?.message ||
+    t('providerDetails.failedToLoadProvider');
 
   const handleBookService = (serviceId: string) => {
     setPendingServiceId(serviceId);
@@ -108,10 +124,12 @@ console.log('services--------services', services);
   };
 
   const handleDeliveryModeConfirm = (deliveryMode: any) => {
-
     const service = services.find((s: any) => s._id === pendingServiceId);
-  
-    if (service?.preferences?.length > 0 && service?.preferences.includes(deliveryMode)) {
+
+    if (
+      service?.preferences?.length > 0 &&
+      service?.preferences.includes(deliveryMode)
+    ) {
       navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
         providerId: provider._id || spId,
         serviceId: pendingServiceId,
@@ -121,7 +139,10 @@ console.log('services--------services', services);
         providerData: provider,
       });
     } else {
-      showToast({ type: 'info', message: t('providerDetails.serviceNotAvailableMode') });
+      showToast({
+        type: 'info',
+        message: t('providerDetails.serviceNotAvailableMode'),
+      });
       return;
     }
 
@@ -136,21 +157,25 @@ console.log('services--------services', services);
   };
 
   const handleServiceForConfirm = (serviceFor: 'self' | 'other') => {
-    setBookingDetails((prev) => ({ ...prev, serviceFor }));
+    setBookingDetails(prev => ({ ...prev, serviceFor }));
     setShowServiceForModal(false);
-    navigateToBookAppointment(bookingDetails.deliveryMode, bookingDetails.serviceFor);
+    navigateToBookAppointment(
+      bookingDetails.deliveryMode,
+      bookingDetails.serviceFor,
+    );
   };
 
-  const navigateToBookAppointment = (
-    deliveryMode: any,
-    serviceFor?: any
-  ) => {
+  const navigateToBookAppointment = (deliveryMode: any, serviceFor?: any) => {
     if (!pendingServiceId) return;
     const bookingData = {
       deliveryMode,
       ...(serviceFor && { serviceFor }),
     };
-    console.log('deliveryMode--------navigateToBookAppointment', deliveryMode, serviceFor);
+    console.log(
+      'deliveryMode--------navigateToBookAppointment',
+      deliveryMode,
+      serviceFor,
+    );
     console.log('deliveryMode--------pendingServiceId', bookingData, services);
     console.log('deliveryMode--------bookingData', pendingServiceId);
 
@@ -171,7 +196,9 @@ console.log('services--------services', services);
   };
 
   const handlePaymentPolicyPress = () => {
-    navigate(SCREEN_NAMES.PAYMENT_POLICY);
+    navigate(SCREEN_NAMES.TERMS_AND_CONDITIONS, {
+      type: 'Cancel Policies',
+    });
   };
 
   const handleReportPress = () => {
@@ -182,7 +209,7 @@ console.log('services--------services', services);
     if (provider.contact) {
       const url = `tel:${provider.contact}`;
       Linking.canOpenURL(url)
-        .then((supported) => {
+        .then(supported => {
           if (supported) {
             Linking.openURL(url);
           } else {
@@ -208,10 +235,7 @@ console.log('services--------services', services);
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        refetchProvider(),
-        refetchServices()
-      ]);
+      await Promise.all([refetchProvider(), refetchServices()]);
     } catch (error) {
       console.error('Error refreshing provider data:', error);
     } finally {
@@ -233,10 +257,7 @@ console.log('services--------services', services);
 
     if (isError && !providerData?.ResponseData) {
       return (
-        <ProviderErrorState
-          errorMessage={errorMessage}
-          onRetry={handleRetry}
-        />
+        <ProviderErrorState errorMessage={errorMessage} onRetry={handleRetry} />
       );
     }
 
@@ -273,7 +294,7 @@ console.log('services--------services', services);
             isFetching={isFetching}
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            onImagePress={(index) => console.log('Image pressed:', index)}
+            onImagePress={index => console.log('Image pressed:', index)}
           />
         );
       case 'details':
@@ -282,9 +303,15 @@ console.log('services--------services', services);
             aboutUs={businessProfile.description || 'No description available'}
             phoneNumber={provider.contact || ''}
             onCall={handleCall}
-            facebookUrl={businessProfile.websiteAndSocialLinks?.facebook || undefined}
-            instagramUrl={businessProfile.websiteAndSocialLinks?.instagram || undefined}
-            websiteUrl={businessProfile.websiteAndSocialLinks?.website || undefined}
+            facebookUrl={
+              businessProfile.websiteAndSocialLinks?.facebook || undefined
+            }
+            instagramUrl={
+              businessProfile.websiteAndSocialLinks?.instagram || undefined
+            }
+            websiteUrl={
+              businessProfile.websiteAndSocialLinks?.website || undefined
+            }
             amenities={[]} // TODO: Map amenitiesIds to actual amenities
             onServiceFeePress={handleServiceFeePress}
             onPaymentPolicyPress={handlePaymentPolicyPress}
@@ -330,13 +357,24 @@ console.log('services--------services', services);
   return (
     <Container safeArea={true} style={styles.container}>
       <ProviderHeader
-        name={provider.name  || 'Provider'}
+        name={provider.name || 'Provider'}
         logo={provider.profileImage}
       />
       <ProviderSubHeader
         logo={provider.profileImage}
         name={provider.name || 'Provider'}
-        address={formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || 'Address not available'}
+        address={
+          formatAddress({
+            line1: provider.businessProfile?.line1,
+            line2: provider.businessProfile?.line2,
+            landmark: provider.businessProfile?.landmark,
+            pincode: provider.businessProfile?.pincode,
+            city: provider.businessProfile?.city?.name,
+            country: provider.businessProfile?.country?.name,
+          }) ||
+          provider.city?.name ||
+          'Address not available'
+        }
         serviceType={businessProfile.name || 'Service Provider'}
         rating={provider.rating || undefined}
         reviewCount={0} // TODO: Get from API if available
@@ -386,4 +424,3 @@ const createStyles = (theme: ThemeType) => {
     },
   });
 };
-

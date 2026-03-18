@@ -65,7 +65,7 @@ const TermsAndConditions = () => {
                             fontSize={theme.fontSize.lg}
                             fontFamily={theme.fonts.SEMI_BOLD}
                             color={theme.colors.text}
-                            marginBottom={theme.SH(20)}
+                            style={{ marginBottom: theme.SH(20) }}
                         >
                             {selectedTerm.flag}
                         </CustomText>
@@ -74,7 +74,7 @@ const TermsAndConditions = () => {
                             fontSize={theme.fontSize.md}
                             fontFamily={theme.fonts.REGULAR}
                             color={theme.colors.text}
-                            lineHeight={theme.SF(24)}
+                            style={{ lineHeight: theme.SF(24) }}
                         >
                             {selectedTerm.content}
                         </CustomText>

@@ -63,7 +63,7 @@ export default function ProviderMembersList({ spId }: ProviderMembersListProps) 
     page,
     limit: MEMBERS_PAGE_SIZE,
   });
-
+  console.log('-----data-----', data);
   const rawData = data?.ResponseData ?? [];
   const pagination = data?.pagination;
   const totalPages = pagination?.pages ?? 1;

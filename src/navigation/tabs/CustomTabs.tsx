@@ -1,17 +1,14 @@
 import React, { useMemo } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
-import { ThemeType, useThemeContext } from "@utils";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { SH, ThemeType, useThemeContext } from "@utils";
 import { CustomText } from "@components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TabImages from "./TabImages";
 
-const MIN_BOTTOM_INSET = Platform.OS === "android" ? 24 : 0;
-
 export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
     const theme = useThemeContext();
-    const insets = useSafeAreaInsets();
-    const bottomInset = Math.max(insets.bottom, MIN_BOTTOM_INSET);
+    const bottom = useSafeAreaInsets();
     const styles = useMemo(() => createStyles(theme), [theme]);
     const getName = (name: string) => {
         switch (name) {
@@ -28,46 +25,50 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
         }
     };
     return (
-        <View style={[styles.tabBarWrap, { paddingBottom: bottomInset }]} pointerEvents="box-none">
-            <View style={styles.tabContainer}>
+        <View pointerEvents="box-none">
+            <View style={[styles.tabContainer, { height: SH(75) + bottom.bottom }]}>
+                <View style={{
+                    flexDirection: "row",
+                    justifyContent: "space-around",
+                    marginTop: theme.SH(15),
+                    width: "100%",
+                }}>
+                    {state.routes.map((route, index) => {
+                        const isFocused = state.index === index;
+                        return (
+                            <TouchableOpacity
+                                key={route.key}
+                                style={[styles.tabItem, isFocused && styles.focusedTabItem]}
+                                activeOpacity={0.7}
+                                onPress={() => {
+                                    const event = navigation.emit({
+                                        type: "tabPress",
+                                        target: route.key,
+                                        canPreventDefault: true,
+                                    });
 
-                {state.routes.map((route, index) => {
-                    const isFocused = state.index === index;
-
-                    return (
-                        <TouchableOpacity
-                            key={route.key}
-                            style={[styles.tabItem, isFocused && styles.focusedTabItem]}
-                            activeOpacity={0.7}
-                            onPress={() => {
-                                const event = navigation.emit({
-                                    type: "tabPress",
-                                    target: route.key,
-                                    canPreventDefault: true,
-                                });
-
-                                if (!isFocused && !event.defaultPrevented) {
-                                    navigation.navigate(route.name);
+                                    if (!isFocused && !event.defaultPrevented) {
+                                        navigation.navigate(route.name);
+                                    }
+                                }}
+                                onLongPress={() =>
+                                    navigation.emit({
+                                        type: "tabLongPress",
+                                        target: route.key,
+                                    })
                                 }
-                            }}
-                            onLongPress={() =>
-                                navigation.emit({
-                                    type: "tabLongPress",
-                                    target: route.key,
-                                })
-                            }
-                        >
-                            <TabImages name={route.name} focused={isFocused} />
-                            <CustomText
-                                variant="h6"
-                                color={isFocused ? theme.colors.primary : "#B3B3B3"}
                             >
-                                {getName(route.name)}
-                            </CustomText>
-                        </TouchableOpacity>
-                    );
-                })}
-
+                                <TabImages name={route.name} focused={isFocused} />
+                                <CustomText
+                                    variant="h6"
+                                    color={isFocused ? theme.colors.primary : "#B3B3B3"}
+                                >
+                                    {getName(route.name)}
+                                </CustomText>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
             </View>
         </View>
     );
@@ -77,19 +78,16 @@ const createStyles = (theme: ThemeType) => {
     const { colors } = theme;
 
     return StyleSheet.create({
-        tabBarWrap: {
-            backgroundColor: "#fff",
-        },
         tabContainer: {
-            position: "absolute" as const,
+            position: "absolute",
             bottom: 0,
             left: 0,
             right: 0,
-            height: 80,
             backgroundColor: "#fff",
-            flexDirection: "row",
+            alignSelf: "center",
             paddingBottom: 10,
-            justifyContent: "space-around",
+            alignItems: "flex-start",
+            marginTop: theme.SH(20),
             zIndex: 9999,
             elevation: 20,
         },
@@ -97,7 +95,7 @@ const createStyles = (theme: ThemeType) => {
         tabItem: {
             justifyContent: "center",
             alignItems: "center",
-            paddingVertical: 10,
+            // paddingVertical: 10,
             paddingHorizontal: 20,
         },
 
