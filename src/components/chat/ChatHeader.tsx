@@ -1,5 +1,5 @@
 import { View, StyleSheet, Pressable } from 'react-native'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 
@@ -17,12 +17,9 @@ interface ChatHeaderProps {
 export default function ChatHeader({
   bookingId,
   name,
-  // lastSeen,
   time,
   image,
   onBackPress,
-  onCallPress,
-  onOptionsPress,
 }: ChatHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -48,7 +45,6 @@ export default function ChatHeader({
         <CustomText style={styles.nameText}>{name}</CustomText>
         {bookingId && (
           <CustomText style={styles.lastSeenText}>
-            {/* {t('chat.lastSeen', { time: lastSeen })} */}
             {bookingId}
           </CustomText>
         )}
@@ -56,26 +52,28 @@ export default function ChatHeader({
           <CustomText style={styles.timeText}>{time}</CustomText>
         )}
       </View>
-      <View style={styles.rightContainer}>
-        {onCallPress && (
-          <Pressable style={styles.iconButton} onPress={onCallPress}>
+      {/* 
+        <View style={styles.rightContainer}>
+          {onCallPress && (
+            <Pressable style={styles.iconButton} onPress={onCallPress}>
+              <VectoreIcons
+                name="call-outline"
+                size={theme.SF(24)}
+                icon="Ionicons"
+                color={theme.colors.text}
+              />
+            </Pressable>
+          )}
+          <Pressable style={styles.iconButton} onPress={onOptionsPress}>
             <VectoreIcons
-              name="call-outline"
+              name="ellipsis-vertical"
               size={theme.SF(24)}
               icon="Ionicons"
               color={theme.colors.text}
             />
           </Pressable>
-        )}
-        <Pressable style={styles.iconButton} onPress={onOptionsPress}>
-          <VectoreIcons
-            name="ellipsis-vertical"
-            size={theme.SF(24)}
-            icon="Ionicons"
-            color={theme.colors.text}
-          />
-        </Pressable>
-      </View>
+        </View> 
+      */}
     </View>
   );
 }
@@ -125,7 +123,6 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   },
   iconButton: {
     padding: theme.SF(8),
-    // marginLeft: theme.SW(8),
   },
 });
 

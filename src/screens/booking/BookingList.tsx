@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Calendar, DateData } from 'react-native-calendars';
-import { Container, AppHeader, BookingCard, CustomText, LoadingComp } from '@components';
+import { Container, AppHeader, BookingCard, CustomText, LoadingComp, CalendarArrow } from '@components';
 import { useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -426,17 +426,16 @@ export default function BookingList() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.calendarNavRow}>
+            {/* <View style={styles.calendarNavRow}>
               <TouchableOpacity
                 onPress={goToPrevMonth}
                 style={styles.calendarNavButton}
                 hitSlop={8}
               >
-                <VectoreIcons
-                  name="chevron-back"
-                  size={22}
-                  icon="Ionicons"
-                  color={theme.colors.primary}
+                <CalendarArrow
+                  direction="left"
+                  color={theme.colors.primary || '#009BFF'}
+                  size={theme.SF(26)}
                 />
                 <CustomText style={styles.calendarNavText}>Prev</CustomText>
               </TouchableOpacity>
@@ -451,19 +450,25 @@ export default function BookingList() {
                 hitSlop={8}
               >
                 <CustomText style={styles.calendarNavText}>Next</CustomText>
-                <VectoreIcons
-                  name="chevron-forward"
-                  size={22}
-                  icon="Ionicons"
-                  color={theme.colors.primary}
+                <CalendarArrow
+                  direction="right"
+                  color={theme.colors.primary || '#009BFF'}
+                  size={theme.SF(26)}
                 />
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             <Calendar
               key={calendarViewingMonth}
               current={calendarViewingMonth}
               onDayPress={handleDateSelect}
+              renderArrow={(direction: 'left' | 'right') => (
+                <CalendarArrow
+                  direction={direction}
+                  color={theme.colors.primary || '#009BFF'}
+                  size={theme.SF(26)}
+                />
+              )}
               markedDates={
                 selectedDate
                   ? { [selectedDate]: { selected: true, selectedColor: theme.colors.primary } }

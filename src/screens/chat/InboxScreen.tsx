@@ -72,6 +72,7 @@ const mapConversationToChatListItem = (
   return {
     id: conversation._id,
     name: otherParticipant.name || conversation.chatTitle || 'Unknown',
+    chatTitle: conversation.chatTitle || '',
     lastMessage: conversation.lastMessage || '',
     timestamp: formatTimestamp(conversation.lastMessageTime),
     image: otherParticipant.profileImage
@@ -172,9 +173,12 @@ export default function InboxScreen() {
   }, [conversations, currentUserId]);
 
   const handleChatPress = (chat: ChatListItemData & { conversationId?: string; bookingId?: string }) => {
+    const [name, bookingId] =chat?.chatTitle?.split(" - ") ||['','']
     navigate(SCREEN_NAMES.CHAT_SCREEN, {
       conversationId: chat.conversationId || chat.id,
       bookingId: (chat as any).bookingId,
+      name: chat.name,
+      chatTitle: bookingId,
     });
   };
 
@@ -236,7 +240,6 @@ export default function InboxScreen() {
           onEndReachedThreshold={0.3}
         />
       )}
-
     </Container>
   );
 }

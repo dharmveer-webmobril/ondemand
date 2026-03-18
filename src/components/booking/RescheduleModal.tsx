@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
-import { CustomText, CustomButton, VectoreIcons, CustomInput, LoadingComp } from '@components/common';
+import { CustomText, CustomButton, VectoreIcons, CustomInput, LoadingComp, CalendarArrow } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
 import { useGetServiceProviderAvailability } from '@services/index';
@@ -200,6 +200,13 @@ export default function RescheduleModal({
                   minDate={todayString}
                   disableAllTouchEventsForDisabledDays
                   enableSwipeMonths
+                  renderArrow={(direction: 'left' | 'right') => (
+                    <CalendarArrow
+                      direction={direction}
+                      color={theme.colors.primary || '#009BFF'}
+                      size={theme.SF(26)}
+                    />
+                  )}
                   theme={{
                     backgroundColor: theme.colors.white,
                     calendarBackground: theme.colors.white,

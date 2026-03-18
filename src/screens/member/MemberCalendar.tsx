@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useTranslation } from 'react-i18next';
-import { Container, AppHeader, CustomText, ImageLoader, VectoreIcons } from '@components';
+import { Container, AppHeader, CustomText, ImageLoader, VectoreIcons, CalendarArrow } from '@components';
 import { useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
 
@@ -334,6 +334,13 @@ export default function MemberCalendar() {
             onMonthChange={handleMonthChange}
             markedDates={markedDates}
             markingType="custom"
+            renderArrow={(direction: 'left' | 'right') => (
+              <CalendarArrow
+                direction={direction}
+                color={theme.colors.primary || '#009BFF'}
+                size={theme.SF(26)}
+              />
+            )}
             theme={{
               backgroundColor: theme.colors.white,
               calendarBackground: theme.colors.white,

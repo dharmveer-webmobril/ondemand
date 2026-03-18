@@ -3,7 +3,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Calendar, DateData } from 'react-native-calendars';
-import { Container, AppHeader, CustomText, CustomButton, showToast } from '@components/common';
+import { Container, AppHeader, CustomText, CustomButton, showToast, CalendarArrow } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useGetServiceProviderAvailability, useGetServiceProviderServices } from '@services/index';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
@@ -250,6 +250,17 @@ export default function BookAppointment() {
     });
   };
 
+  const renderArrow = useCallback(
+    (direction: 'left' | 'right') => (
+      <CalendarArrow
+        direction={direction}
+        color={theme.colors.primary || '#009BFF'}
+        size={theme.SF(26)}
+      />
+    ),
+    [theme.colors.primary, theme.SF],
+  );
+
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
@@ -265,7 +276,7 @@ export default function BookAppointment() {
         showsVerticalScrollIndicator={false}
       >
         {/* Calendar Section */}
-        <View style={styles.section}>
+        <View style={[styles.section,{paddingTop:0}]}>
           <View style={styles.calendarContainer}>
             <Calendar
               current={currentMonth}
@@ -275,6 +286,7 @@ export default function BookAppointment() {
               minDate={todayString}
               disableAllTouchEventsForDisabledDays
               enableSwipeMonths
+              renderArrow={renderArrow}
               theme={{
                 backgroundColor: theme.colors.white,
                 calendarBackground: theme.colors.white,

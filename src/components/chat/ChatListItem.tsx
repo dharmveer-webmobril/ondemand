@@ -10,6 +10,7 @@ export interface ChatListItemData {
   timestamp: string;
   image: any;
   isGroup?: boolean;
+  chatTitle?: string;
 }
 
 interface ChatListItemProps {
@@ -21,7 +22,7 @@ interface ChatListItemProps {
 export default function ChatListItem({ item, onPress, onOptionsPress }: ChatListItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-
+  const [_, bookingId] =item?.chatTitle?.split(" - ") ||['','']
   return (
     <Pressable
       style={styles.container}
@@ -34,7 +35,8 @@ export default function ChatListItem({ item, onPress, onOptionsPress }: ChatList
       />
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
-          <CustomText style={styles.nameText}>{item.name}</CustomText>
+          <CustomText style={styles.nameText}>{bookingId}</CustomText>
+          <CustomText style={styles.nameText1}>{item.name}</CustomText>
           <CustomText style={styles.lastMessageText} numberOfLines={1}>
             {item.lastMessage}
           </CustomText>
@@ -84,6 +86,12 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   },
   nameText: {
     fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    fontFamily: theme.fonts.SEMI_BOLD,
+    marginBottom: theme.margins.sm,
+  },
+  nameText1: {
+    fontSize: theme.fontSize.sm,
     color: theme.colors.text,
     fontFamily: theme.fonts.SEMI_BOLD,
     marginBottom: theme.margins.sm,

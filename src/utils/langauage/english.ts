@@ -636,7 +636,8 @@ export const english = {
     "inProgress": "In Progress"
   },
   "inbox": {
-    "title": "Chat"
+    "title": "Chat",
+    "noRecentChats": "No recent chats"
   },
   "bookingList": {
     "addressNotAvailable": "Address not available",

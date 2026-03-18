@@ -8,6 +8,8 @@ import {
 import { useSocket } from '@services/socket/SocketProvider';
 import { store } from '@store/index';
 import { goBack } from '@utils/NavigationUtils';
+import { useKeyboardHeight } from '@utils/hooks/useKeyboardHeight';
+import { useThemeContext } from '@utils/theme';
 import React, {
   useState,
   useCallback,
@@ -15,16 +17,12 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import {
-  View,
-  StyleSheet,
-  ActivityIndicator,
-  Text,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { GiftedChat, IMessage, User } from 'react-native-gifted-chat';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 export default function ChatScreen() {
   const route = useRoute<any>();
@@ -45,9 +43,9 @@ export default function ChatScreen() {
   const conversationId = route.params?.conversationId || route.params?.chat;
   const bookingId = route.params?.bookingId;
   const currentUserId = store.getState().auth.userId ?? '';
-
   const { joinConversation, leaveConversation, emit, on, off } = useSocket();
-
+console.log('conversationId------', conversationId);
+console.log('bookingId------', bookingId);
   useEffect(() => {
     if (!conversationId || !bookingId) return;
     joinConversation(conversationId, bookingId);
@@ -298,76 +296,80 @@ export default function ChatScreen() {
       </SafeAreaView>
     );
   }
-
+  const insets = useSafeAreaInsets();
+  const theme = useThemeContext();
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        // contentContainerStyle={{ flexGrow: 1 }}
-        // behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        // keyboardVerticalOffset={Platform.OS === 'ios' ? topPadding.top : 0}
-      >
-        <View style={[styles.contentContainer]}>
-          <ChatHeader
-            name={headerData?.name || ''}
-            lastSeen=""
-            bookingId={
-              chatBookingDetails?.ResponseData?.conversation?.bookingId
-                ?.bookingId || ''
-            }
-            image={
-              headerData?.profileImage
-                ? { uri: headerData?.profileImage }
-                : imagePaths.no_user_img
-            }
-            onBackPress={() => {goBack()}}
-            onCallPress={() => {}}
-            onOptionsPress={() => {}}
-          />
-          <View style={styles.chatContainer}>
-            <GiftedChat
-              messages={messages}
-              user={currentUser}
-              onSend={onSend}
-              isInverted={true}
-              renderLoading={() => (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#999" />
-                  <Text style={styles.loadingSubText}>Loading chat...</Text>
+     
+      <View style={[styles.contentContainer]}>
+        <ChatHeader
+          name={headerData?.name || ''}
+          lastSeen=""
+          bookingId={
+            chatBookingDetails?.ResponseData?.conversation?.bookingId
+              ?.bookingId || ''
+          }
+          image={
+            headerData?.profileImage
+              ? { uri: headerData?.profileImage }
+              : imagePaths.no_user_img
+          }
+          onBackPress={() => {
+            goBack();
+          }}
+          onCallPress={() => {}}
+          onOptionsPress={() => {}}
+        />
+        <View style={styles.chatContainer}>
+          <GiftedChat
+            messages={messages}
+            user={currentUser}
+            onSend={onSend}
+            isInverted={true}
+            renderLoading={() => (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#999" />
+                <Text style={styles.loadingSubText}>Loading chat...</Text>
+              </View>
+            )}
+            keyboardAvoidingViewProps={{
+              keyboardVerticalOffset: insets.bottom + theme.SH(90),
+            }}
+            listProps={{
+              contentContainerStyle: {
+                flexGrow: 1,
+                justifyContent: 'flex-start',
+              },
+              keyboardShouldPersistTaps: 'never',
+              onEndReached: handleLoadOlder,
+              onEndReachedThreshold: 0.5,
+              scrollEventThrottle: 16,
+              ListFooterComponent: isLoadingMore ? (
+                <View style={styles.footerLoader}>
+                  <ActivityIndicator size="small" />
+                  <Text style={styles.footerText}>
+                    Loading older messages...
+                  </Text>
                 </View>
-              )}
-              listProps={{
-                onEndReached: handleLoadOlder,
-                onEndReachedThreshold: 0.5,
-                scrollEventThrottle: 16,
-                ListFooterComponent: isLoadingMore ? (
-                  <View style={styles.footerLoader}>
-                    <ActivityIndicator size="small" />
-                    <Text style={styles.footerText}>
-                      Loading older messages...
-                    </Text>
-                  </View>
-                ) : page.current >= totalPages.current &&
-                  messages.length > 0 ? (
-                  <View style={styles.footerLoader}>
-                    <Text style={styles.beginningText}>
-                      Beginning of conversation
-                    </Text>
-                  </View>
-                ) : null,
-                initialNumToRender: 15,
-                windowSize: 11,
-                maxToRenderPerBatch: 10,
-              }}
-              textInputProps={{
-                placeholder: 'Type a message...',
-                style: { fontSize: 16 },
-              }}
-              isScrollToBottomEnabled={true}
-            />
-          </View>
+              ) : page.current >= totalPages.current && messages.length > 0 ? (
+                <View style={styles.footerLoader}>
+                  <Text style={styles.beginningText}>
+                    Beginning of conversation
+                  </Text>
+                </View>
+              ) : null,
+              initialNumToRender: 15,
+              windowSize: 11,
+              maxToRenderPerBatch: 10,
+            }}
+            textInputProps={{
+              placeholder: 'Type a message...',
+              style: { fontSize: 16 },
+            }}
+            isScrollToBottomEnabled={true}
+          />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }

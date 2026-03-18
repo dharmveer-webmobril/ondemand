@@ -4,7 +4,8 @@ export {default as CustomText} from './CustomText'
 export {default as ImageComp} from './ImageComp'
 export {default as CustomButton} from './CustomButton'
 export {default as Spacing} from './Spacing'
-export {default as VectoreIcons} from './VectoreIcons'
+export { default as VectoreIcons } from './VectoreIcons';
+export { default as CalendarArrow } from './CalendarArrow';
 export {default as AppHeader} from './AppHeader'
 export {default as ImageLoader} from './ImageLoader'
 export {default as ImagePickerModal} from './ImagePickerModal'
