@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText } from '@components/common';
 import { WithdrawRequestForm } from '@components';
@@ -237,6 +237,11 @@ export default function WalletScreen() {
     refetchTransactions();
     if (activeTab === 'withdraw') refetchSettlement();
   }, [refetchWallet, refetchTransactions, refetchSettlement, activeTab]);
+  
+  useFocusEffect(useCallback(() => {
+    onRefresh();
+  }, [onRefresh]));
+ 
 
   const handleWithdrawSubmit = useCallback(
     async (values: WithdrawRequestFormValues) => {

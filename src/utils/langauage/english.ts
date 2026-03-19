@@ -164,6 +164,14 @@ export const english = {
   "customerSupport": {
     "header": "Customer Support",
     "formLabel": "Customer Support Form",
+    "name": "Name",
+    "namePlaceholder": "Enter your name",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "phone": "Phone",
+    "mobilePlaceholder": "Enter mobile number",
+    "message": "Message",
+    "messagePlaceholder": "Enter your message",
     "placeholder": {
       "name": "Name",
       "email": "Email",
@@ -179,7 +187,10 @@ export const english = {
     },
     "errors": {
       "required": "Please fill out this field",
-      "emailInvalid": "Please enter a valid email"
+      "emailInvalid": "Please enter a valid email",
+      "titleRequired": "Title is required",
+      "descriptionRequired": "Description is required",
+      "validDescription": "Description must be at least 10 characters"
     }
   },
   "logoutPopup": {
@@ -566,6 +577,7 @@ export const english = {
       "rejected": "REJECTED"
     }
   },
+  
   "bookingDetails": {
     "headerTitle": "Booking Details",
     "cancelBooking": "Cancel Booking",

@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen, NotificationsScreen } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen, NotificationsScreen, CustomerSupport } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -43,6 +43,7 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.PAYMENT_WEBVIEW} component={PaymentWebViewScreen} />
         <Stack.Screen name={SCREEN_NAMES.WALLET} component={WalletScreen} />
         <Stack.Screen name={SCREEN_NAMES.NOTIFICATIONS} component={NotificationsScreen} />
+        <Stack.Screen name={SCREEN_NAMES.CUSTOMER_SUPPORT} component={CustomerSupport} />
       </Stack.Navigator>
     </NavigationContainer>
   )

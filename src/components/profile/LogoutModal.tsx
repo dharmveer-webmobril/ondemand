@@ -8,6 +8,7 @@ import { useAppDispatch } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { useLogout } from '@services/index';
 
 interface LogoutModalProps {
     visible: boolean;
@@ -20,9 +21,16 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const navigation = useNavigation<any>();
+    const { mutateAsync: logoutMutation ,isPending} = useLogout();
     const logOutButton = () => {
-        dispatch(logout())
-        navigation.navigate(SCREEN_NAMES.LOGIN)
+        logoutMutation().then(() => {
+            dispatch(logout())
+            navigation.navigate(SCREEN_NAMES.LOGIN)
+        }).catch((error) => {
+            console.log('❌ Logout Error Message:', error.message);
+            console.log('❌ Status Code:', error.response?.status);
+            console.log('❌ API Response:', error.response?.data);
+        })
     }
 
     return (
@@ -51,6 +59,7 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
                                 textColor={theme.colors.primary}
                                 onPress={logOutButton}
                                 title={t('logoutPopup.logoutButton')}
+                                isLoading={isPending}
                             />
 
                             <CustomButton

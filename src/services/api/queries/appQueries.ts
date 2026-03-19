@@ -579,6 +579,16 @@ export const useDeleteCustomerAddress = () => {
         },
     });
 };
+export const useLogout = () => {
+    return useMutation<any, Error, void>({
+        mutationFn: async () => {
+            const response = await axiosInstance.post<ApiResponse>(
+                `${EndPoints.LOGOUT}`
+            );
+            return response.data;
+        },
+    });
+};
 
 // Booking interfaces
 export interface CreateBookingRequest {
@@ -1129,3 +1139,22 @@ export const useDeleteNotification = () => {
         },
     });
 };
+
+
+export const useCustomerSupport = () => {
+    return useMutation<any, Error, any>({
+      mutationFn: async (data: any) => {
+        const response = await axiosInstance.post<any>(
+          EndPoints.CUSTOMER_SUPPORT,
+          data
+        );
+        return response.data;
+      },
+      onError: (error: any) => {
+        console.log('❌ Support Error Message:', error.message);
+        console.log('❌ Status Code:', error.response?.status);
+        console.log('❌ API Response:', error.response?.data);
+      },
+    });
+  };
+  

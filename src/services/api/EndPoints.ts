@@ -1,5 +1,6 @@
 export default {
     LOGIN: '/auth/customer/login',
+    LOGOUT: '/auth/customer/logout',
     SIGNUP: '/auth/customer/signup',
     GET_COUNTRIES: '/master/country/all',
     GET_CITIES: '/master/city/by-country',
@@ -46,5 +47,6 @@ export default {
     MARK_CONVERSATION_AS_READ: '/chat/conversations',
     GET_BOOKING_CHAT_DETAILS: '/chat/conversations/booking',
     GET_NOTIFICATIONS: '/notifications/customer',
+    CUSTOMER_SUPPORT: '/customer/support',
     DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
 };

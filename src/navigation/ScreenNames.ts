@@ -51,6 +51,7 @@ export const SCREEN_NAMES = {
   PAYMENT_WEBVIEW: 'PaymentWebView',
   WALLET: 'Wallet',
   NOTIFICATIONS: 'Notifications',
+  CUSTOMER_SUPPORT: 'CustomerSupport',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

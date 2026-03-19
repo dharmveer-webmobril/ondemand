@@ -175,7 +175,7 @@ notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
  */
 notifee.onForegroundEvent(({ type, detail }: Event) => {
   const { notification } = detail;
-  console.log('Notification received in foreground:', JSON.stringify(notification));
+  console.log('Notification received in foreground:', JSON.stringify(detail));
   switch (type) {
     case EventType.DISMISSED:
       console.log('Notification dismissed:', notification?.id);
