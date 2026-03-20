@@ -13,6 +13,7 @@ import { CustomText, CustomButton, VectoreIcons, CustomInput, LoadingComp, Calen
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
 import { useGetServiceProviderAvailability } from '@services/index';
+import { useTranslation } from 'react-i18next';
 
 // Format date to YYYY-MM-DD
 const formatDateToString = (date: Date): string => {
@@ -43,6 +44,7 @@ export default function RescheduleModal({
 }: RescheduleModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
 
   const today = useMemo(() => {
     const date = new Date();
@@ -164,7 +166,7 @@ export default function RescheduleModal({
               fontFamily={theme.fonts.SEMI_BOLD}
               color={theme.colors.text}
             >
-              Reschedule Booking
+              {t('bookingDetails.rescheduleBookingTitle')}
             </CustomText>
             <Pressable onPress={handleClose} style={styles.closeButton} disabled={isLoading}>
               <VectoreIcons
@@ -189,7 +191,7 @@ export default function RescheduleModal({
                 color={theme.colors.text}
                 // style={{ marginBottom: theme.SH(12) }}
               >
-                Select Date
+                {t('bookingDetails.selectDate')}
               </CustomText>
               <View style={styles.calendarContainer}>
                 <Calendar
@@ -240,7 +242,7 @@ export default function RescheduleModal({
                 color={theme.colors.text}
                 style={{ marginBottom: theme.SH(12) }}
               >
-                Select Time
+                {t('bookingDetails.selectTime')}
               </CustomText>
               {isLoadingAvailability || isFetchingAvailability ? (
                 <View style={styles.slotsLoaderContainer}>
@@ -251,7 +253,7 @@ export default function RescheduleModal({
                     color={theme.colors.lightText}
                     style={{ marginTop: theme.SH(8) }}
                   >
-                    Loading available slots...
+                    {t('bookingDetails.loadingAvailableSlots')}
                   </CustomText>
                 </View>
               ) : isErrorAvailability || !availabilityData?.ResponseData?.available || timeSlots.length === 0 ? (
@@ -263,10 +265,10 @@ export default function RescheduleModal({
                     textAlign="center"
                   >
                     {isErrorAvailability
-                      ? 'Not available'
+                      ? t('bookAppointment.notAvailable')
                       : availabilityData?.ResponseData?.availability?.close
-                        ? 'Closed on this date'
-                        : 'No slots available for this date'}
+                        ? t('bookAppointment.closedOnThisDate')
+                        : t('bookAppointment.noSlotsAvailable')}
                   </CustomText>
                 </View>
               ) : (
@@ -314,11 +316,11 @@ export default function RescheduleModal({
                 color={theme.colors.text}
                 style={{ marginBottom: theme.SH(12) }}
               >
-                Reason for Rescheduling
+                {t('bookingDetails.reasonForRescheduling')}
               </CustomText>
                
               <CustomInput
-                placeholder="Enter reason for rescheduling..."
+                placeholder={t('bookingDetails.rescheduleReasonPlaceholder')}
                 value={reason}
                 onChangeText={setReason}
                 multiline
@@ -334,7 +336,7 @@ export default function RescheduleModal({
           {/* Footer Buttons */}
           <View style={styles.footer}>
             <CustomButton
-              title="Cancel"
+              title={t('common.cancel')}
               onPress={handleClose}
               backgroundColor={theme.colors.secondary}
               textColor={theme.colors.text}
@@ -342,7 +344,7 @@ export default function RescheduleModal({
               disable={isLoading}
             />
             <CustomButton
-              title="Confirm"
+              title={t('common.confirm')}
               onPress={handleConfirm}
               backgroundColor={theme.colors.primary}
               textColor={theme.colors.white}

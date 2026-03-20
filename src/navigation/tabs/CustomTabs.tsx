@@ -5,6 +5,7 @@ import { SH, ThemeType, useThemeContext } from "@utils";
 import { CustomText } from "@components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TabImages from "./TabImages";
+import i18next from "i18next";
 
 export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
     const theme = useThemeContext();
@@ -13,13 +14,13 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
     const getName = (name: string) => {
         switch (name) {
             case "Home":
-                return 'Home';
+                return i18next.t('tabs.home');
             case "Profile":
-                return 'Profile';
+                return i18next.t('tabs.profile');
             case "InboxScreen":
-                return 'Message';
+                return i18next.t('tabs.message');
             case "BookingList":
-                return 'My Bookings';
+                return i18next.t('tabs.myBookings');
             default:
                 return '';
         }

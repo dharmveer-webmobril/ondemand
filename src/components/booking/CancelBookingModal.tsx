@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { CustomText, CustomButton, CustomInput, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
+import { useTranslation } from 'react-i18next';
 
 type CancelBookingModalProps = {
   visible: boolean;
@@ -23,12 +24,15 @@ export default function CancelBookingModal({
   onClose,
   onSubmit,
   isLoading = false,
-  title = 'Cancel Booking',
-  message = 'Please provide a reason for canceling (required)',
+  title,
+  message,
 }: CancelBookingModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
+  const resolvedTitle = title ?? t('bookingDetails.cancelBookingTitle');
+  const resolvedMessage = message ?? t('bookingDetails.cancelBookingMessage');
 
   const handleSubmit = useCallback(() => {
     if (reason.trim()) {
@@ -60,7 +64,7 @@ export default function CancelBookingModal({
               fontFamily={theme.fonts.SEMI_BOLD}
               color={theme.colors.text}
             >
-              {title}
+              {resolvedTitle}
             </CustomText>
             <Pressable onPress={handleClose} style={styles.closeButton} disabled={isLoading}>
               <VectoreIcons
@@ -80,10 +84,10 @@ export default function CancelBookingModal({
               color={theme.colors.lightText}
               style={{ marginBottom: theme.SH(12) }}
             >
-              {message}
+              {resolvedMessage}
             </CustomText>
             <CustomInput
-              placeholder="Enter reason for canceling..."
+              placeholder={t('bookingDetails.cancelBookingPlaceholder')}
               value={reason}
               onChangeText={setReason}
               multiline
@@ -98,7 +102,7 @@ export default function CancelBookingModal({
           {/* Footer Buttons */}
           <View style={styles.footer}>
             <CustomButton
-              title="Cancel"
+              title={t('common.cancel')}
               onPress={handleClose}
               backgroundColor={theme.colors.secondary}
               textColor={theme.colors.text}
@@ -106,7 +110,7 @@ export default function CancelBookingModal({
               disable={isLoading}
             />
             <CustomButton
-              title="Confirm"
+              title={t('common.confirm')}
               onPress={handleSubmit}
               backgroundColor={theme.colors.red || '#F44336'}
               textColor={theme.colors.white}

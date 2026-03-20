@@ -3,10 +3,10 @@ import { initReactI18next } from "react-i18next";
 import { I18nManager } from "react-native";
 
 import { english } from "./english";
-import { frenchCanada } from "./frenchCanada";
-import { portuguese } from "./portuguese";
-import { spanish } from "./spanish";
-import { hindi } from "./hindi";
+import frenchCanada  from "./frenchCanada";
+import portuguese  from "./portuguese";
+import spanish from "./spanish";
+import hindi from "./hindi";
 
 const resources = {
   en: { translation: english },

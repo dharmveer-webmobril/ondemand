@@ -232,7 +232,7 @@ export default function BookingDetail() {
       return {
         _id: bookedService?._id,
         serviceId: service?._id,
-        name: service?.name || 'Service',
+        name: service?.name || t('bookingDetails.defaultServiceName'),
         images: service?.images || [],
         selectedAddOns: selectedAddOns,
         rescheduleDate: bookedService?.rescheduleDate || '',
@@ -262,7 +262,8 @@ export default function BookingDetail() {
       paymentStatus: apiBooking?.paymentStatus,
       paymentType: apiBooking?.paymentType,
       originalStatus: apiBooking?.bookingStatus,
-      providerName: apiBooking?.spId?.name || 'Provider',
+      providerName:
+        apiBooking?.spId?.name || t('providerDetails.providerDefaultName'),
       providerPhone: apiBooking?.spId?.contact || '',
       providerImage: apiBooking?.spId?.profileImage,
       serviceAddress: formatBookingAddress(apiBooking),
@@ -279,7 +280,7 @@ export default function BookingDetail() {
       preferences: apiBooking?.preferences || [],
       spBusinessProfile: apiBooking?.spBusinessProfile,
     };
-  }, [bookingDetailData]);
+  }, [bookingDetailData, t]);
   // Handle API errors - show error toast but don't block UI if we have cached data
   useEffect(() => {
     if (isErrorBooking && bookingError && !bookingDetailData?.ResponseData) {

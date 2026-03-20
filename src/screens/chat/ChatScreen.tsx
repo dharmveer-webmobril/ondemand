@@ -18,6 +18,7 @@ import React, {
   useMemo,
 } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { GiftedChat, IMessage, User } from 'react-native-gifted-chat';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import {
@@ -27,6 +28,7 @@ import {
 
 export default function ChatScreen() {
   const route = useRoute<any>();
+  const { t } = useTranslation();
   const authState = store.getState().auth;
   const userDetails = authState.userDetails as {
     name?: string;
@@ -58,7 +60,7 @@ export default function ChatScreen() {
 
   const currentUser: User = {
     _id: currentUserId,
-    name: userDetails?.name ?? 'Me',
+    name: userDetails?.name ?? t('chat.me'),
     avatar: userDetails?.profileImage,
   };
 
@@ -292,7 +294,7 @@ export default function ChatScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading messages...</Text>
+          <Text style={styles.loadingText}>{t('chat.loadingMessages')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -335,7 +337,7 @@ export default function ChatScreen() {
               renderLoading={() => (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#999" />
-                  <Text style={styles.loadingSubText}>Loading chat...</Text>
+                  <Text style={styles.loadingSubText}>{t('chat.loadingChat')}</Text>
                 </View>
               )}
               listProps={{
@@ -346,14 +348,14 @@ export default function ChatScreen() {
                   <View style={styles.footerLoader}>
                     <ActivityIndicator size="small" />
                     <Text style={styles.footerText}>
-                      Loading older messages...
+                      {t('chat.loadingOlderMessages')}
                     </Text>
                   </View>
                 ) : page.current >= totalPages.current &&
                   messages.length > 0 ? (
                   <View style={styles.footerLoader}>
                     <Text style={styles.beginningText}>
-                      Beginning of conversation
+                      {t('chat.beginningOfConversation')}
                     </Text>
                   </View>
                 ) : null,
@@ -362,58 +364,11 @@ export default function ChatScreen() {
                 maxToRenderPerBatch: 10,
               }}
               textInputProps={{
-                placeholder: 'Type a message...',
+                placeholder: t('chat.inputPlaceholder'),
                 style: { fontSize: 16 },
               }}
               isScrollToBottomEnabled={true}
             />
-            {/* <GiftedChat
-            messages={messages}
-            user={currentUser}
-            onSend={onSend}
-            isInverted={true}
-            renderLoading={() => (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#999" />
-                <Text style={styles.loadingSubText}>Loading chat...</Text>
-              </View>
-            )}
-            keyboardAvoidingViewProps={{
-              keyboardVerticalOffset: insets.bottom + theme.SH(90),
-            }}
-            listProps={{
-              // contentContainerStyle: {
-              //   flexGrow: 1,
-              //   justifyContent: 'flex-start',
-              // },
-              // keyboardShouldPersistTaps: 'never',
-              onEndReached: handleLoadOlder,
-              onEndReachedThreshold: 0.5,
-              scrollEventThrottle: 16,
-              ListFooterComponent: isLoadingMore ? (
-                <View style={styles.footerLoader}>
-                  <ActivityIndicator size="small" />
-                  <Text style={styles.footerText}>
-                    Loading older messages...
-                  </Text>
-                </View>
-              ) : page.current >= totalPages.current && messages.length > 0 ? (
-                <View style={styles.footerLoader}>
-                  <Text style={styles.beginningText}>
-                    Beginning of conversation
-                  </Text>
-                </View>
-              ) : null,
-              initialNumToRender: 15,
-              windowSize: 11,
-              maxToRenderPerBatch: 10,
-            }}
-            textInputProps={{
-              placeholder: 'Type a message...',
-              style: { fontSize: 16 },
-            }}
-            isScrollToBottomEnabled={true}
-          /> */}
           </View>
         </View>
       </KeyboardAvoidingView>

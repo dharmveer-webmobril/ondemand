@@ -13,6 +13,7 @@ import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { Conversation } from '@services/index';
 import { useSocket } from '@services/socket/SocketProvider';
+import { useFocusEffect } from '@react-navigation/native';
 
 const PAGE_SIZE = 14;
 
@@ -117,13 +118,15 @@ export default function InboxScreen() {
     emit('chat:get-conversations', { page: pageNum, limit });
   }, [emit, currentUserId]);
 
-  useEffect(() => {
+ 
+
+  useFocusEffect(useCallback(() => {
     if (!currentUserId) {
       setIsLoading(false);
       return;
     }
     getConversations(1, PAGE_SIZE, false);
-  }, [currentUserId, getConversations]);
+  }, [currentUserId, getConversations]));
 
   useEffect(() => {
     const handler = (data: any) => {

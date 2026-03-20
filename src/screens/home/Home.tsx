@@ -79,6 +79,7 @@ export default function Home() {
         refetchCategories(),
         refetchBanners()
       ]);
+      
     } catch (error) {
       console.error('Error refreshing home data:', error);
     } finally {
@@ -115,11 +116,13 @@ export default function Home() {
         onCityUpdateLoading={setIsCityUpdating}
         onNotificationPress={() => navigation.navigate(SCREEN_NAMES.NOTIFICATIONS)}
       />
+
       <HomeSearchBar
         onSearch={handleSearch}
         onFilterPress={handleFilterPress}
         placeholder={t('home.search')}
       />
+
       <HomeMainList
         refreshing={refreshing}
         onRefresh={onRefresh}

@@ -102,5 +102,6 @@ const imagePaths = {
   logo_gif: require('./gif/logo_gif.gif'),
   logo_json: require('./lottie/logo_gif.json'),
   remove: require('./icons/remove.png'),
+  downicon: require('./icons/downicon.png'),
 };
 export default imagePaths;

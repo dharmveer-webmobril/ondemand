@@ -14,11 +14,11 @@ import {
   PaymentModeKey,
 } from './checkoutHelpers';
 
-const PAYMENT_MODES: { key: PaymentModeKey; label: string }[] = [
-  { key: 'cash', label: 'Pay on site' },
-  { key: 'online', label: 'Online' },
-  { key: 'wallet', label: 'Wallet (Full)' },
-  { key: 'wallet_partial', label: 'Wallet (Partial)' },
+const PAYMENT_MODE_KEYS: PaymentModeKey[] = [
+  'cash',
+  'online',
+  'wallet',
+  'wallet_partial',
 ];
 
 type SharedProps = {
@@ -48,6 +48,7 @@ type AddressSectionProps = SharedProps & {
 
 type PaymentSectionProps = {
   styles: any;
+  t: any;
   paymentMode: PaymentModeKey;
   setPaymentMode: (mode: PaymentModeKey) => void;
   setWalletPartialAmount: (value: string) => void;
@@ -241,7 +242,9 @@ export const AddressSection = ({
         </View>
       ) : (
         <View style={styles.emptyAddressCard}>
-          <CustomText style={styles.emptyAddressText}>No address selected</CustomText>
+          <CustomText style={styles.emptyAddressText}>
+            {t('checkout.noAddressSelected')}
+          </CustomText>
         </View>
       )}
     </View>
@@ -250,6 +253,7 @@ export const AddressSection = ({
 
 export const PaymentSection = ({
   styles,
+  t,
   paymentMode,
   setPaymentMode,
   setWalletPartialAmount,
@@ -261,11 +265,28 @@ export const PaymentSection = ({
   insufficientWalletBalance,
   invalidPartialWalletAmount,
 }: PaymentSectionProps) => {
+  const getPaymentModeLabel = (key: PaymentModeKey) => {
+    switch (key) {
+      case 'cash':
+        return t('checkout.paymentModes.cash');
+      case 'online':
+        return t('checkout.paymentModes.online');
+      case 'wallet':
+        return t('checkout.paymentModes.walletFull');
+      case 'wallet_partial':
+        return t('checkout.paymentModes.walletPartial');
+      default:
+        return String(key);
+    }
+  };
+
   return (
     <View style={styles.section}>
-      <CustomText style={styles.sectionTitle}>Payment</CustomText>
+      <CustomText style={styles.sectionTitle}>
+        {t('checkout.paymentModes.paymentTitle')}
+      </CustomText>
       <View style={styles.paymentModeRow}>
-        {PAYMENT_MODES.map(({ key, label }) => {
+        {PAYMENT_MODE_KEYS.map((key) => {
           const isSelected = paymentMode === key;
 
           return (
@@ -287,7 +308,9 @@ export const PaymentSection = ({
               >
                 {isSelected && <View style={styles.radioButtonInner} />}
               </View>
-              <CustomText style={styles.paymentRadioLabel}>{label}</CustomText>
+              <CustomText style={styles.paymentRadioLabel}>
+                {getPaymentModeLabel(key)}
+              </CustomText>
             </Pressable>
           );
         })}
@@ -297,25 +320,31 @@ export const PaymentSection = ({
         <>
           <View style={styles.walletCard}>
             <View style={styles.walletRow}>
-              <CustomText style={styles.walletLabel}>Wallet balance</CustomText>
+              <CustomText style={styles.walletLabel}>
+                {t('checkout.wallet.walletBalance')}
+              </CustomText>
               <CustomText style={styles.walletValue}>${walletBalance.toFixed(2)}</CustomText>
             </View>
             <View style={styles.walletRow}>
-              <CustomText style={styles.walletLabel}>Order total</CustomText>
+              <CustomText style={styles.walletLabel}>
+                {t('checkout.wallet.orderTotal')}
+              </CustomText>
               <CustomText style={styles.walletValue}>${totalPrice.toFixed(2)}</CustomText>
             </View>
             <View style={[styles.walletRow, styles.walletRowLast]}>
-              <CustomText style={styles.walletLabelBold}>Remaining</CustomText>
+              <CustomText style={styles.walletLabelBold}>
+                {t('checkout.wallet.remaining')}
+              </CustomText>
               <CustomText style={styles.walletValueBold}>
                 {walletFullyCovers
-                  ? 'Fully covered'
+                  ? t('checkout.wallet.fullyCovered')
                   : `$${Math.max(0, totalPrice - walletBalance).toFixed(2)}`}
               </CustomText>
             </View>
           </View>
           {insufficientWalletBalance && (
             <CustomText style={styles.walletErrorText}>
-              Wallet balance does not have enough amount.
+              {t('checkout.wallet.insufficientWallet')}
             </CustomText>
           )}
         </>
@@ -325,7 +354,9 @@ export const PaymentSection = ({
         <>
           <View style={styles.walletCard}>
             <CustomText style={styles.walletInputLabel}>
-              Amount from wallet (max ${Math.min(walletBalance, totalPrice).toFixed(2)})
+              {t('checkout.wallet.amountFromWallet', {
+                max: Math.min(walletBalance, totalPrice).toFixed(2),
+              })}
             </CustomText>
             <View style={styles.walletInputWrap}>
               <CustomInput
@@ -336,22 +367,26 @@ export const PaymentSection = ({
                 marginTop={0}
                 errortext={
                   invalidPartialWalletAmount
-                    ? 'You selected partial wallet payment, so please enter an amount less than the order amount.'
+                    ? t('checkout.wallet.partialWalletError')
                     : undefined
                 }
               />
             </View>
             <View style={styles.walletRow}>
-              <CustomText style={styles.walletLabel}>Wallet balance</CustomText>
+              <CustomText style={styles.walletLabel}>
+                {t('checkout.wallet.walletBalance')}
+              </CustomText>
               <CustomText style={styles.walletValue}>${walletBalance.toFixed(2)}</CustomText>
             </View>
             <View style={styles.walletRow}>
-              <CustomText style={styles.walletLabel}>Order total</CustomText>
+              <CustomText style={styles.walletLabel}>
+                {t('checkout.wallet.orderTotal')}
+              </CustomText>
               <CustomText style={styles.walletValue}>${totalPrice.toFixed(2)}</CustomText>
             </View>
             <View style={[styles.walletRow, styles.walletRowLast]}>
               <CustomText style={styles.walletLabelBold}>
-                Remaining (pay by card)
+                {t('checkout.wallet.remainingPayByCard')}
               </CustomText>
               <CustomText style={styles.walletValueBold}>
                 ${remainingAfterWallet.toFixed(2)}
@@ -359,7 +394,7 @@ export const PaymentSection = ({
             </View>
             {remainingAfterWallet > 0 && (
               <CustomText style={styles.walletHint}>
-                Stripe or PayPal will be used for the remaining amount.
+                {t('checkout.wallet.remainingPaymentHint')}
               </CustomText>
             )}
           </View>
@@ -370,7 +405,7 @@ export const PaymentSection = ({
           )} */}
           {!invalidPartialWalletAmount && insufficientWalletBalance && (
             <CustomText style={styles.walletErrorText}>
-              Wallet balance does not have enough amount.
+              {t('checkout.wallet.insufficientWallet')}
             </CustomText>
           )}
         </>

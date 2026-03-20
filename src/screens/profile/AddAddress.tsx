@@ -18,7 +18,19 @@ import {
   LoadingComp,
   CountryModal,
 } from '@components';
-import { addAddressSchema, Colors, Fonts, goBack, handleApiError, handleApiFailureResponse, handleSuccessToast, regex, SF, SH, SW } from '@utils';
+import {
+  addAddressSchema,
+  Colors,
+  Fonts,
+  goBack,
+  handleApiError,
+  handleApiFailureResponse,
+  handleSuccessToast,
+  regex,
+  SF,
+  SH,
+  SW,
+} from '@utils';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTranslation } from 'react-i18next';
@@ -26,11 +38,18 @@ import { useAppSelector } from '@store/hooks';
 import useLocation from '@utils/hooks/useLocation';
 import { useFormik } from 'formik';
 // import Geocoder from 'react-native-geocoding';
-import { 
+import {
   // GooglePlacesAutocomplete,
-   GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
-import { useAddCustomerAddress, useUpdateCustomerAddress, useGetCities, useGetCountries } from '@services/index';
+  GooglePlacesAutocompleteRef,
+} from 'react-native-google-places-autocomplete';
+import {
+  useAddCustomerAddress,
+  useUpdateCustomerAddress,
+  useGetCities,
+  useGetCountries,
+} from '@services/index';
 import { useQueryClient } from '@tanstack/react-query';
+import imagePaths from '@assets';
 // const GOOGLE_MAPS_API_KEY = 'AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s';
 
 interface FormValues {
@@ -50,13 +69,14 @@ const AddAddress: React.FC = () => {
   const route = useRoute<any>();
   const { addData, prevScreen = '' } = route.params || {};
   const addressTypes = ['home', 'office', 'other'];
-  const [selectedAddressType, setSelectedAddressType] = useState<string>('home');
+  const [selectedAddressType, setSelectedAddressType] =
+    useState<string>('home');
   const { location, retry } = useLocation();
-  console.log('location', location,retry);
-  
+  console.log('location', location, retry);
+
   const [isDefault, setIsDefault] = useState<boolean>(false);
   const [showCityModal, setShowCityModal] = useState<boolean>(false);
-  
+
   // Determine if city dropdown should be enabled
   const isCityDropdownEnabled = prevScreen === 'my-address';
 
@@ -67,11 +87,11 @@ const AddAddress: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Get user details from Redux
-  const userDetails = useAppSelector((state) => state.auth.userDetails);
+  const userDetails = useAppSelector(state => state.auth.userDetails);
   // const cityId = useAppSelector((state) => state.auth.cityId);
-  const cityId = useAppSelector((state) => state.app.userCity)?._id;
-  
-  const countryId = useAppSelector((state) => state.auth.countryId);
+  const cityId = useAppSelector(state => state.app.userCity)?._id;
+
+  const countryId = useAppSelector(state => state.auth.countryId);
 
   // Get default city and country from userDetails
   const defaultCityId = useMemo(() => {
@@ -95,15 +115,22 @@ const AddAddress: React.FC = () => {
 
   const editCountryId = useMemo(() => {
     if (!addData?.country) return '';
-    return typeof addData.country === 'string' ? addData.country : addData.country._id;
+    return typeof addData.country === 'string'
+      ? addData.country
+      : addData.country._id;
   }, [addData]);
 
   // Get countries and cities data - use edit country ID if editing, otherwise use country from userDetails
   const currentCountryId = editCountryId || userCountryId || defaultCountryId;
   const { data: countriesData } = useGetCountries();
-  const { data: citiesData, isLoading: citiesLoading } = useGetCities(currentCountryId || null);
+  const { data: citiesData, isLoading: citiesLoading } = useGetCities(
+    currentCountryId || null,
+  );
 
-  const countries = useMemo(() => countriesData?.ResponseData || [], [countriesData]);
+  const countries = useMemo(
+    () => countriesData?.ResponseData || [],
+    [countriesData],
+  );
   const cities = useMemo(() => citiesData?.ResponseData || [], [citiesData]);
 
   // Initialize formik
@@ -123,7 +150,10 @@ const AddAddress: React.FC = () => {
       Keyboard.dismiss();
       try {
         const data = {
-          name: values.name || selectedAddressType.charAt(0).toUpperCase() + selectedAddressType.slice(1),
+          name:
+            values.name ||
+            selectedAddressType.charAt(0).toUpperCase() +
+              selectedAddressType.slice(1),
           line1: values.line1,
           line2: values.line2 || undefined,
           landmark: values.landmark || undefined,
@@ -164,7 +194,9 @@ const AddAddress: React.FC = () => {
           queryClient.invalidateQueries({ queryKey: ['customerAddresses'] });
           const successMessage =
             apiResponse?.ResponseMessage ||
-            (addData?._id ? t("addAddress.editAddaddressSuccess") : t("addAddress.addaddressSuccess"));
+            (addData?._id
+              ? t('addAddress.editAddaddressSuccess')
+              : t('addAddress.addaddressSuccess'));
           handleSuccessToast(successMessage);
           goBack();
         } else {
@@ -187,7 +219,9 @@ const AddAddress: React.FC = () => {
 
   const countryName = useMemo(() => {
     if (!formik.values.country) return '';
-    const foundCountry = countries.find((c: any) => c._id === formik.values.country);
+    const foundCountry = countries.find(
+      (c: any) => c._id === formik.values.country,
+    );
     return foundCountry?.name || '';
   }, [formik.values.country, countries]);
 
@@ -204,8 +238,14 @@ const AddAddress: React.FC = () => {
       setIsDefault(!!addData?.isDefault);
 
       // Extract IDs from nested objects if they exist
-      const cityIdValue = typeof addData.city === 'string' ? addData.city : addData.city?._id || defaultCityId;
-      const countryIdValue = typeof addData.country === 'string' ? addData.country : addData.country?._id || defaultCountryId;
+      const cityIdValue =
+        typeof addData.city === 'string'
+          ? addData.city
+          : addData.city?._id || defaultCityId;
+      const countryIdValue =
+        typeof addData.country === 'string'
+          ? addData.country
+          : addData.country?._id || defaultCountryId;
 
       formik.setValues({
         name: addData.name || '',
@@ -331,7 +371,7 @@ const AddAddress: React.FC = () => {
         leftIconName="arrowleft"
         containerStyle={styles.header}
       /> */}
-     <KeyboardAwareScrollView
+      <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
         enableOnAndroid={false}
@@ -348,7 +388,9 @@ const AddAddress: React.FC = () => {
               <VectoreIcons size={SF(26)} color={Colors.primary} icon='Feather' name='chevron-right' />
             </TouchableOpacity> */}
             {/* Name Field */}
-            <CustomText style={styles.label}>{t('addAddress.placeholders.name') || 'Address Name'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('addAddress.placeholders.name') || 'Address Name'}
+            </CustomText>
             <CustomInput
               placeholder={t('addAddress.placeholders.name') || 'Address Name'}
               value={formik.values.name}
@@ -356,19 +398,31 @@ const AddAddress: React.FC = () => {
                 formik.setFieldValue('name', val);
               }}
               onBlur={() => formik.setFieldTouched('name', true)}
-              errortext={formik.touched.name && formik.errors.name ? formik.errors.name : ''}
+              errortext={
+                formik.touched.name && formik.errors.name
+                  ? formik.errors.name
+                  : ''
+              }
               keyboardType="default"
               maxLength={50}
               marginTop={SH(5)}
             />
 
-            <CustomText style={styles.addressTypeLabel}>{t('addAddress.placeholders.streetAddress') || 'Street Address'}</CustomText>
+            <CustomText style={styles.addressTypeLabel}>
+              {t('addAddress.placeholders.streetAddress') || 'Street Address'}
+            </CustomText>
             <CustomInput
-              placeholder={t('addAddress.placeholders.streetAddress') || 'Street Address'}
+              placeholder={
+                t('addAddress.placeholders.streetAddress') || 'Street Address'
+              }
               value={formik.values.line1}
               onChangeText={(val: string) => formik.setFieldValue('line1', val)}
               onBlur={() => formik.setFieldTouched('line1', true)}
-              errortext={formik.touched.line1 && formik.errors.line1 ? formik.errors.line1 : ''}
+              errortext={
+                formik.touched.line1 && formik.errors.line1
+                  ? formik.errors.line1
+                  : ''
+              }
               keyboardType="default"
               maxLength={80}
               marginTop={SH(5)}
@@ -490,24 +544,43 @@ const AddAddress: React.FC = () => {
             {formik.touched.line1 && formik.errors.line1 && (
               <CustomText style={styles.errorText}>{formik.errors.line1}</CustomText>
             )} */}
-            <CustomText style={styles.label}>{t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}
+            </CustomText>
             <CustomInput
-              placeholder={t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'}
+              placeholder={
+                t('addAddress.placeholders.apartment') || 'Line 2 (Optional)'
+              }
               value={formik.values.line2}
               onChangeText={(val: string) => formik.setFieldValue('line2', val)}
               onBlur={() => formik.setFieldTouched('line2', true)}
-              errortext={formik.touched.line2 && formik.errors.line2 ? formik.errors.line2 : ''}
+              errortext={
+                formik.touched.line2 && formik.errors.line2
+                  ? formik.errors.line2
+                  : ''
+              }
               keyboardType="default"
               maxLength={80}
               marginTop={SH(5)}
             />
-            <CustomText style={styles.label}>{t('addAddress.placeholders.landmark') || 'Landmark (Optional)'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('addAddress.placeholders.landmark') || 'Landmark (Optional)'}
+            </CustomText>
             <CustomInput
-              placeholder={t('addAddress.placeholders.landmark') || 'e.g., Near ABC Shop, Behind XYZ Mall'}
+              placeholder={
+                t('addAddress.placeholders.landmark') ||
+                'e.g., Near ABC Shop, Behind XYZ Mall'
+              }
               value={formik.values.landmark}
-              onChangeText={(val: string) => formik.setFieldValue('landmark', val)}
+              onChangeText={(val: string) =>
+                formik.setFieldValue('landmark', val)
+              }
               onBlur={() => formik.setFieldTouched('landmark', true)}
-              errortext={formik.touched.landmark && formik.errors.landmark ? formik.errors.landmark : ''}
+              errortext={
+                formik.touched.landmark && formik.errors.landmark
+                  ? formik.errors.landmark
+                  : ''
+              }
               keyboardType="default"
               maxLength={80}
               marginTop={SH(5)}
@@ -524,22 +597,32 @@ const AddAddress: React.FC = () => {
               marginTop={SH(5)}
             /> */}
 
-            <CustomText style={styles.label}>{t('addAddress.placeholders.country') || 'Country'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('addAddress.placeholders.country') || 'Country'}
+            </CustomText>
             <CustomInput
               placeholder={t('addAddress.placeholders.country') || 'Country'}
               value={countryName}
-              onChangeText={() => { }} // Read-only, display only
+              onChangeText={() => {}} // Read-only, display only
               onBlur={() => formik.setFieldTouched('country', true)}
-              errortext={formik.touched.country && formik.errors.country ? formik.errors.country : ''}
+              errortext={
+                formik.touched.country && formik.errors.country
+                  ? formik.errors.country
+                  : ''
+              }
               keyboardType="default"
               maxLength={50}
               isEditable={false}
               marginTop={SH(5)}
             />
             {formik.touched.country && formik.errors.country && (
-              <CustomText style={styles.errorText}>{formik.errors.country}</CustomText>
+              <CustomText style={styles.errorText}>
+                {formik.errors.country}
+              </CustomText>
             )}
-            <CustomText style={styles.label}>{t('addAddress.placeholders.city') || 'City'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('addAddress.placeholders.city') || 'City'}
+            </CustomText>
             <Pressable
               onPress={() => {
                 if (isCityDropdownEnabled) {
@@ -551,36 +634,52 @@ const AddAddress: React.FC = () => {
               <CustomInput
                 placeholder={t('addAddress.placeholders.city') || 'City'}
                 value={cityName}
-                onChangeText={() => { }} // Read-only, display only
+                onChangeText={() => {}} // Read-only, display only
                 onBlur={() => formik.setFieldTouched('city', true)}
-                errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
+                errortext={
+                  formik.touched.city && formik.errors.city
+                    ? formik.errors.city
+                    : ''
+                }
                 keyboardType="default"
                 maxLength={50}
-                isEditable={false}
+                editable={false}
+
                 marginTop={SH(5)}
+                rightIcon={imagePaths?.downicon}
               />
             </Pressable>
             {formik.touched.city && formik.errors.city && (
-              <CustomText style={styles.errorText}>{formik.errors.city}</CustomText>
+              <CustomText style={styles.errorText}>
+                {formik.errors.city}
+              </CustomText>
             )}
-            <CustomText style={styles.label}>{t('addAddress.placeholders.zipCode') || 'Pincode'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('addAddress.placeholders.zipCode') || 'Pincode'}
+            </CustomText>
             <CustomInput
               placeholder={t('addAddress.placeholders.zipCode') || 'Pincode'}
               value={formik.values.pincode}
-              onChangeText={(val: string) => formik.setFieldValue('pincode', val)}
+              onChangeText={(val: string) =>
+                formik.setFieldValue('pincode', val)
+              }
               onBlur={() => formik.setFieldTouched('pincode', true)}
-              errortext={formik.touched.pincode && formik.errors.pincode ? formik.errors.pincode : ''}
+              errortext={
+                formik.touched.pincode && formik.errors.pincode
+                  ? formik.errors.pincode
+                  : ''
+              }
               keyboardType="numeric"
               maxLength={12}
               marginTop={SH(5)}
             />
-            {
-              prevScreen !== 'other_user' &&
+            {prevScreen !== 'other_user' && (
               <>
-
-                <CustomText style={styles.addressTypeLabel}>{t('addAddress.placeholders.addressType') || 'Address Type'}</CustomText>
+                <CustomText style={styles.addressTypeLabel}>
+                  {t('addAddress.placeholders.addressType') || 'Address Type'}
+                </CustomText>
                 <View style={styles.addressTypeContainer}>
-                  {addressTypes.map((type) => (
+                  {addressTypes.map(type => (
                     <Checkbox
                       key={type}
                       checked={selectedAddressType === type}
@@ -589,7 +688,10 @@ const AddAddress: React.FC = () => {
                         formik.setFieldValue('addressType', type);
                         // Auto-fill name if empty
                         if (!formik.values.name) {
-                          formik.setFieldValue('name', type.charAt(0).toUpperCase() + type.slice(1));
+                          formik.setFieldValue(
+                            'name',
+                            type.charAt(0).toUpperCase() + type.slice(1),
+                          );
                         }
                         formik.setFieldTouched('addressType', true);
                       }}
@@ -599,7 +701,9 @@ const AddAddress: React.FC = () => {
                   ))}
                 </View>
                 {formik.touched.addressType && formik.errors.addressType && (
-                  <CustomText style={styles.errorText}>{formik.errors.addressType}</CustomText>
+                  <CustomText style={styles.errorText}>
+                    {formik.errors.addressType}
+                  </CustomText>
                 )}
                 <View style={styles.checkboxContainer}>
                   <Checkbox
@@ -610,13 +714,17 @@ const AddAddress: React.FC = () => {
                   />
                 </View>
               </>
-            }
+            )}
             <CustomButton
               buttonStyle={styles.submitButton}
               textColor={Colors.textWhite}
               title={t('addAddress.placeholders.save')}
               onPress={formik.handleSubmit}
-              isLoading={addAddressMutation.isPending || updateAddressMutation.isPending || formik.isSubmitting}
+              isLoading={
+                addAddressMutation.isPending ||
+                updateAddressMutation.isPending ||
+                formik.isSubmitting
+              }
             />
           </View>
         </TouchableWithoutFeedback>

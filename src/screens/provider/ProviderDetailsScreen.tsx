@@ -300,7 +300,10 @@ export default function ProviderDetailsScreen() {
       case 'details':
         return (
           <ProviderDetails
-            aboutUs={businessProfile.description || 'No description available'}
+            aboutUs={
+              businessProfile.description ||
+              t('providerDetails.noDescriptionAvailable')
+            }
             phoneNumber={provider.contact || ''}
             onCall={handleCall}
             facebookUrl={
@@ -357,12 +360,12 @@ export default function ProviderDetailsScreen() {
   return (
     <Container safeArea={true} style={styles.container}>
       <ProviderHeader
-        name={provider.name || 'Provider'}
+        name={provider.name || t('providerDetails.providerDefaultName')}
         logo={provider.profileImage}
       />
       <ProviderSubHeader
         logo={provider.profileImage}
-        name={provider.name || 'Provider'}
+        name={provider.name || t('providerDetails.providerDefaultName')}
         address={
           formatAddress({
             line1: provider.businessProfile?.line1,
@@ -373,9 +376,11 @@ export default function ProviderDetailsScreen() {
             country: provider.businessProfile?.country?.name,
           }) ||
           provider.city?.name ||
-          'Address not available'
+          t('providerDetails.addressNotAvailable')
         }
-        serviceType={businessProfile.name || 'Service Provider'}
+        serviceType={
+          businessProfile.name || t('providerDetails.serviceProviderDefault')
+        }
         rating={provider.rating || undefined}
         reviewCount={0} // TODO: Get from API if available
         onShare={() => console.log('Share pressed')}

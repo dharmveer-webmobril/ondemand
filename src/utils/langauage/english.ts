@@ -72,6 +72,11 @@ export const english = {
     "submit": "Submit",
     "cancel": "Cancel",
     "inputPlaceholder": "Type a message...",
+    "me": "Me",
+    "loadingMessages": "Loading messages...",
+    "loadingChat": "Loading chat...",
+    "loadingOlderMessages": "Loading older messages...",
+    "beginningOfConversation": "Beginning of conversation",
     "noMessages": "No messages yet",
     "noChats": "No recent chats"
   },
@@ -382,7 +387,26 @@ export const english = {
     "deliveryAddress": "Delivery Address",
     "orderSummary": "Order Summary",
     "placeOrder": "Place Order",
-    "addOtherPerson": "Add Other Person"
+    "addOtherPerson": "Add Other Person",
+    "wallet": {
+      "walletBalance": "Wallet balance",
+      "orderTotal": "Order total",
+      "remaining": "Remaining",
+      "fullyCovered": "Fully covered",
+      "insufficientWallet": "Wallet balance does not have enough amount.",
+      "amountFromWallet": "Amount from wallet (max ${max})",
+      "partialWalletError": "You selected partial wallet payment, so please enter an amount less than the order amount.",
+      "remainingPayByCard": "Remaining (pay by card)",
+      "remainingPaymentHint": "Stripe or PayPal will be used for the remaining amount."
+    },
+    "paymentModes": {
+      "cash": "Pay on site",
+      "online": "Online",
+      "walletFull": "Wallet (Full)",
+      "walletPartial": "Wallet (Partial)",
+      "paymentTitle": "Payment"
+    },
+    "noAddressSelected": "No address selected"
   },
   "imagePickerModal": {
     "title": "Select Image",
@@ -617,6 +641,25 @@ export const english = {
       "cancelButton": "Cancel",
       "submitButton": "Submit Review"
     },
+    "memberChangeReasonTitle": "Reason for Change",
+    "memberChangeReasonHint": "Please provide a reason for changing the assigned member (required)",
+    "memberChangeReasonPlaceholder": "Enter reason...",
+    "assignMemberTitle": "Assign Member",
+    "selectMemberTitle": "Select Member",
+    "chooseMemberForService": "Choose a member for this service",
+    "searchMembersPlaceholder": "Search members...",
+    "noMembersFound": "No members found",
+    "memberBusy": "Busy",
+    "memberCurrent": "Current",
+    "cancelBookingTitle": "Cancel Booking",
+    "cancelBookingMessage": "Please provide a reason for canceling (required)",
+    "cancelBookingPlaceholder": "Enter reason for canceling...",
+    "rescheduleBookingTitle": "Reschedule Booking",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "loadingAvailableSlots": "Loading available slots...",
+    "reasonForRescheduling": "Reason for Rescheduling",
+    "rescheduleReasonPlaceholder": "Enter reason for rescheduling...",
     "messages": {
       "error": "Error",
       "providerNotFound": "Provider not found",
@@ -637,6 +680,7 @@ export const english = {
     "serviceNotAvailableMode": "Service is not available for this delivery mode",
     "noDescriptionAvailable": "No description available",
     "addressNotAvailable": "Address not available",
+    "providerDefaultName": "Provider",
     "serviceProviderDefault": "Service Provider",
     "share": "Share"
   },
@@ -667,6 +711,8 @@ export const english = {
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
+    "submit": "Submit",
+    "assign": "Assign",
     "save": "Save",
     "confirm": "Confirm",
     "retry": "Retry",
@@ -694,5 +740,11 @@ export const english = {
     "harassment": "Harassment",
     "fakeProfile": "Fake Profile",
     "other": "Other"
+  },
+  "tabs": {
+    "home": "Home",
+    "profile": "Profile",
+    "message": "Message",
+    "myBookings": "My Bookings"
   }
 }

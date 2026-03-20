@@ -9,6 +9,8 @@ import notifee, {
   Event,
 } from '@notifee/react-native';
 import imagePaths from '@assets';
+import { navigate } from '@utils/NavigationUtils';
+import SCREEN_NAMES from '@navigation/ScreenNames';
 // import { updateFcmToken } from '@services/api/queries/authQueries';
 // import { navigate } from '../navigators/NavigationService';
 // import ScreenName from './screenName';
@@ -44,7 +46,9 @@ export const requestUserPermission = async (): Promise<void> => {
  * Call this whenever app opens / Home is focused to ensure permission and send token to backend.
  * Returns the FCM token if permission granted, null otherwise.
  */
-export const checkPermissionAndGetFcmToken = async (): Promise<string | null> => {
+export const checkPermissionAndGetFcmToken = async (): Promise<
+  string | null
+> => {
   await checkApplicationPermission();
 
   const authStatus = await messaging().requestPermission();
@@ -87,7 +91,8 @@ const onDisplayNotification = async (
   });
 
   const notificationId =
-    remoteMessage.messageId || `fcm_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    remoteMessage.messageId ||
+    `fcm_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
   await notifee.displayNotification({
     id: notificationId,
@@ -96,7 +101,7 @@ const onDisplayNotification = async (
     data: remoteMessage?.data,
     android: {
       channelId,
-      largeIcon:  imagePaths.app_icon,
+      largeIcon: imagePaths.app_icon,
       // smallIcon:  imagePaths.app_icon,
       pressAction: {
         id: 'default',
@@ -124,7 +129,10 @@ export const notificationListener = (): (() => void) => {
 
   messaging().onNotificationOpenedApp(
     (remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
-      console.log('Notification received in background:', JSON.stringify(remoteMessage));
+      console.log(
+        'Notification received in background:',
+        JSON.stringify(remoteMessage),
+      );
       if (remoteMessage) {
         // navigate(ScreenName.NOTIFICATION, {});
       }
@@ -135,7 +143,10 @@ export const notificationListener = (): (() => void) => {
     .getInitialNotification()
     .then((remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
       if (remoteMessage) {
-        console.log('Notification received in background:', JSON.stringify(remoteMessage));
+        console.log(
+          'Notification received in background:',
+          JSON.stringify(remoteMessage),
+        );
         // navigate(ScreenName.NOTIFICATION, {});
       }
     });
@@ -158,7 +169,10 @@ messaging().setBackgroundMessageHandler(
  */
 notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
   const { notification } = detail;
-  console.log('Notification received in background:', JSON.stringify(notification));
+  console.log(
+    'Notification received in background:',
+    JSON.stringify(notification),
+  );
   switch (type) {
     case EventType.DISMISSED:
       console.log('Notification dismissed:', notification?.id);
@@ -175,14 +189,36 @@ notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
  */
 notifee.onForegroundEvent(({ type, detail }: Event) => {
   const { notification } = detail;
-  console.log('Notification received in foreground:', JSON.stringify(detail));
+  // console.log('Notification received in foreground: 179', JSON.stringify(detail));
+  // console.log('Notification received in foreground type: 179', type);
   switch (type) {
-    case EventType.DISMISSED:
+    case 0:
       console.log('Notification dismissed:', notification?.id);
       break;
 
-    case EventType.PRESS:
+    case 1:
+      navigateToNotification(detail, type);
       // navigate(ScreenName.NOTIFICATION, {});
       break;
   }
 });
+
+const navigateToNotification = (notification: any, type: any) => {
+  console.log('Notification received in foreground', type);
+  switch (notification?.notification?.data?.type) {
+    case 'message':
+      navigate(SCREEN_NAMES.CHAT_SCREEN, {
+        conversationId: notification?.notification?.data?.conversationId,
+        bookingId: notification?.notification?.data?.bookingId,
+      });
+      break;
+    case 'booking':
+      navigate(SCREEN_NAMES.BOOKING_DETAIL, {
+        bookingId: notification?.notification?.data?.bookingId,
+      });
+      break;
+    default:
+      navigate(SCREEN_NAMES.NOTIFICATIONS);
+      break;
+  }
+};

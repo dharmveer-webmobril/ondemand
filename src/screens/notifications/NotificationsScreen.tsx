@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Container, AppHeader, CustomText, VectoreIcons } from '@components/common';
 import { useThemeContext } from '@utils/theme';
@@ -78,7 +78,9 @@ export default function NotificationsScreen() {
     await refetch();
     setRefreshing(false);
   }, [refetch]);
-
+useFocusEffect(useCallback(() => {
+  refetch();
+}, [refetch]));
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore && !isFetching) setPage((p) => p + 1);
   }, [loadingMore, hasMore, isFetching]);

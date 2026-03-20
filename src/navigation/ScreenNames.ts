@@ -39,6 +39,7 @@ export const SCREEN_NAMES = {
   ADD_ADDRESS: 'AddAddress',
   SELECT_ADDRESS: 'SelectAddress',
   CATEGORY_PROVIDERS: 'CategoryProviders',
+  CATEGORY_LIST: 'CategoryList',
   PROVIDER_DETAILS: 'ProviderDetails',
   SERVICE_FEE_POLICY: 'ServiceFeePolicy',
   PAYMENT_POLICY: 'PaymentPolicy',
@@ -52,6 +53,8 @@ export const SCREEN_NAMES = {
   WALLET: 'Wallet',
   NOTIFICATIONS: 'Notifications',
   CUSTOMER_SUPPORT: 'CustomerSupport',
+  LANGUAGE_SETTINGS: 'LanguageSettings',
+  MULTI_LANGUAGE_CURRENCY: 'MultiLanguageCurrency',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

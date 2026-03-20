@@ -65,6 +65,8 @@ export default function ProfileScreen() {
       navigation.navigate(SCREEN_NAMES.WALLET as never);
     }else if (item.id === '9') {
       navigation.navigate(SCREEN_NAMES.CUSTOMER_SUPPORT as never);
+    }else if(item.id === '7'){
+      navigation.navigate(SCREEN_NAMES.LANGUAGE_SETTINGS as never);
     } else if (item.id === '10') {
       setShowLogoutModal(true);
     } else {

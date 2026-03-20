@@ -85,7 +85,7 @@ export default function HomeCategoryList({ categories = [], isLoading = false, i
     if (!categories || categories.length === 0) {
         return (
             <View style={styles.stateContainer}>
-                <Text style={styles.emptyText}>No categories available</Text>
+                <Text style={styles.emptyText}>{t('category.empty')}</Text>
             </View>
         );
     }
@@ -96,7 +96,7 @@ export default function HomeCategoryList({ categories = [], isLoading = false, i
     if (activeCategories.length === 0) {
         return (
             <View style={styles.stateContainer}>
-                <Text style={styles.emptyText}>No categories available</Text>
+                <Text style={styles.emptyText}>{t('category.empty')}</Text>
             </View>
         );
     }

@@ -1,7 +1,7 @@
 import { View, StyleSheet, Pressable } from 'react-native'
 import React, { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
+import { CustomText, ImageLoader } from '@components/common';
 
 export interface ChatListItemData {
   id: string;
@@ -19,7 +19,7 @@ interface ChatListItemProps {
   onOptionsPress?: () => void;
 }
 
-export default function ChatListItem({ item, onPress, onOptionsPress }: ChatListItemProps) {
+export default function ChatListItem({ item, onPress }: ChatListItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [_, bookingId] =item?.chatTitle?.split(" - ") ||['','']
@@ -43,7 +43,7 @@ export default function ChatListItem({ item, onPress, onOptionsPress }: ChatList
           <CustomText style={styles.timestampText}>{item.timestamp}</CustomText>
         </View>
         <View style={styles.rightContainer}>
-          <Pressable
+          {/* <Pressable
             style={styles.optionsButton}
             onPress={onOptionsPress}
           >
@@ -53,7 +53,7 @@ export default function ChatListItem({ item, onPress, onOptionsPress }: ChatList
               icon="Ionicons"
               color={theme.colors.lightText}
             />
-          </Pressable>
+          </Pressable> */}
         </View>
       </View>
     </Pressable>

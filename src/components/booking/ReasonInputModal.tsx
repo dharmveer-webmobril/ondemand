@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { CustomText, CustomButton, CustomInput, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
+import { useTranslation } from 'react-i18next';
 
 type ReasonInputModalProps = {
   visible: boolean;
@@ -21,6 +22,7 @@ export default function ReasonInputModal({
 }: ReasonInputModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
 
   const handleSubmit = useCallback(() => {
@@ -52,7 +54,7 @@ export default function ReasonInputModal({
               fontFamily={theme.fonts.SEMI_BOLD}
               color={theme.colors.text}
             >
-              Reason for Change
+              {t('bookingDetails.memberChangeReasonTitle')}
             </CustomText>
             <Pressable onPress={handleClose} style={styles.closeButton}>
               <VectoreIcons
@@ -72,10 +74,10 @@ export default function ReasonInputModal({
               color={theme.colors.lightText}
               marginBottom={theme.SH(12)}
             >
-              Please provide a reason for changing the assigned member (required)
+              {t('bookingDetails.memberChangeReasonHint')}
             </CustomText>
             <CustomInput
-              placeholder="Enter reason..."
+              placeholder={t('bookingDetails.memberChangeReasonPlaceholder')}
               value={reason}
               onChangeText={setReason}
               multiline
@@ -89,7 +91,7 @@ export default function ReasonInputModal({
           {/* Footer Buttons */}
           <View style={styles.footer}>
             <CustomButton
-              title="Cancel"
+              title={t('common.cancel')}
               onPress={handleClose}
               backgroundColor={theme.colors.secondary}
               textColor={theme.colors.text}
@@ -97,7 +99,7 @@ export default function ReasonInputModal({
               marginRight={theme.SW(8)}
             />
             <CustomButton
-              title="Submit"
+              title={t('common.submit')}
               onPress={handleSubmit}
               backgroundColor={theme.colors.primary}
               textColor={theme.colors.white}

@@ -65,7 +65,9 @@ export default function HomeMainList({
   const { t } = useTranslation();
 
   const handleViewAll = (sectionKey: string) => {
-    if (sectionKey === 'provider') {
+    if (sectionKey === 'Categories') {
+      navigate(SCREEN_NAMES.CATEGORY_LIST);
+    } else if (sectionKey === 'provider') {
       // Navigate to CategoryProviders without category filter
       navigate(SCREEN_NAMES.CATEGORY_PROVIDERS);
     } else {

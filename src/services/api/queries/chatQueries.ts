@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../axiosInstance';
 import EndPoints from '../EndPoints';
 
@@ -68,6 +68,29 @@ export interface GetConversationsParams {
  * @param params - Query parameters (page, limit)
  * @param enabled - Whether the query should run
  */
+const CONVERSATIONS_PAGE_SIZE = 10;
+export const useGetConversationsInfinite = (enabled: boolean = true) => {
+  return useInfiniteQuery<ConversationsResponse, Error>({
+    queryKey: ['conversations-infinite'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', String(pageParam));
+      queryParams.append('limit', String(CONVERSATIONS_PAGE_SIZE));
+      const url = `${EndPoints.GET_CONVERSATIONS}?${queryParams.toString()}`;
+      console.log('url-----useGetConversationsInfinite', url);
+      const response = await axiosInstance.get<ConversationsResponse>(url);
+      return response.data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { pagination } = lastPage;
+      if (!pagination || pagination.page >= pagination.pages) return undefined;
+      return pagination.page + 1;
+    },
+    enabled,
+    staleTime: 30000,
+  });
+};
 export const useGetConversations = (params: GetConversationsParams = {}, enabled: boolean = true) => {
   return useQuery<ConversationsResponse, Error>({
     queryKey: ['conversations', params.page, params.limit],

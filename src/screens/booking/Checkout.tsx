@@ -66,29 +66,36 @@ export default function Checkout() {
     Number(walletData?.ResponseData?.balance ?? walletData?.ResponseData?.amount ?? 0) || 0;
 
   const { mutate: createBooking, isPending: isCreatingBooking } = useCreateBooking();
+
   const { runGatewayPayment, isPending: isGatewayPaymentPending } = useGatewayPayment();
 
   const totalPrice = Number.isFinite(bookingData?.totalPrice)
     ? Number(bookingData.totalPrice)
     : 0;
+
   const walletPartialNum = getWalletPartialAmount(
     walletBalance,
     totalPrice,
     walletPartialAmount,
   );
+
   const remainingAfterWallet = getRemainingAfterWallet(totalPrice, walletPartialNum);
+
   const walletFullyCovers = isWalletFullyCovered(totalPrice, walletBalance, paymentMode);
+
   const insufficientWalletBalance = hasInsufficientWalletBalance(
     paymentMode,
     totalPrice,
     walletBalance,
     walletPartialAmount,
   );
+
   const invalidPartialWalletAmount = hasInvalidPartialWalletAmount(
     paymentMode,
     totalPrice,
     walletPartialAmount,
   );
+
   const isLoading = isCreatingBooking || isGatewayPaymentPending;
   const isFormValid = isCheckoutFormValid({
     deliveryMode,
@@ -170,6 +177,7 @@ export default function Checkout() {
         handleApiFailureResponse(route.params.paymentError, t('checkout.failedToCreateBooking'));
         navigation.setParams({ paymentResult: undefined, paymentError: undefined });
       }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
     }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentError]),
   );
 
@@ -323,6 +331,7 @@ export default function Checkout() {
 
   return (
     <Container safeArea={true} style={styles.container}>
+
       <AppHeader
         title={t('checkout.title')}
         onLeftPress={() => navigation.goBack()}
@@ -353,6 +362,7 @@ export default function Checkout() {
           serviceFor={serviceFor}
           onPress={() => setShowServiceForModal(true)}
         />
+        
         <AddressSection
           styles={styles}
           t={t}
@@ -362,8 +372,10 @@ export default function Checkout() {
           selectedAddress={selectedAddress}
           onPress={handleAddAddress}
         />
+
         <PaymentSection
           styles={styles}
+          t={t}
           paymentMode={paymentMode}
           setPaymentMode={setPaymentMode}
           setWalletPartialAmount={setWalletPartialAmount}

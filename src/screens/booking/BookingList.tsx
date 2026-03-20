@@ -11,7 +11,14 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Calendar, DateData } from 'react-native-calendars';
-import { Container, AppHeader, BookingCard, CustomText, LoadingComp, CalendarArrow } from '@components';
+import {
+  Container,
+  AppHeader,
+  BookingCard,
+  CustomText,
+  LoadingComp,
+  CalendarArrow,
+} from '@components';
 import { useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,20 +27,38 @@ import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useGetCustomerBookings } from '@services/api/queries/appQueries';
 import { formatAddress, getStatusColor } from '@utils/tools';
 import imagePaths from '@assets';
-import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
+import {
+  Menu,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger,
+} from 'react-native-popup-menu';
 import { VectoreIcons } from '@components/common';
 
 // Format date from API (YYYY-MM-DD) to display e.g. 06-March-2025
 const formatDate = (dateString: string): string => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
   const day = date.getDate().toString().padStart(2, '0');
   return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
 };
 
 // Format address from booking (t for i18n)
-const formatBookingAddress = (booking: any,): string => {
+const formatBookingAddress = (booking: any): string => {
   console.log('booking.addressId', booking);
 
   const preferences = booking.preferences[0]?.toLowerCase()?.trim();
@@ -41,13 +66,20 @@ const formatBookingAddress = (booking: any,): string => {
   let addressData: any = null;
   if (preferences === 'athome') {
     addressData = booking.addressId;
-  } 
+  }
   if (preferences !== 'athome') {
     addressData = booking.spBusinessProfile;
   }
 
   if (addressData) {
-    return formatAddress({ line1: addressData.line1, line2: addressData.line2, landmark: addressData.landmark, pincode: addressData.pincode, city: addressData.city?.name, country: addressData.country?.name });
+    return formatAddress({
+      line1: addressData.line1,
+      line2: addressData.line2,
+      landmark: addressData.landmark,
+      pincode: addressData.pincode,
+      city: addressData.city?.name,
+      country: addressData.country?.name,
+    });
   }
   return '';
 };
@@ -59,9 +91,11 @@ const bookingStatusOptions = [
   { value: 'accepted', labelKey: 'myBookingScreen.filter.accepted' },
   { value: 'ongoing', labelKey: 'myBookingScreen.filter.ongoing' },
   { value: 'completed', labelKey: 'myBookingScreen.filter.completed' },
-  { value: 'cancelledByCustomer', labelKey: 'myBookingScreen.filter.cancelledByYou' },
-  { value: 'cancelledBySp', labelKey: 'myBookingScreen.filter.cancelledByProvider' },
+  { value: 'cancelledByCustomer',labelKey: 'myBookingScreen.filter.cancelledByYou',},
+  { value: 'cancelledBySp',labelKey: 'myBookingScreen.filter.cancelledByProvider',},
   { value: 'rejected', labelKey: 'myBookingScreen.filter.rejected' },
+  { value: 'rescheduledByCustomer', label: 'Rescheduled by Customer' },
+  { value: 'rescheduledBySp', label: 'Rescheduled by SP' },
 ];
 
 const MONTH_NAMES = [
@@ -84,7 +118,20 @@ const formatDateDisplay = (dateStr: string): string => {
     const date = new Date(`${dateStr}T12:00:00`);
     if (Number.isNaN(date.getTime())) return dateStr;
     const day = date.getDate();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return `${day} ${months[date.getMonth()]} ${date.getFullYear()}`;
   } catch {
     return dateStr;
@@ -120,6 +167,7 @@ export default function BookingList() {
     getFirstDayOfMonth(''),
   );
   const [refreshing, setRefreshing] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [allBookings, setAllBookings] = useState<any[]>([]);
 
@@ -140,8 +188,9 @@ export default function BookingList() {
   useEffect(() => {
     const nextPageBookings = bookingsData?.ResponseData ?? [];
 
-    setAllBookings((prev) => {
+    setAllBookings(prev => {
       if (page === 1) {
+        setPageLoading(true);
         return nextPageBookings;
       }
 
@@ -157,26 +206,44 @@ export default function BookingList() {
   useEffect(() => {
     if (!bookingsFetching) {
       setRefreshing(false);
+      setTimeout(() => {
+        setPageLoading(false);
+      }, 700);
     }
   }, [bookingsFetching]);
 
   // Transform API bookings to BookingItem format
   const transformedBookings = useMemo(() => {
-    if (!allBookings.length) return [];
+    if (!allBookings.length){
+      setPageLoading(false);
+      return [];
+    } 
     return allBookings.map((booking: any): any => {
       const bookingData = booking as any;
       return {
         id: booking._id,
-        bookingId: bookingData?.bookingId || booking._id?.slice(-8)?.toUpperCase() || '—',
-        friendName: booking.bookedFor === 'other' ? booking.bookedForDetails?.name : undefined,
+        bookingId:
+          bookingData?.bookingId ||
+          booking._id?.slice(-8)?.toUpperCase() ||
+          '—',
+        friendName:
+          booking.bookedFor === 'other'
+            ? booking.bookedForDetails?.name
+            : undefined,
         status: booking.bookingStatus || 'requested',
         statusColor: getStatusColor(booking.bookingStatus),
         date: formatDate(booking.date),
         time: booking.time || '',
         shopName: booking.spId?.name || t('bookingList.serviceProviderDefault'),
         address: formatBookingAddress(booking),
-        price: `$${(booking.discountedAmount ?? booking.totalAmount ?? 0).toFixed(2)}`,
-        image: booking?.spBusinessProfile?.bannerImage ? { uri: booking.spBusinessProfile.bannerImage } : imagePaths.no_image,
+        price: `$${(
+          booking.discountedAmount ??
+          booking.totalAmount ??
+          0
+        ).toFixed(2)}`,
+        image: booking?.spBusinessProfile?.bannerImage
+          ? { uri: booking.spBusinessProfile.bannerImage }
+          : imagePaths.no_image,
         originalBooking: booking,
       };
     });
@@ -211,11 +278,11 @@ export default function BookingList() {
   }, []);
 
   const goToPrevMonth = useCallback(() => {
-    setCalendarViewingMonth((prev) => addMonths(prev, -1));
+    setCalendarViewingMonth(prev => addMonths(prev, -1));
   }, []);
 
   const goToNextMonth = useCallback(() => {
-    setCalendarViewingMonth((prev) => addMonths(prev, 1));
+    setCalendarViewingMonth(prev => addMonths(prev, 1));
   }, []);
 
   const handleDateSelect = useCallback((day: DateData) => {
@@ -244,7 +311,7 @@ export default function BookingList() {
       return;
     }
 
-    setPage((prev) => prev + 1);
+    setPage(prev => prev + 1);
   }, [bookingsFetching, bookingsLoading, refreshing, hasMorePages]);
 
   // Refetch list when screen gains focus (e.g. after checkout or returning from detail).
@@ -253,7 +320,7 @@ export default function BookingList() {
     useCallback(() => {
       setPage(1);
       refetchBookings();
-    }, [refetchBookings])
+    }, [refetchBookings]),
   );
 
   const handleBookAgain = useCallback((bookingId: string) => {
@@ -269,7 +336,11 @@ export default function BookingList() {
   }, []);
 
   return (
-    <Container safeArea={false} statusBarColor={theme.colors.white} style={styles.container}>
+    <Container
+      safeArea={false}
+      statusBarColor={theme.colors.white}
+      style={styles.container}
+    >
       <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <AppHeader
           title={t('myBookingScreen.headerTitle')}
@@ -297,13 +368,17 @@ export default function BookingList() {
               <MenuTrigger>
                 <View style={styles.filterButton}>
                   <CustomText style={styles.filterButtonText}>
-                    {t(bookingStatusOptions?.find(option => option.value === selectedStatus)?.labelKey || 'myBookingScreen.filter.allBookings')}
+                    {t(
+                      bookingStatusOptions?.find(
+                        option => option.value === selectedStatus,
+                      )?.labelKey || 'myBookingScreen.filter.allBookings',
+                    )}
                   </CustomText>
                   <CustomText style={styles.filterIcon}>▼</CustomText>
                 </View>
               </MenuTrigger>
               <MenuOptions optionsContainerStyle={styles.menuOptions}>
-                {bookingStatusOptions.map((option) => {
+                {bookingStatusOptions.map(option => {
                   const isSelected = selectedStatus === option.value;
                   return (
                     <MenuOption
@@ -329,7 +404,10 @@ export default function BookingList() {
             </Menu>
           </View>
 
-          <TouchableOpacity style={styles.calendarButton} onPress={openCalendarModal}>
+          <TouchableOpacity
+            style={styles.calendarButton}
+            onPress={openCalendarModal}
+          >
             <VectoreIcons
               name="calendar-outline"
               icon="Ionicons"
@@ -348,7 +426,7 @@ export default function BookingList() {
       ) : (
         <FlatList
           data={currentBookings}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           renderItem={({ item }) => (
             <BookingCard
               bookingId={item.bookingId}
@@ -382,16 +460,18 @@ export default function BookingList() {
             />
           }
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <CustomText
-                fontSize={theme.fontSize.md}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.gray || '#666666'}
-                textAlign="center"
-              >
-                {t('myBookingScreen.messages.noBookings')}
-              </CustomText>
-            </View>
+            !setPageLoading ? (
+              <View style={styles.emptyContainer}>
+                <CustomText
+                  fontSize={theme.fontSize.md}
+                  fontFamily={theme.fonts.REGULAR}
+                  color={theme.colors.gray || '#666666'}
+                  textAlign="center"
+                >
+                  {t('myBookingScreen.messages.noBookings')}
+                </CustomText>
+              </View>
+            ) : null
           }
           ListFooterComponent={
             bookingsFetching && page > 1 ? (
@@ -471,7 +551,12 @@ export default function BookingList() {
               )}
               markedDates={
                 selectedDate
-                  ? { [selectedDate]: { selected: true, selectedColor: theme.colors.primary } }
+                  ? {
+                      [selectedDate]: {
+                        selected: true,
+                        selectedColor: theme.colors.primary,
+                      },
+                    }
                   : {}
               }
               theme={{
@@ -574,7 +659,8 @@ const createStyles = (theme: any) =>
       paddingVertical: theme.SH(12),
     },
     menuOptionSelected: {
-      backgroundColor: theme.colors.primary_light || theme.colors.secondary || '#E3F2FD',
+      backgroundColor:
+        theme.colors.primary_light || theme.colors.secondary || '#E3F2FD',
     },
     menuOptionText: {
       fontSize: theme.fontSize.sm,

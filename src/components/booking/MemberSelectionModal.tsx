@@ -10,6 +10,7 @@ import {
 import { CustomText, CustomButton, VectoreIcons, ImageLoader, CustomInput } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
+import { useTranslation } from 'react-i18next';
 
 export type Member = {
   id: string;
@@ -87,6 +88,7 @@ export default function MemberSelectionModal({
 }: MemberSelectionModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -160,7 +162,7 @@ export default function MemberSelectionModal({
                     fontFamily={theme.fonts.SEMI_BOLD}
                     color={theme.colors.white}
                   >
-                    Busy
+                    {t('bookingDetails.memberBusy')}
                   </CustomText>
                 </View>
               )}
@@ -181,7 +183,7 @@ export default function MemberSelectionModal({
                       fontFamily={theme.fonts.SEMI_BOLD}
                       color={theme.colors.primary}
                     >
-                      Current
+                      {t('bookingDetails.memberCurrent')}
                     </CustomText>
                   </View>
                 )}
@@ -250,7 +252,9 @@ export default function MemberSelectionModal({
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
               >
-                {serviceName ? `Assign Member - ${serviceName}` : 'Select Member'}
+                {serviceName
+                  ? `${t('bookingDetails.assignMemberTitle')} - ${serviceName}`
+                  : t('bookingDetails.selectMemberTitle')}
               </CustomText>
               {serviceName && (
                 <CustomText
@@ -259,7 +263,7 @@ export default function MemberSelectionModal({
                   color={theme.colors.lightText}
                   marginTop={theme.SH(4)}
                 >
-                  Choose a member for this service
+                  {t('bookingDetails.chooseMemberForService')}
                 </CustomText>
               )}
             </View>
@@ -276,7 +280,7 @@ export default function MemberSelectionModal({
           {/* Search Bar */}
           <View style={styles.searchContainer}>
             <CustomInput
-              placeholder="Search members..."
+              placeholder={t('bookingDetails.searchMembersPlaceholder')}
               value={searchQuery}
               onChangeText={setSearchQuery}
               inputTheme="default"
@@ -299,7 +303,7 @@ export default function MemberSelectionModal({
                   color={theme.colors.lightText}
                   textAlign="center"
                 >
-                  No members found
+                  {t('bookingDetails.noMembersFound')}
                 </CustomText>
               </View>
             }
@@ -308,7 +312,7 @@ export default function MemberSelectionModal({
           {/* Footer Buttons */}
           <View style={styles.footer}>
             <CustomButton
-              title="Cancel"
+              title={t('common.cancel')}
               onPress={onClose}
               backgroundColor={theme.colors.secondary}
               textColor={theme.colors.text}
@@ -316,7 +320,7 @@ export default function MemberSelectionModal({
               marginRight={theme.SW(8)}
             />
             <CustomButton
-              title="Assign"
+              title={t('common.assign')}
               onPress={handleSelect}
               backgroundColor={theme.colors.primary}
               textColor={theme.colors.white}
