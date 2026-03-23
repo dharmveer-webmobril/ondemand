@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native'
+import { View,  Image } from 'react-native'
 import React from 'react'
 import imagePaths from '@assets';
 import { useThemeContext } from '@utils/theme';
@@ -16,20 +16,20 @@ export default function TabImages({ name, focused }: TabProps & IconProp) {
     const getIconName = () => {
         switch (name) {
             case "Home":
-                return focused ? imagePaths.home_tab : imagePaths.home_tab;
+                return focused ? imagePaths.home_tab_active : imagePaths.home_tab_inactive;
             case "Profile":
-                return focused ? imagePaths.profile_tab : imagePaths.profile_tab;
-            case "ChatScreen":
-                return focused ? imagePaths.message_tab : imagePaths.message_tab;
+                return focused ? imagePaths.profile_tab_active : imagePaths.profile_tab_inactive;
+            case "InboxScreen":
+                return focused ? imagePaths.message_tab_active : imagePaths.message_tab_inactive;
             case "BookingList":
-                return focused ? imagePaths.mybooking_tab : imagePaths.mybooking_tab;
+                return focused ? imagePaths.mybooking_tab_active : imagePaths.mybooking_tab_inactive;
             default:
-                return imagePaths.mybooking_tab;
+                return imagePaths.home_tab_inactive;
         }
     };
     return (
         <View>
-            <Image source={getIconName()} style={{ height: 30, width: 30, tintColor: focused ? theme.colors.primary : theme.colors.lightText }} />
+            <Image source={getIconName()} style={{ height: 24, width: 24, tintColor: focused ? theme.colors.primary : theme.colors.lightText }} />
         </View>
     )
 }

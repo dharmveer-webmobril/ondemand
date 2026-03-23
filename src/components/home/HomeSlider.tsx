@@ -85,7 +85,7 @@ export default function HomeSlider({ banners = [], isLoading = false, isError = 
                     <View style={[styles.slide]} key={banner._id}>
                         <ImageLoader
                             source={{ uri: banner.image }}
-                            resizeMode="contain"
+                            resizeMode="stretch"
                             mainImageStyle={styles.image}
                             />
                     </View>
@@ -103,7 +103,7 @@ const createStyles = (theme: ThemeType) => {
             flex: 1,
         },
         wrapper: {
-            height: SF(120),
+            height: SF(140),
         },
         dot: {
             backgroundColor: Colors.gray,
@@ -127,7 +127,7 @@ const createStyles = (theme: ThemeType) => {
             bottom: 0,
         },
         slide: {
-            height: SF(120),
+            height: SF(140),
             borderRadius: SF(10),
             overflow: 'hidden',
             backgroundColor:theme.colors.secondary,
@@ -138,7 +138,7 @@ const createStyles = (theme: ThemeType) => {
             borderRadius: SF(10),
         },
         loaderContainer: {
-            height: SF(120),
+            height: SF(140),
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: '#F5F5F5',

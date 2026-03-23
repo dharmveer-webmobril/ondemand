@@ -1,4 +1,15 @@
 const imagePaths = {
+
+  home_tab_active: require('./icons/home_tab_active.png'),
+  home_tab_inactive: require('./icons/home_tab_inactive.png'),
+  mybooking_tab_active: require('./icons/mybooking_tab_active.png'),
+  mybooking_tab_inactive: require('./icons/mybooking_tab_inactive.png'),
+  message_tab_active: require('./icons/message_tab_active.png'),
+  message_tab_inactive: require('./icons/message_tab_inactive.png'),
+  profile_tab_active: require('./icons/profile_tab_active.png'),
+  profile_tab_inactive: require('./icons/profile_tab_inactive.png'),
+
+  
   home_tab: require('./icons/home_tab.png'),
   mybooking_tab: require('./icons/mybooking_tab.png'),
   message_tab: require('./icons/message_tab.png'),

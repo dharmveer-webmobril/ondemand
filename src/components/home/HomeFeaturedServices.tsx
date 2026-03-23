@@ -3,7 +3,6 @@ import {
   View,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -11,6 +10,7 @@ import { CustomText, CustomButton } from '@components/common';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import FeaturedServiceCard from './FeaturedServiceCard';
+import HomeFeaturedServicesSkeleton from './HomeFeaturedServicesSkeleton';
 import type {
   FeaturedServiceItem,
   FeaturedListType,
@@ -98,9 +98,7 @@ export default function HomeFeaturedServices({
       </View>
 
       {isLoading ? (
-        <View style={styles.loader}>
-          <ActivityIndicator size="small" color={theme.colors.primary} />
-        </View>
+        <HomeFeaturedServicesSkeleton />
       ) : isError ? (
         <View style={styles.errorBox}>
           <CustomText

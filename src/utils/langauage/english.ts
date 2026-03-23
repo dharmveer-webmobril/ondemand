@@ -750,7 +750,7 @@ export const english = {
   "tabs": {
     "home": "Home",
     "profile": "Profile",
-    "message": "Message",
+    "message": "Messages",
     "myBookings": "My Bookings"
   }
 }

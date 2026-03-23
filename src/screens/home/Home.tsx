@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { StatusBar, View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -24,9 +24,14 @@ export default function Home() {
   const { t } = useTranslation();
   const authToken = useAppSelector(state => state.auth.token);
 
-  // Whenever Home is focused (app open / user navigates to Home): check permission and update FCM token on backend
+  // Whenever Home is focused: apply status bar style and update FCM token.
   useFocusEffect(
     useCallback(() => {
+      StatusBar.setBarStyle('light-content');
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('#009BFF');
+      }
+
       let cancelled = false;
       const run = async () => {
         if (!authToken) return;
@@ -50,18 +55,17 @@ export default function Home() {
   );
   const [refreshing, setRefreshing] = useState(false);
   const [isCityUpdating, setIsCityUpdating] = useState(false);
+  const [isInitialHomeLoad, setIsInitialHomeLoad] = useState(true);
 
   // Fetch categories and banners
   const {
     data: categoriesData,
-    isLoading: categoriesLoading,
     isError: categoriesError,
     refetch: refetchCategories,
   } = useGetCategories();
 
   const {
     data: bannersData,
-    isLoading: bannersLoading,
     isError: bannersError,
     refetch: refetchBanners,
   } = useGetBanners();
@@ -69,14 +73,12 @@ export default function Home() {
   const currentCityId = useAppSelector(state => state.app.userCity)?._id;
   const {
     data: providersData,
-    isFetching: providerLoading,
     isError: providerError,
     refetch: providerReftech,
   } = useGetServiceProviders({ page: 1, limit: 10, currentCityId });
 
   const {
     data: featuredData,
-    isLoading: featuredLoading,
     isError: featuredError,
     refetch: refetchFeatured,
   } = useGetTopRatedAndTopOfferedServices({
@@ -84,10 +86,36 @@ export default function Home() {
     page: 1,
     limit: 15,
   });
+
+  const isInitialDataSettled = useMemo(() => {
+    const categoriesSettled = !!categoriesData || categoriesError;
+    const bannersSettled = !!bannersData || bannersError;
+    const providersSettled = !!providersData || providerError;
+    const featuredSettled = !currentCityId || !!featuredData || featuredError;
+    return categoriesSettled && bannersSettled && providersSettled && featuredSettled;
+  }, [
+    categoriesData,
+    categoriesError,
+    bannersData,
+    bannersError,
+    providersData,
+    providerError,
+    featuredData,
+    featuredError,
+    currentCityId,
+  ]);
+
+  useEffect(() => {
+    if (isInitialHomeLoad && isInitialDataSettled) {
+      setIsInitialHomeLoad(false);
+    }
+  }, [isInitialHomeLoad, isInitialDataSettled]);
+
+  // Keep all home sections in skeleton state together on first load.
+  const showInitialSkeleton = isInitialHomeLoad && !isInitialDataSettled;
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-
     try {
       await Promise.all([
         refetchCategories(),
@@ -124,12 +152,11 @@ export default function Home() {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.safeArea}>
        <StatusBar
           translucent
           backgroundColor="#009BFF"
           barStyle="light-content"
-          // edges={['top']}
         />
       <View style={styles.container}>
        
@@ -151,19 +178,19 @@ export default function Home() {
           refreshing={refreshing}
           onRefresh={onRefresh}
           categoriesData={categoriesData}
-          categoriesLoading={categoriesLoading}
+          categoriesLoading={showInitialSkeleton}
           categoriesError={categoriesError}
           onRetryCategories={refetchCategories}
           bannersData={bannersData}
-          bannersLoading={bannersLoading}
+          bannersLoading={showInitialSkeleton}
           bannersError={bannersError}
           onRetryBanners={refetchBanners}
           featuredData={featuredData}
-          featuredLoading={featuredLoading}
+          featuredLoading={showInitialSkeleton}
           featuredError={featuredError}
           onRetryFeatured={refetchFeatured}
           providersData={providersData}
-          providersLoading={providerLoading}
+          providersLoading={showInitialSkeleton}
           providersError={providerError}
           onRetryProviders={providerReftech}
         />
@@ -174,6 +201,9 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',

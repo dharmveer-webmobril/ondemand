@@ -136,7 +136,7 @@ const createStyles = (theme: ThemeType) => {
             height: SF(65),
             width: SF(65),
             borderRadius: SF(65) / 2,
-            borderWidth: 1,
+            borderWidth: 1.7,
             borderColor: Colors.primary,
             overflow: 'hidden',
         },
@@ -146,7 +146,7 @@ const createStyles = (theme: ThemeType) => {
         },
         text: {
             color: Colors.text,
-            fontFamily: Fonts.MEDIUM,
+            fontFamily: Fonts.SEMI_BOLD,
             fontSize: SF(12),
             marginTop: 5,
             maxWidth: SW(80),

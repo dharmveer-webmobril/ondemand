@@ -1,8 +1,8 @@
 import { View, StyleSheet, Pressable, Image, TextInput } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import  { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import {  VectoreIcons } from '@components/common';
+import { VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 
 type HomeSearchBarProps = {
@@ -30,27 +30,7 @@ export default function HomeSearchBar({
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.searchContainer,
-          {
-            backgroundColor: '#fff',
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingLeft: theme.SF(10),
-            borderRadius: theme.SF(10),
-            shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.25,
-            shadowRadius: 3.84,
-
-            elevation: 5,
-          },
-        ]}
-      >
+      <View style={styles.searchContainer}>
         <VectoreIcons
           name="search"
           size={theme.SF(20)}
@@ -61,10 +41,7 @@ export default function HomeSearchBar({
           placeholder={placeholder || t('home.search')}
           value={searchText}
           onChangeText={handleSearchChange}
-          style={{
-            paddingVertical: theme.SF(12),
-            paddingHorizontal: theme.SF(5),
-          }}
+          style={styles.searchInput}
         />
       </View>
       <Pressable style={styles.filterButton} onPress={onFilterPress}>
@@ -86,11 +63,28 @@ const createStyles = (theme: ThemeType) => {
       alignItems: 'center',
       paddingHorizontal: SW(20),
       paddingTop: SH(12),
-      // backgroundColor: Colors.white,
       gap: SW(12),
       marginTop: -SH(30),
     },
     searchContainer: {
+      flex: 1,
+      backgroundColor: '#fff',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingLeft: theme.SF(10),
+      borderRadius: theme.SF(10),
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    searchInput: {
+      paddingVertical: theme.SF(12),
+      paddingHorizontal: theme.SF(5),
       flex: 1,
     },
     filterButton: {
