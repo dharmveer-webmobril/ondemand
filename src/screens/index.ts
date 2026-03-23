@@ -1,5 +1,6 @@
 export * from './auth'
 export { default as Home } from './home/Home'
+export { default as FeaturedServicesList } from './home/FeaturedServicesList'
 export { default as ChatScreen } from './chat/ChatScreen'
 export { default as InboxScreen } from './chat/InboxScreen'
 export { default as ProfileScreen } from './profile/ProfileScreen'

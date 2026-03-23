@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen, NotificationsScreen, CustomerSupport, LanguageSettings, CurrencySelection } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen, NotificationsScreen, CustomerSupport, LanguageSettings, CurrencySelection } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -32,6 +32,7 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.SELECT_ADDRESS} component={SelectAddress} />
         <Stack.Screen name={SCREEN_NAMES.CATEGORY_PROVIDERS} component={CategoryProviders} />
         <Stack.Screen name={SCREEN_NAMES.CATEGORY_LIST} component={CategoryList} />
+        <Stack.Screen name={SCREEN_NAMES.FEATURED_SERVICES_LIST} component={FeaturedServicesList} />
         <Stack.Screen name={SCREEN_NAMES.PROVIDER_DETAILS} component={ProviderDetailsScreen} />
         <Stack.Screen name={SCREEN_NAMES.SERVICE_FEE_POLICY} component={ServiceFeePolicy} />
         <Stack.Screen name={SCREEN_NAMES.PAYMENT_POLICY} component={PaymentPolicy} />

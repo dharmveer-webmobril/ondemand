@@ -40,6 +40,7 @@ export const SCREEN_NAMES = {
   SELECT_ADDRESS: 'SelectAddress',
   CATEGORY_PROVIDERS: 'CategoryProviders',
   CATEGORY_LIST: 'CategoryList',
+  FEATURED_SERVICES_LIST: 'FeaturedServicesList',
   PROVIDER_DETAILS: 'ProviderDetails',
   SERVICE_FEE_POLICY: 'ServiceFeePolicy',
   PAYMENT_POLICY: 'PaymentPolicy',

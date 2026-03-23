@@ -93,7 +93,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
   }
 
   return (
-    <View style={styles.container}>
+    <>
       <FlatList
         data={providers}
         horizontal
@@ -118,21 +118,18 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
           <CustomText style={styles.viewAllText}>View All</CustomText>
         </Pressable>
       )}
-    </View>
+    </>
   );
 }
 
 const createStyles = (theme: any) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
   return StyleSheet.create({
-    container: {
-      marginTop: -SH(35),
-    },
+  
     listContent: {
       paddingHorizontal: SW(18),
       paddingRight: SW(20),
       marginVertical: SH(8),
-      paddingTop: SH(15),
     },
     loaderContainer: {
       paddingVertical: SH(40),

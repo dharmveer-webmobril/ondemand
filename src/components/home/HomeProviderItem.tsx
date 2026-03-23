@@ -1,7 +1,6 @@
-import { View, StyleSheet, Pressable } from 'react-native'
-import React, { useMemo } from 'react'
+import { View, StyleSheet, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import StarRating from 'react-native-star-rating-widget';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import { ServiceProvider } from '@services/api/queries/appQueries';
@@ -12,15 +11,39 @@ type HomeProviderItemProps = {
   onPress?: () => void;
 };
 
-export default function HomeProviderItem({ provider, onPress }: HomeProviderItemProps) {
+const AVATAR_SIZE = 56;
+const COVER_HEIGHT = 128;
+
+export default function HomeProviderItem({
+  provider,
+  onPress,
+}: HomeProviderItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const address = formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '';
-  const rating = typeof provider?.rating === 'number' ? provider.rating : 0;
-  const bannerImage = provider.businessProfile?.bannerImage ? { uri: provider.businessProfile?.bannerImage } : imagePaths.no_image;
-  const serviceType = provider.businessProfile?.name || 'Service Provider';
-  console.log('------bannerImage------->', bannerImage);
+  const address =
+    formatAddress({
+      line1: provider.businessProfile?.line1,
+      line2: provider.businessProfile?.line2,
+      landmark: provider.businessProfile?.landmark,
+      pincode: provider.businessProfile?.pincode,
+      city: provider.businessProfile?.city?.name,
+      country: provider.businessProfile?.country?.name,
+    }) ||
+    provider.city?.name ||
+    '';
+
+  const rating =
+    typeof provider?.rating === 'number' ? provider.rating : null;
+
+  const coverSource = provider.businessProfile?.bannerImage
+    ? { uri: provider.businessProfile.bannerImage }
+    : imagePaths.no_image;
+
+  const profileSource = provider.profileImage
+    ? { uri: provider.profileImage }
+    : imagePaths.no_image;
+
   return (
     <Pressable
       onPress={onPress}
@@ -29,211 +52,174 @@ export default function HomeProviderItem({ provider, onPress }: HomeProviderItem
         pressed && styles.pressedContainer,
       ]}
     >
-      {/* Banner Image */}
-      {/* {  (
-        <View style={styles.bannerContainer}>
+      <View style={styles.coverSection}>
+        <View style={styles.coverImageClip}>
           <ImageLoader
-            source={bannerImage ? { uri: bannerImage } : imagePaths.no_image}
-            mainImageStyle={styles.bannerImage}
+            source={coverSource}
+            mainImageStyle={styles.coverImage}
             resizeMode="cover"
           />
-          {isVerified && (
-            <View style={styles.verifiedBadge}>
-              <Image source={imagePaths.verified_star} style={styles.verifiedIcon} resizeMode="contain" />
+        </View>
+        <View style={styles.avatarWrap}>
+          <ImageLoader
+            source={profileSource}
+            mainImageStyle={styles.avatarImage}
+            resizeMode="cover"
+          />
+        </View>
+      </View>
+
+      <View style={styles.bottomSection}>
+        <CustomText style={styles.providerName} numberOfLines={2}>
+          {provider.name}
+        </CustomText>
+
+        <View style={styles.metaRow}>
+          <View style={styles.addressBlock}>
+            <VectoreIcons
+              name="location-outline"
+              icon="Ionicons"
+              size={theme.SF(16)}
+              color={theme.colors.lightText || '#888'}
+            />
+            <CustomText style={styles.addressText} numberOfLines={2}>
+              {address || '—'}
+            </CustomText>
+          </View>
+          {rating != null && rating > 0 ? (
+            <View style={styles.ratingBlock}>
+              <VectoreIcons
+                name="star"
+                icon="Ionicons"
+                size={theme.SF(16)}
+                color="#FAAC00"
+              />
+              <CustomText style={styles.ratingText}>
+                {rating.toFixed(1)}
+              </CustomText>
+            </View>
+          ) : (
+            <View style={styles.ratingBlock}>
+              <VectoreIcons
+                name="star-outline"
+                icon="Ionicons"
+                size={theme.SF(16)}
+                color={theme.colors.lightText || '#CCC'}
+              />
+              <CustomText style={styles.ratingMuted}>—</CustomText>
             </View>
           )}
         </View>
-      )} */}
-
-      {/* Content Section */}
-      <View style={styles.content}>
-        {/* Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileImageContainer}>
-            <View style={styles.profileImageWrapper}>
-              <ImageLoader
-                source={bannerImage}
-                mainImageStyle={styles.profileImage}
-                resizeMode="cover"
-              />
-            </View>
-          </View>
-          <View style={styles.profileInfo}>
-            <CustomText style={styles.providerName} numberOfLines={1}>
-              {provider.name}
-            </CustomText>
-            {serviceType && (
-              <CustomText style={styles.serviceType} numberOfLines={1}>
-                {serviceType}
-              </CustomText>
-            )}
-          </View>
-        </View>
-
-        {/* Rating Section */}
-        {rating > 0 && (
-          <View style={styles.ratingSection}>
-            <StarRating
-              starStyle={styles.starStyle}
-              starSize={theme.SF(14)}
-              rating={rating}
-              onChange={() => { }}
-              color="#FAAC00"
-            />
-            <CustomText style={styles.ratingText}>
-              {typeof rating === 'number' ? rating.toFixed(1) : '0.0'}
-            </CustomText>
-          </View>
-        )}
-
-        {/* Address Section */}
-        {address && (
-          <View style={styles.addressSection}>
-            <VectoreIcons
-              name="location"
-              icon="Ionicons"
-              size={theme.SF(14)}
-              color={theme.colors.textAppColor || theme.colors.text}
-            />
-            <CustomText style={styles.addressText} numberOfLines={2}>
-              {address}
-            </CustomText>
-          </View>
-        )}
       </View>
     </Pressable>
   );
 }
+
 const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
+  const overlap = AVATAR_SIZE / 2;
+
   return StyleSheet.create({
     container: {
-      width: SW(220),
-      marginRight: SW(16),
+      width: SW(260),
+      marginRight: SW(14),
       backgroundColor: Colors.white,
       borderRadius: SF(16),
-      overflow: 'hidden',
+      overflow: 'visible',
       shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.12,
       shadowRadius: 8,
-      elevation: 4,
-
+      elevation: 5,
     },
     pressedContainer: {
-      opacity: 0.9,
-      transform: [{ scale: 0.98 }],
+      opacity: 0.94,
+      transform: [{ scale: 0.99 }],
     },
-    bannerContainer: {
-      width: '100%',
-      height: SF(100),
+    coverSection: {
       position: 'relative',
     },
-    profileImageWrapper: {
-      width: SF(50),
-      height: SF(50),
-      borderRadius: SF(25),
-      borderWidth: 1,
-      borderColor: Colors.primary,
+    coverImageClip: {
+      height: COVER_HEIGHT,
+      borderTopLeftRadius: SF(16),
+      borderTopRightRadius: SF(16),
       overflow: 'hidden',
     },
-    profileImage: {
+    coverImage: {
       width: '100%',
-      height: '100%',
+      height: COVER_HEIGHT,
     },
-    verifiedIcon: {
-      width: SF(16),
-      height: SF(16),
-    },
-    content: {
-      padding: SW(12),
-    },
-    profileSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: SH(12),
-    },
-    profileImageContainer: {
-      position: 'relative',
-      marginRight: SW(10),
-    },
-    bannerImage: {
-      width: '100%',
-      height: '100%',
-    },
-    verifiedBadge: {
+    avatarWrap: {
       position: 'absolute',
-      top: SF(8),
-      right: SF(8),
+      bottom: -overlap,
+      right: SW(12),
+      width: AVATAR_SIZE,
+      height: AVATAR_SIZE,
+      borderRadius: AVATAR_SIZE / 2,
+      borderWidth: 3,
+      borderColor: Colors.white,
       backgroundColor: Colors.white,
-      borderRadius: SF(16),
-      padding: SF(4),
+      overflow: 'hidden',
+      zIndex: 2,
+      elevation: 6,
       shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 2,
-      elevation: 2,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
     },
-
-    verifiedBadgeSmall: {
-      position: 'absolute',
-      // bottom: -SF(2),
-      // right: -SF(2),
-      backgroundColor: Colors.white,
-      borderRadius: SF(10),
-      padding: SF(2),
-      borderWidth: 1,
-      borderColor: Colors.primary,
+    avatarImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: AVATAR_SIZE / 2,
     },
-    verifiedIconSmall: {
-      width: SF(12),
-      height: SF(12),
-    },
-    profileInfo: {
-      flex: 1,
+    bottomSection: {
+      paddingHorizontal: SW(12),
+      paddingTop: SH(6),
+      paddingBottom: SH(12),
     },
     providerName: {
-      fontSize: SF(15),
-      fontFamily: Fonts.SEMI_BOLD,
+      fontSize: SF(16),
+      fontFamily: Fonts.BOLD,
       color: Colors.text,
-      marginBottom: SH(2),
+      marginBottom: SH(8),
+      paddingRight: SW(4),
     },
-    serviceType: {
-      fontSize: SF(11),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.primary,
-    },
-    ratingSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: SH(10),
-      gap: SW(6),
-    },
-    ratingText: {
-      fontSize: SF(13),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.text,
-    },
-    starStyle: {
-      marginHorizontal: 1,
-    },
-    addressSection: {
+    metaRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      gap: SW(6),
+      justifyContent: 'space-between',
+      gap: SW(8),
+    },
+    addressBlock: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: SW(4),
+      minWidth: 0,
     },
     addressText: {
       flex: 1,
-      fontSize: SF(11),
+      fontSize: SF(12),
       fontFamily: Fonts.REGULAR,
-      color: Colors.textAppColor || Colors.text,
-      lineHeight: SF(16),
+      color: Colors.lightText || '#666',
+      lineHeight: SF(17),
+    },
+    ratingBlock: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SW(4),
+      flexShrink: 0,
+      paddingTop: SH(1),
+    },
+    ratingText: {
+      fontSize: SF(13),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.text,
+    },
+    ratingMuted: {
+      fontSize: SF(13),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.lightText || '#999',
     },
   });
 };

@@ -1,8 +1,8 @@
-import { View, StyleSheet, Pressable, Image } from 'react-native';
+import { View, StyleSheet, Pressable, Image, TextInput } from 'react-native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomInput } from '@components/common';
+import {  VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 
 type HomeSearchBarProps = {
@@ -11,10 +11,10 @@ type HomeSearchBarProps = {
   placeholder?: string;
 };
 
-export default function HomeSearchBar({ 
-  onSearch, 
+export default function HomeSearchBar({
+  onSearch,
   onFilterPress,
-  placeholder
+  placeholder,
 }: HomeSearchBarProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -30,23 +30,46 @@ export default function HomeSearchBar({
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <CustomInput
+      <View
+        style={[
+          styles.searchContainer,
+          {
+            backgroundColor: '#fff',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingLeft: theme.SF(10),
+            borderRadius: theme.SF(10),
+            shadowColor: '#000',
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+
+            elevation: 5,
+          },
+        ]}
+      >
+        <VectoreIcons
+          name="search"
+          size={theme.SF(20)}
+          icon="Ionicons"
+          color={theme.colors.text}
+        />
+        <TextInput
           placeholder={placeholder || t('home.search')}
           value={searchText}
           onChangeText={handleSearchChange}
-          leftIcon={imagePaths.Search}
-          withBackground="white"
-          inputTheme=""
-          transparentBackground={false}
+          style={{
+            paddingVertical: theme.SF(12),
+            paddingHorizontal: theme.SF(5),
+          }}
         />
       </View>
-      <Pressable 
-        style={styles.filterButton}
-        onPress={onFilterPress}
-      >
-        <Image 
-          source={imagePaths.filter_icon} 
+      <Pressable style={styles.filterButton} onPress={onFilterPress}>
+        <Image
+          source={imagePaths.filter_icon}
           style={styles.filterIcon}
           resizeMode="contain"
         />
@@ -63,8 +86,9 @@ const createStyles = (theme: ThemeType) => {
       alignItems: 'center',
       paddingHorizontal: SW(20),
       paddingTop: SH(12),
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       gap: SW(12),
+      marginTop: -SH(30),
     },
     searchContainer: {
       flex: 1,
@@ -84,4 +108,3 @@ const createStyles = (theme: ThemeType) => {
     },
   });
 };
-

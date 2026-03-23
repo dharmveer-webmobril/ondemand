@@ -164,7 +164,7 @@ export default function BookingDetail() {
 
   useEffect(() => {
     refetchBooking();
-  }, []);
+  }, [refetchBooking]);
 
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
@@ -335,12 +335,20 @@ export default function BookingDetail() {
     setShowAcceptConfirm(false);
     // TODO: API call to accept booking
     refetchBooking();
+    // Booking status changed in this screen -> refresh list.
+    queryClient.invalidateQueries({
+      queryKey: ['customerBookings'],
+    });
   }, [refetchBooking]);
 
   const handleReject = useCallback(() => {
     setShowRejectConfirm(false);
     // TODO: API call to reject booking
     refetchBooking();
+    // Booking status changed in this screen -> refresh list.
+    queryClient.invalidateQueries({
+      queryKey: ['customerBookings'],
+    });
   }, [refetchBooking]);
 
   const handleCancelBookingPress = useCallback(() => {
@@ -434,6 +442,7 @@ export default function BookingDetail() {
       cancelBooking,
       cancelService,
       refetchBooking,
+      t,
     ],
   );
 
@@ -484,7 +493,7 @@ export default function BookingDetail() {
       );
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [selectedServiceId, rescheduleService, refetchBooking],
+    [selectedServiceId, rescheduleService, refetchBooking, t],
   );
 
   const handleAssignMember = useCallback((service: any) => {
@@ -566,6 +575,10 @@ export default function BookingDetail() {
           );
           queryClient.invalidateQueries({
             queryKey: ['bookingDetail', bookingId],
+          });
+          // Booking status changed -> refresh BookingList.
+          queryClient.invalidateQueries({
+            queryKey: ['customerBookings'],
           });
           refetchBooking();
         }

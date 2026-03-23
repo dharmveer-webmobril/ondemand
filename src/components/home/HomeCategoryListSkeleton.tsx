@@ -58,10 +58,10 @@ const createStyles = (theme: ThemeType) => {
     container: {
       paddingHorizontal: SW(20),
       alignSelf: 'center',
-      marginTop: -SH(15),
     },
     listContent: {
       paddingRight: SW(20),
+      marginTop: SH(10),
     },
     itemWrapper: {
       marginRight: SW(15),
@@ -70,9 +70,9 @@ const createStyles = (theme: ThemeType) => {
       alignItems: 'center',
     },
     imageLoader: {
-      height: SF(58),
-      width: SF(58),
-      borderRadius: SF(58) / 2,
+      height: SF(63),
+      width: SF(63),
+      borderRadius: SF(63) / 2,
       borderWidth: 1,
       borderColor: Colors.primary,
       overflow: 'hidden',

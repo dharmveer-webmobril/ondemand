@@ -1,22 +1,28 @@
-import { useState, useCallback } from "react";
-import { StatusBar, View, StyleSheet, Platform } from "react-native";
+import { useState, useCallback } from 'react';
+import { StatusBar, View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { HomeHeader, HomeMainList, HomeSearchBar } from "@components";
+import { HomeHeader, HomeMainList, HomeSearchBar } from '@components';
 import { SCREEN_NAMES } from '@navigation/ScreenNames';
-import { LoadingComp } from "@components/common";
-import { useDisableGestures } from "@utils/hooks";
-import { useGetCategories, useGetBanners, useGetServiceProviders } from "@services/api/queries/appQueries";
-import { useAppSelector } from "@store/hooks";
-import { checkPermissionAndGetFcmToken } from "@services/PushNotification";
-import { updateFcmToken } from "@services/api/queries/authQueries";
+import { LoadingComp } from '@components/common';
+import { useDisableGestures } from '@utils/hooks';
+import {
+  useGetCategories,
+  useGetBanners,
+  useGetServiceProviders,
+  useGetTopRatedAndTopOfferedServices,
+} from '@services/api/queries/appQueries';
+import { useAppSelector } from '@store/hooks';
+import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
+import { updateFcmToken } from '@services/api/queries/authQueries';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Home() {
   useDisableGestures();
   const navigation = useNavigation<any>();
 
   const { t } = useTranslation();
-  const authToken = useAppSelector((state) => state.auth.token);
+  const authToken = useAppSelector(state => state.auth.token);
 
   // Whenever Home is focused (app open / user navigates to Home): check permission and update FCM token on backend
   useFocusEffect(
@@ -40,7 +46,7 @@ export default function Home() {
       return () => {
         cancelled = true;
       };
-    }, [authToken])
+    }, [authToken]),
   );
   const [refreshing, setRefreshing] = useState(false);
   const [isCityUpdating, setIsCityUpdating] = useState(false);
@@ -50,14 +56,14 @@ export default function Home() {
     data: categoriesData,
     isLoading: categoriesLoading,
     isError: categoriesError,
-    refetch: refetchCategories
+    refetch: refetchCategories,
   } = useGetCategories();
 
   const {
     data: bannersData,
     isLoading: bannersLoading,
     isError: bannersError,
-    refetch: refetchBanners
+    refetch: refetchBanners,
   } = useGetBanners();
 
   const currentCityId = useAppSelector(state => state.app.userCity)?._id;
@@ -65,35 +71,45 @@ export default function Home() {
     data: providersData,
     isFetching: providerLoading,
     isError: providerError,
-    refetch: providerReftech
+    refetch: providerReftech,
   } = useGetServiceProviders({ page: 1, limit: 10, currentCityId });
 
-  console.log('providersData', providersData);
+  const {
+    data: featuredData,
+    isLoading: featuredLoading,
+    isError: featuredError,
+    refetch: refetchFeatured,
+  } = useGetTopRatedAndTopOfferedServices({
+    cityId: currentCityId,
+    page: 1,
+    limit: 15,
+  });
   // Handle pull to refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
 
     try {
-      // Refetch both categories and banners
       await Promise.all([
         refetchCategories(),
-        refetchBanners()
+        refetchBanners(),
+        providerReftech(),
+        refetchFeatured(),
       ]);
-      
     } catch (error) {
       console.error('Error refreshing home data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [refetchCategories, refetchBanners]);
+  }, [refetchCategories, refetchBanners, providerReftech, refetchFeatured]);
 
   // Handle city update - refresh home data
   const handleCityUpdate = useCallback(async () => {
     await Promise.all([
       refetchCategories(),
       refetchBanners(),
+      refetchFeatured(),
     ]);
-  }, [refetchCategories, refetchBanners,]);
+  }, [refetchCategories, refetchBanners, refetchFeatured]);
 
   // Handle search
   const handleSearch = useCallback((text: string) => {
@@ -106,41 +122,54 @@ export default function Home() {
     // TODO: Implement filter functionality
     console.log('Filter pressed');
   }, []);
-  
 
   return (
-    <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <HomeHeader
-        onCityUpdate={handleCityUpdate}
-        onCityUpdateLoading={setIsCityUpdating}
-        onNotificationPress={() => navigation.navigate(SCREEN_NAMES.NOTIFICATIONS)}
-      />
+    <SafeAreaView style={{ flex: 1 }}>
+       <StatusBar
+          translucent
+          backgroundColor="#009BFF"
+          barStyle="light-content"
+          // edges={['top']}
+        />
+      <View style={styles.container}>
+       
+        <HomeHeader
+          onCityUpdate={handleCityUpdate}
+          onCityUpdateLoading={setIsCityUpdating}
+          onNotificationPress={() =>
+            navigation.navigate(SCREEN_NAMES.NOTIFICATIONS)
+          }
+        />
 
-      <HomeSearchBar
-        onSearch={handleSearch}
-        onFilterPress={handleFilterPress}
-        placeholder={t('home.search')}
-      />
+        <HomeSearchBar
+          onSearch={handleSearch}
+          onFilterPress={handleFilterPress}
+          placeholder={t('home.search')}
+        />
 
-      <HomeMainList
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        categoriesData={categoriesData}
-        categoriesLoading={categoriesLoading}
-        categoriesError={categoriesError}
-        onRetryCategories={refetchCategories}
-        bannersData={bannersData}
-        bannersLoading={bannersLoading}
-        bannersError={bannersError}
-        onRetryBanners={refetchBanners}
-        providersData={providersData}
-        providersLoading={providerLoading}
-        providersError={providerError}
-        onRetryProviders={providerReftech}
-      />
-      <LoadingComp visible={isCityUpdating} />
-    </View>
+        <HomeMainList
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          categoriesData={categoriesData}
+          categoriesLoading={categoriesLoading}
+          categoriesError={categoriesError}
+          onRetryCategories={refetchCategories}
+          bannersData={bannersData}
+          bannersLoading={bannersLoading}
+          bannersError={bannersError}
+          onRetryBanners={refetchBanners}
+          featuredData={featuredData}
+          featuredLoading={featuredLoading}
+          featuredError={featuredError}
+          onRetryFeatured={refetchFeatured}
+          providersData={providersData}
+          providersLoading={providerLoading}
+          providersError={providerError}
+          onRetryProviders={providerReftech}
+        />
+        <LoadingComp visible={isCityUpdating} />
+      </View>
+    </SafeAreaView>
   );
 }
 

@@ -98,21 +98,6 @@ const bookingStatusOptions = [
   { value: 'rescheduledBySp', label: 'Rescheduled by SP' },
 ];
 
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
 const formatDateDisplay = (dateStr: string): string => {
   try {
     const date = new Date(`${dateStr}T12:00:00`);
@@ -143,17 +128,6 @@ const getFirstDayOfMonth = (dateStr: string): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}-01`;
-};
-
-const addMonths = (dateStr: string, delta: number): string => {
-  const date = new Date(`${dateStr}T12:00:00`);
-  date.setMonth(date.getMonth() + delta);
-  return getFirstDayOfMonth(date.toISOString().slice(0, 10));
-};
-
-const formatMonthYear = (dateStr: string): string => {
-  const date = new Date(`${dateStr}T12:00:00`);
-  return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
 };
 
 export default function BookingList() {
@@ -194,12 +168,20 @@ export default function BookingList() {
         return nextPageBookings;
       }
 
+      // Keep pagination + update status for existing bookings (by id).
+      // Without this, refetches won't update bookings already in state.
       const existingIds = new Set(prev.map((booking: any) => booking?._id));
-      const uniqueBookings = nextPageBookings.filter(
-        (booking: any) => !existingIds.has(booking?._id),
-      );
+      const nextById = new Map(nextPageBookings.map((b: any) => [b?._id, b]));
 
-      return [...prev, ...uniqueBookings];
+      const updatedExisting = prev.map((booking: any) => {
+        const id = booking?._id;
+        if (!id) return booking;
+        const updated = nextById.get(id);
+        return updated ? updated : booking;
+      });
+
+      const newBookings = nextPageBookings.filter((booking: any) => !existingIds.has(booking?._id));
+      return [...updatedExisting, ...newBookings];
     });
   }, [bookingsData, page]);
 
@@ -275,14 +257,6 @@ export default function BookingList() {
 
   const closeCalendarModal = useCallback(() => {
     setCalendarModalVisible(false);
-  }, []);
-
-  const goToPrevMonth = useCallback(() => {
-    setCalendarViewingMonth(prev => addMonths(prev, -1));
-  }, []);
-
-  const goToNextMonth = useCallback(() => {
-    setCalendarViewingMonth(prev => addMonths(prev, 1));
   }, []);
 
   const handleDateSelect = useCallback((day: DateData) => {
@@ -395,7 +369,7 @@ export default function BookingList() {
                           isSelected ? styles.menuOptionTextSelected : {},
                         ]}
                       >
-                        {t(option.labelKey)}
+                        {option.labelKey ? t(option.labelKey) : option.label || ''}
                       </CustomText>
                     </MenuOption>
                   );
@@ -460,7 +434,7 @@ export default function BookingList() {
             />
           }
           ListEmptyComponent={
-            !setPageLoading ? (
+            !pageLoading ? (
               <View style={styles.emptyContainer}>
                 <CustomText
                   fontSize={theme.fontSize.md}

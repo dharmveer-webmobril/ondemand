@@ -27,7 +27,7 @@ const createStyles = (theme: ThemeType) => {
       paddingHorizontal: SW(20),
     },
     slide: {
-      height: SF(160),
+      height: SF(120),
       borderRadius: SF(10),
       overflow: 'hidden',
       backgroundColor: theme.colors.secondary,

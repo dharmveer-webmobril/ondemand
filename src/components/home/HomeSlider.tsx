@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -19,7 +19,6 @@ export default function HomeSlider({ banners = [], isLoading = false, isError = 
     const theme = useThemeContext();
     const styles = useMemo(() => createStyles(theme), [theme]);
     const { t } = useTranslation();
-console.log('banners', banners);
     // Show loading state with skeleton
     if (isLoading) {
         return <HomeSliderSkeleton />;
@@ -104,7 +103,7 @@ const createStyles = (theme: ThemeType) => {
             flex: 1,
         },
         wrapper: {
-            height: SF(160),
+            height: SF(120),
         },
         dot: {
             backgroundColor: Colors.gray,
@@ -117,7 +116,7 @@ const createStyles = (theme: ThemeType) => {
         },
         activeDot: {
             backgroundColor: Colors.primary,
-            width: SF(10),
+            width: SF(20),
             height: SF(10),
             borderRadius: SF(10) / 2,
             marginLeft: SF(3),
@@ -128,7 +127,7 @@ const createStyles = (theme: ThemeType) => {
             bottom: 0,
         },
         slide: {
-            height: SF(160),
+            height: SF(120),
             borderRadius: SF(10),
             overflow: 'hidden',
             backgroundColor:theme.colors.secondary,
@@ -139,7 +138,7 @@ const createStyles = (theme: ThemeType) => {
             borderRadius: SF(10),
         },
         loaderContainer: {
-            height: SF(160),
+            height: SF(120),
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: '#F5F5F5',

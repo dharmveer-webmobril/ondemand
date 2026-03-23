@@ -963,6 +963,69 @@ export const useGetCustomerBookings = (page: number = 1, limit: number = 10) => 
     });
 };
 
+/** Service item from top-rated / top-offered home API */
+export interface FeaturedServiceProvider {
+    _id: string;
+    name: string;
+    email?: string;
+    contact?: string;
+    profileImage?: string;
+    city?: string;
+    country?: string;
+    status?: string;
+}
+
+export interface FeaturedServiceItem {
+    _id: string;
+    sp_id: string;
+    category_id: string;
+    name: string;
+    time?: number;
+    description?: string;
+    preferences?: string[];
+    priceType?: string;
+    price?: number;
+    images: string[];
+    status?: boolean;
+    provider: FeaturedServiceProvider;
+    averageRating?: number;
+    ratingCount?: number;
+    highestDiscount?: number;
+    offerData?: unknown[];
+}
+
+export interface TopRatedTopOfferedResponse {
+    ResponseCode: number;
+    ResponseMessage?: string;
+    succeeded: boolean;
+    ResponseData: {
+        topRatedServices: FeaturedServiceItem[];
+        topOfferedServices: FeaturedServiceItem[];
+    };
+}
+
+export type FeaturedListType = 'topRated' | 'topOffered';
+
+export const useGetTopRatedAndTopOfferedServices = (params: {
+    cityId: string | null | undefined;
+    page?: number;
+    limit?: number;
+}) => {
+    const { cityId, page = 1, limit = 15 } = params;
+    return useQuery<TopRatedTopOfferedResponse>({
+        queryKey: ['topRatedTopOfferedServices', cityId, page, limit],
+        queryFn: async () => {
+            if (!cityId) {
+                throw new Error('City is required');
+            }
+            const url = `${EndPoints.GET_TOP_RATED_TOP_OFFERED_SERVICES}?city=${cityId}&page=${page}&limit=${limit}`;
+            const response = await axiosInstance.get<TopRatedTopOfferedResponse>(url);
+            return response.data;
+        },
+        enabled: !!cityId,
+    });
+};
+
 // Get Booking Detail Response
 export interface BookingDetailResponse {
     ResponseCode: number;

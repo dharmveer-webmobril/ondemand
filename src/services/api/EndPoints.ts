@@ -30,6 +30,8 @@ export default {
     DELETE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     CREATE_BOOKING: '/customer/bookings/bookings',
     GET_CUSTOMER_BOOKINGS: '/customer/bookings/bookings',
+    GET_TOP_RATED_TOP_OFFERED_SERVICES:
+        '/customer/bookings/top-rated-and-top-offered-services',
     GET_BOOKING_DETAIL: '/customer/bookings/bookings',
     CANCEL_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/cancel`,
     RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reschedule`,

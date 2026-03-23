@@ -1,8 +1,8 @@
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import { useMemo, useState, useEffect } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
-import LinearGradient from 'react-native-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import LinearGradient from 'react-native-linear-gradient';
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CustomText, VectoreIcons, showToast } from '@components/common';
 import { CountryModal } from '@components';
 import imagePaths from '@assets';
@@ -27,7 +27,7 @@ type HomeHeaderProps = {
 export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }: HomeHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const [showCityModal, setShowCityModal] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
@@ -124,13 +124,13 @@ export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }:
 
   return (
     <>
-      <LinearGradient
+      {/* <LinearGradient
         colors={['#011321', '#066AB7', '#009BFF']}
         style={[
           styles.headerContainer,
           { paddingTop: insets.top }
         ]}
-      >
+      > */}
         <View style={styles.container}>
           <View style={styles.leftContainer}>
             <VectoreIcons
@@ -168,7 +168,7 @@ export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }:
             </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
+      {/* </LinearGradient> */}
 
       {/* City Modal */}
       <CountryModal
@@ -189,8 +189,12 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 10,
-    marginTop: 15
+    paddingBottom: theme.SH(30),
+    paddingTop: theme.SH(10),
+    backgroundColor: '#009BFF',
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   headerContainer: {
     width: "100%",

@@ -1,21 +1,20 @@
-import { View, SectionList, StyleSheet, RefreshControl } from 'react-native';
-import React, { useMemo } from 'react';
+import { ScrollView, View, StyleSheet, RefreshControl } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import HomeSlider from './HomeSlider';
 import HomeCategoryList from './HomeCategoryList';
 import HomeProvider from './HomeProvider';
-import { CustomText } from '@components/common';
+import { CustomText, Spacing } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CategoriesResponse, BannersResponse } from '@services/api/queries/appQueries';
+import {
+  CategoriesResponse,
+  BannersResponse,
+  TopRatedTopOfferedResponse,
+} from '@services/api/queries/appQueries';
+import HomeFeaturedServices from './HomeFeaturedServices';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-
-type SectionData = {
-  title: string;
-  data: any[];
-  key: string;
-  renderItem: () => React.ReactElement;
-};
+import { SH } from '@utils/dimensions';
 
 type HomeMainListProps = {
   refreshing?: boolean;
@@ -32,16 +31,10 @@ type HomeMainListProps = {
   providersLoading?: boolean;
   providersError?: boolean;
   onRetryProviders?: () => void;
-};
-
-const SectionSeparator = () => {
-  const theme = useThemeContext();
-  const styles = useMemo(() => StyleSheet.create({
-    separator: {
-      height: theme.SH(30),
-    },
-  }), [theme]);
-  return <View style={styles.separator} />;
+  featuredData?: TopRatedTopOfferedResponse;
+  featuredLoading?: boolean;
+  featuredError?: boolean;
+  onRetryFeatured?: () => void;
 };
 
 export default function HomeMainList({
@@ -59,93 +52,30 @@ export default function HomeMainList({
   providersLoading,
   providersError,
   onRetryProviders,
+  featuredData,
+  featuredLoading,
+  featuredError,
+  onRetryFeatured,
 }: HomeMainListProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
 
-  const handleViewAll = (sectionKey: string) => {
+  const handleViewAll = useCallback((sectionKey: string) => {
     if (sectionKey === 'Categories') {
       navigate(SCREEN_NAMES.CATEGORY_LIST);
     } else if (sectionKey === 'provider') {
-      // Navigate to CategoryProviders without category filter
       navigate(SCREEN_NAMES.CATEGORY_PROVIDERS);
     } else {
       console.log('View All pressed for:', sectionKey);
     }
-  };
-
-  console.log('providersData-------------', providersData,providersLoading);
-
-  const DATA: SectionData[] = useMemo(() => [
-    {
-      title: '',
-      data: [{}],
-      key: 'slider',
-      renderItem: () => (
-        <HomeSlider
-          banners={bannersData?.ResponseData || []}
-          isLoading={bannersLoading}
-          isError={bannersError}
-          onRetry={onRetryBanners}
-        />
-      ),
-    },
-    {
-      title: t('home.categories'),
-      renderItem: () => (
-        <HomeCategoryList
-          categories={categoriesData?.ResponseData || []}
-          isLoading={categoriesLoading}
-          isError={categoriesError}
-          onRetry={onRetryCategories}
-        />
-      ),
-      key: 'Categories',
-      data: [{}],
-    },
-    {
-      title: t('home.nearestProvider'),
-      key: 'provider',
-      data: [{}],
-      renderItem: () => <HomeProvider
-        providersData={providersData}
-        providersLoading={providersLoading}
-        providersError={providersError}
-        onRetryProviders={onRetryProviders}
-      />,
-    },
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [bannersData, bannersLoading, bannersError, onRetryBanners, categoriesData, categoriesLoading, categoriesError, onRetryCategories,providersLoading,providersError,onRetryProviders]);
+  }, []);
 
   return (
-    <SectionList
-      sections={DATA}
-      keyExtractor={(_, index) => index?.toString()}
-      renderItem={({ _, section }: any) => section.renderItem()}
-      renderSectionHeader={({ section: { title, key } }) =>
-        title ? (
-          <View style={[styles.headerContainer, styles.sectionHeader]}>
-            <CustomText
-              color={theme.colors.text}
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.SEMI_BOLD}
-            >
-              {title}
-            </CustomText>
-            <CustomText
-              color={theme.colors.primary || '#135D96'}
-              style={styles.viewAllText}
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.SEMI_BOLD}
-              onPress={() => handleViewAll(key)}
-            >
-              View All
-            </CustomText>
-          </View>
-        ) : null
-      }
-      SectionSeparatorComponent={SectionSeparator}
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -154,15 +84,98 @@ export default function HomeMainList({
           colors={[theme.colors.primary || '#135D96']}
         />
       }
-      showsVerticalScrollIndicator={false}
-      stickySectionHeadersEnabled={false}
-      contentContainerStyle={styles.contentContainer}
-    />
+    >
+      <Spacing space={20} />
+      <HomeSlider
+        banners={bannersData?.ResponseData || []}
+        isLoading={bannersLoading}
+        isError={bannersError}
+        onRetry={onRetryBanners}
+      />
+
+      <Spacing space={20} />
+
+      <View style={[styles.headerContainer, styles.sectionHeader]}>
+        <CustomText
+          color={theme.colors.text}
+          fontSize={theme.fontSize.sm}
+          fontFamily={theme.fonts.BOLD}
+        >
+          {t('home.categories')}
+        </CustomText>
+        <CustomText
+          color={theme.colors.primary || '#135D96'}
+          style={styles.viewAllText}
+          fontSize={theme.fontSize.sm}
+          fontFamily={theme.fonts.SEMI_BOLD}
+          onPress={() => handleViewAll('Categories')}
+        >
+          View All
+        </CustomText>
+      </View>
+      <HomeCategoryList
+        categories={categoriesData?.ResponseData || []}
+        isLoading={categoriesLoading}
+        isError={categoriesError}
+        onRetry={onRetryCategories}
+      />
+
+      {/* <View style={styles.sectionSpacer} /> */}
+      <Spacing space={10} />
+      <HomeFeaturedServices
+        title={t('home.featuredServicesAds')}
+        services={
+          featuredData?.ResponseData?.topRatedServices?.slice(0, 15) ?? []
+        }
+        isLoading={!!featuredLoading}
+        isError={!!featuredError}
+        onRetry={onRetryFeatured}
+        listType="topRated"
+        maxItems={15}
+      />
+
+   
+      <Spacing space={10} />
+
+      <View style={[styles.headerContainer, styles.sectionHeader]}>
+        <CustomText
+          color={theme.colors.text}
+          fontSize={theme.fontSize.sm}
+          fontFamily={theme.fonts.BOLD}
+        >
+          {t('home.nearestProvider')}
+        </CustomText>
+        <CustomText
+          color={theme.colors.primary || '#135D96'}
+          style={styles.viewAllText}
+          fontSize={theme.fontSize.sm}
+          fontFamily={theme.fonts.SEMI_BOLD}
+          onPress={() => handleViewAll('provider')}
+        >
+          View All
+        </CustomText>
+      </View>
+      <HomeProvider
+        providersData={providersData}
+        providersLoading={providersLoading}
+        providersError={providersError}
+        onRetryProviders={onRetryProviders}
+      />
+    </ScrollView>
   );
 }
 
 const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingBottom: SH(90),
+    },
+    sectionSpacer: {
+      height: theme.SH(20),
+    },
     headerContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -173,11 +186,5 @@ const createStyles = (theme: ThemeType) =>
     },
     viewAllText: {
       textDecorationLine: 'underline',
-    },
-    sectionSeparator: {
-      // height: theme.SH(20),
-    },
-    contentContainer: {
-      paddingBottom: theme.SH(90),
     },
   });

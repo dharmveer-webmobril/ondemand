@@ -1,4 +1,4 @@
-import { View, FlatList, Pressable, StyleSheet, ActivityIndicator, Text } from 'react-native'
+import { View, FlatList, Pressable, StyleSheet, Text } from 'react-native'
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next';
 import { CustomText, Spacing } from '@components/common';
@@ -133,9 +133,9 @@ const createStyles = (theme: ThemeType) => {
             opacity: 0.8,
         },
         imageLoader: {
-            height: SF(58),
-            width: SF(58),
-            borderRadius: SF(58) / 2,
+            height: SF(65),
+            width: SF(65),
+            borderRadius: SF(65) / 2,
             borderWidth: 1,
             borderColor: Colors.primary,
             overflow: 'hidden',
@@ -164,7 +164,7 @@ const createStyles = (theme: ThemeType) => {
             paddingHorizontal: SW(20),
             alignSelf: 'center',
             flex: 1,
-            marginTop: -SH(15),
+            marginTop: SH(10),
         },
         errorContainer: {
             alignItems: 'center',
