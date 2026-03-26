@@ -25,6 +25,7 @@ import {
   useGetServiceProviderServices,
 } from '@services/index';
 import { formatAddress } from '@utils/tools';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
 
@@ -358,7 +359,7 @@ export default function ProviderDetailsScreen() {
   }
 
   return (
-    <Container safeArea={true} style={styles.container}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
       <ProviderHeader
         name={provider.name || t('providerDetails.providerDefaultName')}
         logo={provider.profileImage}
@@ -416,7 +417,7 @@ export default function ProviderDetailsScreen() {
         onConfirm={handleServiceForConfirm}
         selectedServiceFor={bookingDetails.serviceFor}
       />
-    </Container>
+    </SafeAreaView>
   );
 }
 

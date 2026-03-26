@@ -435,9 +435,7 @@ export default function BookingServiceCard({
                     />
                   </View>
                 )}
-                {(serviceStatus === 'accepted' ||
-                  serviceStatus === 'rescheduledByCustomer' ||
-                  serviceStatus === 'rescheduledBySp') && (
+                {(serviceStatus === 'accepted') && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
                       title="Reschedule"

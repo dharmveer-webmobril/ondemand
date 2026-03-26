@@ -11,6 +11,7 @@ import ServiceSelectionModal from '@components/provider/ServiceSelectionModal';
 import AddOnSelectionModal from '@components/provider/AddOnSelectionModal';
 import ServiceCart from '@components/provider/ServiceCart';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Format date to YYYY-MM-DD
 const formatDateToString = (date: Date): string => {
@@ -262,7 +263,7 @@ export default function BookAppointment() {
   );
 
   return (
-    <Container safeArea={true} style={styles.container}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
       <AppHeader
         title={t('bookAppointment.headerTitle')}
         onLeftPress={() => navigation.goBack()}
@@ -430,7 +431,7 @@ export default function BookAppointment() {
           selectedAddOnIds={selectedServiceForAddOns.selectedAddOns?.map((a: any) => a._id) || []}
         />
       )}
-    </Container>
+    </SafeAreaView>
   );
 }
 

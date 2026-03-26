@@ -41,6 +41,7 @@ export default function ProviderDetails({
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      // @ts-ignore
       refreshControl={refreshControl}
     >
       {/* Map Placeholder */}
