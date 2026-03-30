@@ -236,7 +236,17 @@ export const hindi = {
     "city": "शहर",
     "emailID": "ईमेल ID",
     "enterEmailID": "अपना ईमेल ID दर्ज करें",
-    "save": "सहेजें"
+    "save": "सहेजें",
+    "bookmarkedProviders": "सहेजे गए प्रदाता"
+  },
+  "favoriteProviders": {
+    "title": "सहेजे गए प्रदाता",
+    "emptyTitle": "अभी कोई सहेजा प्रदाता नहीं",
+    "emptySubtitle": "किसी प्रदाता को खोलकर दिल पर टैप करके उन्हें यहाँ सहेजें।",
+    "loadError": "सहेजे प्रदाता लोड नहीं हो सके।",
+    "added": "आपकी सूची में सहेजा गया",
+    "removed": "सहेजे हटा दिया गया",
+    "toggleError": "अपडेट नहीं हो सका। पुनः प्रयास करें।"
   },
   "wallet": {
     "title": "वॉलेट",

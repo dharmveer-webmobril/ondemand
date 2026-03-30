@@ -236,7 +236,17 @@ export const frenchCanada = {
     "city": "Ville",
     "emailID": "Courriel",
     "enterEmailID": "Entrez votre courriel",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "bookmarkedProviders": "Fournisseurs enregistrés"
+  },
+  "favoriteProviders": {
+    "title": "Fournisseurs enregistrés",
+    "emptyTitle": "Aucun fournisseur enregistré",
+    "emptySubtitle": "Ouvrez un fournisseur et touchez le cœur pour l’ajouter ici.",
+    "loadError": "Impossible de charger les fournisseurs enregistrés.",
+    "added": "Ajouté à votre liste",
+    "removed": "Retiré des enregistrements",
+    "toggleError": "Mise à jour impossible. Réessayez."
   },
   "wallet": {
     "title": "Portefeuille",

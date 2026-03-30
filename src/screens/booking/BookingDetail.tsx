@@ -45,6 +45,7 @@ import {
   useCancelService,
   useRescheduleService,
   useAcceptRescheduleService,
+  useRejectRescheduleService,
 } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
@@ -117,9 +118,13 @@ export default function BookingDetail() {
     | 'cancelBooking'
     | 'cancelService'
     | 'rescheduleService'
-    | 'acceptReschedule';
+    | 'acceptReschedule'
+    | 'rejectReschedule';
   const [loaderType, setLoaderType] = useState<LoaderType>('none');
   const [acceptingServiceId, setAcceptingServiceId] = useState<string | null>(
+    null,
+  );
+  const [rejectingServiceId, setRejectingServiceId] = useState<string | null>(
     null,
   );
 
@@ -141,6 +146,12 @@ export default function BookingDetail() {
     isPending: isAcceptingReschedule,
   } = useAcceptRescheduleService();
 
+  // Reject reschedule mutation (booked service id)
+  const {
+    mutateAsync: rejectRescheduleService,
+    isPending: isRejectingReschedule,
+  } = useRejectRescheduleService();
+
   // Update loader type based on mutation states
   React.useEffect(() => {
     if (isCancelingBooking) {
@@ -151,15 +162,19 @@ export default function BookingDetail() {
       setLoaderType('rescheduleService');
     } else if (isAcceptingReschedule) {
       setLoaderType('acceptReschedule');
+    } else if (isRejectingReschedule) {
+      setLoaderType('rejectReschedule');
     } else {
       setLoaderType('none');
       setAcceptingServiceId(null);
+      setRejectingServiceId(null);
     }
   }, [
     isCancelingBooking,
     isCancelingService,
     isReschedulingService,
     isAcceptingReschedule,
+    isRejectingReschedule,
   ]);
 
   useEffect(() => {
@@ -192,9 +207,10 @@ export default function BookingDetail() {
     const bookedServices = (
       bookingDetailData?.ResponseData?.bookedServices || []
     ).filter((s: any) => s != null);
-    console.log('apiBooking -----BookingDetail', apiBooking);
     // Transform bookedServices to BookingServiceCard format
     const services = bookedServices.map((bookedService: any) => {
+    // console.log('apiBooking -----BookingDetail', apiBooking);
+    console.log('bookedServices-----BookingDetail', bookedServices);
       // Find service by ID (serviceId is a string ID)
       // serviceId is already a full object in the new structure
       const service = bookedService?.serviceId || {};
@@ -238,6 +254,7 @@ export default function BookingDetail() {
         rescheduleDate: bookedService?.rescheduleDate || '',
         rescheduleTime: bookedService?.rescheduleTime || '',
         rescheduleReason: bookedService?.rescheduleReason || '',
+        remark: bookedService?.remark || '',
         appliedOffer: appliedOffer,
         price: serviceBasePrice,
         totalAmount: serviceTotalAmount,
@@ -591,6 +608,33 @@ export default function BookingDetail() {
     [acceptRescheduleService, refetchBooking, bookingId, t],
   );
 
+  const handleRejectReschedule = useCallback(
+    async (bookedServiceId: string) => {
+      setRejectingServiceId(bookedServiceId);
+      try {
+        const res = await rejectRescheduleService(bookedServiceId);
+        if (res?.succeeded) {
+          handleSuccessToast(
+            res?.ResponseMessage || 'Reschedule rejected',
+          );
+          queryClient.invalidateQueries({
+            queryKey: ['bookingDetail', bookingId],
+          });
+          // Booking status changed -> refresh BookingList.
+          queryClient.invalidateQueries({
+            queryKey: ['customerBookings'],
+          });
+          refetchBooking();
+        }
+      } catch (err) {
+        handleApiError(err);
+      } finally {
+        setRejectingServiceId(null);
+      }
+    },
+    [rejectRescheduleService, refetchBooking, bookingId],
+  );
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -729,9 +773,17 @@ export default function BookingDetail() {
                 handleCancelServicePress(serviceId);
               }}
               onAcceptService={handleAcceptReschedule}
+              onRejectService={handleRejectReschedule}
               serviceLoadingStates={
-                acceptingServiceId
-                  ? { [acceptingServiceId]: 'accept' }
+                acceptingServiceId || rejectingServiceId
+                  ? {
+                      ...(acceptingServiceId
+                        ? { [acceptingServiceId]: 'accept' as const }
+                        : {}),
+                      ...(rejectingServiceId
+                        ? { [rejectingServiceId]: 'reject' as const }
+                        : {}),
+                    }
                   : undefined
               }
               mainBookingStatus={booking?.bookingStatus}

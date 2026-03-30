@@ -36,6 +36,7 @@ export default {
     CANCEL_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/cancel`,
     RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reschedule`,
     ACCEPT_RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/accept`,
+    REJECT_RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reject`,
     CANCEL_BOOKING: (bookingId: string) => `/customer/bookings/bookings/${bookingId}/cancel`,
     GET_WALLET: '/customer/payments/wallet',
     GET_WALLET_TRANSACTIONS: '/customer/payments/wallet/transactions',
@@ -51,4 +52,6 @@ export default {
     GET_NOTIFICATIONS: '/notifications/customer',
     CUSTOMER_SUPPORT: '/customer/support',
     DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
+    FAVORITE_SP: '/customer/favorite-sp',
+    FAVORITE_SP_BY_ID: (spId: string) => `/customer/favorite-sp/${spId}`,
 };

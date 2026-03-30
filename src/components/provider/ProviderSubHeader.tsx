@@ -2,7 +2,7 @@
 
 
 import { View, StyleSheet, Pressable, } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, VectoreIcons } from '@components/common';
 
@@ -29,6 +29,10 @@ export default function ProviderHeader({
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
+
+  useEffect(() => {
+    setIsFavorite(initialFavorite);
+  }, [initialFavorite]);
 
   const handleFavoritePress = () => {
     const newFavorite = !isFavorite;

@@ -236,7 +236,17 @@ export const portuguese = {
     "city": "Cidade",
     "emailID": "E-mail",
     "enterEmailID": "Digite seu e-mail",
-    "save": "Salvar"
+    "save": "Salvar",
+    "bookmarkedProviders": "Prestadores salvos"
+  },
+  "favoriteProviders": {
+    "title": "Prestadores salvos",
+    "emptyTitle": "Nenhum prestador salvo ainda",
+    "emptySubtitle": "Abra um prestador e toque no coração para salvá-lo aqui.",
+    "loadError": "Não foi possível carregar os prestadores salvos.",
+    "added": "Salvo na sua lista",
+    "removed": "Removido dos salvos",
+    "toggleError": "Não foi possível atualizar. Tente novamente."
   },
   "wallet": {
     "title": "Carteira",

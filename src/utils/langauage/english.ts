@@ -237,7 +237,17 @@ export const english = {
     "city": "City",
     "emailID": "Email ID",
     "enterEmailID": "Enter your email ID",
-    "save": "Save"
+    "save": "Save",
+    "bookmarkedProviders": "Saved providers"
+  },
+  "favoriteProviders": {
+    "title": "Saved providers",
+    "emptyTitle": "No saved providers yet",
+    "emptySubtitle": "Open a provider and tap the heart to save them here.",
+    "loadError": "Could not load saved providers.",
+    "added": "Saved to your list",
+    "removed": "Removed from saved",
+    "toggleError": "Could not update. Please try again."
   },
   "wallet": {
     "title": "Wallet",

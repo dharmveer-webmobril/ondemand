@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen, NotificationsScreen, CustomerSupport, LanguageSettings, CurrencySelection } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, WalletScreen, NotificationsScreen, CustomerSupport, LanguageSettings, CurrencySelection, FavoriteProvidersScreen } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import BottomTabs from './tabs/BottomsTabs'
@@ -47,6 +47,7 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.NOTIFICATIONS} component={NotificationsScreen} />
         <Stack.Screen name={SCREEN_NAMES.CUSTOMER_SUPPORT} component={CustomerSupport} />
         <Stack.Screen name={SCREEN_NAMES.LANGUAGE_SETTINGS} component={LanguageSettings as any} />
+        <Stack.Screen name={SCREEN_NAMES.FAVORITE_PROVIDERS} component={FavoriteProvidersScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   )

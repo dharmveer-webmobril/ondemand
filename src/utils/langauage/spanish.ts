@@ -236,7 +236,17 @@ export const spanish = {
     "city": "Ciudad",
     "emailID": "Correo electrónico",
     "enterEmailID": "Ingresa tu correo electrónico",
-    "save": "Guardar"
+    "save": "Guardar",
+    "bookmarkedProviders": "Proveedores guardados"
+  },
+  "favoriteProviders": {
+    "title": "Proveedores guardados",
+    "emptyTitle": "Aún no hay proveedores guardados",
+    "emptySubtitle": "Abre un proveedor y toca el corazón para guardarlo aquí.",
+    "loadError": "No se pudieron cargar los proveedores guardados.",
+    "added": "Guardado en tu lista",
+    "removed": "Eliminado de guardados",
+    "toggleError": "No se pudo actualizar. Intenta de nuevo."
   },
   "wallet": {
     "title": "Billetera",

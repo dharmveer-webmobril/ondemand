@@ -23,6 +23,9 @@ import {
 import {
   useGetServiceProviderDetail,
   useGetServiceProviderServices,
+  useGetFavoriteServiceProviders,
+  useAddFavoriteServiceProvider,
+  useRemoveFavoriteServiceProvider,
 } from '@services/index';
 import { formatAddress } from '@utils/tools';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -103,6 +106,13 @@ export default function ProviderDetailsScreen() {
   const [showDeliveryModeModal, setShowDeliveryModeModal] = useState(false);
   const [showServiceForModal, setShowServiceForModal] = useState(false);
   const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
+  const [optimisticFavorite, setOptimisticFavorite] = useState<boolean | null>(
+    null,
+  );
+
+  const { data: favoriteProviders = [] } = useGetFavoriteServiceProviders();
+  const addFavorite = useAddFavoriteServiceProvider();
+  const removeFavorite = useRemoveFavoriteServiceProvider();
 
   // Extract provider data from API response
   const provider = providerData?.ResponseData || {};
@@ -114,6 +124,56 @@ export default function ProviderDetailsScreen() {
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
   const { t } = useTranslation();
+
+  const providerIdForFavorite = provider?._id || spId;
+  const isFavoriteFromDetail = Boolean(
+    provider?.isFavorite ??
+      provider?.isBookmarked ??
+      provider?.favorite ??
+      provider?.isFavourite,
+  );
+  const isFavoriteFromList = useMemo(() => {
+    if (!providerIdForFavorite) return false;
+    return favoriteProviders.some(p => p._id === providerIdForFavorite);
+  }, [favoriteProviders, providerIdForFavorite]);
+
+  const favoriteBaseline =
+    isFavoriteFromDetail || isFavoriteFromList;
+  const favoriteShown =
+    optimisticFavorite !== null ? optimisticFavorite : favoriteBaseline;
+
+  useEffect(() => {
+    setOptimisticFavorite(null);
+  }, [spId]);
+
+  const handleFavoriteToggle = useCallback(
+    async (next: boolean) => {
+      if (!spId) return;
+      setOptimisticFavorite(next);
+      try {
+        if (next) {
+          await addFavorite.mutateAsync(spId);
+        } else {
+          await removeFavorite.mutateAsync(spId);
+        }
+        setOptimisticFavorite(null);
+        showToast({
+          type: 'success',
+          message: next
+            ? t('favoriteProviders.added')
+            : t('favoriteProviders.removed'),
+        });
+      } catch {
+        setOptimisticFavorite(null);
+        showToast({
+          type: 'error',
+          message: t('favoriteProviders.toggleError'),
+        });
+      }
+    },
+    [spId, addFavorite, removeFavorite, t],
+  );
+
   const errorMessage =
     providerError?.message ||
     servicesError?.message ||
@@ -385,7 +445,8 @@ export default function ProviderDetailsScreen() {
         rating={provider.rating || undefined}
         reviewCount={0} // TODO: Get from API if available
         onShare={() => console.log('Share pressed')}
-        onFavorite={(isFavorite: any) => console.log('Favorite:', isFavorite)}
+        isFavorite={favoriteShown}
+        onFavorite={handleFavoriteToggle}
       />
       <ProviderTabs activeTab={activeTab} onTabChange={setActiveTab} />
       {renderContent()}

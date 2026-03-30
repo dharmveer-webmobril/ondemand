@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../axiosInstance';
 import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
@@ -1141,6 +1141,18 @@ export const useAcceptRescheduleService = () => {
     });
 };
 
+// Reject Reschedule (booked service id)
+export const useRejectRescheduleService = () => {
+    return useMutation<RescheduleServiceResponse, Error, string>({
+        mutationFn: async (bookedServiceId: string) => {
+            const response = await axiosInstance.put<RescheduleServiceResponse>(
+                EndPoints.REJECT_RESCHEDULE_BOOKING_SERVICE(bookedServiceId)
+            );
+            return response.data;
+        },
+    });
+};
+
 // Notifications (customer)
 export interface NotificationItem {
     _id: string;
@@ -1220,4 +1232,81 @@ export const useCustomerSupport = () => {
       },
     });
   };
-  
+
+/**
+ * Normalize GET /customer/favorite-sp.
+ * Supports: favorite rows `{ _id, customerId, spId: { ...provider } }`, flat SP arrays, common wrappers.
+ */
+export function mapFavoriteListResponse(apiBody: any): ServiceProvider[] {
+    const rows: any[] | null = Array.isArray(apiBody)
+        ? apiBody
+        : Array.isArray(apiBody?.ResponseData)
+          ? apiBody.ResponseData
+          : Array.isArray(apiBody?.data)
+            ? apiBody.data
+            : Array.isArray(apiBody?.results)
+              ? apiBody.results
+              : null;
+    if (!rows?.length) return [];
+
+    const unwrap = (item: any): ServiceProvider | null => {
+        if (!item) return null;
+        // Populated favorite row: spId is the service provider document
+        if (item.spId != null && typeof item.spId === 'object' && item.spId._id) {
+            return item.spId as ServiceProvider;
+        }
+        if (item.serviceProvider) return item.serviceProvider as ServiceProvider;
+        if (item.sp) return item.sp as ServiceProvider;
+        if (item.provider) return item.provider as ServiceProvider;
+        // Already a service provider object
+        if (item._id && (item.name != null || item.profileImage != null || item.contact != null)) {
+            return item as ServiceProvider;
+        }
+        return null;
+    };
+
+    return rows.map(unwrap).filter(Boolean) as ServiceProvider[];
+}
+
+export const useGetFavoriteServiceProviders = () => {
+    return useQuery<ServiceProvider[]>({
+        queryKey: ['favoriteServiceProviders'],
+        queryFn: async () => {
+            const response = await axiosInstance.get<any>(EndPoints.FAVORITE_SP);
+            return mapFavoriteListResponse(response.data);
+        },
+    });
+};
+
+export const useAddFavoriteServiceProvider = () => {
+    const queryClient = useQueryClient();
+    return useMutation<any, Error, string>({
+        mutationFn: async (spId: string) => {
+            const response = await axiosInstance.post(
+                EndPoints.FAVORITE_SP_BY_ID(spId),
+                {}
+            );
+            return response.data;
+        },
+        onSuccess: (_data, spId) => {
+            queryClient.invalidateQueries({ queryKey: ['favoriteServiceProviders'] });
+            queryClient.invalidateQueries({ queryKey: ['serviceProviderDetail', spId] });
+        },
+    });
+};
+
+export const useRemoveFavoriteServiceProvider = () => {
+    const queryClient = useQueryClient();
+    return useMutation<any, Error, string>({
+        mutationFn: async (spId: string) => {
+            const response = await axiosInstance.delete(
+                EndPoints.FAVORITE_SP_BY_ID(spId)
+            );
+            return response.data;
+        },
+        onSuccess: (_data, spId) => {
+            queryClient.invalidateQueries({ queryKey: ['favoriteServiceProviders'] });
+            queryClient.invalidateQueries({ queryKey: ['serviceProviderDetail', spId] });
+        },
+    });
+};

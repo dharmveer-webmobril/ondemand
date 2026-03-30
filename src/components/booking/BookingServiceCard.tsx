@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { useMemo } from 'react';
-import { ThemeType, useThemeContext } from '@utils/theme';
+import { Colors, ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, CustomButton } from '@components/common';
 import imagePaths from '@assets';
 import { getStatusColor, mapBookingStatusToDisplay } from '@utils/tools';
@@ -47,6 +47,7 @@ export default function BookingServiceCard({
   onReschedule,
   mainBookingStatus,
   onAcceptService,
+  onRejectService,
   serviceLoadingStates,
 }: BookingServiceCardProps) {
   const theme = useThemeContext();
@@ -68,16 +69,6 @@ export default function BookingServiceCard({
         const mappedServiceStatus = mapBookingStatusToDisplay(serviceStatus);
         const serviceStatusColor = getStatusColor(serviceStatus);
         const appliedOffer = service?.appliedOffer;
-        console.log(
-          'serviceStatusColor-----serviceStatusColor',
-          serviceStatusColor,
-        );
-        console.log(
-          'mappedServiceStatus-----mappedServiceStatus',
-          mappedServiceStatus,
-        );
-        console.log('serviceStatus-----BookingServiceCard', serviceStatus);
-        console.log('assignedMember-----BookingServiceCard', assignedMember);
         return (
           <View
             key={service._id ?? `service-${index}`}
@@ -100,24 +91,48 @@ export default function BookingServiceCard({
 
             {/* Cancelled Status Messages */}
             {serviceStatus === 'cancelledBySp' && (
-              <CustomText
-                color={serviceStatusColor}
-                fontFamily={theme.fonts.MEDIUM}
-                fontSize={theme.fontSize.sm}
-                style={styles.statusText}
-              >
-                Cancelled by provider
-              </CustomText>
+              <>
+                <CustomText
+                  color={serviceStatusColor}
+                  fontFamily={theme.fonts.MEDIUM}
+                  fontSize={theme.fontSize.sm}
+                  style={{marginBottom: theme.SH(3),marginTop: theme.SH(8)}}
+                >
+                  Cancelled by provider
+                </CustomText>
+                {service?.remark && (
+                  <CustomText
+                    color={Colors.textAppColor}
+                    fontFamily={theme.fonts.REGULAR}
+                    fontSize={theme.fontSize.sm}
+                    style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
+                  >
+                  Reason : {service?.remark}
+                  </CustomText>
+                )}
+              </>
             )}
             {serviceStatus === 'cancelledByCustomer' && (
-              <CustomText
-                color={serviceStatusColor}
-                fontFamily={theme.fonts.MEDIUM}
-                fontSize={theme.fontSize.sm}
-                style={styles.statusText}
-              >
-                Cancelled by customer
-              </CustomText>
+              <>
+                <CustomText
+                  color={serviceStatusColor}
+                  fontFamily={theme.fonts.MEDIUM}
+                  fontSize={theme.fontSize.sm}
+                  style={{marginBottom: theme.SH(3),marginTop: theme.SH(8)}}
+                >
+                  Cancelled by customer
+                </CustomText>
+                {service?.remark && (
+                  <CustomText
+                    color={serviceStatusColor}
+                    fontFamily={theme.fonts.MEDIUM}
+                    fontSize={theme.fontSize.sm}
+                    style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
+                  >
+                      Reason : {service?.remark}
+                  </CustomText>
+                )}
+              </>
             )}
             {serviceStatus === 'rejected' && (
               <CustomText
@@ -134,6 +149,8 @@ export default function BookingServiceCard({
                                 Rescheduled by customer <CustomText color={theme.colors.text} fontFamily={theme.fonts.MEDIUM} fontSize={theme.fontSize.xs}>(Wait for approval)</CustomText>
                             </CustomText>
                         )} */}
+
+            {/* Reschudeled status and reason============================== */}
             {serviceStatus === 'rescheduledByCustomer' && (
               <>
                 <CustomText
@@ -226,25 +243,26 @@ export default function BookingServiceCard({
                   </CustomText>
                 </CustomText>
               )}
-            {serviceStatus === 'rescheduledByCustomer' && (
-              <>
-                <CustomText
-                  color={theme.colors.text}
-                  fontFamily={theme.fonts.MEDIUM}
-                  fontSize={theme.fontSize.sm}
-                  style={{ marginBottom: theme.SH(4) }}
-                >
-                  Rescheduled reason:{' '}
+            {serviceStatus === 'rescheduledByCustomer' ||
+              (serviceStatus == 'rescheduledBySp' && (
+                <>
                   <CustomText
                     color={theme.colors.text}
-                    fontFamily={theme.fonts.REGULAR}
-                    fontSize={theme.fontSize.xs}
+                    fontFamily={theme.fonts.MEDIUM}
+                    fontSize={theme.fontSize.sm}
+                    style={{ marginBottom: theme.SH(4) }}
                   >
-                    {service?.rescheduleReason}
+                    Rescheduled reason:{' '}
+                    <CustomText
+                      color={theme.colors.text}
+                      fontFamily={theme.fonts.REGULAR}
+                      fontSize={theme.fontSize.xs}
+                    >
+                      {service?.rescheduleReason}
+                    </CustomText>
                   </CustomText>
-                </CustomText>
-              </>
-            )}
+                </>
+              ))}
 
             {/* Applied Offer */}
             {appliedOffer && (
@@ -369,7 +387,7 @@ export default function BookingServiceCard({
                 </View>
               )}
             </View>
-            
+
             {/* Member Assignment Section */}
 
             <View style={styles.memberSection}>
@@ -426,16 +444,30 @@ export default function BookingServiceCard({
                     <CustomButton
                       title="Accept Reschedule"
                       onPress={() => onAcceptService?.(service._id)}
-                      isLoading={serviceLoadingStates?.[service._id] === 'accept'}
+                      isLoading={
+                        serviceLoadingStates?.[service._id] === 'accept'
+                      }
                       disable={serviceLoadingStates?.[service._id] === 'accept'}
                       backgroundColor={theme.colors.primary}
                       textColor={theme.colors.white}
                       buttonStyle={styles.rescheduleButton}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
+                    <CustomButton
+                      title="Reject Reschedule"
+                      onPress={() => onRejectService?.(service._id)}
+                      isLoading={
+                        serviceLoadingStates?.[service._id] === 'reject'
+                      }
+                      disable={serviceLoadingStates?.[service._id] === 'reject'}
+                      backgroundColor={theme.colors.red || '#FF4D4D'}
+                      textColor={theme.colors.white}
+                      buttonStyle={styles.rescheduleButton}
+                      buttonTextStyle={styles.rescheduleButtonText}
+                    />
                   </View>
                 )}
-                {(serviceStatus === 'accepted') && (
+                {serviceStatus === 'accepted' && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
                       title="Reschedule"
@@ -448,7 +480,6 @@ export default function BookingServiceCard({
                   </View>
                 )}
                 {(serviceStatus === 'rescheduledByCustomer' ||
-                  serviceStatus === 'rescheduledBySp' ||
                   serviceStatus === 'accepted') && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
@@ -459,7 +490,6 @@ export default function BookingServiceCard({
                       buttonStyle={styles.cancelServiceButton}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
-                  
                   </View>
                 )}
               </View>

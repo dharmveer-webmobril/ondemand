@@ -9,6 +9,8 @@ import { formatAddress } from '@utils/tools';
 type HomeProviderItemProps = {
   provider: ServiceProvider;
   onPress?: () => void;
+  /** Full-width row for vertical lists; default is home carousel card */
+  layout?: 'carousel' | 'list';
 };
 
 const AVATAR_SIZE = 56;
@@ -17,9 +19,13 @@ const COVER_HEIGHT = 128;
 export default function HomeProviderItem({
   provider,
   onPress,
+  layout = 'carousel',
 }: HomeProviderItemProps) {
   const theme = useThemeContext();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(
+    () => createStyles(theme, layout),
+    [theme, layout],
+  );
 
   const address =
     formatAddress({
@@ -115,14 +121,15 @@ export default function HomeProviderItem({
   );
 }
 
-const createStyles = (theme: ThemeType) => {
+const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
   const overlap = AVATAR_SIZE / 2;
 
   return StyleSheet.create({
     container: {
-      width: SW(260),
-      marginRight: SW(14),
+      width: layout === 'list' ? '100%' : SW(260),
+      marginRight: layout === 'list' ? 0 : SW(14),
+      marginBottom: layout === 'list' ? SH(14) : 0,
       backgroundColor: Colors.white,
       borderRadius: SF(16),
       overflow: 'visible',

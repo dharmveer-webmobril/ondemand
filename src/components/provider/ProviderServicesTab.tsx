@@ -71,13 +71,14 @@ export default function ProviderServicesTab({
   }
 
   // Sort so services with highest discount offer appear first
-  const sortedServices = [...services].sort((a, b) => {
+  const sortedServices :any= [...services].sort((a, b) => {
     const bestA = getBestOffer(a?.activeOffers);
     const bestB = getBestOffer(b?.activeOffers);
     const valueA = bestA?.discountValue ?? 0;
     const valueB = bestB?.discountValue ?? 0;
     return valueB - valueA;
   });
+  
 
   return (
     <FlatList
@@ -88,6 +89,7 @@ export default function ProviderServicesTab({
         const bestOffer = getBestOffer(item?.activeOffers);
         return (
           <ServiceItem
+            showPreferences={item?.preferences}
             id={item._id}
             name={item.name ?? ''}
             image={item.images?.[0] ? { uri: item.images[0] } : imagePaths.no_image}

@@ -56,6 +56,7 @@ export const SCREEN_NAMES = {
   CUSTOMER_SUPPORT: 'CustomerSupport',
   LANGUAGE_SETTINGS: 'LanguageSettings',
   MULTI_LANGUAGE_CURRENCY: 'MultiLanguageCurrency',
+  FAVORITE_PROVIDERS: 'FavoriteProviders',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names
