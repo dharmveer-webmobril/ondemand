@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import React,{ useState, useCallback, useEffect, useMemo } from 'react';
 import { StatusBar, View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
