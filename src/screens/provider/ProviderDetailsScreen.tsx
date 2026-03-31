@@ -1,11 +1,10 @@
-import { StyleSheet, Linking, Alert, RefreshControl } from 'react-native';
+import { StyleSheet, Linking, Alert, RefreshControl, View } from 'react-native';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Container, showToast } from '@components/common';
+import { Container, Shimmer, showToast } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ProviderTabs from '@components/provider/ProviderTabs';
-import ProviderLoadingState from '@components/provider/ProviderLoadingState';
 import ProviderErrorState from '@components/provider/ProviderErrorState';
 import ProviderServicesTab from '@components/provider/ProviderServicesTab';
 import ProviderReviewsTab from '@components/provider/ProviderReviewsTab';
@@ -29,6 +28,7 @@ import {
 } from '@services/index';
 import { formatAddress } from '@utils/tools';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import localStorage from '@utils/StorageProvider';
 
 type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
 
@@ -124,6 +124,7 @@ export default function ProviderDetailsScreen() {
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
   const { t } = useTranslation();
+  const showTopSkeleton = isLoadingProvider && !provider?._id;
 
   const providerIdForFavorite = provider?._id || spId;
   const isFavoriteFromDetail = Boolean(
@@ -179,7 +180,8 @@ export default function ProviderDetailsScreen() {
     servicesError?.message ||
     t('providerDetails.failedToLoadProvider');
 
-  const handleBookService = (serviceId: string) => {
+  const handleBookService = async (serviceId: string) => {
+    await localStorage.removeItem('bookingId');
     setPendingServiceId(serviceId);
     setShowDeliveryModeModal(true);
   };
@@ -311,11 +313,6 @@ export default function ProviderDetailsScreen() {
   };
 
   const renderContent = () => {
-    // Show initial loading only on first load, not during refetch
-    if (isLoading && !refreshing) {
-      return <ProviderLoadingState />;
-    }
-
     if (isError && !providerData?.ResponseData) {
       return (
         <ProviderErrorState errorMessage={errorMessage} onRetry={handleRetry} />
@@ -396,16 +393,6 @@ export default function ProviderDetailsScreen() {
     }
   };
 
-  // Don't render content if loading or error - show full screen loader/error
-  // Only show full screen loader on initial load, not during refetch
-  if (isLoading && !refreshing && !providerData?.ResponseData) {
-    return (
-      <Container safeArea={true} style={styles.container}>
-        <ProviderLoadingState fullScreen={true} />
-      </Container>
-    );
-  }
-
   if (isError && !providerData?.ResponseData) {
     return (
       <Container safeArea={true} style={styles.container}>
@@ -420,35 +407,61 @@ export default function ProviderDetailsScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
-      <ProviderHeader
-        name={provider.name || t('providerDetails.providerDefaultName')}
-        logo={provider.profileImage}
-      />
-      <ProviderSubHeader
-        logo={provider.profileImage}
-        name={provider.name || t('providerDetails.providerDefaultName')}
-        address={
-          formatAddress({
-            line1: provider.businessProfile?.line1,
-            line2: provider.businessProfile?.line2,
-            landmark: provider.businessProfile?.landmark,
-            pincode: provider.businessProfile?.pincode,
-            city: provider.businessProfile?.city?.name,
-            country: provider.businessProfile?.country?.name,
-          }) ||
-          provider.city?.name ||
-          t('providerDetails.addressNotAvailable')
-        }
-        serviceType={
-          businessProfile.name || t('providerDetails.serviceProviderDefault')
-        }
-        rating={provider.rating || undefined}
-        reviewCount={0} // TODO: Get from API if available
-        onShare={() => console.log('Share pressed')}
-        isFavorite={favoriteShown}
-        onFavorite={handleFavoriteToggle}
-      />
-      <ProviderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      {showTopSkeleton ? (
+        <View style={styles.topSkeletonWrap}>
+          <View style={styles.headerSkeletonRow}>
+            <Shimmer width={theme.SF(56)} height={theme.SF(56)} borderRadius={theme.SF(28)} />
+            <View style={styles.headerTextSkeleton}>
+              <Shimmer width={'70%'} height={theme.SH(14)} borderRadius={theme.SF(8)} />
+              <Shimmer width={'45%'} height={theme.SH(12)} borderRadius={theme.SF(8)} style={styles.skeletonGap} />
+            </View>
+          </View>
+
+          <View style={styles.subHeaderSkeleton}>
+            <Shimmer width={'100%'} height={theme.SH(12)} borderRadius={theme.SF(8)} />
+            <Shimmer width={'70%'} height={theme.SH(12)} borderRadius={theme.SF(8)} style={styles.skeletonGap} />
+          </View>
+
+          <View style={styles.tabsSkeletonRow}>
+            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
+            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
+            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
+            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
+          </View>
+        </View>
+      ) : (
+        <>
+          <ProviderHeader
+            name={provider.name || t('providerDetails.providerDefaultName')}
+            logo={provider.profileImage}
+          />
+          <ProviderSubHeader
+            logo={provider.profileImage}
+            name={provider.name || t('providerDetails.providerDefaultName')}
+            address={
+              formatAddress({
+                line1: provider.businessProfile?.line1,
+                line2: provider.businessProfile?.line2,
+                landmark: provider.businessProfile?.landmark,
+                pincode: provider.businessProfile?.pincode,
+                city: provider.businessProfile?.city?.name,
+                country: provider.businessProfile?.country?.name,
+              }) ||
+              provider.city?.name ||
+              t('providerDetails.addressNotAvailable')
+            }
+            serviceType={
+              businessProfile.name || t('providerDetails.serviceProviderDefault')
+            }
+            rating={provider.rating || undefined}
+            reviewCount={0} // TODO: Get from API if available
+            onShare={() => console.log('Share pressed')}
+            isFavorite={favoriteShown}
+            onFavorite={handleFavoriteToggle}
+          />
+          <ProviderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        </>
+      )}
       {renderContent()}
       {/* {isShowBookButton && services.length > 0 && (
         <ProviderBookButton
@@ -488,6 +501,31 @@ const createStyles = (theme: ThemeType) => {
     container: {
       flex: 1,
       backgroundColor: Colors.white,
+    },
+    topSkeletonWrap: {
+      paddingHorizontal: theme.SW(16),
+      paddingTop: theme.SH(10),
+      paddingBottom: theme.SH(8),
+      backgroundColor: Colors.white,
+    },
+    headerSkeletonRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    headerTextSkeleton: {
+      flex: 1,
+      marginLeft: theme.SW(12),
+    },
+    subHeaderSkeleton: {
+      marginTop: theme.SH(14),
+    },
+    tabsSkeletonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: theme.SH(14),
+    },
+    skeletonGap: {
+      marginTop: theme.SH(8),
     },
   });
 };

@@ -1,9 +1,10 @@
-import { FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { FlatList, StyleSheet, RefreshControl, View } from 'react-native';
 import { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ServiceItem from './ServiceItem';
 import ProviderEmptyState from './ProviderEmptyState';
 import imagePaths from '@assets';
+import { Shimmer } from '@components/common';
 
 type Offer = {
   _id: string;
@@ -61,9 +62,52 @@ export default function ProviderServicesTab({
 }: ProviderServicesTabProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const skeletonData = useMemo(() => Array.from({ length: 6 }, (_, i) => `skeleton-${i}`), []);
 
-  if (isLoading && !refreshing) {
-    return null; // Let parent handle initial loading
+  if (isLoading && !refreshing && services.length === 0) {
+    return (
+      <FlatList
+        data={skeletonData}
+        keyExtractor={(item) => item}
+        renderItem={() => (
+          <View style={styles.skeletonRow}>
+            <View style={styles.skeletonLeft}>
+              <Shimmer
+                width={theme.SW(60)}
+                height={theme.SH(60)}
+                borderRadius={theme.SF(30)}
+              />
+              <View style={styles.skeletonTextCol}>
+                <Shimmer
+                  width={theme.SW(150)}
+                  height={theme.SH(14)}
+                  borderRadius={theme.SF(8)}
+                />
+                <Shimmer
+                  width={theme.SW(120)}
+                  height={theme.SH(12)}
+                  borderRadius={theme.SF(8)}
+                  style={styles.skeletonGap}
+                />
+                <Shimmer
+                  width={theme.SW(170)}
+                  height={theme.SH(10)}
+                  borderRadius={theme.SF(8)}
+                  style={styles.skeletonGap}
+                />
+              </View>
+            </View>
+            <Shimmer
+              width={theme.SW(90)}
+              height={theme.SH(30)}
+              borderRadius={theme.SF(6)}
+            />
+          </View>
+        )}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+    );
   }
 
   if (services.length === 0) {
@@ -117,10 +161,32 @@ export default function ProviderServicesTab({
 }
 
 const createStyles = (theme: ThemeType) => {
-  const { SH } = theme;
+  const { SH, SW } = theme;
   return StyleSheet.create({
     listContent: {
       paddingBottom: SH(20),
+    },
+    skeletonRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SW(15),
+      paddingVertical: SH(16),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.gray || '#E0E0E0',
+      backgroundColor: theme.colors.white,
+    },
+    skeletonLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    skeletonTextCol: {
+      marginLeft: SW(12),
+      flex: 1,
+    },
+    skeletonGap: {
+      marginTop: SH(8),
     },
   });
 };

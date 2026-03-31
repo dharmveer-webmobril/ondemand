@@ -43,6 +43,7 @@ type BuildBookingPayloadParams = {
   otherPersonDetails: OtherPersonDetails;
   paymentMode: PaymentModeKey;
   walletAmountUsed: number;
+  bookingId?: string | null;
 };
 
 export const getWalletPartialAmount = (
@@ -57,7 +58,10 @@ export const getWalletPartialAmount = (
   );
 };
 
-export const getRemainingAfterWallet = (totalPrice: number, walletPartialNum: number) => {
+export const getRemainingAfterWallet = (
+  totalPrice: number,
+  walletPartialNum: number,
+) => {
   return Math.max(0, totalPrice - walletPartialNum);
 };
 
@@ -104,7 +108,10 @@ export const isCheckoutFormValid = ({
   otherPersonDetails,
   otherPersonAddressRequired,
 }: ValidateCheckoutFormParams) => {
-  if ((deliveryMode === 'onPremises' || deliveryMode === 'online') && serviceFor === 'self') {
+  if (
+    (deliveryMode === 'onPremises' || deliveryMode === 'online') &&
+    serviceFor === 'self'
+  ) {
     return true;
   }
 
@@ -113,7 +120,11 @@ export const isCheckoutFormValid = ({
   }
 
   if (serviceFor === 'other') {
-    if (!otherPersonDetails?.name || !otherPersonDetails?.email || !otherPersonDetails?.phone) {
+    if (
+      !otherPersonDetails?.name ||
+      !otherPersonDetails?.email ||
+      !otherPersonDetails?.phone
+    ) {
       return false;
     }
 
@@ -149,8 +160,10 @@ export const buildBookingPayload = ({
   otherPersonDetails,
   paymentMode,
   walletAmountUsed,
+  bookingId,
 }: BuildBookingPayloadParams) => {
   return {
+    ...(bookingId ? { _id: bookingId } : {}),
     spId: bookingData?.providerData?._id,
     services: buildSelectedServicesPayload(selectedServices),
     bookedFor: serviceFor,
@@ -173,8 +186,12 @@ export const buildBookingPayload = ({
   };
 };
 
-export const shouldUseGatewayPayment = (selectedPaymentMethod: BookingPaymentMethod) => {
-  return selectedPaymentMethod === 'stripe' || selectedPaymentMethod === 'paypal';
+export const shouldUseGatewayPayment = (
+  selectedPaymentMethod: BookingPaymentMethod,
+) => {
+  return (
+    selectedPaymentMethod === 'stripe' || selectedPaymentMethod === 'paypal'
+  );
 };
 
 export const getGatewayChargeAmount = (

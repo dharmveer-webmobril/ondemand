@@ -6,6 +6,7 @@ import imagePaths from '@assets';
 import { getStatusColor, mapBookingStatusToDisplay } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigate } from '@utils/NavigationUtils';
+import { SW } from '@utils/dimensions';
 
 type Service = {
   _id: string;
@@ -440,7 +441,19 @@ export default function BookingServiceCard({
               {/* {(serviceStatus === 'accepted' || serviceStatus === 'requested') && ( */}
               <View style={styles.serviceActionContainer}>
                 {serviceStatus === 'rescheduledBySp' && (
-                  <View style={styles.serviceActionButtonWrap}>
+                  <View style={{flexDirection: 'row', gap: SW(8)}}>
+                    <CustomButton
+                      title="Reject Reschedule"
+                      onPress={() => onRejectService?.(service._id)}
+                      isLoading={
+                        serviceLoadingStates?.[service._id] === 'reject'
+                      }
+                      disable={serviceLoadingStates?.[service._id] === 'reject'}
+                      backgroundColor={theme.colors.red || '#FF4D4D'}
+                      textColor={theme.colors.white}
+                      buttonStyle={[styles.rescheduleButton,{backgroundColor: theme.colors.red || '#FF4D4D'}]}
+                      buttonTextStyle={styles.rescheduleButtonText}
+                    />
                     <CustomButton
                       title="Accept Reschedule"
                       onPress={() => onAcceptService?.(service._id)}
@@ -453,33 +466,22 @@ export default function BookingServiceCard({
                       buttonStyle={styles.rescheduleButton}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
-                    <CustomButton
-                      title="Reject Reschedule"
-                      onPress={() => onRejectService?.(service._id)}
-                      isLoading={
-                        serviceLoadingStates?.[service._id] === 'reject'
-                      }
-                      disable={serviceLoadingStates?.[service._id] === 'reject'}
-                      backgroundColor={theme.colors.red || '#FF4D4D'}
-                      textColor={theme.colors.white}
-                      buttonStyle={styles.rescheduleButton}
-                      buttonTextStyle={styles.rescheduleButtonText}
-                    />
+                    
                   </View>
                 )}
-                {serviceStatus === 'accepted' && (
+                {(serviceStatus === 'accepted' || serviceStatus === 'rescheduledBySp' || serviceStatus === 'rescheduledByCustomer')&&  (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
                       title="Reschedule"
                       onPress={() => onReschedule?.(service)}
                       backgroundColor={theme.colors.primary}
                       textColor={theme.colors.white}
-                      buttonStyle={styles.rescheduleButton}
+                      buttonStyle={styles.rescheduleButton1}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
                   </View>
                 )}
-                {(serviceStatus === 'rescheduledByCustomer' ||
+                {/* {(serviceStatus === 'rescheduledByCustomer' ||
                   serviceStatus === 'accepted') && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
@@ -491,7 +493,7 @@ export default function BookingServiceCard({
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
                   </View>
-                )}
+                )} */}
               </View>
               {/* )} */}
             </View>
@@ -780,10 +782,19 @@ const createStyles = (theme: ThemeType) => {
       backgroundColor: Colors.primary_light,
       borderWidth: 1,
       borderColor: Colors.primary,
+      width: '48%',
+      // marginBottom: SH(8),
+    },
+    rescheduleButton1: {
+      borderRadius: SF(8),
+      paddingVertical: SH(8),
+      backgroundColor: Colors.primary_light,
+      borderWidth: 1,
+      borderColor: Colors.primary,
       // marginBottom: SH(8),
     },
     rescheduleButtonText: {
-      fontSize: SF(12),
+      fontSize: SF(11),
       fontFamily: Fonts.MEDIUM,
       color: Colors.white,
     },

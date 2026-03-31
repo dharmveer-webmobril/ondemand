@@ -204,9 +204,7 @@ export default function BookingDetail() {
     if (!bookingDetailData?.ResponseData?.booking) return null;
 
     const apiBooking = bookingDetailData?.ResponseData?.booking;
-    const bookedServices = (
-      bookingDetailData?.ResponseData?.bookedServices || []
-    ).filter((s: any) => s != null);
+    const bookedServices = (bookingDetailData?.ResponseData?.bookedServices || []).filter((s: any) => s != null);
     // Transform bookedServices to BookingServiceCard format
     const services = bookedServices.map((bookedService: any) => {
     // console.log('apiBooking -----BookingDetail', apiBooking);
@@ -296,6 +294,7 @@ export default function BookingDetail() {
       providerData: apiBooking?.spId,
       preferences: apiBooking?.preferences || [],
       spBusinessProfile: apiBooking?.spBusinessProfile,
+      remark: apiBooking?.remark,
     };
   }, [bookingDetailData, t]);
   // Handle API errors - show error toast but don't block UI if we have cached data
@@ -615,20 +614,22 @@ export default function BookingDetail() {
         const res = await rejectRescheduleService(bookedServiceId);
         if (res?.succeeded) {
           handleSuccessToast(
-            res?.ResponseMessage || 'Reschedule rejected',
+             'Reschedule rejected successfully',
           );
-          queryClient.invalidateQueries({
-            queryKey: ['bookingDetail', bookingId],
-          });
-          // Booking status changed -> refresh BookingList.
-          queryClient.invalidateQueries({
-            queryKey: ['customerBookings'],
-          });
-          refetchBooking();
         }
       } catch (err) {
         handleApiError(err);
       } finally {
+        // Always reload so UI updates immediately after the user action.
+        if (bookingId) {
+          queryClient.invalidateQueries({
+            queryKey: ['bookingDetail', bookingId],
+          });
+        }
+        queryClient.invalidateQueries({
+          queryKey: ['customerBookings'],
+        });
+        refetchBooking();
         setRejectingServiceId(null);
       }
     },
@@ -853,6 +854,18 @@ export default function BookingDetail() {
               </CustomText>
             </Pressable>
           )}
+
+{
+         (booking?.status === 'cancelledBySp' || booking?.status === 'cancelledByCustomer' || booking?.status === 'rejected') && booking?.remark && (
+            <CustomText
+              fontSize={theme.fontSize.md}
+              fontFamily={theme.fonts.MEDIUM}
+              color={theme.colors.red}
+            >
+            Booking Cancelled Reason : <CustomText fontSize={theme.fontSize.md} fontFamily={theme.fonts.REGULAR} color={theme.colors.text}>{booking?.remark}</CustomText>
+            </CustomText>
+          )
+         }
         </ScrollView>
       )}
 

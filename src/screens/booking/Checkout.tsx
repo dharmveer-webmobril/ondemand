@@ -38,6 +38,7 @@ import {
   isWalletFullyCovered,
   shouldUseGatewayPayment,
 } from './checkoutHelpers';
+import localStorage from '@utils/StorageProvider';
 
 export default function Checkout() {
   const theme = useThemeContext();
@@ -195,11 +196,14 @@ export default function Checkout() {
     const bookingId = response?.ResponseData?.booking?._id ?? null;
 
     if (!bookingId) {
-      handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
+
+      // handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
       navigateToBookingList(payload);
       return;
     }
+
+    await localStorage.saveItem('bookingId', bookingId as string);
 
     const amountToCharge = getGatewayChargeAmount(
       selectedPaymentMethod,
@@ -237,26 +241,29 @@ export default function Checkout() {
           setTimeout(() => navigateToBookingList(payload), 800);
         },
         onCancel: () => {
-          navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
+          // navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
         },
         onError: (_error: any) => {
           console.log('onError------ 227', _error);
           handleApiError(_error);
-          setTimeout(() => navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId }), 300);
+          // setTimeout(() => navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId }), 300);
         },
       });
       return;
     }
-
+    // handle success toast and navigate to booking list of the booking is created successfully for cash and wallet payment
     handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
     invalidateCheckoutQueries();
     setTimeout(() => navigateToBookingList(payload), 800);
   };
 
-  const submitBooking = (
+  const submitBooking = async (
     selectedPaymentMethod: BookingPaymentMethod,
     walletAmountUsed: number = 0,
   ) => {
+
+    let bookingId = await localStorage.getItem('bookingId');
+    
     const payload = buildBookingPayload({
       bookingData,
       selectedServices,
@@ -265,10 +272,10 @@ export default function Checkout() {
       otherPersonDetails,
       paymentMode,
       walletAmountUsed,
+      bookingId,
     });
 
     console.log('Final Booking Data:', JSON.stringify(payload, null, 2));
-
     createBooking(payload, {
       onSuccess: async (response) => {
         await handleBookingCreated(

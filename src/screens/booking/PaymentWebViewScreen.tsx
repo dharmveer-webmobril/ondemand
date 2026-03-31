@@ -17,6 +17,7 @@ import {
 } from '@services/payment/gatewayPayment';
 import { AppHeader, Container } from '@components/common';
 import { useThemeContext } from '@utils/theme';
+import { goBack } from '@utils/NavigationUtils';
 
 type RouteParams = {
   paymentUrl: string;
@@ -56,10 +57,10 @@ export default function PaymentWebViewScreen() {
       if (isPayPalSuccessUrl(url, PAYPAL_SUCCESS_URL_PATTERNS)) {
         handledRef.current = true;
         try {
-          const confirmPayload = walletTransactionId
-            ? { transactionId, walletTransactionId }
-            : { transactionId, bookingId };
+          const confirmPayload = walletTransactionId ? { transactionId, walletTransactionId }: { transactionId, bookingId };
+
           await confirmPayment(confirmPayload);
+
           navigation.navigate(returnTo, {
             ...returnParams,
             paymentResult: 'success',
@@ -68,23 +69,28 @@ export default function PaymentWebViewScreen() {
           });
         } catch (error) {
           handleApiError(error);
-          navigation.navigate(returnTo, {
-            ...returnParams,
-            paymentResult: 'failure',
-            paymentError: (error as Error)?.message,
-            bookingId,
-          });
+          console.log('payment webview error------ 71', error);
+          goBack();
+          // navigation.navigate(returnTo, {
+          //   ...returnParams,
+          //   paymentResult: 'failure',
+          //   paymentError: (error as Error)?.message,
+          //   bookingId,
+          // });
         }
         return;
       }
 
       if (isPayPalFailureUrl(url, PAYPAL_FAILURE_URL_PATTERNS)) {
         handledRef.current = true;
+        // Treat this as a real payment failure – inform the return screen.
         navigation.navigate(returnTo, {
           ...returnParams,
-          paymentResult: 'cancel',
+          paymentResult: 'failure',
+          paymentError: 'Payment failed',
           bookingId,
         });
+        console.log('payment webview failure------ 92');
       }
     },
     [
@@ -100,12 +106,10 @@ export default function PaymentWebViewScreen() {
   );
 
   const handleClose = useCallback(() => {
-    navigation.navigate(returnTo, {
-      ...returnParams,
-      paymentResult: 'cancel',
-      bookingId,
-    });
-  }, [navigation, returnTo, returnParams, bookingId]);
+    // User explicitly closed the sheet: treat as cancel without error message.
+    goBack();
+    console.log('payment webview close------ 114');
+  }, []);
 
   if (!paymentUrl) {
     return null;

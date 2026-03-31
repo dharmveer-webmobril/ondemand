@@ -115,7 +115,7 @@ export function useGatewayPayment() {
         const { error: presentError, didCancel } = await presentPaymentSheet();
         if (didCancel) {
           console.log('didCancel------ 100', didCancel);
-          onCancel(bookingId);
+          // onCancel(bookingId);
           return;
         }
         if (presentError) {
@@ -164,6 +164,7 @@ export function useGatewayPayment() {
         }
         if (!returnTo) {
           onError(new Error('returnTo is required for PayPal'), bookingId);
+          
           return;
         }
         navigation.navigate(SCREEN_NAMES.PAYMENT_WEBVIEW, {

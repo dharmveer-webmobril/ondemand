@@ -94,8 +94,33 @@ export default function RescheduleModal({
     if (!availabilityData.ResponseData.available || availability.close) {
       return [];
     }
-    return generateTimeSlots(availability.startTime, availability.endTime, availability.close);
-  }, [availabilityData]);
+    const allSlots = generateTimeSlots(
+      availability.startTime,
+      availability.endTime,
+      availability.close,
+    );
+
+    // For today: only show slots that start at least 1 hour from now
+    if (selectedDateString === todayString && allSlots.length > 0) {
+      const now = new Date();
+      const nowPlusOneHour = new Date(now.getTime() + 60 * 60 * 1000);
+
+      return allSlots.filter(slot => {
+        // slot.time is expected like "HH:mm" or "HH:mm A"
+        const timeParts = slot.time.split(' ')[0].split(':');
+        const hour = Number(timeParts[0]);
+        const minute = Number(timeParts[1] || 0);
+        if (Number.isNaN(hour)) return false;
+
+        const slotDate = new Date();
+        slotDate.setHours(hour, minute, 0, 0);
+
+        return slotDate.getTime() >= nowPlusOneHour.getTime();
+      });
+    }
+
+    return allSlots;
+  }, [availabilityData, selectedDateString, todayString]);
 
   // Handle date selection from Calendar
   const handleDayPress = useCallback((day: DateData) => {

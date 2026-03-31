@@ -174,11 +174,12 @@ notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
     JSON.stringify(notification),
   );
   switch (type) {
-    case EventType.DISMISSED:
+    case EventType.DISMISSED || 0:
       console.log('Notification dismissed:', notification?.id);
       break;
 
-    case EventType.PRESS:
+    case EventType.PRESS || 1:
+      navigateToNotification(detail, type);
       // navigate(ScreenName.NOTIFICATION, {});
       break;
   }
@@ -204,17 +205,18 @@ notifee.onForegroundEvent(({ type, detail }: Event) => {
 });
 
 const navigateToNotification = (notification: any, type: any) => {
-  console.log('Notification received in foreground', type);
-  switch (notification?.notification?.data?.type) {
+  let data = notification?.notification?.data || notification?.data || {};
+  console.log('Notification Data:', data,type,notification);
+  switch (data?.type) {
     case 'message':
       navigate(SCREEN_NAMES.CHAT_SCREEN, {
-        conversationId: notification?.notification?.data?.conversationId,
-        bookingId: notification?.notification?.data?.bookingId,
+        conversationId: data?.conversationId,
+        bookingId: data?.bookingId,
       });
       break;
     case 'booking':
       navigate(SCREEN_NAMES.BOOKING_DETAIL, {
-        bookingId: notification?.notification?.data?.bookingId,
+        bookingId: data?.bookingId,
       });
       break;
     default:
