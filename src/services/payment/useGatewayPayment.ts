@@ -46,6 +46,7 @@ export function useGatewayPayment() {
         paymentMethod = 'card',
         walletTransactionId,
         returnTo,
+        returnRouteKey,
         returnParams = {},
         onSuccess,
         onCancel,
@@ -62,6 +63,7 @@ export function useGatewayPayment() {
         paymentMethod,
         useWallet: walletAmountUsed > 0,
         walletAmount: walletAmountUsed,
+        platform: 'app',
       };
       console.log('paymentRequest------ 64', paymentRequest);
       let initiateRes: any;
@@ -115,7 +117,7 @@ export function useGatewayPayment() {
         const { error: presentError, didCancel } = await presentPaymentSheet();
         if (didCancel) {
           console.log('didCancel------ 100', didCancel);
-          // onCancel(bookingId);
+          onCancel(bookingId);
           return;
         }
         if (presentError) {
@@ -174,6 +176,7 @@ export function useGatewayPayment() {
           walletTransactionId: walletTransactionId ?? undefined,
           initiateRes,
           returnTo,
+          returnRouteKey,
           returnParams,
         });
       }

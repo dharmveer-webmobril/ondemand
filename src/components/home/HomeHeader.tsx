@@ -154,12 +154,12 @@ export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }:
             </View>
           </View>
           <View style={styles.rightView}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.iconButton}
               onPress={() => { }}
             >
               <Image source={imagePaths.calender_icon} style={styles.icon} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => onNotificationPress?.()}

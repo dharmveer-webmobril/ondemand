@@ -43,10 +43,12 @@ export default function SelectOptionModal({
   // Initialize selectedIds when modal opens or selectedValue changes
   useEffect(() => {
     if (visible) {
-      if (selectedValue) {
+      if (
+        selectedValue &&
+        options.some((o) => o.id === selectedValue)
+      ) {
         setSelectedIds([selectedValue]);
       } else if (options.length > 0) {
-        // Default to first option if no selection
         setSelectedIds([options[0].id]);
       } else {
         setSelectedIds([]);
@@ -166,6 +168,7 @@ export default function SelectOptionModal({
               buttonStyle={styles.confirmButton}
               backgroundColor={theme.colors.primary}
               textColor={theme.colors.whitetext}
+              disable={options.length === 0 || selectedIds.length === 0}
             />
           </View>
         </Pressable>

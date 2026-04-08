@@ -1,17 +1,13 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { AppHeader, Container, LoadingComp } from '@components/common';
+import { AppHeader, Container, LoadingComp, SweetAlert } from '@components/common';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
 import { useCreateBooking, useGetWallet } from '@services/api/queries/appQueries';
 import { useGatewayPayment } from '@services/payment';
-import {
-  handleApiError,
-  handleApiFailureResponse,
-  handleSuccessToast,
-} from '@utils/apiHelpers';
+import { handleSuccessToast } from '@utils/apiHelpers';
 import { useThemeContext } from '@utils/theme';
 import { createStyles } from './Checkout.styles';
 import {
@@ -53,14 +49,69 @@ export default function Checkout() {
   const needsAddress = deliveryMode === 'atHome';
   const otherPersonAddressRequired = deliveryMode === 'atHome';
 
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const draft = route.params?.checkoutDraft;
+
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(
+    draft?.selectedAddress ?? null,
+  );
   const [showServiceForModal, setShowServiceForModal] = useState(false);
-  const [serviceFor, setServiceFor] = useState<'self' | 'other'>('self');
-  const [otherPersonDetails, setOtherPersonDetails] = useState<OtherPersonDetails>(null);
-  const [paymentMode, setPaymentMode] = useState<PaymentModeKey>('cash');
-  const [paymentType, setPaymentType] = useState<'paypal' | 'stripe' | 'cash'>('cash');
+  const [serviceFor, setServiceFor] = useState<'self' | 'other'>(
+    draft?.serviceFor ?? 'self',
+  );
+  const [otherPersonDetails, setOtherPersonDetails] = useState<OtherPersonDetails>(
+    draft?.otherPersonDetails ?? null,
+  );
+  const [paymentMode, setPaymentMode] = useState<PaymentModeKey>(
+    draft?.paymentMode ?? 'cash',
+  );
+  const [paymentType, setPaymentType] = useState<'paypal' | 'stripe' | 'cash'>(
+    draft?.paymentType ?? 'cash',
+  );
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [walletPartialAmount, setWalletPartialAmount] = useState('');
+  const [walletPartialAmount, setWalletPartialAmount] = useState(
+    draft?.walletPartialAmount ?? '',
+  );
+
+  const [showPaymentFailedPopup, setShowPaymentFailedPopup] = useState(false);
+  const [paymentFailedMessage, setPaymentFailedMessage] = useState<string>('');
+
+  const showCheckoutError = useCallback(
+    (error: any, fallbackMessage: string = t('checkout.failedToCreateBooking')) => {
+      const message =
+        typeof error === 'string'
+          ? error
+          : error?.response?.data?.ResponseMessage ||
+            error?.response?.data?.message ||
+            error?.message ||
+            fallbackMessage;
+
+      setPaymentFailedMessage(message);
+      setShowPaymentFailedPopup(true);
+    },
+    [t],
+  );
+
+  // Persist draft so data is not lost on payment cancel/back or screen remount.
+  useEffect(() => {
+    navigation.setParams({
+      checkoutDraft: {
+        selectedAddress,
+        serviceFor,
+        otherPersonDetails,
+        paymentMode,
+        paymentType,
+        walletPartialAmount,
+      },
+    });
+  }, [
+    navigation,
+    selectedAddress,
+    serviceFor,
+    otherPersonDetails,
+    paymentMode,
+    paymentType,
+    walletPartialAmount,
+  ]);
 
   const { data: walletData } = useGetWallet();
   const walletBalance =
@@ -175,11 +226,19 @@ export default function Checkout() {
         navigation.setParams({ paymentResult: undefined, checkoutPayload: undefined, paymentMessage: undefined });
       }
       if (result === 'failure' && route.params?.paymentError) {
-        handleApiFailureResponse(route.params.paymentError, t('checkout.failedToCreateBooking'));
+        showCheckoutError(route.params.paymentError);
         navigation.setParams({ paymentResult: undefined, paymentError: undefined });
       }
+      if (result === 'cancel') {
+        // User closed/backed out of gateway: keep data, show no message.
+        navigation.setParams({
+          paymentResult: undefined,
+          paymentError: undefined,
+          paymentMessage: undefined,
+        });
+      }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentError]),
+    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentError, showCheckoutError]),
   );
 
   const handleBookingCreated = async (
@@ -189,7 +248,7 @@ export default function Checkout() {
     walletAmountUsed: number,
   ) => {
     if (!response?.succeeded && !response?.ResponseData) {
-      handleApiFailureResponse(response, t('checkout.failedToCreateBooking'));
+      showCheckoutError(response?.ResponseMessage, t('checkout.failedToCreateBooking'));
       return;
     }
 
@@ -227,9 +286,8 @@ export default function Checkout() {
         walletAmountUsed,
         walletTransactionId,
         returnTo: SCREEN_NAMES.CHECKOUT,
+        returnRouteKey: route.key,
         returnParams: { bookingData, checkoutPayload: payload },
-        handleApiError,
-        handleApiFailureResponse,
         failureMessage: t('checkout.failedToCreateBooking'),
         onSuccess: (initiateRes: any) => {
           handleSuccessToast(
@@ -243,9 +301,9 @@ export default function Checkout() {
         onCancel: () => {
           // navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
         },
-        onError: (_error: any) => {
-          console.log('onError------ 227', _error);
-          handleApiError(_error);
+        onError: (error: any) => {
+          console.log('onError------ 227', error);
+          showCheckoutError(error);
           // setTimeout(() => navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId }), 300);
         },
       });
@@ -287,7 +345,7 @@ export default function Checkout() {
       },
       onError: (error) => {
         console.error('Booking creation error:', error);
-        handleApiError(error);
+        showCheckoutError(error);
       },
     });
   };
@@ -423,6 +481,20 @@ export default function Checkout() {
         onPaymentMethodConfirm={handlePaymentMethodConfirm}
         paymentType={paymentType}
         paymentMode={paymentMode}
+      />
+
+      <SweetAlert
+        visible={showPaymentFailedPopup}
+        message={paymentFailedMessage || t('checkout.failedToCreateBooking')}
+        isConfirmType="delete"
+        onOk={() => {
+          setShowPaymentFailedPopup(false);
+          setPaymentFailedMessage('');
+        }}
+        onCancel={() => {
+          setShowPaymentFailedPopup(false);
+          setPaymentFailedMessage('');
+        }}
       />
     </Container>
   );

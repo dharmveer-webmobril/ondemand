@@ -45,6 +45,7 @@ export interface RunGatewayPaymentParams {
   walletTransactionId?: string | null;
   /** Required for PayPal: where to go after WebView and params to pass back (e.g. { bookingData }) */
   returnTo?: string;
+  returnRouteKey?: string;
   returnParams?: Record<string, any>;
   onSuccess: (initiateRes: any) => void;
   onCancel: (bookingId: string) => void;
@@ -63,6 +64,7 @@ export interface PaymentWebViewParams {
   walletTransactionId?: string | null;
   initiateRes: any;
   returnTo: string;
+  returnRouteKey?: string;
   returnParams: Record<string, any>;
 }
 

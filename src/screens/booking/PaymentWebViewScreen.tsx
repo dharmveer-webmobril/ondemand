@@ -1,23 +1,20 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { useConfirmBookingPayment } from '@services/api/queries/appQueries';
-import { handleApiError } from '@utils/apiHelpers';
 import {
-  isPayPalSuccessUrl,
   isPayPalFailureUrl,
-  PAYPAL_SUCCESS_URL_PATTERNS,
+  isPayPalSuccessUrl,
   PAYPAL_FAILURE_URL_PATTERNS,
+  PAYPAL_SUCCESS_URL_PATTERNS,
 } from '@services/payment/gatewayPayment';
 import { AppHeader, Container } from '@components/common';
 import { useThemeContext } from '@utils/theme';
-import { goBack } from '@utils/NavigationUtils';
 
 type RouteParams = {
   paymentUrl: string;
@@ -26,6 +23,7 @@ type RouteParams = {
   walletTransactionId?: string | null;
   initiateRes: any;
   returnTo: string;
+  returnRouteKey?: string;
   returnParams: Record<string, any>;
 };
 
@@ -44,72 +42,125 @@ export default function PaymentWebViewScreen() {
     walletTransactionId,
     initiateRes,
     returnTo,
+    returnRouteKey,
     returnParams = {},
   } = (route.params || {}) as RouteParams;
+
+  const closeWithResult = useCallback(
+    (
+      paymentResult: 'success' | 'failure' | 'cancel',
+      extraParams: Record<string, any> = {},
+    ) => {
+      if (handledRef.current) {
+        return;
+      }
+
+      handledRef.current = true;
+
+      const resultParams = {
+        ...returnParams,
+        ...extraParams,
+        paymentResult,
+        bookingId,
+      };
+
+      if (returnRouteKey) {
+        navigation.dispatch({
+          ...CommonActions.setParams(resultParams),
+          source: returnRouteKey,
+        });
+
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+      }
+
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: returnTo,
+          params: resultParams,
+          merge: true,
+        }),
+      );
+    },
+    [bookingId, navigation, returnParams, returnRouteKey, returnTo],
+  );
 
   const handleNavigationStateChange = useCallback(
     async (navState: { url?: string }) => {
       const url = navState?.url || '';
-      if (!url || handledRef.current) return;
+
+      if (!url || handledRef.current) {
+        return;
+      }
+
       console.log('url------ 47', url);
-      console.log('isPayPalSuccessUrl------ 48', isPayPalSuccessUrl(url, PAYPAL_SUCCESS_URL_PATTERNS));
-      console.log('isPayPalFailureUrl------ 49', isPayPalFailureUrl(url, PAYPAL_FAILURE_URL_PATTERNS));
+      console.log(
+        'isPayPalSuccessUrl------ 48',
+        isPayPalSuccessUrl(url, PAYPAL_SUCCESS_URL_PATTERNS),
+      );
+      console.log(
+        'isPayPalFailureUrl------ 49',
+        isPayPalFailureUrl(url, PAYPAL_FAILURE_URL_PATTERNS),
+      );
+
       if (isPayPalSuccessUrl(url, PAYPAL_SUCCESS_URL_PATTERNS)) {
-        handledRef.current = true;
         try {
-          const confirmPayload = walletTransactionId ? { transactionId, walletTransactionId }: { transactionId, bookingId };
+          const confirmPayload = walletTransactionId
+            ? { transactionId, walletTransactionId }
+            : { transactionId, bookingId };
 
           await confirmPayment(confirmPayload);
 
-          navigation.navigate(returnTo, {
-            ...returnParams,
-            paymentResult: 'success',
+          closeWithResult('success', {
             paymentMessage: initiateRes?.ResponseMessage,
-            bookingId,
           });
         } catch (error) {
-          handleApiError(error);
           console.log('payment webview error------ 71', error);
-          goBack();
-          // navigation.navigate(returnTo, {
-          //   ...returnParams,
-          //   paymentResult: 'failure',
-          //   paymentError: (error as Error)?.message,
-          //   bookingId,
-          // });
+          closeWithResult('failure', {
+            paymentError:
+              (error as any)?.response?.data?.ResponseMessage ??
+              (error as any)?.response?.data?.message ??
+              (error as any)?.message ??
+              'Payment confirmation failed',
+          });
         }
         return;
       }
 
       if (isPayPalFailureUrl(url, PAYPAL_FAILURE_URL_PATTERNS)) {
-        handledRef.current = true;
-        // Treat this as a real payment failure – inform the return screen.
-        navigation.navigate(returnTo, {
-          ...returnParams,
-          paymentResult: 'failure',
-          paymentError: 'Payment failed',
-          bookingId,
-        });
+        closeWithResult('failure', { paymentError: 'Payment failed' });
         console.log('payment webview failure------ 92');
       }
     },
     [
       bookingId,
+      closeWithResult,
+      confirmPayment,
+      initiateRes,
       transactionId,
       walletTransactionId,
-      returnTo,
-      returnParams,
-      initiateRes,
-      confirmPayment,
-      navigation,
     ],
   );
 
   const handleClose = useCallback(() => {
-    // User explicitly closed the sheet: treat as cancel without error message.
-    goBack();
+    closeWithResult('cancel');
     console.log('payment webview close------ 114');
-  }, []);
+  }, [closeWithResult]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event: any) => {
+      if (handledRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+      closeWithResult('cancel');
+    });
+
+    return unsubscribe;
+  }, [closeWithResult, navigation]);
 
   if (!paymentUrl) {
     return null;
@@ -122,6 +173,7 @@ export default function PaymentWebViewScreen() {
         onLeftPress={handleClose}
         backgroundColor={theme.colors.background}
         tintColor={theme.colors.text}
+        containerStyle={{ paddingLeft: 20, paddingRight: 20 }}
       />
       <View style={styles.webviewWrap}>
         <WebView

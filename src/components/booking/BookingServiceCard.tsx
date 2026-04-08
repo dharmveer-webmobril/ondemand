@@ -108,7 +108,7 @@ export default function BookingServiceCard({
                     fontSize={theme.fontSize.sm}
                     style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
                   >
-                  Reason : {service?.remark}
+                  {service?.remark}
                   </CustomText>
                 )}
               </>
@@ -130,12 +130,13 @@ export default function BookingServiceCard({
                     fontSize={theme.fontSize.sm}
                     style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
                   >
-                      Reason : {service?.remark}
+                      {service?.remark}
                   </CustomText>
                 )}
               </>
             )}
             {serviceStatus === 'rejected' && (
+              <>
               <CustomText
                 color={serviceStatusColor}
                 fontFamily={theme.fonts.MEDIUM}
@@ -144,6 +145,17 @@ export default function BookingServiceCard({
               >
                 Rejected by provider
               </CustomText>
+               {service?.remark && (
+                <CustomText
+                  color={serviceStatusColor}
+                  fontFamily={theme.fonts.MEDIUM}
+                  fontSize={theme.fontSize.sm}
+                  style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
+                >
+                    {service?.remark}
+                </CustomText>
+              )}
+              </>
             )}
             {/* {serviceStatus === 'rescheduledByCustomer' && (
                             <CustomText color={serviceStatusColor} fontFamily={theme.fonts.MEDIUM} fontSize={theme.fontSize.sm} style={styles.statusText}>
@@ -253,7 +265,6 @@ export default function BookingServiceCard({
                     fontSize={theme.fontSize.sm}
                     style={{ marginBottom: theme.SH(4) }}
                   >
-                    Rescheduled reason:{' '}
                     <CustomText
                       color={theme.colors.text}
                       fontFamily={theme.fonts.REGULAR}

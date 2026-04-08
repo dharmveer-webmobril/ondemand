@@ -126,6 +126,22 @@ export default function ProviderDetailsScreen() {
   const { t } = useTranslation();
   const showTopSkeleton = isLoadingProvider && !provider?._id;
 
+  const pendingService = useMemo(
+    () =>
+      pendingServiceId
+        ? services.find((s: any) => s._id === pendingServiceId)
+        : null,
+    [pendingServiceId, services],
+  );
+
+  const pendingDeliveryModes = useMemo(() => {
+    const raw = pendingService?.preferences;
+    if (!Array.isArray(raw)) return [];
+    return raw.filter((p: string) =>
+      ['atHome', 'online', 'onPremises'].includes(p),
+    );
+  }, [pendingService]);
+
   const providerIdForFavorite = provider?._id || spId;
   const isFavoriteFromDetail = Boolean(
     provider?.isFavorite ??
@@ -182,6 +198,17 @@ export default function ProviderDetailsScreen() {
 
   const handleBookService = async (serviceId: string) => {
     await localStorage.removeItem('bookingId');
+    const service = services.find((s: any) => s._id === serviceId);
+    const modes = (service?.preferences || []).filter((p: string) =>
+      ['atHome', 'online', 'onPremises'].includes(p),
+    );
+    if (modes.length === 0) {
+      showToast({
+        type: 'info',
+        message: t('providerDetails.serviceNotAvailableMode'),
+      });
+      return;
+    }
     setPendingServiceId(serviceId);
     setShowDeliveryModeModal(true);
   };
@@ -478,6 +505,9 @@ export default function ProviderDetailsScreen() {
         }}
         onConfirm={handleDeliveryModeConfirm}
         selectedMode={bookingDetails.deliveryMode}
+        availableModes={
+          pendingServiceId ? pendingDeliveryModes : undefined
+        }
       />
 
       {/* Service For Modal (shown when "At Home" is selected) */}
