@@ -75,13 +75,18 @@ export interface SignupData {
   name: string;
   email: string;
   password: string;
+  /** E.164 style, e.g. +919876543210 */
   contact: string;
-  city: string;
-  country: string;
+  formattedAddress: string;
+  googlePlaceId: string;
   coordinates: {
     lat: number;
     lng: number;
   };
+  cityName: string;
+  countryName: string;
+  countryIso2: string;
+  pincode: string;
 }
 
 export interface SignupResponse {
@@ -89,15 +94,17 @@ export interface SignupResponse {
   ResponseMessage: string;
   succeeded: boolean;
   ResponseData: {
-    spId: string;
     email: string;
     otp: string;
+    customerId?: string;
+    spId?: string;
+    [key: string]: unknown;
   };
 }
 
 export const useSignup = () => {
-  return useMutation<any, Error, SignupData>({
-    mutationFn: async (data: SignupData) => {
+  return useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
       const response = await axiosInstance.post<SignupResponse>(EndPoints.SIGNUP, data);
       return response.data;
     },

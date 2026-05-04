@@ -7,6 +7,7 @@ export { default as SocialButtons } from './auth/SocialButtons'
 export { default as InterestItem } from './auth/InterestItem'
 export { default as CountryModal } from './auth/CountryModal'
 export { default as CountryCodeSelector } from './auth/CountryCodeSelector'
+export { default as PhoneCountryPicker } from './auth/PhoneCountryPicker'
 //splash============
 export { default as SplashAnimation } from './splash/SplashAnimation'
 

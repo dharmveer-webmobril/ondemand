@@ -528,6 +528,22 @@ export interface AddAddressRequest {
     addressType: 'home' | 'office' | 'other';
 }
 
+/** POST/PUT `/auth/customer/addresses` — customer saved address body */
+export interface CustomerAddressCreateBody {
+    name: string;
+    line1: string;
+    line2: string;
+    landmark: string;
+    pincode: string;
+    // contact: string;
+    coordinates: { lat: number; lng: number };
+    googlePlaceId: string | null;
+    formattedAddress: string;
+    cityName: string;
+    countryName: string;
+    countryIso2: string;
+}
+
 // Get Customer Addresses
 export const useGetCustomerAddresses = () => {
     return useQuery<AddressesResponse>({
@@ -543,8 +559,8 @@ export const useGetCustomerAddresses = () => {
 
 // Add Customer Address
 export const useAddCustomerAddress = () => {
-    return useMutation<ApiResponse, Error, any>({
-        mutationFn: async (data: any) => {
+    return useMutation<ApiResponse, Error, CustomerAddressCreateBody>({
+        mutationFn: async (data: CustomerAddressCreateBody) => {
             const response = await axiosInstance.post<ApiResponse>(
                 EndPoints.ADD_CUSTOMER_ADDRESS,
                 data
@@ -556,9 +572,12 @@ export const useAddCustomerAddress = () => {
 
 // Update Customer Address
 export const useUpdateCustomerAddress = () => {
-    return useMutation<ApiResponse, Error, { addressId: string; data: any }>({
+    return useMutation<
+        ApiResponse,
+        Error,
+        { addressId: string; data: CustomerAddressCreateBody }
+    >({
         mutationFn: async ({ addressId, data }) => {
-            console.log('data------useUpdateCustomerAddress', data);
             const response = await axiosInstance.put<ApiResponse>(
                 `${EndPoints.UPDATE_CUSTOMER_ADDRESS}/${addressId}`,
                 data

@@ -21,6 +21,8 @@ interface UseLocationReturn {
   error: string | null;
   hasPermission: boolean;
   retry: () => void;
+  /** Resolves when GPS finishes; updates `location` state. Use this when you must await coords (e.g. before reverse geocode). */
+  fetchLocation: () => Promise<Location | null>;
 }
 
 const useCurrentLocation = (): UseLocationReturn => {
@@ -96,8 +98,8 @@ const useCurrentLocation = (): UseLocationReturn => {
     }
   };
 
-  // 🔹 Get Location
-  const getLocation = useCallback(async () => {
+  // 🔹 Get Location (awaitable for flows that need coords before next step)
+  const fetchLocation = useCallback(async (): Promise<Location | null> => {
     setLoading(true);
     setError(null);
 
@@ -105,51 +107,54 @@ const useCurrentLocation = (): UseLocationReturn => {
 
     if (!granted) {
       setLoading(false);
-      return;
+      return null;
     }
 
-    Geolocation.getCurrentPosition(
-      position => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setLoading(false);
-      },
-      err => {
-        setLoading(false);
+    return new Promise(resolve => {
+      Geolocation.getCurrentPosition(
+        position => {
+          const loc: Location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          setLocation(loc);
+          setLoading(false);
+          resolve(loc);
+        },
+        err => {
+          setLoading(false);
 
-        // 🔥 Handle error codes properly
-        switch (err.code) {
-          case 1:
-            setError('Permission denied.');
-            setHasPermission(false);
-            break;
-          case 2:
-            setError('Location provider unavailable. Please enable GPS.');
-            break;
-          case 3:
-            setError('Location request timed out. Please try again.');
-            break;
-          default:
-            setError(err.message);
-        }
+          switch (err.code) {
+            case 1:
+              setError('Permission denied.');
+              setHasPermission(false);
+              break;
+            case 2:
+              setError('Location provider unavailable. Please enable GPS.');
+              break;
+            case 3:
+              setError('Location request timed out. Please try again.');
+              break;
+            default:
+              setError(err.message);
+          }
 
-        console.log('Location Error:', err);
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 30000,
-        maximumAge: 10000,
-      },
-    );
+          console.log('Location Error:', err);
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 30000,
+          maximumAge: 10000,
+        },
+      );
+    });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 🔹 Retry Function
   const retry = useCallback(() => {
-    getLocation();
-  }, [getLocation]);
+    void fetchLocation();
+  }, [fetchLocation]);
 
   return {
     location,
@@ -157,6 +162,7 @@ const useCurrentLocation = (): UseLocationReturn => {
     error,
     hasPermission,
     retry,
+    fetchLocation,
   };
 };
 
