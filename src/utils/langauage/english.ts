@@ -471,7 +471,22 @@ export const english = {
       "walletPartial": "Wallet (Partial)",
       "paymentTitle": "Payment"
     },
-    "noAddressSelected": "No address selected"
+    "noAddressSelected": "No address selected",
+    "paymentSuccessModal": {
+      "title": "Payment confirmed",
+      "confirmedHeading": "Booking Confirmed!",
+      "subtitle": "Your booking payment was processed.",
+      "close": "Close",
+      "viewBooking": "View booking",
+      "bookingRef": "Booking reference",
+      "provider": "Provider",
+      "amount": "Amount",
+      "bookingStatus": "Booking status",
+      "paymentStatus": "Payment status",
+      "transactionStatus": "Transaction status",
+      "transactionId": "Transaction ID",
+      "gateway": "Payment"
+    }
   },
   "imagePickerModal": {
     "title": "Select Image",
@@ -535,6 +550,17 @@ export const english = {
     "featuredServicesAds": "Featured Services (Ads)",
     "topRatedServices": "Top Rated Services",
     "topOfferedServices": "Top Offers",
+    "offerDiscount": "{{percent}}% off",
+    "servicePreference": {
+      "atHome": "At home",
+      "online": "Online",
+      "onPremises": "On premises"
+    },
+    "priceType": {
+      "fixed": "Fixed price",
+      "hourly": "Hourly",
+      "consultation": "Consultation"
+    },
     "failedToLoadFeatured": "Failed to load featured services. Pull to refresh.",
     "noFeaturedServices": "No services to show yet.",
     "selectCityForServices": "Select a city to see featured services.",
@@ -829,7 +855,23 @@ export const english = {
   },
   "bookingDetail": {
     "phoneNotSupported": "Phone calls are not supported on this device",
-    "unableToCall": "Unable to make phone call"
+    "unableToCall": "Unable to make phone call",
+    "addOns": {
+      "addButton": "Add add-ons",
+      "title": "Additional add-ons",
+      "noService": "Service information is missing.",
+      "loadError": "Could not load add-ons.",
+      "empty": "No add-ons available for this service.",
+      "total": "Total",
+      "continueToPay": "Continue to payment",
+      "afterDiscount": "({{pct}}% off)",
+      "paymentSuccess": "Add-on payment completed.",
+      "paymentFailed": "Payment could not be started.",
+      "paypalOneTitle": "PayPal",
+      "paypalOneMessage": "PayPal completes one add-on at a time. We will charge the first selected add-on now. You can repeat for other add-ons.",
+      "processingPayment": "Processing payment…",
+      "connectingPayPal": "Connecting to PayPal…"
+    }
   },
   "report": {
     "title": "Report",

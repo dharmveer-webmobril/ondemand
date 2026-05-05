@@ -6,7 +6,10 @@ import {
 } from 'react-native';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
-import { useConfirmBookingPayment } from '@services/api/queries/appQueries';
+import {
+  useConfirmBookingPayment,
+  useConfirmAdditionalAddonPayment,
+} from '@services/api/queries/appQueries';
 import {
   isPayPalFailureUrl,
   isPayPalSuccessUrl,
@@ -18,21 +21,31 @@ import { useThemeContext } from '@utils/theme';
 
 type RouteParams = {
   paymentUrl: string;
-  bookingId: string;
+  /** Booking Mongo id (checkout / booking payment confirm). */
+  bookingId?: string;
+  /** Booked-service line id for additional-addon PayPal — never merge onto BookingDetail as bookingId. */
+  paypalBookedServiceId?: string;
   transactionId: string;
   walletTransactionId?: string | null;
   initiateRes: any;
   returnTo: string;
   returnRouteKey?: string;
   returnParams: Record<string, any>;
+  /** Use booking confirm vs additional-addon confirm API */
+  paymentFlow?: 'booking' | 'additional_addon';
 };
 
 export default function PaymentWebViewScreen() {
   const theme = useThemeContext();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { mutateAsync: confirmPayment, isPending: isConfirming } =
+  const { mutateAsync: confirmBookingPayment, isPending: isConfirmingBooking } =
     useConfirmBookingPayment();
+  const {
+    mutateAsync: confirmAdditionalAddonPayment,
+    isPending: isConfirmingAddon,
+  } = useConfirmAdditionalAddonPayment();
+  const isConfirming = isConfirmingBooking || isConfirmingAddon;
   const handledRef = useRef(false);
 
   const {
@@ -44,6 +57,7 @@ export default function PaymentWebViewScreen() {
     returnTo,
     returnRouteKey,
     returnParams = {},
+    paymentFlow = 'booking',
   } = (route.params || {}) as RouteParams;
 
   const closeWithResult = useCallback(
@@ -57,12 +71,21 @@ export default function PaymentWebViewScreen() {
 
       handledRef.current = true;
 
-      const resultParams = {
+      // Additional-addon PayPal uses `paypalBookedServiceId`, not `bookingId`, so we never
+      // overwrite BookingDetail's route booking id with a booked-service id.
+      const resultParams: Record<string, any> = {
         ...returnParams,
         ...extraParams,
         paymentResult,
-        bookingId,
       };
+      if (paymentFlow !== 'additional_addon' && bookingId) {
+        resultParams.bookingId = bookingId;
+      }
+      /** Parent (e.g. BookingDetail) passes the real booking id — must win over any spread order. */
+      const restoreId = returnParams?.bookingId;
+      if (restoreId != null && String(restoreId).length > 0) {
+        resultParams.bookingId = String(restoreId);
+      }
 
       if (returnRouteKey) {
         navigation.dispatch({
@@ -84,7 +107,7 @@ export default function PaymentWebViewScreen() {
         }),
       );
     },
-    [bookingId, navigation, returnParams, returnRouteKey, returnTo],
+    [bookingId, navigation, paymentFlow, returnParams, returnRouteKey, returnTo],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -107,15 +130,25 @@ export default function PaymentWebViewScreen() {
 
       if (isPayPalSuccessUrl(url, PAYPAL_SUCCESS_URL_PATTERNS)) {
         try {
-          const confirmPayload = walletTransactionId
-            ? { transactionId, walletTransactionId }
-            : { transactionId, bookingId };
+          let confirmRes: any;
+          if (paymentFlow === 'additional_addon') {
+            confirmRes = await confirmAdditionalAddonPayment({ transactionId });
+          } else {
+            const confirmPayload = walletTransactionId
+              ? { transactionId, walletTransactionId }
+              : { transactionId, bookingId };
 
-          await confirmPayment(confirmPayload);
+            confirmRes = await confirmBookingPayment(confirmPayload);
+          }
 
-          closeWithResult('success', {
-            paymentMessage: initiateRes?.ResponseMessage,
-          });
+          const successExtras: Record<string, any> = {
+            paymentMessage:
+              confirmRes?.ResponseMessage ?? initiateRes?.ResponseMessage,
+          };
+          if (paymentFlow !== 'additional_addon') {
+            successExtras.paymentConfirmResponse = confirmRes;
+          }
+          closeWithResult('success', successExtras);
         } catch (error) {
           console.log('payment webview error------ 71', error);
           closeWithResult('failure', {
@@ -130,15 +163,26 @@ export default function PaymentWebViewScreen() {
       }
 
       if (isPayPalFailureUrl(url, PAYPAL_FAILURE_URL_PATTERNS)) {
-        closeWithResult('failure', { paymentError: 'Payment failed' });
+        const lower = url.toLowerCase();
+        const looksLikeUserCancelled =
+          lower.includes('cancel') ||
+          lower.includes('status=cancel') ||
+          lower.includes('user_cancel');
+        if (looksLikeUserCancelled) {
+          closeWithResult('cancel');
+        } else {
+          closeWithResult('failure', { paymentError: 'Payment failed' });
+        }
         console.log('payment webview failure------ 92');
       }
     },
     [
       bookingId,
       closeWithResult,
-      confirmPayment,
+      confirmBookingPayment,
+      confirmAdditionalAddonPayment,
       initiateRes,
+      paymentFlow,
       transactionId,
       walletTransactionId,
     ],

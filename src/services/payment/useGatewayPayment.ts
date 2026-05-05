@@ -22,7 +22,7 @@ import {
  *     bookingId, amount, paymentGateway: 'stripe' | 'paypal', walletAmountUsed,
  *     returnTo: SCREEN_NAMES.BOOKING_DETAIL,  // required for PayPal
  *     returnParams: { bookingId },
- *     onSuccess: (res) => { ... },
+ *     onSuccess: (confirmResponse) => { ... }, // confirm POST response (transaction + booking)
  *     onCancel: (id) => { ... },
  *     onError: (err, id) => { ... },
  *     handleApiError, handleApiFailureResponse, failureMessage,
@@ -128,13 +128,14 @@ export function useGatewayPayment() {
           return;
         }
         try {
+          let confirmRes: any = initiateRes;
           if (transactionId) {
             const confirmPayload = walletTransactionId
               ? { transactionId, walletTransactionId }
               : { transactionId, bookingId };
-            await confirmPayment(confirmPayload);
+            confirmRes = await confirmPayment(confirmPayload);
           }
-          onSuccess(initiateRes);
+          onSuccess(confirmRes);
         } catch (err) {
           console.log('err------ 111', err);
           // if (handleApiError) handleApiError(err);

@@ -1,11 +1,10 @@
 import { View, StyleSheet } from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Colors, ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, CustomButton } from '@components/common';
 import imagePaths from '@assets';
 import { getStatusColor, mapBookingStatusToDisplay } from '@utils/tools';
-import SCREEN_NAMES from '@navigation/ScreenNames';
-import { navigate } from '@utils/NavigationUtils';
 import { SW } from '@utils/dimensions';
 
 type Service = {
@@ -44,7 +43,7 @@ export default function BookingServiceCard({
   onCallMember: _onCallMember,
   // pageName = '',
   onCancelService,
-  onAddAddOns: _onAddAddOns,
+  onAddAddOns,
   onReschedule,
   mainBookingStatus,
   onAcceptService,
@@ -53,6 +52,7 @@ export default function BookingServiceCard({
 }: BookingServiceCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
   console.log('mainBookingStatus-----BookingServiceCard', mainBookingStatus);
   // Check if actions should be disabled based on main booking status
 
@@ -492,6 +492,18 @@ export default function BookingServiceCard({
                     />
                   </View>
                 )}
+                {serviceStatus === 'ongoing' && onAddAddOns ? (
+                  <View style={styles.serviceActionButtonWrap}>
+                    <CustomButton
+                      title={t('bookingDetail.addOns.addButton')}
+                      onPress={() => onAddAddOns(service)}
+                      backgroundColor={theme.colors.primary}
+                      textColor={theme.colors.white}
+                      buttonStyle={styles.rescheduleButton1}
+                      buttonTextStyle={styles.rescheduleButtonText}
+                    />
+                  </View>
+                ) : null}
                 {/* {(serviceStatus === 'rescheduledByCustomer' ||
                   serviceStatus === 'accepted') && (
                   <View style={styles.serviceActionButtonWrap}>

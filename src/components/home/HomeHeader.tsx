@@ -1,11 +1,14 @@
 import { View, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native'
 import { useMemo, useState } from 'react'
+import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@store/hooks';
 import HomeLocationPickerModal from './HomeLocationPickerModal';
+import { HOME_HEADER_GRADIENT } from './homeHeaderConstants';
 
 type HomeHeaderProps = {
   onCityUpdate?: () => void;
@@ -20,8 +23,8 @@ export default function HomeHeader({
 }: HomeHeaderProps) {
   const { t } = useTranslation();
   const theme = useThemeContext();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  // const insets = useSafeAreaInsets();
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   const currentLocationAddress = useAppSelector(
@@ -58,14 +61,19 @@ export default function HomeHeader({
 
   return (
     <>
-      {/* <LinearGradient
-        colors={['#011321', '#066AB7', '#009BFF']}
+      <LinearGradient
+        colors={[...HOME_HEADER_GRADIENT]}
+        locations={[0, 0.42, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
         style={[
-          styles.headerContainer,
-          { paddingTop: insets.top }
+          styles.gradientShell,
+          {
+            paddingTop: insets.top + theme.SH(10),
+          },
         ]}
-      > */}
-        <View style={styles.container}>
+      >
+        <View style={styles.row}>
           <Pressable
             style={styles.leftContainer}
             onPress={openLocationPicker}
@@ -92,12 +100,6 @@ export default function HomeHeader({
             </View>
           </Pressable>
           <View style={styles.rightView}>
-            {/* <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => { }}
-            >
-              <Image source={imagePaths.calender_icon} style={styles.icon} />
-            </TouchableOpacity> */}
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => onNotificationPress?.()}
@@ -106,7 +108,7 @@ export default function HomeHeader({
             </TouchableOpacity>
           </View>
         </View>
-      {/* </LinearGradient> */}
+      </LinearGradient>
 
       <HomeLocationPickerModal
         visible={showLocationModal}
@@ -118,23 +120,18 @@ export default function HomeHeader({
 }
 
 const createStyles = (theme: ThemeType) => StyleSheet.create({
-  container: {
+  gradientShell: {
+    width: '100%',
+    overflow: 'hidden',
+    paddingBottom: theme.SH(30),
+    paddingHorizontal: theme.SW(16),
+    borderBottomLeftRadius: theme.SF(30),
+    borderBottomRightRadius: theme.SF(30),
+  },
+  row: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: theme.SH(30),
-    paddingTop: theme.SH(10),
-    backgroundColor: '#009BFF',
-    paddingHorizontal: theme.SW(16),
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  headerContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
   },
 
   locationContainer: {
@@ -173,13 +170,10 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginTop: 2,
-    minWidth: 0,
     gap: theme.SW(6),
+    maxWidth: '80%',
   },
   cityText: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
     fontSize: theme.SF(14),
     color: theme.colors.textWhite,
     fontFamily: theme.fonts.BOLD,

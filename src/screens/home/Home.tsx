@@ -9,15 +9,17 @@ import {
   useGetCategories,
   useGetBanners,
   useGetServiceProviders,
-  useGetTopRatedAndTopOfferedServices,
+  //@ts-ignore
+  useGetTopRatedServices,
+  //@ts-ignore
+  useGetTopOfferedServices,
+  //@ts-ignore
+  extractFeaturedServicesArray,
 } from '@services/api/queries/appQueries';
 import { useAppSelector } from '@store/hooks';
 import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
 import { updateFcmToken } from '@services/api/queries/authQueries';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-/** Same as `HomeHeader` container background */
-const HOME_HEADER_BG = '#009BFF';
 
 export default function Home() {
   useDisableGestures();
@@ -51,7 +53,8 @@ export default function Home() {
     useCallback(() => {
       StatusBar.setBarStyle('light-content');
       if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor(HOME_HEADER_BG);
+        StatusBar.setTranslucent(true);
+        StatusBar.setBackgroundColor('transparent');
       }
 
       let cancelled = false;
@@ -107,22 +110,52 @@ export default function Home() {
   });
 
   const {
-    data: featuredData,
-    isError: featuredError,
-    isFetching: featuredFetching,
-    refetch: refetchFeatured,
-  } = useGetTopRatedAndTopOfferedServices({
+    data: topRatedRaw,
+    isError: topRatedError,
+    isFetching: topRatedFetching,
+    isFetched: topRatedFetched,
+    refetch: refetchTopRated,
+  } = useGetTopRatedServices({
     cityName,
     page: 1,
-    limit: 15,
+    limit: 4,
   });
+
+  const {
+    data: topOfferedRaw,
+    isError: topOfferedError,
+    isFetching: topOfferedFetching,
+    isFetched: topOfferedFetched,
+    refetch: refetchTopOffered,
+  } = useGetTopOfferedServices({
+    cityName,
+    page: 1,
+    limit: 4,
+  });
+
+  const topRatedServices = useMemo(
+    () => extractFeaturedServicesArray(topRatedRaw),
+    [topRatedRaw],
+  );
+  const topOfferedServices = useMemo(
+    () => extractFeaturedServicesArray(topOfferedRaw),
+    [topOfferedRaw],
+  );
+
+  const hasCity = !!String(cityName || '').trim();
+  const featuredLocationSettled =
+    !hasCity || (topRatedFetched && topOfferedFetched);
 
   const isInitialDataSettled = useMemo(() => {
     const categoriesSettled = !!categoriesData || categoriesError;
     const bannersSettled = !!bannersData || bannersError;
     const providersSettled = !!providersData || providerError;
-    const featuredSettled = !cityName || !!featuredData || featuredError;
-    return categoriesSettled && bannersSettled && providersSettled && featuredSettled;
+    return (
+      categoriesSettled &&
+      bannersSettled &&
+      providersSettled &&
+      featuredLocationSettled
+    );
   }, [
     categoriesData,
     categoriesError,
@@ -130,9 +163,7 @@ export default function Home() {
     bannersError,
     providersData,
     providerError,
-    featuredData,
-    featuredError,
-    cityName,
+    featuredLocationSettled,
   ]);
 
   useEffect(() => {
@@ -147,7 +178,10 @@ export default function Home() {
   /** City-scoped lists only — providers & featured */
   const showLocationSkeleton =
     isCityUpdating ||
-    (!!cityName.trim() && (providersFetching || featuredFetching));
+    (!!cityName.trim() &&
+      (providersFetching ||
+        topRatedFetching ||
+        topOfferedFetching));
 
   // Handle pull to refresh — refresh location listings + promo banners; categories stay cached (master)
   const onRefresh = useCallback(async () => {
@@ -156,24 +190,29 @@ export default function Home() {
       await Promise.all([
         refetchBanners(),
         providerReftech(),
-        refetchFeatured(),
+        refetchTopRated(),
+        refetchTopOffered(),
       ]);
     } catch (error) {
       console.error('Error refreshing home data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBanners, providerReftech, refetchFeatured]);
+  }, [refetchBanners, providerReftech, refetchTopRated, refetchTopOffered]);
 
   /** Address / city change — only refetch location-dependent APIs */
   const handleCityUpdate = useCallback(async () => {
     setIsCityUpdating(true);
     try {
-      await Promise.all([providerReftech(), refetchFeatured()]);
+      await Promise.all([
+        providerReftech(),
+        refetchTopRated(),
+        refetchTopOffered(),
+      ]);
     } finally {
       setIsCityUpdating(false);
     }
-  }, [providerReftech, refetchFeatured]);
+  }, [providerReftech, refetchTopRated, refetchTopOffered]);
 
   // Handle search
   const handleSearch = useCallback((text: string) => {
@@ -189,10 +228,10 @@ export default function Home() {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <StatusBar
         translucent
-        backgroundColor={HOME_HEADER_BG}
+        backgroundColor="transparent"
         barStyle="light-content"
       />
       <View style={styles.container}>
@@ -223,10 +262,14 @@ export default function Home() {
           bannersLoading={showMasterSkeleton}
           bannersError={bannersError}
           onRetryBanners={refetchBanners}
-          featuredData={featuredData}
-          featuredLoading={showMasterSkeleton || showLocationSkeleton}
-          featuredError={featuredError}
-          onRetryFeatured={refetchFeatured}
+          topRatedServices={topRatedServices}
+          topRatedLoading={showMasterSkeleton || showLocationSkeleton}
+          topRatedError={topRatedError}
+          onRetryTopRated={refetchTopRated}
+          topOfferedServices={topOfferedServices}
+          topOfferedLoading={showMasterSkeleton || showLocationSkeleton}
+          topOfferedError={topOfferedError}
+          onRetryTopOffered={refetchTopOffered}
           providersData={providersData}
           providersLoading={showMasterSkeleton || showLocationSkeleton}
           providersError={providerError}
@@ -240,7 +283,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: HOME_HEADER_BG,
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,

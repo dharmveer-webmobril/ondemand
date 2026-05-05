@@ -48,6 +48,11 @@ export default function ProfileScreen() {
       label: t('profile.transactions'),
       icon: { name: 'receipt-outline', icon: 'Ionicons' },
     },
+    {
+      id: 'wallet',
+      label: t('profile.walletTransactions'),
+      icon: { name: 'wallet-outline', icon: 'Ionicons' },
+    },
     // { id: '5', label: t('profile.ratingsReviews'), icon: { name: 'star-outline', icon: 'Ionicons' } },
     { id: '6', label: t('profile.loyaltyReferralDiscounts'), icon: { name: 'gift-outline', icon: 'Ionicons' } },
     { id: '7', label: t('profile.multiLanguageCurrency'), icon: { name: 'language-outline', icon: 'Ionicons' } },
@@ -67,6 +72,8 @@ export default function ProfileScreen() {
       navigation.navigate(SCREEN_NAMES.FAVORITE_PROVIDERS as never);
     } else if (item.id === 'transactions') {
       navigation.navigate(SCREEN_NAMES.PAYMENT_TRANSACTIONS as never);
+    } else if (item.id === 'wallet') {
+      navigation.navigate(SCREEN_NAMES.WALLET as never);
     } else if (item.id === '9') {
       navigation.navigate(SCREEN_NAMES.CUSTOMER_SUPPORT as never);
     }else if(item.id === '7'){

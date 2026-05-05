@@ -13,6 +13,7 @@ export { default as SplashAnimation } from './splash/SplashAnimation'
 
 //home============
 export { default as HomeHeader } from './home/HomeHeader'
+export { HOME_HEADER_GRADIENT } from './home/homeHeaderConstants'
 export { default as HomeLocationPickerModal } from './home/HomeLocationPickerModal'
 export { default as HomeMainList } from './home/HomeMainList'
 export { default as HomeSearchBar } from './home/HomeSearchBar'
@@ -81,3 +82,8 @@ export { default as PaymentStatusCard } from './booking/PaymentStatusCard'
 export { default as DateTimeCard } from './booking/DateTimeCard'
 export { default as AddressCard } from './booking/AddressCard'
 export { default as CancelBookingModal } from './booking/CancelBookingModal'
+export {
+  default as BookingAddonsModal,
+  getAddonPayableAmount,
+  getCatalogServiceId,
+} from './booking/BookingAddonsModal'

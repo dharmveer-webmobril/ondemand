@@ -7,30 +7,72 @@ import {
   ViewStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText } from '@components/common';
 import ImageLoader from '@components/common/ImageLoader';
 import imagePaths from '@assets';
-import type { FeaturedServiceItem } from '@services/api/queries/appQueries';
+import type {
+  FeaturedServiceItem,
+  FeaturedListType,
+} from '@services/api/queries/appQueries';
 
 type FeaturedServiceCardProps = {
   service: FeaturedServiceItem;
   onPress: (service: FeaturedServiceItem) => void;
   /** Card outer size (carousel vs grid) */
   variant?: 'carousel' | 'grid';
+  /** When top-offered, show discount, preferences, and price type */
+  listType?: FeaturedListType;
   style?: StyleProp<ViewStyle>;
 };
+
+function preferenceLabelKey(pref: string): string {
+  const k = pref.trim();
+  return `home.servicePreference.${k}`;
+}
+
+function priceTypeLabelKey(priceType: string): string {
+  const k = String(priceType).trim();
+  return `home.priceType.${k}`;
+}
 
 export default function FeaturedServiceCard({
   service,
   onPress,
   variant = 'carousel',
+  listType,
   style,
 }: FeaturedServiceCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme, variant), [theme, variant]);
 
   const imageUri = service.images?.[0] ?? null;
+  const showOfferMeta = listType === 'topOffered';
+
+  const discountPercent = useMemo(() => {
+    const d = typeof service.discountPercentage === 'number' ? service.discountPercentage : 0;
+    const h = typeof service.highestDiscount === 'number' ? service.highestDiscount : 0;
+    return Math.max(d, h);
+  }, [service.discountPercentage, service.highestDiscount]);
+
+  const preferenceLabels = useMemo(() => {
+    const prefs = service.preferences?.filter(Boolean) ?? [];
+    return prefs.map(p => {
+      const key = preferenceLabelKey(p);
+      const translated = t(key);
+      return translated === key ? p : translated;
+    });
+  }, [service.preferences, t]);
+
+  const priceTypeLabel = useMemo(() => {
+    const pt = service.priceType?.trim();
+    if (!pt) return '';
+    const key = priceTypeLabelKey(pt);
+    const translated = t(key);
+    return translated === key ? pt : translated;
+  }, [service.priceType, t]);
 
   return (
     <Pressable
@@ -52,6 +94,19 @@ export default function FeaturedServiceCard({
           locations={[0, 0.45, 1]}
           style={styles.gradient}
         />
+        {showOfferMeta && discountPercent > 0 ? (
+          <View style={styles.discountBadge}>
+            <CustomText
+              color="#FFFFFF"
+              fontFamily={theme.fonts.BOLD}
+              fontSize={theme.fontSize.xs}
+            >
+              {t('home.offerDiscount', {
+                percent: Math.round(discountPercent),
+              })}
+            </CustomText>
+          </View>
+        ) : null}
         <View style={styles.titleWrap}>
           <CustomText
             numberOfLines={2}
@@ -64,6 +119,33 @@ export default function FeaturedServiceCard({
           </CustomText>
         </View>
       </View>
+      {showOfferMeta &&
+      (preferenceLabels.length > 0 || priceTypeLabel) ? (
+        <View style={styles.metaFooter}>
+          {preferenceLabels.length > 0 ? (
+            <CustomText
+              numberOfLines={2}
+              color={theme.colors.gray || '#666'}
+              fontFamily={theme.fonts.REGULAR}
+              fontSize={theme.fontSize.xs}
+              style={styles.metaLine}
+            >
+              {preferenceLabels.join(' · ')}
+            </CustomText>
+          ) : null}
+          {priceTypeLabel ? (
+            <CustomText
+              numberOfLines={1}
+              color={theme.colors.lightText || theme.colors.gray || '#888'}
+              fontFamily={theme.fonts.SEMI_BOLD}
+              fontSize={theme.fontSize.xs}
+              style={preferenceLabels.length > 0 ? styles.metaSecondLine : styles.metaLine}
+            >
+              {priceTypeLabel}
+            </CustomText>
+          ) : null}
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -112,6 +194,28 @@ const createStyles = (theme: ThemeType, variant: 'carousel' | 'grid') => {
       textShadowColor: 'rgba(0,0,0,0.45)',
       textShadowOffset: { width: 0, height: 1 },
       textShadowRadius: 3,
+    },
+    discountBadge: {
+      position: 'absolute',
+      top: SH(8),
+      right: SW(8),
+      paddingHorizontal: SW(8),
+      paddingVertical: SH(4),
+      borderRadius: SF(8),
+      backgroundColor: theme.colors.primary || '#135D96',
+    },
+    metaFooter: {
+      paddingHorizontal: SW(8),
+      paddingTop: SH(6),
+      paddingBottom: SH(8),
+      backgroundColor: theme.colors.white,
+    },
+    metaLine: {
+      lineHeight: theme.fontSize.xs * 1.35,
+    },
+    metaSecondLine: {
+      marginTop: SH(4),
+      lineHeight: theme.fontSize.xs * 1.35,
     },
   });
 };

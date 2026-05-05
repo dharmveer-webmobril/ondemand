@@ -30,8 +30,8 @@ export default {
     DELETE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     CREATE_BOOKING: '/customer/bookings/bookings',
     GET_CUSTOMER_BOOKINGS: '/customer/bookings/bookings',
-    GET_TOP_RATED_TOP_OFFERED_SERVICES:
-        '/customer/bookings/top-rated-and-top-offered-services',
+    GET_TOP_RATED_SERVICES: '/customer/bookings/top-rated-services',
+    GET_TOP_OFFERED_SERVICES: '/customer/bookings/top-offered-services',
     GET_BOOKING_DETAIL: '/customer/bookings/bookings',
     CANCEL_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/cancel`,
     RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reschedule`,
@@ -45,6 +45,12 @@ export default {
     GET_SETTLEMENT_REQUESTS: '/customer/payments/wallet/settlement/requests',
     INITIATE_BOOKING_PAYMENT: '/customer/payments/booking/initiate',
     CONFIRM_BOOKING_PAYMENT: '/customer/payments/booking/confirm',
+    GET_SERVICE_ADDONS: (serviceId: string) =>
+        `/customer/bookings/services/${serviceId}/add-ons`,
+    ADD_BOOKED_SERVICE_ADDITIONAL_ADDON: (bookedServiceId: string) =>
+        `/customer/booked-services/booked-service/${bookedServiceId}/additional-addon`,
+    INITIATE_ADDITIONAL_ADDON_PAYMENT: '/customer/payments/additional-addon/initiate',
+    CONFIRM_ADDITIONAL_ADDON_PAYMENT: '/customer/payments/additional-addon/confirm',
     GET_CONVERSATIONS: '/chat/conversations',
     GET_CONVERSATION_MESSAGES: '/chat/conversations',
     CREATE_OR_GET_CONVERSATION: '/chat/conversations/create-or-get',

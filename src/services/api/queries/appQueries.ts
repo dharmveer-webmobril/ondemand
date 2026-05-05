@@ -1008,6 +1008,85 @@ export const useConfirmBookingPayment = () => {
   });
 };
 
+/** Catalog add-ons available for a service (GET …/bookings/services/:serviceId/add-ons). */
+export interface ServiceAddonItem {
+  _id: string;
+  name: string;
+  description?: string;
+  price: number;
+  discountPercentage?: number;
+}
+
+export const useGetServiceAddOns = (
+  serviceId: string | undefined,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: ['serviceCatalogAddOns', serviceId],
+    queryFn: async () => {
+      const response = await axiosInstance.get<{
+        succeeded?: boolean;
+        ResponseData?: ServiceAddonItem[];
+      }>(EndPoints.GET_SERVICE_ADDONS(serviceId as string));
+      return response.data;
+    },
+    enabled: !!serviceId && enabled,
+  });
+};
+
+export const useAddBookedServiceAdditionalAddon = () => {
+  return useMutation<
+    any,
+    Error,
+    { bookedServiceId: string; addonId: string }
+  >({
+    mutationFn: async ({ bookedServiceId, addonId }) => {
+      const response = await axiosInstance.post(
+        EndPoints.ADD_BOOKED_SERVICE_ADDITIONAL_ADDON(bookedServiceId),
+        { addonId },
+      );
+      return response.data;
+    },
+  });
+};
+
+export interface InitiateAdditionalAddonPaymentRequest {
+  bookedServiceId: string;
+  addonId: string;
+  amount: number;
+  paymentGateway: 'stripe' | 'paypal';
+  paymentMethod: string;
+  platform: string;
+}
+
+export const useInitiateAdditionalAddonPayment = () => {
+  return useMutation<any, Error, InitiateAdditionalAddonPaymentRequest>({
+    mutationFn: async (data: InitiateAdditionalAddonPaymentRequest) => {
+      const response = await axiosInstance.post(
+        EndPoints.INITIATE_ADDITIONAL_ADDON_PAYMENT,
+        data,
+      );
+      return response.data;
+    },
+  });
+};
+
+export interface ConfirmAdditionalAddonPaymentRequest {
+  transactionId: string;
+}
+
+export const useConfirmAdditionalAddonPayment = () => {
+  return useMutation<any, Error, ConfirmAdditionalAddonPaymentRequest>({
+    mutationFn: async (data: ConfirmAdditionalAddonPaymentRequest) => {
+      const response = await axiosInstance.post(
+        EndPoints.CONFIRM_ADDITIONAL_ADDON_PAYMENT,
+        data,
+      );
+      return response.data;
+    },
+  });
+};
+
 // Booking interfaces
 export interface BookedService {
   _id: string;
@@ -1138,46 +1217,85 @@ export interface FeaturedServiceItem {
   averageRating?: number;
   ratingCount?: number;
   highestDiscount?: number;
+  discountPercentage?: number;
+  consultationPrice?: number | null;
   offerData?: unknown[];
 }
 
-export interface TopRatedTopOfferedResponse {
-  ResponseCode: number;
+export interface FeaturedServicesListApiResponse {
+  ResponseCode?: number;
   ResponseMessage?: string;
-  succeeded: boolean;
-  ResponseData: {
-    topRatedServices: FeaturedServiceItem[];
-    topOfferedServices: FeaturedServiceItem[];
-  };
+  succeeded?: boolean;
+  ResponseData?: FeaturedServiceItem[] | { services?: FeaturedServiceItem[]; data?: FeaturedServiceItem[] };
 }
 
-export type FeaturedListType = 'topRated' | 'topOffered';
+/** Normalize GET top-rated / top-offered single-list responses */
+export function extractFeaturedServicesArray(
+  resp: FeaturedServicesListApiResponse | undefined | null,
+): FeaturedServiceItem[] {
+  const rd = resp?.ResponseData as any;
+  if (Array.isArray(rd)) return rd as FeaturedServiceItem[];
+  if (Array.isArray(rd?.services)) return rd.services;
+  if (Array.isArray(rd?.data)) return rd.data;
+  return [];
+}
 
-export const useGetTopRatedAndTopOfferedServices = (params: {
+export type FeaturedServicesSectionParams = {
   cityName: string | null | undefined;
   page?: number;
   limit?: number;
-}) => {
-  const { cityName, page = 1, limit = 15 } = params;
+  enabled?: boolean;
+};
+
+export const useGetTopRatedServices = (params: FeaturedServicesSectionParams) => {
+  const { cityName, page = 1, limit = 4, enabled = true } = params;
   const normalizedCityName =
     cityName && String(cityName).trim() ? String(cityName).trim() : '';
-  return useQuery<TopRatedTopOfferedResponse>({
-    queryKey: ['topRatedTopOfferedServices', normalizedCityName, page, limit],
+  return useQuery<FeaturedServicesListApiResponse>({
+    queryKey: ['topRatedServices', normalizedCityName, page, limit],
     queryFn: async () => {
       if (!normalizedCityName) {
         throw new Error('City name is required');
       }
       const url = `${
-        EndPoints.GET_TOP_RATED_TOP_OFFERED_SERVICES
+        EndPoints.GET_TOP_RATED_SERVICES
       }?cityName=${encodeURIComponent(
         normalizedCityName,
       )}&page=${page}&limit=${limit}`;
-      const response = await axiosInstance.get<TopRatedTopOfferedResponse>(url);
+      const response = await axiosInstance.get<FeaturedServicesListApiResponse>(
+        url,
+      );
       return response.data;
     },
-    enabled: !!normalizedCityName,
+    enabled: !!normalizedCityName && enabled,
   });
 };
+
+export const useGetTopOfferedServices = (params: FeaturedServicesSectionParams) => {
+  const { cityName, page = 1, limit = 4, enabled = true } = params;
+  const normalizedCityName =
+    cityName && String(cityName).trim() ? String(cityName).trim() : '';
+  return useQuery<FeaturedServicesListApiResponse>({
+    queryKey: ['topOfferedServices', normalizedCityName, page, limit],
+    queryFn: async () => {
+      if (!normalizedCityName) {
+        throw new Error('City name is required');
+      }
+      const url = `${
+        EndPoints.GET_TOP_OFFERED_SERVICES
+      }?cityName=${encodeURIComponent(
+        normalizedCityName,
+      )}&page=${page}&limit=${limit}`;
+      const response = await axiosInstance.get<FeaturedServicesListApiResponse>(
+        url,
+      );
+      return response.data;
+    },
+    enabled: !!normalizedCityName && enabled,
+  });
+};
+
+export type FeaturedListType = 'topRated' | 'topOffered';
 
 // Get Booking Detail Response
 export interface BookingDetailResponse {
@@ -1192,6 +1310,7 @@ export interface BookingDetailResponse {
 
 // Get Booking Detail by ID
 export const useGetBookingDetail = (bookingId: string | null) => {
+ 
   return useQuery<any>({
     queryKey: ['bookingDetail', bookingId],
     queryFn: async () => {

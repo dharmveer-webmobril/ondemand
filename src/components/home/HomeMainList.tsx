@@ -9,7 +9,7 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import {
   CategoriesResponse,
   BannersResponse,
-  TopRatedTopOfferedResponse,
+  FeaturedServiceItem,
 } from '@services/api/queries/appQueries';
 import HomeFeaturedServices from './HomeFeaturedServices';
 import { navigate } from '@utils/NavigationUtils';
@@ -32,10 +32,14 @@ type HomeMainListProps = {
   providersLoading?: boolean;
   providersError?: boolean;
   onRetryProviders?: () => void;
-  featuredData?: TopRatedTopOfferedResponse;
-  featuredLoading?: boolean;
-  featuredError?: boolean;
-  onRetryFeatured?: () => void;
+  topRatedServices?: FeaturedServiceItem[];
+  topRatedLoading?: boolean;
+  topRatedError?: boolean;
+  onRetryTopRated?: () => void;
+  topOfferedServices?: FeaturedServiceItem[];
+  topOfferedLoading?: boolean;
+  topOfferedError?: boolean;
+  onRetryTopOffered?: () => void;
 };
 
 export default function HomeMainList({
@@ -54,10 +58,14 @@ export default function HomeMainList({
   providersLoading,
   providersError,
   onRetryProviders,
-  featuredData,
-  featuredLoading,
-  featuredError,
-  onRetryFeatured,
+  topRatedServices = [],
+  topRatedLoading = false,
+  topRatedError = false,
+  onRetryTopRated,
+  topOfferedServices = [],
+  topOfferedLoading = false,
+  topOfferedError = false,
+  onRetryTopOffered,
 }: HomeMainListProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -126,21 +134,6 @@ export default function HomeMainList({
 
       {/* <View style={styles.sectionSpacer} /> */}
       <Spacing space={10} />
-      <HomeFeaturedServices
-        title={t('home.featuredServicesAds')}
-        cityName={cityName}
-        services={
-          featuredData?.ResponseData?.topRatedServices?.slice(0, 15) ?? []
-        }
-        isLoading={!!featuredLoading}
-        isError={!!featuredError}
-        onRetry={onRetryFeatured}
-        listType="topRated"
-        maxItems={15}
-      />
-
-   
-      <Spacing space={10} />
 
       <View style={[styles.headerContainer, styles.sectionHeader]}>
         <CustomText
@@ -166,6 +159,30 @@ export default function HomeMainList({
         providersLoading={providersLoading}
         providersError={providersError}
         onRetryProviders={onRetryProviders}
+      />
+
+      <Spacing space={10} />
+      <HomeFeaturedServices
+        title={t('home.topOfferedServices')}
+        cityName={cityName}
+        services={topOfferedServices}
+        isLoading={!!topOfferedLoading}
+        isError={!!topOfferedError}
+        onRetry={onRetryTopOffered}
+        listType="topOffered"
+        maxItems={4}
+      />
+
+      <Spacing space={10} />
+      <HomeFeaturedServices
+        title={t('home.topRatedServices')}
+        cityName={cityName}
+        services={topRatedServices}
+        isLoading={!!topRatedLoading}
+        isError={!!topRatedError}
+        onRetry={onRetryTopRated}
+        listType="topRated"
+        maxItems={4}
       />
     </ScrollView>
   );

@@ -13,3 +13,5 @@ export type {
   PaymentWebViewParams,
 } from './gatewayPayment';
 export { useGatewayPayment } from './useGatewayPayment';
+export { useAdditionalAddonGatewayPayment } from './useAdditionalAddonGatewayPayment';
+export type { RunAdditionalAddonGatewayParams } from './useAdditionalAddonGatewayPayment';

@@ -163,6 +163,7 @@ export default function HomeFeaturedServices({
               service={item}
               onPress={handlePressService}
               variant="carousel"
+              listType={listType}
             />
           )}
           showsHorizontalScrollIndicator={false}

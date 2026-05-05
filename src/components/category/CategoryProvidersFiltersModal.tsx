@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Dropdown } from 'react-native-element-dropdown';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomButton, CustomText, VectoreIcons } from '@components/common';
 import { Category } from '@services/api/queries/appQueries';
@@ -104,15 +107,16 @@ export default function CategoryProvidersFiltersModal({
       visible={visible}
       transparent
       animationType="none"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.root}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.root}>
         <Pressable style={styles.backdrop} onPress={onClose} />
         <Animated.View
           style={[
             styles.panel,
             {
-              paddingTop: insets.top + theme.SH(8),
+              paddingTop: theme.SH(15),
               paddingBottom: insets.bottom + theme.SH(12),
               transform: [{ translateX: slideX }],
             },
@@ -138,7 +142,9 @@ export default function CategoryProvidersFiltersModal({
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <CustomText style={styles.fieldLabel}>{t('category.title')}</CustomText>
+            <CustomText style={styles.fieldLabel}>
+              {t('category.title')}
+            </CustomText>
             <Dropdown
               style={styles.dropdown}
               containerStyle={styles.dropdownContainer}
@@ -149,7 +155,7 @@ export default function CategoryProvidersFiltersModal({
               labelField="label"
               valueField="value"
               value={categoryValue}
-              onChange={(item) => onCategoryChange(item.value)}
+              onChange={item => onCategoryChange(item.value)}
             />
 
             <CustomText style={styles.fieldLabel}>
@@ -166,7 +172,7 @@ export default function CategoryProvidersFiltersModal({
               labelField="label"
               valueField="value"
               value={minRatingValue === '' ? undefined : String(minRatingValue)}
-              onChange={(item) => onMinRatingChange(item.value)}
+              onChange={item => onMinRatingChange(item.value)}
             />
 
             <CustomText style={styles.fieldLabel}>
@@ -182,7 +188,7 @@ export default function CategoryProvidersFiltersModal({
               labelField="label"
               valueField="value"
               value={sortByValue}
-              onChange={(item) => onSortByChange(item.value)}
+              onChange={item => onSortByChange(item.value)}
             />
 
             <CustomText style={styles.fieldLabel}>
@@ -229,7 +235,7 @@ export default function CategoryProvidersFiltersModal({
             />
           </View>
         </Animated.View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

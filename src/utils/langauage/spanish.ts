@@ -238,6 +238,7 @@ export const spanish = {
     "enterEmailID": "Ingresa tu correo electrónico",
     "save": "Guardar",
     "bookmarkedProviders": "Proveedores guardados",
+    "walletTransactions": "Billetera y transacciones",
     "transactions": "Transacciones"
   },
   "transactions": {
@@ -449,7 +450,22 @@ export const spanish = {
       "walletPartial": "Billetera (Parcial)",
       "paymentTitle": "Pago"
     },
-    "noAddressSelected": "Ninguna dirección seleccionada"
+    "noAddressSelected": "Ninguna dirección seleccionada",
+    "paymentSuccessModal": {
+      "title": "Pago confirmado",
+      "confirmedHeading": "¡Reserva confirmada!",
+      "subtitle": "El pago de tu reserva se procesó correctamente.",
+      "close": "Cerrar",
+      "viewBooking": "Ver reserva",
+      "bookingRef": "Referencia de reserva",
+      "provider": "Proveedor",
+      "amount": "Importe",
+      "bookingStatus": "Estado de la reserva",
+      "paymentStatus": "Estado del pago",
+      "transactionStatus": "Estado de la transacción",
+      "transactionId": "ID de transacción",
+      "gateway": "Pago"
+    }
   },
   "imagePickerModal": {
     "title": "Seleccionar imagen",
@@ -495,6 +511,17 @@ export const spanish = {
     "featuredServicesAds": "Servicios destacados (Anuncios)",
     "topRatedServices": "Servicios mejor valorados",
     "topOfferedServices": "Mejores ofertas",
+    "offerDiscount": "{{percent}}% dto.",
+    "servicePreference": {
+      "atHome": "A domicilio",
+      "online": "En línea",
+      "onPremises": "En local"
+    },
+    "priceType": {
+      "fixed": "Precio fijo",
+      "hourly": "Por hora",
+      "consultation": "Consulta"
+    },
     "failedToLoadFeatured": "No se pudieron cargar los servicios destacados.",
     "noFeaturedServices": "Aún no hay servicios para mostrar.",
     "selectCityForServices": "Selecciona una ciudad para ver servicios destacados.",

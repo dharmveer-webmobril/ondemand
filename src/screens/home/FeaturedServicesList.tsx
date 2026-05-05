@@ -18,7 +18,9 @@ import {
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useAppSelector } from '@store/hooks';
 import {
-  useGetTopRatedAndTopOfferedServices,
+  useGetTopRatedServices,
+  useGetTopOfferedServices,
+  extractFeaturedServicesArray,
   type FeaturedServiceItem,
   type FeaturedListType,
 } from '@services/api/queries/appQueries';
@@ -50,24 +52,30 @@ export default function FeaturedServicesList() {
   const [page, setPage] = useState(1);
   const [allServices, setAllServices] = useState<FeaturedServiceItem[]>([]);
 
+  const topRatedQ = useGetTopRatedServices({
+    cityName,
+    page,
+    limit: PAGE_LIMIT,
+    enabled: listType === 'topRated',
+  });
+  const topOfferedQ = useGetTopOfferedServices({
+    cityName,
+    page,
+    limit: PAGE_LIMIT,
+    enabled: listType === 'topOffered',
+  });
+
   const {
     data,
     isLoading,
     isFetching,
     isRefetching,
     isError,
-  } = useGetTopRatedAndTopOfferedServices({
-    cityName,
-    page,
-    limit: PAGE_LIMIT,
-  });
+  } =
+    listType === 'topRated' ? topRatedQ : topOfferedQ;
 
   useEffect(() => {
-    if (!data?.ResponseData) return;
-    const batch =
-      listType === 'topRated'
-        ? data.ResponseData.topRatedServices ?? []
-        : data.ResponseData.topOfferedServices ?? [];
+    const batch = extractFeaturedServicesArray(data);
     if (page === 1) {
       setAllServices(batch);
     } else {
@@ -83,11 +91,7 @@ export default function FeaturedServicesList() {
   }, [data, page, listType]);
 
   const hasMore = useMemo(() => {
-    if (!data?.ResponseData) return false;
-    const batch =
-      listType === 'topRated'
-        ? data.ResponseData.topRatedServices ?? []
-        : data.ResponseData.topOfferedServices ?? [];
+    const batch = extractFeaturedServicesArray(data);
     return batch.length >= PAGE_LIMIT;
   }, [data, listType]);
 
@@ -117,10 +121,12 @@ export default function FeaturedServicesList() {
   const onRefresh = useCallback(async () => {
     setAllServices([]);
     setPage(1);
-    await queryClient.resetQueries({
-      queryKey: ['topRatedTopOfferedServices', cityName],
+    await queryClient.invalidateQueries({
+      queryKey: [
+        listType === 'topRated' ? 'topRatedServices' : 'topOfferedServices',
+      ],
     });
-  }, [cityName]);
+  }, [cityName, listType]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || isFetching || isLoading) return;
@@ -161,8 +167,12 @@ export default function FeaturedServicesList() {
             onPress={() => {
               setAllServices([]);
               setPage(1);
-              queryClient.resetQueries({
-                queryKey: ['topRatedTopOfferedServices', cityName],
+              queryClient.invalidateQueries({
+                queryKey: [
+                  listType === 'topRated'
+                    ? 'topRatedServices'
+                    : 'topOfferedServices',
+                ],
               });
             }}
             backgroundColor={theme.colors.primary}
@@ -209,6 +219,7 @@ export default function FeaturedServicesList() {
                 service={item}
                 onPress={handlePressService}
                 variant="grid"
+                listType={listType}
               />
             </View>
           )}

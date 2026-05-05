@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { AppHeader, Container, LoadingComp, SweetAlert } from '@components/common';
@@ -34,6 +34,7 @@ import {
   isWalletFullyCovered,
   shouldUseGatewayPayment,
 } from './checkoutHelpers';
+import BookingPaymentSuccessModal from './BookingPaymentSuccessModal';
 import localStorage from '@utils/StorageProvider';
 
 export default function Checkout() {
@@ -74,6 +75,13 @@ export default function Checkout() {
 
   const [showPaymentFailedPopup, setShowPaymentFailedPopup] = useState(false);
   const [paymentFailedMessage, setPaymentFailedMessage] = useState<string>('');
+
+  const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
+  const [paymentSuccessConfirmRes, setPaymentSuccessConfirmRes] = useState<any>(null);
+  const paymentSuccessDataRef = useRef<{
+    confirmRes: any;
+    fallbackPayload: any;
+  } | null>(null);
 
   const showCheckoutError = useCallback(
     (error: any, fallbackMessage: string = t('checkout.failedToCreateBooking')) => {
@@ -213,17 +221,58 @@ export default function Checkout() {
     queryClient.invalidateQueries({ queryKey: ['customerWallet'] });
   };
 
+  const openCheckoutPaymentSuccessModal = useCallback((confirmRes: any, fallbackPayload: any) => {
+    paymentSuccessDataRef.current = { confirmRes, fallbackPayload };
+    setPaymentSuccessConfirmRes(confirmRes);
+    setShowPaymentSuccessModal(true);
+  }, []);
+
+  const handlePaymentSuccessContinue = useCallback(() => {
+    const data = paymentSuccessDataRef.current;
+    paymentSuccessDataRef.current = null;
+    setShowPaymentSuccessModal(false);
+    setPaymentSuccessConfirmRes(null);
+    invalidateCheckoutQueries();
+    const bookingMongoId =
+      data?.confirmRes?.ResponseData?.booking?._id ??
+      data?.confirmRes?.ResponseData?.booking?.id;
+    if (bookingMongoId) {
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: SCREEN_NAMES.HOME },
+          {
+            name: SCREEN_NAMES.BOOKING_DETAIL,
+            params: { bookingId: String(bookingMongoId) },
+          },
+        ],
+      });
+    } else if (data?.fallbackPayload) {
+      navigateToBookingList(data.fallbackPayload);
+    }
+  }, [navigation]);
+
   // Handle return from PayPal WebView (success/cancel/failure)
   useFocusEffect(
     useCallback(() => {
       const result = route.params?.paymentResult;
       const payload = route.params?.checkoutPayload;
       const message = route.params?.paymentMessage;
+      const confirmRes = route.params?.paymentConfirmResponse;
       if (result === 'success' && payload) {
-        handleSuccessToast(message || t('checkout.bookingCreatedSuccess'));
         invalidateCheckoutQueries();
-        setTimeout(() => navigateToBookingList(payload), 300);
-        navigation.setParams({ paymentResult: undefined, checkoutPayload: undefined, paymentMessage: undefined });
+        if (confirmRes?.ResponseData?.booking) {
+          openCheckoutPaymentSuccessModal(confirmRes, payload);
+        } else {
+          handleSuccessToast(message || t('checkout.bookingCreatedSuccess'));
+          setTimeout(() => navigateToBookingList(payload), 300);
+        }
+        navigation.setParams({
+          paymentResult: undefined,
+          checkoutPayload: undefined,
+          paymentMessage: undefined,
+          paymentConfirmResponse: undefined,
+        });
       }
       if (result === 'failure' && route.params?.paymentError) {
         showCheckoutError(route.params.paymentError);
@@ -238,7 +287,7 @@ export default function Checkout() {
         });
       }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentError, showCheckoutError]),
+    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentConfirmResponse, route.params?.paymentError, showCheckoutError, openCheckoutPaymentSuccessModal, t]),
   );
 
   const handleBookingCreated = async (
@@ -289,9 +338,13 @@ export default function Checkout() {
         returnRouteKey: route.key,
         returnParams: { bookingData, checkoutPayload: payload },
         failureMessage: t('checkout.failedToCreateBooking'),
-        onSuccess: (initiateRes: any) => {
+        onSuccess: (confirmRes: any) => {
+          if (confirmRes?.ResponseData?.booking) {
+            openCheckoutPaymentSuccessModal(confirmRes, payload);
+            return;
+          }
           handleSuccessToast(
-            initiateRes?.ResponseMessage ||
+            confirmRes?.ResponseMessage ||
               response?.ResponseMessage ||
               t('checkout.bookingCreatedSuccess'),
           );
@@ -495,6 +548,12 @@ export default function Checkout() {
           setShowPaymentFailedPopup(false);
           setPaymentFailedMessage('');
         }}
+      />
+
+      <BookingPaymentSuccessModal
+        visible={showPaymentSuccessModal}
+        confirmResponse={paymentSuccessConfirmRes}
+        onContinueToBooking={handlePaymentSuccessContinue}
       />
     </Container>
   );

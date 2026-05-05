@@ -47,7 +47,8 @@ export interface RunGatewayPaymentParams {
   returnTo?: string;
   returnRouteKey?: string;
   returnParams?: Record<string, any>;
-  onSuccess: (initiateRes: any) => void;
+  /** Full confirm-payment API response (includes transaction + booking when succeeded). */
+  onSuccess: (confirmResponse: any) => void;
   onCancel: (bookingId: string) => void;
   onError: (error: any, bookingId: string) => void;
   handleApiError?: (error: any) => void;

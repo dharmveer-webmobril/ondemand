@@ -7,7 +7,6 @@ export const handleApiError = (error: any) => {
     error?.response?.data?.message ||
     error?.message || 
     'Something went wrong. Please try again.';
-  console.log('errorMessage------ 20', errorMessage);
   showToast({
     type: 'error',
     title: 'Error',

@@ -10,7 +10,7 @@ import {
   Pressable,
   StatusBar,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import {
   Container,
@@ -37,6 +37,8 @@ import {
   DateTimeCard,
   AddressCard,
   BookingServiceCard,
+  BookingAddonsModal,
+  getAddonPayableAmount,
 } from '@components';
 import MemberSelectionModal, {
   Member,
@@ -50,7 +52,10 @@ import {
   useRescheduleService,
   useAcceptRescheduleService,
   useRejectRescheduleService,
+  useAddBookedServiceAdditionalAddon,
+  type ServiceAddonItem,
 } from '@services/api/queries/appQueries';
+import { useAdditionalAddonGatewayPayment } from '@services/payment';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
@@ -93,6 +98,9 @@ const formatBookingAddress = (booking: any): string => {
   );
 };
 
+/** Survives BookingDetail unmount when pushing Payment WebView (component refs reset). */
+let lastSuccessfulBookingDetailMongoId: string | null = null;
+
 export default function BookingDetail() {
   const theme = useThemeContext();
   const { t } = useTranslation();
@@ -101,11 +109,19 @@ export default function BookingDetail() {
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  // Get booking ID from route params
+  const bookingIdFromParams =
+    route.params?.bookingId ??
+    route.params?.booking?.id ??
+    route.params?.booking?.bookingId ??
+    null;
+
+  /** In-memory only; also synced from successful API response (authoritative Mongo id). */
+  const persistedBookingIdRef = React.useRef<string | null>(null);
+
   const bookingId =
-    route.params?.bookingId ||
-    route.params?.booking?.id ||
-    route.params?.booking?.bookingId;
+    bookingIdFromParams ??
+    persistedBookingIdRef.current ??
+    lastSuccessfulBookingDetailMongoId;
 
   // Fetch booking details from API
   const {
@@ -116,6 +132,16 @@ export default function BookingDetail() {
     refetch: refetchBooking,
   } = useGetBookingDetail(bookingId);
 
+
+
+  useEffect(() => {
+    const id = bookingDetailData?.ResponseData?.booking?._id;
+    if (typeof id === 'string' && id.length > 0) {
+      lastSuccessfulBookingDetailMongoId = id;
+      persistedBookingIdRef.current = id;
+    }
+  }, [bookingDetailData]);
+
   // Common loader type state
   type LoaderType =
     | 'none'
@@ -124,6 +150,7 @@ export default function BookingDetail() {
     | 'rescheduleService'
     | 'acceptReschedule'
     | 'rejectReschedule';
+
   const [loaderType, setLoaderType] = useState<LoaderType>('none');
   const [acceptingServiceId, setAcceptingServiceId] = useState<string | null>(
     null,
@@ -202,6 +229,18 @@ export default function BookingDetail() {
   );
   const [serviceToCancel, setServiceToCancel] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [addonsModalService, setAddonsModalService] = useState<any>(null);
+  const [addonPaymentBusy, setAddonPaymentBusy] = useState(false);
+  const [addonProcessingGateway, setAddonProcessingGateway] = useState<
+    'stripe' | 'paypal' | null
+  >(null);
+
+  const { mutateAsync: addBookedServiceAddon } =
+    useAddBookedServiceAdditionalAddon();
+  const {
+    runAdditionalAddonGatewayPayment,
+    isPending: isAdditionalAddonGatewayPending,
+  } = useAdditionalAddonGatewayPayment();
 
   // Transform API booking data to component format
   const booking = useMemo(() => {
@@ -662,6 +701,135 @@ export default function BookingDetail() {
   }, [refetchBooking]);
   // console.log('booking', JSON.stringify(booking, null, 2));
 
+  const handleProceedAddons = useCallback(
+    async (selected: ServiceAddonItem[], gateway: 'stripe' | 'paypal') => {
+      if (!addonsModalService?._id || selected.length === 0) return;
+
+      let items = [...selected];
+      if (gateway === 'paypal' && items.length > 1) {
+        Alert.alert(
+          t('bookingDetail.addOns.paypalOneTitle'),
+          t('bookingDetail.addOns.paypalOneMessage'),
+        );
+        items = [items[0]];
+      }
+
+      setAddonPaymentBusy(true);
+      setAddonProcessingGateway(gateway);
+
+      try {
+        const bookedServiceId = addonsModalService._id as string;
+
+        for (let i = 0; i < items.length; i++) {
+          const addon = items[i];
+          const amount = getAddonPayableAmount(addon);
+          await addBookedServiceAddon({ bookedServiceId, addonId: addon._id });
+
+          if (gateway === 'paypal') {
+            await runAdditionalAddonGatewayPayment(navigation, {
+              bookedServiceId,
+              addonId: addon._id,
+              amount,
+              paymentGateway: 'paypal',
+              returnTo: SCREEN_NAMES.BOOKING_DETAIL,
+              returnRouteKey: route.key,
+              returnParams: { bookingId },
+              onSuccess: () => {},
+              onCancel: () => {},
+              onError: err => handleApiError(err),
+              failureMessage: t('bookingDetail.addOns.paymentFailed'),
+            });
+            setAddonsModalService(null);
+            return;
+          }
+
+          await new Promise<void>((resolve, reject) => {
+            runAdditionalAddonGatewayPayment(navigation, {
+              bookedServiceId,
+              addonId: addon._id,
+              amount,
+              paymentGateway: 'stripe',
+              returnTo: SCREEN_NAMES.BOOKING_DETAIL,
+              returnRouteKey: route.key,
+              returnParams: { bookingId },
+              onSuccess: () => resolve(),
+              onCancel: () => reject(new Error('cancel')),
+              onError: err => reject(err),
+              failureMessage: t('bookingDetail.addOns.paymentFailed'),
+            });
+          });
+        }
+
+        handleSuccessToast(t('bookingDetail.addOns.paymentSuccess'));
+        if (bookingId) {
+          queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingId] });
+        }
+        queryClient.invalidateQueries({ queryKey: ['customerPaymentTransactions'] });
+        await refetchBooking();
+        setAddonsModalService(null);
+      } catch (e: unknown) {
+        if ((e as Error)?.message !== 'cancel') {
+          handleApiError(e);
+        }
+      } finally {
+        setAddonPaymentBusy(false);
+        setAddonProcessingGateway(null);
+      }
+    },
+    [
+      addonsModalService,
+      addBookedServiceAddon,
+      runAdditionalAddonGatewayPayment,
+      navigation,
+      route.key,
+      bookingId,
+      t,
+      refetchBooking,
+    ],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const result = route.params?.paymentResult as string | undefined;
+      const msg = route.params?.paymentMessage as string | undefined;
+      const payErr = route.params?.paymentError;
+
+      if (result === 'success') {
+        handleSuccessToast(
+          msg || t('bookingDetail.addOns.paymentSuccess'),
+        );
+        if (bookingId) {
+          queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingId] });
+        }
+        queryClient.invalidateQueries({ queryKey: ['customerPaymentTransactions'] });
+        refetchBooking();
+        navigation.setParams({
+          paymentResult: undefined,
+          paymentMessage: undefined,
+          paymentError: undefined,
+        } as any);
+      }
+      if (result === 'failure' && payErr) {
+        handleApiError(payErr);
+        navigation.setParams({
+          paymentResult: undefined,
+          paymentError: undefined,
+        } as any);
+      }
+      if (result === 'cancel') {
+        navigation.setParams({ paymentResult: undefined } as any);
+      }
+    }, [
+      route.params?.paymentResult,
+      route.params?.paymentMessage,
+      route.params?.paymentError,
+      bookingId,
+      navigation,
+      refetchBooking,
+      t,
+    ]),
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.white} />
@@ -803,6 +971,7 @@ export default function BookingDetail() {
                   : undefined
               }
               mainBookingStatus={booking?.bookingStatus}
+              onAddAddOns={svc => setAddonsModalService(svc)}
             />
             <View style={styles.totalContainer}>
               <View>
@@ -1002,6 +1171,19 @@ export default function BookingDetail() {
         isLoading={loaderType === 'cancelService'}
         title={t('bookingDetails.cancelService')}
         message="Please provide a reason for canceling this service (required)"
+      />
+
+      <BookingAddonsModal
+        visible={!!addonsModalService}
+        onClose={() => {
+          if (!addonPaymentBusy && !isAdditionalAddonGatewayPending) {
+            setAddonsModalService(null);
+          }
+        }}
+        bookedService={addonsModalService}
+        onProceedToPayment={handleProceedAddons}
+        isProcessing={addonPaymentBusy || isAdditionalAddonGatewayPending}
+        paymentGatewayHint={addonProcessingGateway}
       />
     </SafeAreaView>
   );
