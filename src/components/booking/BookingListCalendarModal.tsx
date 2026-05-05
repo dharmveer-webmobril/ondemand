@@ -1,8 +1,14 @@
-import React, { memo, useMemo } from 'react';
-import { Modal, Pressable, View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { memo, useCallback, useMemo } from 'react';
+import {
+  Modal,
+  Pressable,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useThemeContext } from '@utils/theme';
-import { CalendarArrow, CustomText, VectoreIcons } from '@components/common';
+import {  CustomText, VectoreIcons } from '@components/common';
 
 type Props = {
   visible: boolean;
@@ -22,6 +28,17 @@ function BookingListCalendarModalComponent({
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  const renderCalendarArrow = useCallback(
+    (direction: 'left' | 'right') => (
+      <VectoreIcons
+        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+        icon="Ionicons"
+        size={theme.SF(26)}
+        color={theme.colors.primary || '#009BFF'}
+      />
+    ),
+    [theme.SF, theme.colors.primary],
+  );
   return (
     <Modal
       visible={visible}
@@ -50,13 +67,7 @@ function BookingListCalendarModalComponent({
             key={currentMonth}
             current={currentMonth}
             onDayPress={onDateSelect}
-            renderArrow={(direction: 'left' | 'right') => (
-              <CalendarArrow
-                direction={direction}
-                color={theme.colors.primary || '#009BFF'}
-                size={theme.SF(26)}
-              />
-            )}
+            renderArrow={renderCalendarArrow}
             markedDates={
               selectedDate
                 ? {
@@ -122,4 +133,3 @@ const createStyles = (theme: any) =>
       paddingBottom: theme.SH(16),
     },
   });
-

@@ -1,22 +1,11 @@
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { useMemo, useState, useEffect } from 'react'
+import { View, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native'
+import { useMemo, useState } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
-// import LinearGradient from 'react-native-linear-gradient';
-// import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CustomText, VectoreIcons, showToast } from '@components/common';
-import { CountryModal } from '@components';
+import { CustomText, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
-import { useProfile, useUpdateProfile } from '@services/api/queries/authQueries';
-import { useGetCities } from '@services/api/queries/appQueries';
-import { useAppDispatch, useAppSelector } from '@store/hooks';
-// import { useQueryClient } from '@tanstack/react-query';
-import { setUserCity } from '@store/slices/appSlice';
-import { queryClient } from '@services/api';
-
-interface City {
-  _id: string;
-  name: string;
-}
+import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '@store/hooks';
+import HomeLocationPickerModal from './HomeLocationPickerModal';
 
 type HomeHeaderProps = {
   onCityUpdate?: () => void;
@@ -24,103 +13,48 @@ type HomeHeaderProps = {
   onNotificationPress?: () => void;
 };
 
-export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }: HomeHeaderProps) {
+export default function HomeHeader({
+  onCityUpdate,
+  onCityUpdateLoading: _onCityUpdateLoading,
+  onNotificationPress,
+}: HomeHeaderProps) {
+  const { t } = useTranslation();
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   // const insets = useSafeAreaInsets();
-  const dispatch = useAppDispatch();
-  const [showCityModal, setShowCityModal] = useState(false);
-  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
-  const updateProfileMutation = useUpdateProfile();
+  const currentLocationAddress = useAppSelector(
+    state => state.app.currentLocationAddress,
+  );
+  const userCity = useAppSelector(state => state.app.userCity);
 
-  // Notify parent about loading state
-  useEffect(() => {
-    if (onCityUpdateLoading) {
-      onCityUpdateLoading(updateProfileMutation.isPending);
-    }
-  }, [updateProfileMutation.isPending, onCityUpdateLoading]);
-
-  // Get user profile
-  const { data: profileData } = useProfile(true);
-  const userProfile = profileData?.ResponseData;
-
-  // Get country ID from user profile
-  const countryId = useMemo(() => {
-    return userProfile?.country?._id || userProfile?.country || null;
-  }, [userProfile]);
-
-  // Get current city from user profile
-  // Fetch cities based on country
-  const { data: citiesData, isLoading: citiesLoading } = useGetCities(countryId);
-
-  const cities = useMemo(() => {
-    return citiesData?.ResponseData || [];
-  }, [citiesData]);
-
-  const currentCityId = useAppSelector(state => state.app.userCity)?._id;
   const currentCity = useMemo(() => {
-    return cities && cities.length > 0 && cities.find((c: City) => c._id === currentCityId)?.name || 'Select City';
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentCityId, cities]);
+    const fromAddr = currentLocationAddress?.cityName?.trim() || '';
+    if (fromAddr) return fromAddr;
+    const uc = userCity;
+    const fromProfile =
+      typeof uc === 'object' && uc?.name != null
+        ? String(uc.name).trim()
+        : typeof uc === 'string'
+          ? uc.trim()
+          : '';
+    return fromProfile || t('home.selectCity');
+  }, [currentLocationAddress?.cityName, userCity, t]);
+
+  const addressLine = useMemo(() => {
+    const a = currentLocationAddress;
+    const fromAddr =
+      a?.formattedAddress?.trim() ||
+      a?.line1?.trim() ||
+      a?.cityName?.trim() ||
+      '';
+    if (fromAddr) return fromAddr;
+    return currentCity;
+  }, [currentLocationAddress, currentCity]);
 
 
-  // Set selected city when profile loads
-  useEffect(() => {
-    if (currentCityId && cities.length > 0) {
-      const foundCity = cities.find((c: City) => c._id === currentCityId);
-      if (foundCity) {
-        setSelectedCity(foundCity);
-      }
-    }
-  }, [currentCityId, cities]);
-
-  const handleCitySelect = async (city: City) => {
-    // dispatch(setUserCity(city._id));
-    try {
-      // Update only city in profile
-      // const data = {
-      //   city: city._id,
-      // };
-      dispatch(setUserCity(city));
-      queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
-      // const response = await updateProfileMutation.mutateAsync(data);
-
-      // if (response.succeeded && response.ResponseCode === 200) {
-      //   dispatch(setUserCity(city._id));
-      //   dispatch(setUserCity(response.ResponseData?.city));
-      //   queryClient.invalidateQueries({ queryKey: ['categories'] });
-      //   queryClient.invalidateQueries({ queryKey: ['banners'] });
-      //   queryClient.invalidateQueries({ queryKey: ['serviceProviders'] });
-      //   setShowCityModal(false);
-      // } else {
-      //   showToast({
-      //     type: 'error',
-      //     title: 'Error',
-      //     message: response.ResponseMessage || 'Failed to update city',
-      //   });
-      // }
-    } catch (error: any) {
-      console.error('Error updating city:', error);
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: error?.response?.data?.ResponseMessage || 'Failed to update city',
-      });
-    }
-  };
-
-  const handleLocationPress = () => {
-    if (!countryId) {
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Country not found. Please update your profile.',
-      });
-      return;
-    }
-    setShowCityModal(true);
-  };
+  const openLocationPicker = () => setShowLocationModal(true);
 
   return (
     <>
@@ -132,27 +66,31 @@ export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }:
         ]}
       > */}
         <View style={styles.container}>
-          <View style={styles.leftContainer}>
-            <VectoreIcons
-              name="location-sharp"
-              size={24}
-              icon="Ionicons"
-              color={'white'}
-            />
-            <View style={styles.locationContainer}>
-              <CustomText style={styles.currentLocationText}>Current Location</CustomText>
-              <TouchableOpacity
-                style={styles.locationRow}
-                onPress={handleLocationPress}
-                activeOpacity={0.7}
-              >
-                <CustomText numberOfLines={1} style={styles.cityText}>
-                  {currentCity}
-                </CustomText>
-                <Image source={imagePaths.down} style={styles.downIcon} />
-              </TouchableOpacity>
+          <Pressable
+            style={styles.leftContainer}
+            onPress={openLocationPicker}
+            android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
+          >
+            <View style={styles.locationIconWrap}>
+              <VectoreIcons
+                name="location-sharp"
+                size={24}
+                icon="Ionicons"
+                color={'white'}
+              />
             </View>
-          </View>
+            <View style={styles.locationContainer}>
+              <CustomText style={styles.currentLocationText}>
+                {t('home.headerCurrentLocation')}
+              </CustomText>
+              <View style={styles.locationRow}>
+                <CustomText numberOfLines={2} style={styles.cityText}>
+                  {addressLine}
+                </CustomText>
+                <Image source={imagePaths.down} style={styles.downChevron} />
+              </View>
+            </View>
+          </Pressable>
           <View style={styles.rightView}>
             {/* <TouchableOpacity
               style={styles.iconButton}
@@ -170,15 +108,10 @@ export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }:
         </View>
       {/* </LinearGradient> */}
 
-      {/* City Modal */}
-      <CountryModal
-        type='city'
-        data={cities}
-        visible={showCityModal}
-        onClose={() => setShowCityModal(false)}
-        onSelect={handleCitySelect}
-        selectedId={selectedCity?._id || currentCityId}
-        isLoading={citiesLoading}
+      <HomeLocationPickerModal
+        visible={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        onLocationApplied={onCityUpdate}
       />
     </>
   )
@@ -186,13 +119,13 @@ export default function HomeHeader({ onCityUpdateLoading, onNotificationPress }:
 
 const createStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
+    width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingBottom: theme.SH(30),
     paddingTop: theme.SH(10),
     backgroundColor: '#009BFF',
-    paddingHorizontal: 20,
+    paddingHorizontal: theme.SW(16),
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -205,7 +138,9 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   },
 
   locationContainer: {
-    marginLeft: 5
+    marginLeft: theme.SW(6),
+    flex: 1,
+    minWidth: 0,
   },
   locationTitle: {
     color: theme.colors.whitetext,
@@ -218,7 +153,17 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     fontSize: theme.fontSize.md,
     fontFamily: theme.fonts.SEMI_BOLD
   },
-  leftContainer: { flexDirection: 'row', alignItems: 'center' },
+  leftContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    marginRight: theme.SW(8),
+  },
+  locationIconWrap: {
+    flexShrink: 0,
+    justifyContent: 'center',
+  },
   currentLocationText: {
     fontSize: theme.SF(12),
     color: theme.colors.whitetext,
@@ -226,22 +171,28 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
   },
   locationRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 2,
+    minWidth: 0,
+    gap: theme.SW(6),
   },
   cityText: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     fontSize: theme.SF(14),
     color: theme.colors.textWhite,
     fontFamily: theme.fonts.BOLD,
   },
-  downIcon: {
+  downChevron: {
     height: theme.SH(12),
     width: theme.SH(12),
-    marginLeft: theme.SW(7),
+    marginTop: theme.SH(2),
     resizeMode: 'contain',
+    flexShrink: 0,
   },
   rightView: {
-    width: '40%',
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',

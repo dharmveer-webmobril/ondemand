@@ -19,6 +19,7 @@ import { SH } from '@utils/dimensions';
 type HomeMainListProps = {
   refreshing?: boolean;
   onRefresh?: () => void;
+  cityName?: string;
   categoriesData?: CategoriesResponse;
   categoriesLoading?: boolean;
   categoriesError?: boolean;
@@ -40,6 +41,7 @@ type HomeMainListProps = {
 export default function HomeMainList({
   refreshing = false,
   onRefresh,
+  cityName = '',
   categoriesData,
   categoriesLoading,
   categoriesError,
@@ -65,12 +67,14 @@ export default function HomeMainList({
     if (sectionKey === 'Categories') {
       navigate(SCREEN_NAMES.CATEGORY_LIST);
     } else if (sectionKey === 'provider') {
-      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS);
+      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, { resetSession: true });
     } else {
       console.log('View All pressed for:', sectionKey);
     }
   }, []);
 
+
+  // console.log('------providersData------->', providersData);
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -110,7 +114,7 @@ export default function HomeMainList({
           fontFamily={theme.fonts.SEMI_BOLD}
           onPress={() => handleViewAll('Categories')}
         >
-          View All
+          {t('home.categoryViewAll')}
         </CustomText>
       </View>
       <HomeCategoryList
@@ -124,6 +128,7 @@ export default function HomeMainList({
       <Spacing space={10} />
       <HomeFeaturedServices
         title={t('home.featuredServicesAds')}
+        cityName={cityName}
         services={
           featuredData?.ResponseData?.topRatedServices?.slice(0, 15) ?? []
         }
@@ -152,10 +157,11 @@ export default function HomeMainList({
           fontFamily={theme.fonts.SEMI_BOLD}
           onPress={() => handleViewAll('provider')}
         >
-          View All
+          {t('home.categoryViewAll')}
         </CustomText>
       </View>
       <HomeProvider
+        cityName={cityName}
         providersData={providersData}
         providersLoading={providersLoading}
         providersError={providersError}

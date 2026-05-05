@@ -1,4 +1,4 @@
-import { StyleSheet, Linking, Alert, RefreshControl, View } from 'react-native';
+import { StyleSheet, Linking, Alert, RefreshControl, View, StatusBar } from 'react-native';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -119,7 +119,7 @@ export default function ProviderDetailsScreen() {
   const services = servicesData?.ResponseData?.services || [];
   const businessProfile = provider?.businessProfile || {};
 
-  console.log('services--------services', services);
+  console.log('businessProfile----------businessProfile', businessProfile);
   const isLoading = isLoadingProvider || isLoadingServices;
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
@@ -154,8 +154,7 @@ export default function ProviderDetailsScreen() {
     return favoriteProviders.some(p => p._id === providerIdForFavorite);
   }, [favoriteProviders, providerIdForFavorite]);
 
-  const favoriteBaseline =
-    isFavoriteFromDetail || isFavoriteFromList;
+  const favoriteBaseline = isFavoriteFromDetail || isFavoriteFromList;
   const favoriteShown =
     optimisticFavorite !== null ? optimisticFavorite : favoriteBaseline;
 
@@ -385,6 +384,16 @@ export default function ProviderDetailsScreen() {
       case 'details':
         return (
           <ProviderDetails
+            latitude={
+              businessProfile.coordinates?.lat != null
+                ? Number(businessProfile.coordinates.lat)
+                : undefined
+            }
+            longitude={
+              businessProfile.coordinates?.lng != null
+                ? Number(businessProfile.coordinates.lng)
+                : undefined
+            }
             aboutUs={
               businessProfile.description ||
               t('providerDetails.noDescriptionAvailable')
@@ -434,26 +443,65 @@ export default function ProviderDetailsScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.white} />
       {showTopSkeleton ? (
         <View style={styles.topSkeletonWrap}>
           <View style={styles.headerSkeletonRow}>
-            <Shimmer width={theme.SF(56)} height={theme.SF(56)} borderRadius={theme.SF(28)} />
+            <Shimmer
+              width={theme.SF(56)}
+              height={theme.SF(56)}
+              borderRadius={theme.SF(28)}
+            />
             <View style={styles.headerTextSkeleton}>
-              <Shimmer width={'70%'} height={theme.SH(14)} borderRadius={theme.SF(8)} />
-              <Shimmer width={'45%'} height={theme.SH(12)} borderRadius={theme.SF(8)} style={styles.skeletonGap} />
+              <Shimmer
+                width={'70%'}
+                height={theme.SH(14)}
+                borderRadius={theme.SF(8)}
+              />
+              <Shimmer
+                width={'45%'}
+                height={theme.SH(12)}
+                borderRadius={theme.SF(8)}
+                style={styles.skeletonGap}
+              />
             </View>
           </View>
 
           <View style={styles.subHeaderSkeleton}>
-            <Shimmer width={'100%'} height={theme.SH(12)} borderRadius={theme.SF(8)} />
-            <Shimmer width={'70%'} height={theme.SH(12)} borderRadius={theme.SF(8)} style={styles.skeletonGap} />
+            <Shimmer
+              width={'100%'}
+              height={theme.SH(12)}
+              borderRadius={theme.SF(8)}
+            />
+            <Shimmer
+              width={'70%'}
+              height={theme.SH(12)}
+              borderRadius={theme.SF(8)}
+              style={styles.skeletonGap}
+            />
           </View>
 
           <View style={styles.tabsSkeletonRow}>
-            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
-            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
-            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
-            <Shimmer width={'23%'} height={theme.SH(34)} borderRadius={theme.SF(18)} />
+            <Shimmer
+              width={'23%'}
+              height={theme.SH(34)}
+              borderRadius={theme.SF(18)}
+            />
+            <Shimmer
+              width={'23%'}
+              height={theme.SH(34)}
+              borderRadius={theme.SF(18)}
+            />
+            <Shimmer
+              width={'23%'}
+              height={theme.SH(34)}
+              borderRadius={theme.SF(18)}
+            />
+            <Shimmer
+              width={'23%'}
+              height={theme.SH(34)}
+              borderRadius={theme.SF(18)}
+            />
           </View>
         </View>
       ) : (
@@ -478,7 +526,8 @@ export default function ProviderDetailsScreen() {
               t('providerDetails.addressNotAvailable')
             }
             serviceType={
-              businessProfile.name || t('providerDetails.serviceProviderDefault')
+              businessProfile.name ||
+              t('providerDetails.serviceProviderDefault')
             }
             rating={provider.rating || undefined}
             reviewCount={0} // TODO: Get from API if available
@@ -505,9 +554,7 @@ export default function ProviderDetailsScreen() {
         }}
         onConfirm={handleDeliveryModeConfirm}
         selectedMode={bookingDetails.deliveryMode}
-        availableModes={
-          pendingServiceId ? pendingDeliveryModes : undefined
-        }
+        availableModes={pendingServiceId ? pendingDeliveryModes : undefined}
       />
 
       {/* Service For Modal (shown when "At Home" is selected) */}

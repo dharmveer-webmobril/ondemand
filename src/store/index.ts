@@ -15,6 +15,8 @@ const authPersistConfig = {
 const appPersistConfig = {
   key: 'app',
   storage: AsyncStorage,
+  // Do not persist currentLocationAddress: a stale non-null value skips GPS +
+  // permission on startup (ensureCurrentLocationHydrated early-returns).
   whitelist: ['language', 'theme'],
 };
 

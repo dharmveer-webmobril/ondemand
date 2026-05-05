@@ -1,13 +1,26 @@
-import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import React, { useMemo, useState, useCallback } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Container, CustomInput, CustomText, VectoreIcons, CustomButton } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import CategoryTabs from '@components/category/CategoryTabs';
 import ServiceProviderListItem from '@components/category/ServiceProviderListItem';
 import DeliveryModeModal from '@components/category/DeliveryModeModal';
-import { Category, useGetCategories, useGetServiceProviders, ServiceProvidersResponse } from '@services/api/queries/appQueries';
+import CategoryProvidersFiltersModal from '@components/category/CategoryProvidersFiltersModal';
+import {
+  Category,
+  useGetCategories,
+  useGetServiceProviders,
+  ServiceProvidersResponse,
+} from '@services/api/queries/appQueries';
 import imagePaths from '@assets';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import useDebounce from '@utils/hooks/useDebounce';
@@ -16,6 +29,12 @@ import { formatAddress } from '@utils/tools';
 
 type DeliveryMode = 'at_home' | 'online' | 'on_premises';
 
+type CategoryProvidersRouteParams = {
+  category?: Category;
+  resetSession?: boolean;
+  openFilters?: boolean;
+};
+
 export default function CategoryProviders() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -23,95 +42,187 @@ export default function CategoryProviders() {
   const route = useRoute();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 500); // 500ms debounce delay
-  const routeCategory = (route.params as any)?.category as Category | undefined;
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const routeCategory = (route.params as CategoryProvidersRouteParams | undefined)
+    ?.category as Category | undefined;
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    routeCategory || null
+    routeCategory || null,
   );
+  const [appliedMinRating, setAppliedMinRating] = useState('');
+  const [appliedMaxDistance, setAppliedMaxDistance] = useState('');
+  const [appliedSortBy, setAppliedSortBy] = useState('rating');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [draftCategoryId, setDraftCategoryId] = useState<string>('all');
+  const [draftMinRating, setDraftMinRating] = useState('');
+  const [draftMaxDistance, setDraftMaxDistance] = useState('');
+  const [draftSortBy, setDraftSortBy] = useState('rating');
+
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('at_home');
   const [currentPage, setCurrentPage] = useState(1);
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const [hasReceivedData, setHasReceivedData] = useState(false);
+  /** When opening from Home’s filter button (`openFilters`), category chips stay hidden. */
+  const [showCategoryTabs, setShowCategoryTabs] = useState(true);
 
-  // Get all categories for tabs
   const { data: categoriesData } = useGetCategories();
   const categories = useMemo(() => {
     return categoriesData?.ResponseData?.filter((cat: Category) => cat.status) || [];
   }, [categoriesData]);
 
-  const currentCityId = useAppSelector(state => state.app.userCity)?._id;
-  // Build query params - only include categoryIds if a specific category is selected (not "All")
+  const cityName =
+    useAppSelector(state => {
+      const fromAddr = state.app.currentLocationAddress?.cityName?.trim() || '';
+      const uc = state.app.userCity;
+      const fromSaved =
+        typeof uc === 'object' && uc?.name ? String(uc.name).trim() : '';
+      return fromAddr || fromSaved || '';
+    }) || '';
+
+  const lat = useAppSelector(
+    state => state.app.currentLocationAddress?.lat?.trim() || '',
+  );
+  const lng = useAppSelector(
+    state => state.app.currentLocationAddress?.lng?.trim() || '',
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const p = (route.params || {}) as CategoryProvidersRouteParams;
+      if (p.resetSession) {
+        setSearchQuery('');
+        setAppliedMinRating('');
+        setAppliedMaxDistance('');
+        setAppliedSortBy('rating');
+        setDraftCategoryId(p.category?._id ?? 'all');
+        setDraftMinRating('');
+        setDraftMaxDistance('');
+        setDraftSortBy('rating');
+        setSelectedCategory(p.category ?? null);
+        setCurrentPage(1);
+        setAllProviders([]);
+        setHasReceivedData(false);
+        setShowCategoryTabs(!p.openFilters);
+        (navigation as any).setParams({
+          resetSession: undefined,
+          openFilters: undefined,
+        });
+        if (p.openFilters) {
+          requestAnimationFrame(() => setFilterModalVisible(true));
+        }
+        return;
+      }
+      if (p.openFilters) {
+        requestAnimationFrame(() => setFilterModalVisible(true));
+        (navigation as any).setParams({ openFilters: undefined });
+      }
+    }, [navigation, route.params]),
+  );
+
+  const filterModalWasOpen = useRef(false);
+  useEffect(() => {
+    if (filterModalVisible && !filterModalWasOpen.current) {
+      setDraftCategoryId(selectedCategory?._id ?? 'all');
+      setDraftMinRating(appliedMinRating);
+      setDraftMaxDistance(appliedMaxDistance);
+      setDraftSortBy(appliedSortBy);
+    }
+    filterModalWasOpen.current = filterModalVisible;
+  }, [
+    filterModalVisible,
+    selectedCategory?._id,
+    appliedMinRating,
+    appliedMaxDistance,
+    appliedSortBy,
+  ]);
+
   const queryParams = useMemo(() => {
-    const params: any = {
+    const params: Record<string, unknown> = {
       page: currentPage,
-      limit: 10,
-      currentCityId: currentCityId,
+      limit: 12,
+      cityName,
+      lat,
+      lng,
+      sortBy: appliedSortBy || 'rating',
     };
 
-    // Only add categoryIds if a specific category is selected (not "All")
     if (selectedCategory && selectedCategory._id) {
       params.categoryIds = [selectedCategory._id];
     }
 
-    // Only add search if not empty
     if (debouncedSearchQuery.trim()) {
       params.search = debouncedSearchQuery.trim();
     }
 
-    console.log('Query params:', params);
-    return params;
-  }, [currentPage, selectedCategory, debouncedSearchQuery, currentCityId]);
+    if (appliedMinRating !== '') {
+      const n = Number(appliedMinRating);
+      if (Number.isFinite(n)) {
+        params.minRating = n;
+      }
+    }
 
-  // Fetch providers with pagination and search
+    const md = appliedMaxDistance.trim();
+    if (md !== '') {
+      const n = Number(md);
+      if (Number.isFinite(n) && n >= 0) {
+        params.maxDistance = n;
+      }
+    }
+
+    return params;
+  }, [
+    currentPage,
+    selectedCategory,
+    debouncedSearchQuery,
+    cityName,
+    lat,
+    lng,
+    appliedMinRating,
+    appliedMaxDistance,
+    appliedSortBy,
+  ]);
+
   const {
     data: providersData,
     isLoading: providersLoading,
     isError: providersError,
-    refetch: refetchProviders
+    refetch: refetchProviders,
   } = useGetServiceProviders(queryParams);
 
-  // Reset providers when category or search changes
   React.useEffect(() => {
     setCurrentPage(1);
     setAllProviders([]);
-    setHasReceivedData(false); // Reset flag when category or search changes
-  }, [selectedCategory?._id, debouncedSearchQuery]);
+    setHasReceivedData(false);
+  }, [
+    selectedCategory?._id,
+    debouncedSearchQuery,
+    appliedMinRating,
+    appliedMaxDistance,
+    appliedSortBy,
+  ]);
 
-  // Accumulate providers from all pages
   React.useEffect(() => {
     const data = providersData as ServiceProvidersResponse | undefined;
-    // console.log('providersData changed:', data ? 'has data' : 'no data', 'currentPage:', currentPage);
     if (data?.ResponseData) {
-      // console.log('Setting providers data:', data.ResponseData.length, 'items, page:', currentPage);
       setHasReceivedData(true);
       if (currentPage === 1) {
-        // console.log('Setting allProviders for page 1:', data.ResponseData.length);
         setAllProviders(data.ResponseData);
       } else {
-        // console.log('Appending to allProviders for page:', currentPage);
-        setAllProviders(prev => {
-          const newProviders = [...prev, ...data.ResponseData];
-          // console.log('New total providers:', newProviders.length);
-          return newProviders;
-        });
+        setAllProviders(prev => [...prev, ...data.ResponseData]);
       }
-    } else if (data && Array.isArray(data.ResponseData) && data.ResponseData.length === 0) {
-      // Empty response - still mark as received
-      // console.log('Empty ResponseData received');
+    } else if (
+      data &&
+      Array.isArray(data.ResponseData) &&
+      data.ResponseData.length === 0
+    ) {
       setHasReceivedData(true);
       if (currentPage === 1) {
         setAllProviders([]);
       }
-    } else {
-      console.log('No ResponseData in providersData, data:', data);
     }
   }, [providersData, currentPage]);
 
-  // Use providers directly from API (search is handled server-side)
-  const filteredProviders = useMemo(() => {
-    return allProviders;
-  }, [allProviders]);
+  const filteredProviders = useMemo(() => allProviders, [allProviders]);
 
   const hasMore = useMemo(() => {
     const data = providersData as ServiceProvidersResponse | undefined;
@@ -119,16 +230,41 @@ export default function CategoryProviders() {
     return currentPage < data.pagination.pages;
   }, [providersData, currentPage]);
 
-  // Check if we should show empty state
-  // Only show empty state if we've received data and it's actually empty (not just loading)
+  const maxDistActive = useMemo(() => {
+    const md = appliedMaxDistance.trim();
+    if (!md) return false;
+    const n = Number(md);
+    return Number.isFinite(n) && n >= 0;
+  }, [appliedMaxDistance]);
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      !!debouncedSearchQuery.trim() ||
+      appliedMinRating !== '' ||
+      maxDistActive ||
+      appliedSortBy !== 'rating'
+    );
+  }, [
+    debouncedSearchQuery,
+    appliedMinRating,
+    maxDistActive,
+    appliedSortBy,
+  ]);
+
+  const emptyPrimaryMessage = useMemo(() => {
+    if (debouncedSearchQuery.trim()) {
+      return t('category.noProvidersFound');
+    }
+    if (hasActiveFilters) {
+      return t('category.noProvidersMatchFilters');
+    }
+    return t('category.noProvidersAvailable');
+  }, [debouncedSearchQuery, hasActiveFilters, t]);
+
   const shouldShowEmptyState = useMemo(() => {
-    // Don't show empty state if still loading
     if (providersLoading) return false;
-    // Don't show empty state if there's an error (error state will be shown separately)
     if (providersError) return false;
-    // Don't show empty state if we haven't received any data yet
     if (!hasReceivedData) return false;
-    // Only show empty state if we have received data and filtered providers is empty
     return filteredProviders.length === 0;
   }, [providersLoading, providersError, hasReceivedData, filteredProviders]);
 
@@ -138,23 +274,35 @@ export default function CategoryProviders() {
     }
   }, [hasMore, providersLoading]);
 
-  const handleProviderPress = useCallback((provider: any) => {
-    (navigation as any).navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
-      provider: {
-        id: provider._id,
-        name: provider.name,
-        logo: provider.businessProfile?.bannerImage ? { uri: provider.businessProfile?.bannerImage } : imagePaths.no_image,
-        address: formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '',
-        serviceType: provider.businessProfile?.name || 'Service Provider',
-        rating: provider.rating,
-        reviewCount: 0,
-      },
-    });
-  }, [navigation]);
+  const handleProviderPress = useCallback(
+    (provider: any) => {
+      (navigation as any).navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
+        provider: {
+          id: provider._id,
+          name: provider.name,
+          logo: provider.businessProfile?.bannerImage
+            ? { uri: provider.businessProfile?.bannerImage }
+            : imagePaths.no_image,
+          address:
+            formatAddress({
+              line1: provider.businessProfile?.line1,
+              line2: provider.businessProfile?.line2,
+              landmark: provider.businessProfile?.landmark,
+              pincode: provider.businessProfile?.pincode,
+              city: provider.businessProfile?.city?.name,
+              country: provider.businessProfile?.country?.name,
+            }) || provider.city?.name || '',
+          serviceType: provider.businessProfile?.name || 'Service Provider',
+          rating: provider.rating,
+          reviewCount: 0,
+        },
+      });
+    },
+    [navigation],
+  );
 
   const handleDeliveryModeConfirm = useCallback((mode: DeliveryMode) => {
     setDeliveryMode(mode);
-    // Apply delivery mode filter to providers
   }, []);
 
   const handleReload = useCallback(() => {
@@ -165,13 +313,43 @@ export default function CategoryProviders() {
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
-    // Reset pagination and clear providers when clearing search
     setCurrentPage(1);
     setAllProviders([]);
     setHasReceivedData(false);
   }, []);
 
+  const openFilterModal = useCallback(() => {
+    setFilterModalVisible(true);
+  }, []);
 
+  const handleApplyFilters = useCallback(() => {
+    setAppliedMinRating(draftMinRating);
+    setAppliedMaxDistance(draftMaxDistance);
+    setAppliedSortBy(draftSortBy);
+    if (draftCategoryId === 'all') {
+      setSelectedCategory(null);
+    } else {
+      const cat = categories.find(c => c._id === draftCategoryId);
+      setSelectedCategory(cat ?? null);
+    }
+    setFilterModalVisible(false);
+  }, [draftCategoryId, draftMinRating, draftMaxDistance, draftSortBy, categories]);
+
+  const handleResetAllFilters = useCallback(() => {
+    setDraftCategoryId('all');
+    setDraftMinRating('');
+    setDraftMaxDistance('');
+    setDraftSortBy('rating');
+    setAppliedMinRating('');
+    setAppliedMaxDistance('');
+    setAppliedSortBy('rating');
+    setSelectedCategory(null);
+    setSearchQuery('');
+    setCurrentPage(1);
+    setAllProviders([]);
+    setHasReceivedData(false);
+    setFilterModalVisible(false);
+  }, []);
 
   return (
     <Container safeArea={true} style={styles.container}>
@@ -186,7 +364,7 @@ export default function CategoryProviders() {
         </Pressable>
         <View style={styles.searchInputWrapper}>
           <CustomInput
-            placeholder={t('category.search')}
+            placeholder={t('category.searchPlaceholderProviders')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             leftIcon={imagePaths.Search}
@@ -194,23 +372,43 @@ export default function CategoryProviders() {
             onRightIconPress={handleClearSearch}
           />
         </View>
-
+        <Pressable
+          onPress={openFilterModal}
+          style={({ pressed }) => [
+            styles.filterButton,
+            pressed && styles.filterButtonPressed,
+          ]}
+        >
+          <Image
+            source={imagePaths.filter_icon}
+            style={[
+              styles.filterIcon,
+              hasActiveFilters && styles.filterIconActive,
+            ]}
+            resizeMode="contain"
+          />
+          {hasActiveFilters ? <View style={styles.filterBadge} /> : null}
+        </Pressable>
       </View>
-      {/* Category Tabs */}
-      <CategoryTabs
-        categories={categories}
-        selectedCategoryId={selectedCategory?._id || 'all'}
-        onSelectCategory={setSelectedCategory}
-      />
 
-      {/* Providers List */}
-      {(providersLoading && currentPage === 1) || (!hasReceivedData && !providersError && currentPage === 1) ? (
+      {showCategoryTabs ? (
+        <CategoryTabs
+          categories={categories}
+          selectedCategoryId={selectedCategory?._id || 'all'}
+          onSelectCategory={setSelectedCategory}
+        />
+      ) : null}
+
+      {(providersLoading && currentPage === 1) ||
+      (!hasReceivedData && !providersError && currentPage === 1) ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : providersError ? (
         <View style={styles.emptyContainer}>
-          <CustomText style={styles.errorText}>{t('category.failedToLoadProviders')}</CustomText>
+          <CustomText style={styles.errorText}>
+            {t('category.failedToLoadProviders')}
+          </CustomText>
           <CustomButton
             title={t('category.reload')}
             onPress={handleReload}
@@ -223,9 +421,7 @@ export default function CategoryProviders() {
         </View>
       ) : shouldShowEmptyState ? (
         <View style={styles.emptyContainer}>
-          <CustomText style={styles.emptyText}>
-            {debouncedSearchQuery.trim() ? t('category.noProvidersFound') : t('category.noProvidersAvailable')}
-          </CustomText>
+          <CustomText style={styles.emptyText}>{emptyPrimaryMessage}</CustomText>
           {!debouncedSearchQuery.trim() && (
             <CustomButton
               title={t('category.reload')}
@@ -241,14 +437,27 @@ export default function CategoryProviders() {
       ) : filteredProviders && filteredProviders.length > 0 ? (
         <FlatList
           data={filteredProviders}
-          keyExtractor={(item) => item._id}
+          keyExtractor={item => item._id}
           renderItem={({ item }) => (
             <ServiceProviderListItem
               id={item._id}
               name={item.name}
-              logo={item.businessProfile?.bannerImage ? { uri: item.businessProfile?.bannerImage } : imagePaths.no_image}
+              logo={
+                item.businessProfile?.bannerImage
+                  ? { uri: item.businessProfile?.bannerImage }
+                  : imagePaths.no_image
+              }
               images={item.businessProfile?.portfolioImages || []}
-              address={formatAddress({ line1: item.businessProfile?.line1, line2: item.businessProfile?.line2, landmark: item.businessProfile?.landmark, pincode: item.businessProfile?.pincode, city: item.businessProfile?.city?.name, country: item.businessProfile?.country?.name }) || item.city?.name || ''}
+              address={
+                formatAddress({
+                  line1: item.businessProfile?.line1,
+                  line2: item.businessProfile?.line2,
+                  landmark: item.businessProfile?.landmark,
+                  pincode: item.businessProfile?.pincode,
+                  city: item.businessProfile?.city?.name,
+                  country: item.businessProfile?.country?.name,
+                }) || item.city?.name || ''
+              }
               rating={typeof item.rating === 'number' ? item.rating : 0}
               reviewCount={0}
               serviceType={item.businessProfile?.name}
@@ -256,6 +465,7 @@ export default function CategoryProviders() {
               isOpen={item.status === '1'}
               onPress={() => handleProviderPress(item)}
               providerId={item._id}
+              distanceKm={item.distanceKm}
             />
           )}
           contentContainerStyle={styles.listContent}
@@ -269,19 +479,36 @@ export default function CategoryProviders() {
               </View>
             ) : hasMore ? (
               <Pressable onPress={handleLoadMore} style={styles.loadMoreButton}>
-                <CustomText style={styles.loadMoreText}>{t('category.loadMore')}</CustomText>
+                <CustomText style={styles.loadMoreText}>
+                  {t('category.loadMore')}
+                </CustomText>
               </Pressable>
             ) : null
           }
         />
       ) : null}
 
-      {/* Delivery Mode Modal */}
       <DeliveryModeModal
         visible={showDeliveryModal}
         onClose={() => setShowDeliveryModal(false)}
         onConfirm={(mode: any) => handleDeliveryModeConfirm(mode)}
         selectedMode={deliveryMode}
+      />
+
+      <CategoryProvidersFiltersModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        categories={categories}
+        categoryValue={draftCategoryId}
+        minRatingValue={draftMinRating}
+        maxDistanceValue={draftMaxDistance}
+        sortByValue={draftSortBy}
+        onCategoryChange={setDraftCategoryId}
+        onMinRatingChange={setDraftMinRating}
+        onMaxDistanceChange={setDraftMaxDistance}
+        onSortByChange={setDraftSortBy}
+        onApply={handleApplyFilters}
+        onResetAll={handleResetAllFilters}
       />
     </Container>
   );
@@ -294,17 +521,47 @@ const createStyles = (theme: ThemeType) => {
       flex: 1,
       backgroundColor: Colors.background || '#F5F5F5',
     },
-
     searchContainer: {
-      paddingHorizontal: SW(20),
+      paddingHorizontal: SW(12),
       paddingVertical: SH(10),
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: SW(8),
       backgroundColor: Colors.white,
     },
-    searchInput: {
-      marginBottom: 0,
+    searchInputWrapper: {
+      flex: 1,
+      minWidth: 0,
+    },
+    filterButton: {
+      width: SF(44),
+      height: SF(44),
+      borderRadius: SF(12),
+      backgroundColor: Colors.primary || '#135D96',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    filterButtonPressed: {
+      opacity: 0.88,
+    },
+    filterIcon: {
+      width: SF(20),
+      height: SF(20),
+      tintColor: Colors.white,
+    },
+    filterIconActive: {
+      tintColor: '#FFE066',
+    },
+    filterBadge: {
+      position: 'absolute',
+      top: SF(6),
+      right: SF(6),
+      width: SF(8),
+      height: SF(8),
+      borderRadius: SF(4),
+      backgroundColor: '#FF3B30',
+      borderWidth: 1,
+      borderColor: Colors.white,
     },
     loaderContainer: {
       flex: 1,
@@ -316,35 +573,17 @@ const createStyles = (theme: ThemeType) => {
       justifyContent: 'center',
       alignItems: 'center',
       paddingVertical: SH(40),
+      paddingHorizontal: SW(24),
     },
     emptyText: {
       fontSize: SF(16),
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
+      textAlign: 'center',
     },
     listContent: {
       paddingTop: SH(16),
       paddingBottom: SH(20),
-    },
-    searchInputWrapper: {
-      width: '88%',
-    },
-    searchInputContainer: {
-      flex: 1,
-      borderRadius: SW(10),
-      paddingHorizontal: SW(10),
-      paddingVertical: SH(10),
-      height: SH(90),
-    },
-    clearButton: {
-      position: 'absolute',
-      right: SW(20),
-      top: '50%',
-      transform: [{ translateY: -SH(11) }],
-      zIndex: 1,
-      padding: SW(5),
-      justifyContent: 'center',
-      alignItems: 'center',
     },
     errorText: {
       fontSize: SF(16),
@@ -370,4 +609,3 @@ const createStyles = (theme: ThemeType) => {
     },
   });
 };
-

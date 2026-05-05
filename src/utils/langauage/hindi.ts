@@ -237,7 +237,16 @@ export const hindi = {
     "emailID": "ईमेल ID",
     "enterEmailID": "अपना ईमेल ID दर्ज करें",
     "save": "सहेजें",
-    "bookmarkedProviders": "सहेजे गए प्रदाता"
+    "bookmarkedProviders": "सहेजे गए प्रदाता",
+    "transactions": "लेन-देन"
+  },
+  "transactions": {
+    "title": "लेन-देन",
+    "tabBooking": "बुकिंग",
+    "tabAdditionalAddons": "अतिरिक्त ऐड-ऑन",
+    "empty": "अभी कोई लेन-देन नहीं।",
+    "loadError": "लेन-देन लोड नहीं हो सके। पुनः प्रयास करें।",
+    "refund": "रिफंड"
   },
   "favoriteProviders": {
     "title": "सहेजे गए प्रदाता",

@@ -40,6 +40,7 @@ export default {
     CANCEL_BOOKING: (bookingId: string) => `/customer/bookings/bookings/${bookingId}/cancel`,
     GET_WALLET: '/customer/payments/wallet',
     GET_WALLET_TRANSACTIONS: '/customer/payments/wallet/transactions',
+    GET_PAYMENT_TRANSACTIONS: '/customer/payments/transactions',
     REQUEST_WALLET_SETTLEMENT: '/customer/payments/wallet/settlement/request',
     GET_SETTLEMENT_REQUESTS: '/customer/payments/wallet/settlement/requests',
     INITIATE_BOOKING_PAYMENT: '/customer/payments/booking/initiate',

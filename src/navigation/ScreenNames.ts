@@ -52,6 +52,7 @@ export const SCREEN_NAMES = {
   BOOKING_SUMMARY: 'BookingSummary',
   PAYMENT_WEBVIEW: 'PaymentWebView',
   WALLET: 'Wallet',
+  PAYMENT_TRANSACTIONS: 'PaymentTransactions',
   NOTIFICATIONS: 'Notifications',
   CUSTOMER_SUPPORT: 'CustomerSupport',
   LANGUAGE_SETTINGS: 'LanguageSettings',

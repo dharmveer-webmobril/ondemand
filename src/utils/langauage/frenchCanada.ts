@@ -237,7 +237,16 @@ export const frenchCanada = {
     "emailID": "Courriel",
     "enterEmailID": "Entrez votre courriel",
     "save": "Enregistrer",
-    "bookmarkedProviders": "Fournisseurs enregistrés"
+    "bookmarkedProviders": "Fournisseurs enregistrés",
+    "transactions": "Transactions"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "tabBooking": "Réservation",
+    "tabAdditionalAddons": "Compléments additionnels",
+    "empty": "Aucune transaction pour le moment.",
+    "loadError": "Impossible de charger les transactions. Veuillez réessayer.",
+    "refund": "Remboursement"
   },
   "favoriteProviders": {
     "title": "Fournisseurs enregistrés",

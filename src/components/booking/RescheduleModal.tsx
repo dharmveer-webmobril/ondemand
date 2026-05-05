@@ -174,6 +174,17 @@ export default function RescheduleModal({
     }
   }, [onClose, initialDate, isLoading]);
 
+  const renderCalendarArrow = useCallback(
+    (direction: 'left' | 'right') => (
+      <VectoreIcons
+        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+        icon="Ionicons"
+        size={theme.SF(26)}
+        color={theme.colors.primary || '#009BFF'}
+      />
+    ),
+    [theme.SF, theme.colors.primary]
+  );
   return (
     <Modal
       visible={visible}
@@ -227,13 +238,14 @@ export default function RescheduleModal({
                   minDate={todayString}
                   disableAllTouchEventsForDisabledDays
                   enableSwipeMonths
-                  renderArrow={(direction: 'left' | 'right') => (
-                    <CalendarArrow
-                      direction={direction}
-                      color={theme.colors.primary || '#009BFF'}
-                      size={theme.SF(26)}
-                    />
-                  )}
+                  renderArrow={renderCalendarArrow}
+                  // renderArrow={(direction: 'left' | 'right') => (
+                  //   <CalendarArrow
+                  //     direction={direction}
+                  //     color={theme.colors.primary || '#009BFF'}
+                  //     size={theme.SF(26)}
+                  //   />
+                  // )}
                   theme={{
                     backgroundColor: theme.colors.white,
                     calendarBackground: theme.colors.white,

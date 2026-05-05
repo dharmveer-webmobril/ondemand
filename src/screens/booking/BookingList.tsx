@@ -8,7 +8,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { DateData } from 'react-native-calendars';
-import { Container, AppHeader, BookingCard, CustomText, LoadingComp } from '@components';
+import {
+  Container,
+  AppHeader,
+  BookingCard,
+  CustomText,
+  LoadingComp,
+} from '@components';
 import { useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -73,8 +79,14 @@ const bookingStatusOptions: BookingStatusOption[] = [
   { value: 'accepted', labelKey: 'myBookingScreen.filter.accepted' },
   { value: 'ongoing', labelKey: 'myBookingScreen.filter.ongoing' },
   { value: 'completed', labelKey: 'myBookingScreen.filter.completed' },
-  { value: 'cancelledByCustomer',labelKey: 'myBookingScreen.filter.cancelledByYou',},
-  { value: 'cancelledBySp',labelKey: 'myBookingScreen.filter.cancelledByProvider',},
+  {
+    value: 'cancelledByCustomer',
+    labelKey: 'myBookingScreen.filter.cancelledByYou',
+  },
+  {
+    value: 'cancelledBySp',
+    labelKey: 'myBookingScreen.filter.cancelledByProvider',
+  },
   { value: 'rejected', labelKey: 'myBookingScreen.filter.rejected' },
   { value: 'rescheduledByCustomer', label: 'Rescheduled by Customer' },
   { value: 'rescheduledBySp', label: 'Rescheduled by SP' },
@@ -139,7 +151,8 @@ export default function BookingList() {
 
   const pagination = bookingsData?.pagination;
   const hasMorePages = (pagination?.page ?? 1) < (pagination?.pages ?? 1);
-  const showInitialLoader = !hasLoadedFirstPage && (bookingsLoading || bookingsFetching);
+  const showInitialLoader =
+    !hasLoadedFirstPage && (bookingsLoading || bookingsFetching);
 
   useEffect(() => {
     const nextPageBookings = bookingsData?.ResponseData ?? [];
@@ -149,7 +162,6 @@ export default function BookingList() {
         return nextPageBookings;
       }
 
-    
       const existingIds = new Set(prev.map((booking: any) => booking?._id));
       const nextById = new Map(nextPageBookings.map((b: any) => [b?._id, b]));
 
@@ -160,7 +172,9 @@ export default function BookingList() {
         return updated ? updated : booking;
       });
 
-      const newBookings = nextPageBookings.filter((booking: any) => !existingIds.has(booking?._id));
+      const newBookings = nextPageBookings.filter(
+        (booking: any) => !existingIds.has(booking?._id),
+      );
       return [...updatedExisting, ...newBookings];
     });
 
@@ -187,7 +201,7 @@ export default function BookingList() {
         date: formatDate(booking.date),
         time: booking.time || '',
         shopName: booking.spId?.name || t('bookingList.serviceProviderDefault'),
-        address: formatBookingAddress(booking),
+        address: booking?.addressId ? booking?.addressId?.formattedAddress : '',
         price: `$${(
           booking.discountedAmount ??
           booking.totalAmount ??
@@ -308,7 +322,10 @@ export default function BookingList() {
   );
 
   const showEmptyState =
-    hasLoadedFirstPage && !bookingsFetching && !showInitialLoader && currentBookings.length === 0;
+    hasLoadedFirstPage &&
+    !bookingsFetching &&
+    !showInitialLoader &&
+    currentBookings.length === 0;
 
   return (
     <Container

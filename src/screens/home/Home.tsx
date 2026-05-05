@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { HomeHeader, HomeMainList, HomeSearchBar } from '@components';
 import { SCREEN_NAMES } from '@navigation/ScreenNames';
-import { LoadingComp } from '@components/common';
-import { useDisableGestures } from '@utils/hooks';
+import { useDisableGestures, useHomeCurrentAddress } from '@utils/hooks';
 import {
   useGetCategories,
   useGetBanners,
@@ -17,19 +16,42 @@ import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
 import { updateFcmToken } from '@services/api/queries/authQueries';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+/** Same as `HomeHeader` container background */
+const HOME_HEADER_BG = '#009BFF';
+
 export default function Home() {
   useDisableGestures();
+  useHomeCurrentAddress();
   const navigation = useNavigation<any>();
 
   const { t } = useTranslation();
   const authToken = useAppSelector(state => state.auth.token);
+
+  const cityName =
+    useAppSelector(state => {
+      const fromAddr =
+        state.app.currentLocationAddress?.cityName?.trim() || '';
+      const uc = state.app.userCity;
+      const fromSavedCity =
+        typeof uc === 'object' && uc?.name
+          ? String(uc.name).trim()
+          : '';
+      return fromAddr || fromSavedCity || '';
+    }) || '';
+
+  const providerCoords = useAppSelector(state => {
+    const a = state.app.currentLocationAddress;
+    const lat = a?.lat?.trim() || '';
+    const lng = a?.lng?.trim() || '';
+    return { lat, lng };
+  });
 
   // Whenever Home is focused: apply status bar style and update FCM token.
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle('light-content');
       if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor('#009BFF');
+        StatusBar.setBackgroundColor(HOME_HEADER_BG);
       }
 
       let cancelled = false;
@@ -53,6 +75,7 @@ export default function Home() {
       };
     }, [authToken]),
   );
+
   const [refreshing, setRefreshing] = useState(false);
   const [isCityUpdating, setIsCityUpdating] = useState(false);
   const [isInitialHomeLoad, setIsInitialHomeLoad] = useState(true);
@@ -70,19 +93,26 @@ export default function Home() {
     refetch: refetchBanners,
   } = useGetBanners();
 
-  const currentCityId = useAppSelector(state => state.app.userCity)?._id;
   const {
     data: providersData,
     isError: providerError,
+    isFetching: providersFetching,
     refetch: providerReftech,
-  } = useGetServiceProviders({ page: 1, limit: 10, currentCityId });
+  } = useGetServiceProviders({
+    page: 1,
+    limit: 10,
+    cityName,
+    lat: providerCoords.lat,
+    lng: providerCoords.lng,
+  });
 
   const {
     data: featuredData,
     isError: featuredError,
+    isFetching: featuredFetching,
     refetch: refetchFeatured,
   } = useGetTopRatedAndTopOfferedServices({
-    cityId: currentCityId,
+    cityName,
     page: 1,
     limit: 15,
   });
@@ -91,7 +121,7 @@ export default function Home() {
     const categoriesSettled = !!categoriesData || categoriesError;
     const bannersSettled = !!bannersData || bannersError;
     const providersSettled = !!providersData || providerError;
-    const featuredSettled = !currentCityId || !!featuredData || featuredError;
+    const featuredSettled = !cityName || !!featuredData || featuredError;
     return categoriesSettled && bannersSettled && providersSettled && featuredSettled;
   }, [
     categoriesData,
@@ -102,7 +132,7 @@ export default function Home() {
     providerError,
     featuredData,
     featuredError,
-    currentCityId,
+    cityName,
   ]);
 
   useEffect(() => {
@@ -111,14 +141,19 @@ export default function Home() {
     }
   }, [isInitialHomeLoad, isInitialDataSettled]);
 
-  // Keep all home sections in skeleton state together on first load.
-  const showInitialSkeleton = isInitialHomeLoad && !isInitialDataSettled;
-  // Handle pull to refresh
+  /** First paint only — categories & banners are master data */
+  const showMasterSkeleton = isInitialHomeLoad && !isInitialDataSettled;
+
+  /** City-scoped lists only — providers & featured */
+  const showLocationSkeleton =
+    isCityUpdating ||
+    (!!cityName.trim() && (providersFetching || featuredFetching));
+
+  // Handle pull to refresh — refresh location listings + promo banners; categories stay cached (master)
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([
-        refetchCategories(),
         refetchBanners(),
         providerReftech(),
         refetchFeatured(),
@@ -128,16 +163,17 @@ export default function Home() {
     } finally {
       setRefreshing(false);
     }
-  }, [refetchCategories, refetchBanners, providerReftech, refetchFeatured]);
+  }, [refetchBanners, providerReftech, refetchFeatured]);
 
-  // Handle city update - refresh home data
+  /** Address / city change — only refetch location-dependent APIs */
   const handleCityUpdate = useCallback(async () => {
-    await Promise.all([
-      refetchCategories(),
-      refetchBanners(),
-      refetchFeatured(),
-    ]);
-  }, [refetchCategories, refetchBanners, refetchFeatured]);
+    setIsCityUpdating(true);
+    try {
+      await Promise.all([providerReftech(), refetchFeatured()]);
+    } finally {
+      setIsCityUpdating(false);
+    }
+  }, [providerReftech, refetchFeatured]);
 
   // Handle search
   const handleSearch = useCallback((text: string) => {
@@ -145,19 +181,20 @@ export default function Home() {
     console.log('Search:', text);
   }, []);
 
-  // Handle filter press
   const handleFilterPress = useCallback(() => {
-    // TODO: Implement filter functionality
-    console.log('Filter pressed');
-  }, []);
+    navigation.navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
+      resetSession: true,
+      openFilters: true,
+    });
+  }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-       <StatusBar
-          translucent
-          backgroundColor="#009BFF"
-          barStyle="light-content"
-        />
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <StatusBar
+        translucent
+        backgroundColor={HOME_HEADER_BG}
+        barStyle="light-content"
+      />
       <View style={styles.container}>
        
         <HomeHeader
@@ -177,24 +214,24 @@ export default function Home() {
         <HomeMainList
           refreshing={refreshing}
           onRefresh={onRefresh}
+          cityName={cityName}
           categoriesData={categoriesData}
-          categoriesLoading={showInitialSkeleton}
+          categoriesLoading={showMasterSkeleton}
           categoriesError={categoriesError}
           onRetryCategories={refetchCategories}
           bannersData={bannersData}
-          bannersLoading={showInitialSkeleton}
+          bannersLoading={showMasterSkeleton}
           bannersError={bannersError}
           onRetryBanners={refetchBanners}
           featuredData={featuredData}
-          featuredLoading={showInitialSkeleton}
+          featuredLoading={showMasterSkeleton || showLocationSkeleton}
           featuredError={featuredError}
           onRetryFeatured={refetchFeatured}
           providersData={providersData}
-          providersLoading={showInitialSkeleton}
+          providersLoading={showMasterSkeleton || showLocationSkeleton}
           providersError={providerError}
           onRetryProviders={providerReftech}
         />
-        <LoadingComp visible={isCityUpdating} />
       </View>
     </SafeAreaView>
   );
@@ -203,6 +240,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: HOME_HEADER_BG,
   },
   container: {
     flex: 1,

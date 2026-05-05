@@ -24,7 +24,10 @@ const HomeCategoryItem = memo(({ name, image,  category }: any) => {
     const styles = useMemo(() => createStyles(theme), [theme]);
     
     const handlePress = () => {
-        navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, { category });
+        navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
+          category,
+          resetSession: true,
+        });
     };
     
     return (

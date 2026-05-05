@@ -69,7 +69,10 @@ export default function CategoryList() {
 
   const handleCategoryPress = useCallback(
     (category: Category) => {
-      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, { category });
+      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
+        category,
+        resetSession: true,
+      });
     },
     []
   );

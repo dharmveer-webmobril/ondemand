@@ -4,7 +4,7 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import { ServiceProvider } from '@services/api/queries/appQueries';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, formatDistanceKmAway } from '@utils/tools';
 
 type HomeProviderItemProps = {
   provider: ServiceProvider;
@@ -41,6 +41,8 @@ export default function HomeProviderItem({
 
   const rating =
     typeof provider?.rating === 'number' ? provider.rating : null;
+
+  const distanceLabel = formatDistanceKmAway(provider.distanceKm);
 
   const coverSource = provider.businessProfile?.bannerImage
     ? { uri: provider.businessProfile.bannerImage }
@@ -116,6 +118,19 @@ export default function HomeProviderItem({
             </View>
           )}
         </View>
+        {distanceLabel ? (
+          <View style={styles.distanceRow}>
+            <VectoreIcons
+              name="navigate-outline"
+              icon="Ionicons"
+              size={theme.SF(14)}
+              color={theme.colors.lightText || '#888'}
+            />
+            <CustomText style={styles.distanceText} numberOfLines={1}>
+              {distanceLabel}
+            </CustomText>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -227,6 +242,17 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
       fontSize: SF(13),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText || '#999',
+    },
+    distanceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SW(4),
+      marginTop: SH(6),
+    },
+    distanceText: {
+      fontSize: SF(12),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.lightText || '#666',
     },
   });
 };

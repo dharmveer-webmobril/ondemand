@@ -4,6 +4,7 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import StarRating from 'react-native-star-rating-widget';
 import { CustomText, ImageLoader, Spacing } from '@components/common';
 import imagePaths from '@assets';
+import { formatDistanceKmAway } from '@utils/tools';
 
 type ServiceProviderListItemProps = {
   id: string;
@@ -18,6 +19,7 @@ type ServiceProviderListItemProps = {
   isOpen?: boolean;
   onPress?: () => void;
   providerId?: string;
+  distanceKm?: number;
 };
 
 export default function ServiceProviderListItem({
@@ -31,11 +33,13 @@ export default function ServiceProviderListItem({
   isVerified = false,
   // isOpen = true,
   onPress,
+  distanceKm,
   // providerId,
 }: ServiceProviderListItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-console.log('------logo------->', logo);
+  const distanceLabel = formatDistanceKmAway(distanceKm);
+
   return (
     <Pressable
       onPress={onPress}
@@ -107,6 +111,9 @@ console.log('------logo------->', logo);
               {address}
             </CustomText>
           </View>
+          {distanceLabel ? (
+            <CustomText style={styles.distanceText}>{distanceLabel}</CustomText>
+          ) : null}
           <View style={styles.ratingContainer}>
             <StarRating
               starStyle={styles.starStyle}
@@ -207,6 +214,12 @@ const createStyles = (theme: ThemeType) => {
       fontFamily: Fonts.MEDIUM,
       color: Colors.textAppColor || Colors.text,
       lineHeight: SF(16),
+    },
+    distanceText: {
+      fontSize: SF(11),
+      fontFamily: Fonts.MEDIUM,
+      color: Colors.lightText || '#888',
+      marginLeft: SW(22),
     },
     ratingContainer: {
       flexDirection: 'row',

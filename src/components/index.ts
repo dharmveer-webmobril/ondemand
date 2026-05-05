@@ -13,6 +13,7 @@ export { default as SplashAnimation } from './splash/SplashAnimation'
 
 //home============
 export { default as HomeHeader } from './home/HomeHeader'
+export { default as HomeLocationPickerModal } from './home/HomeLocationPickerModal'
 export { default as HomeMainList } from './home/HomeMainList'
 export { default as HomeSearchBar } from './home/HomeSearchBar'
 export { default as HomeSliderSkeleton } from './home/HomeSliderSkeleton'

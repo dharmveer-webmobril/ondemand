@@ -18,6 +18,8 @@ import type {
 
 type HomeFeaturedServicesProps = {
   title: string;
+  /** When set and services are empty, show location hint instead of hiding the section */
+  cityName?: string;
   services: FeaturedServiceItem[];
   isLoading?: boolean;
   isError?: boolean;
@@ -34,6 +36,7 @@ const Separator = () => {
 
 export default function HomeFeaturedServices({
   title,
+  cityName = '',
   services,
   isLoading = false,
   isError = false,
@@ -72,9 +75,37 @@ export default function HomeFeaturedServices({
     });
   }, []);
 
-  if (!isLoading && !isError && data.length === 0) {
+  const showLocationEmpty =
+    !!cityName.trim() &&
+    !isLoading &&
+    !isError &&
+    data.length === 0;
+
+  if (!isLoading && !isError && data.length === 0 && !showLocationEmpty) {
     return null;
   }
+
+  const emptyLocationContent = showLocationEmpty ? (
+    <View style={styles.locationEmptyBox}>
+      <CustomText
+        color={theme.colors.text}
+        fontSize={theme.fontSize.sm}
+        fontFamily={theme.fonts.SEMI_BOLD}
+        textAlign="center"
+      >
+        {t('home.noDataForLocationTitle')}
+      </CustomText>
+      <CustomText
+        color={theme.colors.lightText || theme.colors.gray}
+        fontSize={theme.fontSize.sm}
+        fontFamily={theme.fonts.REGULAR}
+        textAlign="center"
+        marginTop={theme.SH(8)}
+      >
+        {t('home.noDataForLocationHint')}
+      </CustomText>
+    </View>
+  ) : null;
 
   return (
     <View style={styles.section}>
@@ -120,6 +151,8 @@ export default function HomeFeaturedServices({
             />
           ) : null}
         </View>
+      ) : showLocationEmpty ? (
+        emptyLocationContent
       ) : (
         <FlatList
           horizontal
@@ -173,5 +206,14 @@ const createStyles = (theme: ThemeType) =>
     },
     retryBtn: {
       borderRadius: theme.SF(8),
+    },
+    locationEmptyBox: {
+      marginHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(18),
+      paddingHorizontal: theme.SW(14),
+      borderRadius: theme.SF(12),
+      backgroundColor: theme.colors.secondary || '#E8F4FD',
+      borderWidth: 1,
+      borderColor: theme.colors.primary || '#009BFF',
     },
   });

@@ -6,6 +6,9 @@ import { resetAndNavigate } from '@utils/NavigationUtils';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useProfileSplashScreen } from '@services/index';
+import { store } from '@store/index';
+import { queryClient } from '@services/api';
+import { ensureCurrentLocationHydrated } from '@utils/address';
 import { setUserCity } from '@store/slices/appSlice';
 import LottieView from 'lottie-react-native';
 import imagePaths from '@assets';
@@ -21,6 +24,13 @@ export default function SplashScreen() {
   const { data: userData, isLoading ,error} = useProfileSplashScreen(true, token || '');
   const dispatch = useAppDispatch();
   console.log('error------ 29', error);
+
+  /** Start GPS → reverse geocode → Redux early so Home has no visible lag (deduped). */
+  useEffect(() => {
+    if (!token || !isAuthenticated) return;
+    void ensureCurrentLocationHydrated(dispatch, queryClient, () => store.getState());
+  }, [token, isAuthenticated, dispatch]);
+
   const onAnimationFinish = useCallback(() => {
     setAnimationFinished(true);
   }, []);

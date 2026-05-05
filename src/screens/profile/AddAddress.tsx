@@ -28,6 +28,7 @@ import Geocoder from 'react-native-geocoding';
 import { showToast } from '@components/common/CustomToast';
 import { useRoute } from '@react-navigation/native';
 import type { SignupAddressSelection } from '@utils/address';
+import { mapApiAddressToCustomerLocation } from '@utils/address';
 import type { CustomerAddressCreateBody } from '@services/api/queries/appQueries';
 import { useAddCustomerAddress, useUpdateCustomerAddress } from '@services';
 import { queryClient } from '@services/api';
@@ -54,24 +55,7 @@ type SignupAddressLike = Partial<SignupAddressSelection> & {
   formattedAddress?: string;
 };
 
-/** Row from GET `/auth/customer/addresses` (edit) */
-type ApiSavedAddress = {
-  _id?: string;
-  name?: string;
-  line1?: string;
-  line2?: string;
-  landmark?: string;
-  pincode?: string;
-  contact?: string;
-  formattedAddress?: string;
-  googlePlaceId?: string | null;
-  cityName?: string;
-  countryName?: string;
-  countryIso2?: string;
-  coordinates?: { lat: number; lng: number };
-  city?: { name?: string; countryIso2?: string };
-  country?: { name?: string };
-};
+type SavedAddressRef = { _id?: string; contact?: string };
 
 function resolveCustomerContact(user: UserDetails | null | undefined): string | null {
   if (!user) return null;
@@ -94,7 +78,7 @@ function resolveCustomerContact(user: UserDetails | null | undefined): string | 
 
 function resolveSubmitContact(
   user: UserDetails | null | undefined,
-  saved: ApiSavedAddress | undefined,
+  saved: SavedAddressRef | undefined,
 ): string | null {
   const fromProfile = resolveCustomerContact(user);
   if (fromProfile) return fromProfile;
@@ -229,7 +213,9 @@ export default function AddressAdd() {
   const route = useRoute<any>();
   const isSignupFlow = route.params?.prevScreen === 'signup';
   const isEditMode = route.params?.mode === 'edit';
-  const savedAddress = route.params?.addData as ApiSavedAddress | undefined;
+  const savedAddress = route.params?.addData as
+    | (SavedAddressRef & SignupAddressLike)
+    | undefined;
   const editAddressId =
     isEditMode && savedAddress?._id ? String(savedAddress._id) : '';
 
@@ -342,56 +328,31 @@ export default function AddressAdd() {
       formattedAddress: '',
       name: '',
     };
-    const d = route.params?.addData as
-      | SignupAddressLike
-      | ApiSavedAddress
+    const raw = route.params?.addData as
+      | (SignupAddressLike & SavedAddressRef)
       | undefined;
+    if (!raw) return base;
 
-    if (!d) return base;
-
-    if (isEditMode && '_id' in d && (d as ApiSavedAddress)._id) {
-      const a = d as ApiSavedAddress;
-      const displayLine =
-        a.formattedAddress || a.line1 || '';
-      const cityNm = a.cityName ?? a.city?.name ?? '';
-      const countryNm = a.countryName ?? a.country?.name ?? '';
-      let iso =
-        a.countryIso2 ??
-        a.city?.countryIso2 ??
-        base.countryIso2;
-      iso = String(iso || '')
-        .trim()
-        .toLowerCase()
-        .slice(0, 2);
-      if (!/^[a-z]{2}$/.test(iso)) iso = base.countryIso2;
-
+    if (isEditMode && raw._id) {
+      const mapped = mapApiAddressToCustomerLocation(raw);
+      if (!mapped) return base;
+      let iso = mapped.countryIso2;
+      if (!/^[a-z]{2}$/.test(iso)) {
+        iso = base.countryIso2;
+      }
       return {
         ...base,
-        name: a.name ?? '',
-        line1: a.line1 ?? displayLine,
-        line2: a.line2 ?? '',
-        landmark: a.landmark ?? '',
-        pincode: a.pincode ?? '',
-        countryName: countryNm,
-        cityName: cityNm,
+        ...mapped,
+        name: mapped.name ?? '',
         countryIso2: iso,
-        lat:
-          a.coordinates != null ? String(a.coordinates.lat) : '',
-        lng:
-          a.coordinates != null ? String(a.coordinates.lng) : '',
-        googlePlaceId:
-          a.googlePlaceId != null && a.googlePlaceId !== ''
-            ? String(a.googlePlaceId)
-            : '',
-        formattedAddress: a.formattedAddress ?? a.line1 ?? '',
       };
     }
 
     if (
-      typeof (d as SignupAddressLike).formattedAddress === 'string' &&
-      (d as SignupAddressLike).formattedAddress
+      typeof raw.formattedAddress === 'string' &&
+      raw.formattedAddress
     ) {
-      const s = d as SignupAddressLike;
+      const s = raw as SignupAddressLike;
       return {
         ...base,
         line1: s.formattedAddress!,
@@ -426,16 +387,16 @@ export default function AddressAdd() {
         return;
       }
 
-      // const contact = resolveSubmitContact(userDetails, savedAddress);
-      // if (!contact) {
-      //   showToast({
-      //     type: 'error',
-      //     title: t('messages.error'),
-      //     message: t('addAddress.errors.contactMissing'),
-      //   });
-      //   setSubmitting(false);
-      //   return;
-      // }
+      const contact = resolveSubmitContact(userDetails, savedAddress);
+      if (!contact) {
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message: t('addAddress.errors.contactMissing'),
+        });
+        setSubmitting(false);
+        return;
+      }
 
       if (isEditMode && !editAddressId) {
         showToast({
@@ -454,7 +415,7 @@ export default function AddressAdd() {
         line2: (values.line2 || '').trim(),
         landmark: (values.landmark || '').trim(),
         pincode: (values.pincode || '').trim(),
-        // contact,
+        contact,
         coordinates: {
           lat: Number(values.lat),
           lng: Number(values.lng),
@@ -508,15 +469,12 @@ export default function AddressAdd() {
   });
 
   useEffect(() => {
-    const d = route.params?.addData as
-      | ApiSavedAddress
-      | SignupAddressLike
+    const raw = route.params?.addData as
+      | (SignupAddressLike & { line1?: string; formattedAddress?: string })
       | undefined;
-    if (!d) return;
+    if (!raw) return;
     const text =
-      (d as ApiSavedAddress).formattedAddress ||
-      (d as ApiSavedAddress).line1 ||
-      (d as SignupAddressLike).formattedAddress;
+      raw.formattedAddress || raw.line1;
     if (text && typeof text === 'string') {
       placesRef.current?.setAddressText(text);
     }

@@ -39,7 +39,14 @@ export default function FeaturedServicesList() {
   const route = useRoute<any>();
   const listType: FeaturedListType = route.params?.listType ?? 'topRated';
 
-  const cityId = useAppSelector(state => state.app.userCity)?._id;
+  const cityName =
+    useAppSelector(state => {
+      const fromAddr = state.app.currentLocationAddress?.cityName?.trim() || '';
+      const uc = state.app.userCity;
+      const fromSaved =
+        typeof uc === 'object' && uc?.name ? String(uc.name).trim() : '';
+      return fromAddr || fromSaved || '';
+    }) || '';
   const [page, setPage] = useState(1);
   const [allServices, setAllServices] = useState<FeaturedServiceItem[]>([]);
 
@@ -50,7 +57,7 @@ export default function FeaturedServicesList() {
     isRefetching,
     isError,
   } = useGetTopRatedAndTopOfferedServices({
-    cityId,
+    cityName,
     page,
     limit: PAGE_LIMIT,
   });
@@ -111,9 +118,9 @@ export default function FeaturedServicesList() {
     setAllServices([]);
     setPage(1);
     await queryClient.resetQueries({
-      queryKey: ['topRatedTopOfferedServices', cityId],
+      queryKey: ['topRatedTopOfferedServices', cityName],
     });
-  }, [cityId]);
+  }, [cityName]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || isFetching || isLoading) return;
@@ -134,7 +141,7 @@ export default function FeaturedServicesList() {
         />
       </View>
 
-      {!cityId ? (
+      {!cityName ? (
         <View style={styles.centered}>
           <CustomText textAlign="center" color={theme.colors.gray}>
             {t('home.selectCityForServices')}
@@ -155,7 +162,7 @@ export default function FeaturedServicesList() {
               setAllServices([]);
               setPage(1);
               queryClient.resetQueries({
-                queryKey: ['topRatedTopOfferedServices', cityId],
+                queryKey: ['topRatedTopOfferedServices', cityName],
               });
             }}
             backgroundColor={theme.colors.primary}

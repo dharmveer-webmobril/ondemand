@@ -15,20 +15,18 @@ type HomeProviderProps = {
   providersLoading?: boolean;
   providersError?: boolean;
   onRetryProviders?: () => void;
+  /** When set and provider list is empty, show location-specific empty copy */
+  cityName?: string;
 };
 
-export default function HomeProvider({ onViewAll, providersData, providersLoading, providersError, onRetryProviders }: HomeProviderProps) {
+export default function HomeProvider({ onViewAll, providersData, providersLoading, providersError, onRetryProviders, cityName = '' }: HomeProviderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
 
-  console.log('------providersData------->', providersData);
-
   const providers = useMemo(() => {
     return providersData?.ResponseData || [];
-  }, [providersData
-
-  ]);
+  }, [providersData]);
 
   const handleProviderPress = (provider: any) => {
   
@@ -38,7 +36,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
         name: provider.name,
         logo: provider.profileImage,
         address: formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '',
-        serviceType: provider.businessProfile?.name || 'Service Provider',
+        serviceType: provider.businessProfile?.name || t('home.providerFallbackName'),
         rating: typeof provider.rating === 'number' ? provider.rating : null,
         reviewCount: 0, // Add review count from API if available
       },
@@ -50,7 +48,7 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
     if (onViewAll) {
       onViewAll();
     } else {
-      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS);
+      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, { resetSession: true });
     }
   };
 
@@ -76,9 +74,21 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
   }
 
   if (providers.length === 0) {
+    const locationAware = !!cityName.trim();
     return (
       <View style={styles.emptyContainer}>
-        <CustomText style={styles.emptyText}>{t('home.noProvidersAvailable')}</CustomText>
+        {locationAware ? (
+          <>
+            <CustomText style={styles.locationEmptyTitle}>
+              {t('home.noDataForLocationTitle')}
+            </CustomText>
+            <CustomText style={styles.locationEmptyHint}>
+              {t('home.noDataForLocationHint')}
+            </CustomText>
+          </>
+        ) : (
+          <CustomText style={styles.emptyText}>{t('home.noProvidersAvailable')}</CustomText>
+        )}
         <CustomButton
           title={t('category.reload')}
           onPress={() => onRetryProviders?.()}
@@ -142,7 +152,8 @@ const createStyles = (theme: any) => {
       justifyContent: 'center',
     },
     emptyContainer: {
-      paddingVertical: SH(40),
+      paddingVertical: SH(24),
+      paddingHorizontal: SW(16),
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -159,6 +170,20 @@ const createStyles = (theme: any) => {
       color: Colors.text,
       textAlign: 'center',
       marginBottom: SH(10),
+    },
+    locationEmptyTitle: {
+      fontSize: SF(14),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.text,
+      textAlign: 'center',
+      marginBottom: SH(8),
+    },
+    locationEmptyHint: {
+      fontSize: SF(13),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.lightText || Colors.gray,
+      textAlign: 'center',
+      lineHeight: SH(20),
     },
     reloadButton: {
       borderRadius: SF(8),

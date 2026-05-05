@@ -44,16 +44,18 @@ const useCurrentLocation = (): UseLocationReturn => {
     try {
       const status = await check(permission);
 
-      // ✅ Already granted
-      if (status === RESULTS.GRANTED) {
+      // ✅ Granted or approximate (iOS LIMITED)
+      if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
         setHasPermission(true);
         return true;
       }
 
-      // 🔹 First time / denied
+      // 🔹 First time / denied — show system prompt
       if (status === RESULTS.DENIED) {
         const requestStatus = await request(permission);
-        const granted = requestStatus === RESULTS.GRANTED;
+        const granted =
+          requestStatus === RESULTS.GRANTED ||
+          requestStatus === RESULTS.LIMITED;
         setHasPermission(granted);
         return granted;
       }

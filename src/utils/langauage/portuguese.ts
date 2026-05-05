@@ -237,7 +237,16 @@ export const portuguese = {
     "emailID": "E-mail",
     "enterEmailID": "Digite seu e-mail",
     "save": "Salvar",
-    "bookmarkedProviders": "Prestadores salvos"
+    "bookmarkedProviders": "Prestadores salvos",
+    "transactions": "Transações"
+  },
+  "transactions": {
+    "title": "Transações",
+    "tabBooking": "Reserva",
+    "tabAdditionalAddons": "Complementos adicionais",
+    "empty": "Ainda não há transações.",
+    "loadError": "Não foi possível carregar as transações. Tente novamente.",
+    "refund": "Reembolso"
   },
   "favoriteProviders": {
     "title": "Prestadores salvos",

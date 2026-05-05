@@ -237,7 +237,16 @@ export const spanish = {
     "emailID": "Correo electrónico",
     "enterEmailID": "Ingresa tu correo electrónico",
     "save": "Guardar",
-    "bookmarkedProviders": "Proveedores guardados"
+    "bookmarkedProviders": "Proveedores guardados",
+    "transactions": "Transacciones"
+  },
+  "transactions": {
+    "title": "Transacciones",
+    "tabBooking": "Reserva",
+    "tabAdditionalAddons": "Complementos adicionales",
+    "empty": "Aún no hay transacciones.",
+    "loadError": "No se pudieron cargar las transacciones. Intenta de nuevo.",
+    "refund": "Reembolso"
   },
   "favoriteProviders": {
     "title": "Proveedores guardados",

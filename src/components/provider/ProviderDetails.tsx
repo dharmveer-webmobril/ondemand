@@ -1,5 +1,15 @@
-import { View, StyleSheet, Pressable, ScrollView, RefreshControl } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  RefreshControl,
+  Platform,
+  Linking,
+} from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
 
@@ -17,6 +27,9 @@ type ProviderDetailsProps = {
   refreshControl?: React.ReactElement<RefreshControl>;
   /** Rendered below the About Us section (e.g. members list) */
   membersSection?: React.ReactNode;
+  /** Business location — map is shown when both are finite numbers */
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export default function ProviderDetails({
@@ -27,14 +40,35 @@ export default function ProviderDetails({
   instagramUrl,
   websiteUrl,
   amenities = [],
-  onServiceFeePress,
+  onServiceFeePress: _onServiceFeePress,
   onPaymentPolicyPress,
   onReportPress,
   refreshControl,
   membersSection,
+  latitude,
+  longitude,
 }: ProviderDetailsProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
+
+  const lat = latitude != null ? Number(latitude) : NaN;
+  const lng = longitude != null ? Number(longitude) : NaN;
+  const hasMapCoords = Number.isFinite(lat) && Number.isFinite(lng);
+
+  const openInMaps = () => {
+    if (!hasMapCoords) return;
+    const q = `${lat},${lng}`;
+    const url =
+      Platform.OS === 'ios'
+        ? `maps:0,0?q=${q}`
+        : `geo:0,0?q=${q}(${encodeURIComponent('Business')})`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(
+        `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+      );
+    });
+  };
 
   return (
     <ScrollView
@@ -44,13 +78,53 @@ export default function ProviderDetails({
       // @ts-ignore
       refreshControl={refreshControl}
     >
-      {/* Map Placeholder */}
-      <View style={styles.mapContainer}>
-        <CustomText style={styles.mapPlaceholder}>Map View</CustomText>
-        <CustomText style={styles.mapSubtext}>
-          Location will be displayed here
-        </CustomText>
-      </View>
+      {hasMapCoords ? (
+        <View style={styles.mapWrapper}>
+          <MapView
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            style={styles.map}
+            initialRegion={{
+              latitude: lat,
+              longitude: lng,
+              latitudeDelta: 0.012,
+              longitudeDelta: 0.012,
+            }}
+            scrollEnabled={false}
+            zoomTapEnabled
+            rotateEnabled={false}
+            pitchEnabled={false}
+            toolbarEnabled={false}
+          >
+            <Marker
+              coordinate={{ latitude: lat, longitude: lng }}
+              tracksViewChanges={false}
+            />
+          </MapView>
+          <Pressable
+            onPress={openInMaps}
+            style={({ pressed }) => [
+              styles.mapOpenRow,
+              pressed && styles.mapOpenRowPressed,
+            ]}
+          >
+            <VectoreIcons
+              name="map-outline"
+              icon="Ionicons"
+              size={theme.SF(18)}
+              color={theme.colors.primary}
+            />
+            <CustomText style={styles.mapOpenText}>
+              {t('providerDetails.openInMaps')}
+            </CustomText>
+            <VectoreIcons
+              name="open-outline"
+              icon="Ionicons"
+              size={theme.SF(16)}
+              color={theme.colors.lightText || '#888'}
+            />
+          </Pressable>
+        </View>
+      ) : null}
 
       {/* About Us */}
       <View style={styles.section}>
@@ -201,25 +275,35 @@ const createStyles = (theme: ThemeType) => {
     content: {
       paddingBottom: SH(20),
     },
-    mapContainer: {
-      height: SH(200),
-      backgroundColor: Colors.gray || '#E0E0E0',
-      justifyContent: 'center',
-      alignItems: 'center',
+    mapWrapper: {
       marginHorizontal: SW(20),
       marginTop: SH(16),
       borderRadius: SF(12),
+      overflow: 'hidden',
+      backgroundColor: Colors.gray || '#E0E0E0',
     },
-    mapPlaceholder: {
-      fontSize: SF(16),
+    map: {
+      width: '100%',
+      height: SH(200),
+    },
+    mapOpenRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SW(8),
+      paddingVertical: SH(10),
+      backgroundColor: Colors.white,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: Colors.gray || '#E0E0E0',
+    },
+    mapOpenRowPressed: {
+      opacity: 0.85,
+    },
+    mapOpenText: {
+      flex: 1,
+      fontSize: SF(13),
       fontFamily: Fonts.SEMI_BOLD,
-      color: Colors.text,
-      marginBottom: SH(4),
-    },
-    mapSubtext: {
-      fontSize: SF(12),
-      fontFamily: Fonts.REGULAR,
-      color: Colors.textAppColor || Colors.text,
+      color: Colors.primary || Colors.text,
     },
     section: {
       paddingHorizontal: SW(20),

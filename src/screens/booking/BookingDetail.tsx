@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   Pressable,
+  StatusBar,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +21,10 @@ import {
   VectoreIcons,
 } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import RescheduleModal from '@components/booking/RescheduleModal';
 import ReasonInputModal from '@components/booking/ReasonInputModal';
 import CancelBookingModal from '@components/booking/CancelBookingModal';
@@ -204,11 +208,13 @@ export default function BookingDetail() {
     if (!bookingDetailData?.ResponseData?.booking) return null;
 
     const apiBooking = bookingDetailData?.ResponseData?.booking;
-    const bookedServices = (bookingDetailData?.ResponseData?.bookedServices || []).filter((s: any) => s != null);
+    const bookedServices = (
+      bookingDetailData?.ResponseData?.bookedServices || []
+    ).filter((s: any) => s != null);
     // Transform bookedServices to BookingServiceCard format
     const services = bookedServices.map((bookedService: any) => {
-    // console.log('apiBooking -----BookingDetail', apiBooking);
-    console.log('bookedServices-----BookingDetail', bookedServices);
+      // console.log('apiBooking -----BookingDetail', apiBooking);
+      console.log('bookedServices-----BookingDetail', bookedServices);
       // Find service by ID (serviceId is a string ID)
       // serviceId is already a full object in the new structure
       const service = bookedService?.serviceId || {};
@@ -265,6 +271,8 @@ export default function BookingDetail() {
       };
     });
 
+    console.log('apiBooking-----addressId', apiBooking?.addressId);
+
     return {
       customerDetails:
         apiBooking.bookedFor === 'other'
@@ -281,7 +289,7 @@ export default function BookingDetail() {
         apiBooking?.spId?.name || t('providerDetails.providerDefaultName'),
       providerPhone: apiBooking?.spId?.contact || '',
       providerImage: apiBooking?.spId?.profileImage,
-      serviceAddress: formatBookingAddress(apiBooking),
+      serviceAddress: apiBooking?.addressId || null,
       bookingDate: formatDate(apiBooking?.date),
       timeSlot: apiBooking?.time || '',
       services: services,
@@ -320,31 +328,41 @@ export default function BookingDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleOpenMaps = useCallback((address: string) => {
-    const encodedAddress = encodeURIComponent(address);
+  const handleOpenMaps = useCallback((address: any) => {
+    if (!address && !address?.lat && !address?.lng) return;
     const url = Platform.select({
-      ios: `maps://app?daddr=${encodedAddress}`,
-      android: `google.navigation:q=${encodedAddress}`,
+      ios: `maps:0,0?q=${address?.lat},${address?.lng}`,
+      android: `geo:${address?.lat},${address?.lng}?q=${address?.lat},${address?.lng}`,
     });
 
     if (url) {
-      Linking.canOpenURL(url)
-        .then(supported => {
-          if (supported) {
-            Linking.openURL(url);
-          } else {
-            // Fallback to web maps
-            Linking.openURL(
-              `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
-            );
-          }
-        })
-        .catch(() => {
-          Linking.openURL(
-            `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
-          );
-        });
+      Linking.openURL(url).catch(err => console.error('Error opening map', err));
     }
+
+    // const encodedAddress = encodeURIComponent(address);
+    // const url = Platform.select({
+    //   ios: `maps://app?daddr=${encodedAddress}`,
+    //   android: `google.navigation:q=${encodedAddress}`,
+    // });
+
+    // if (url) {
+    //   Linking.canOpenURL(url)
+    //     .then(supported => {
+    //       if (supported) {
+    //         Linking.openURL(url);
+    //       } else {
+    //         // Fallback to web maps
+    //         Linking.openURL(
+    //           `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+    //         );
+    //       }
+    //     })
+    //     .catch(() => {
+    //       Linking.openURL(
+    //         `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+    //       );
+    //     });
+    // }
   }, []);
 
   const handleAccept = useCallback(() => {
@@ -613,9 +631,7 @@ export default function BookingDetail() {
       try {
         const res = await rejectRescheduleService(bookedServiceId);
         if (res?.succeeded) {
-          handleSuccessToast(
-             'Reschedule rejected successfully',
-          );
+          handleSuccessToast('Reschedule rejected successfully');
         }
       } catch (err) {
         handleApiError(err);
@@ -647,12 +663,9 @@ export default function BookingDetail() {
   // console.log('booking', JSON.stringify(booking, null, 2));
 
   return (
-    <Container
-      safeArea={true}
-      statusBarColor={theme.colors.white}
-      style={styles.container}
-    >
-      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.white} />
+      <View style={[styles.headerContainer]}>
         <AppHeader
           title={t('bookingDetails.headerTitle')}
           onLeftPress={() => navigation.goBack()}
@@ -742,8 +755,10 @@ export default function BookingDetail() {
             booking.preferences.length > 0 &&
             booking.preferences.includes('atHome') && (
               <AddressCard
-                address={booking.serviceAddress}
-                onViewLocation={() => handleOpenMaps(booking.serviceAddress)}
+                address={booking?.serviceAddress?.formattedAddress || ''}
+                onViewLocation={() =>
+                  handleOpenMaps(booking?.serviceAddress?.coordinates)
+                }
               />
             )}
           {/* Date & Time Card */}
@@ -855,17 +870,25 @@ export default function BookingDetail() {
             </Pressable>
           )}
 
-{
-         (booking?.status === 'cancelledBySp' || booking?.status === 'cancelledByCustomer' || booking?.status === 'rejected') && booking?.remark && (
-            <CustomText
-              fontSize={theme.fontSize.md}
-              fontFamily={theme.fonts.MEDIUM}
-              color={theme.colors.red}
-            >
-            Booking Cancelled Reason : <CustomText fontSize={theme.fontSize.md} fontFamily={theme.fonts.REGULAR} color={theme.colors.text}>{booking?.remark}</CustomText>
-            </CustomText>
-          )
-         }
+          {(booking?.status === 'cancelledBySp' ||
+            booking?.status === 'cancelledByCustomer' ||
+            booking?.status === 'rejected') &&
+            booking?.remark && (
+              <CustomText
+                fontSize={theme.fontSize.md}
+                fontFamily={theme.fonts.MEDIUM}
+                color={theme.colors.red}
+              >
+                Booking Cancelled Reason :{' '}
+                <CustomText
+                  fontSize={theme.fontSize.md}
+                  fontFamily={theme.fonts.REGULAR}
+                  color={theme.colors.text}
+                >
+                  {booking?.remark}
+                </CustomText>
+              </CustomText>
+            )}
         </ScrollView>
       )}
 
@@ -980,7 +1003,7 @@ export default function BookingDetail() {
         title={t('bookingDetails.cancelService')}
         message="Please provide a reason for canceling this service (required)"
       />
-    </Container>
+    </SafeAreaView>
   );
 }
 

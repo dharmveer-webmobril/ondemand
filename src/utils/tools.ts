@@ -252,4 +252,16 @@ export const convertUTCToLocalTime = (utcTime: string): string => {
   return `${localHours}:${localMinutes}`;
 };
 
+/** Formats API `distanceKm` for UI (e.g. "0.15 km away", "6.9 km away"). */
+export function formatDistanceKmAway(
+  km: number | undefined | null,
+): string | null {
+  if (km == null || typeof km !== 'number' || !Number.isFinite(km) || km < 0) {
+    return null;
+  }
+  return km < 1
+    ? `${km.toFixed(2)} km away`
+    : `${km.toFixed(1)} km away`;
+}
+
 export { formatDate, formatBookingAddress, mapBookingStatusToDisplay, mapBookingStatusToList, getStatusLabel, isCancelledOrRejected, getStatusColor ,formatAddress,requestContactsPermission};

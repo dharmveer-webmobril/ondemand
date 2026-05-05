@@ -3,7 +3,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Calendar, DateData } from 'react-native-calendars';
-import { Container, AppHeader, CustomText, CustomButton, showToast, CalendarArrow } from '@components/common';
+import { Container, AppHeader, CustomText, CustomButton, showToast, CalendarArrow, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useGetServiceProviderAvailability, useGetServiceProviderServices } from '@services/index';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
@@ -251,15 +251,16 @@ export default function BookAppointment() {
     });
   };
 
-  const renderArrow = useCallback(
+  const renderCalendarArrow = useCallback(
     (direction: 'left' | 'right') => (
-      <CalendarArrow
-        direction={direction}
-        color={theme.colors.primary || '#009BFF'}
+      <VectoreIcons
+        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+        icon="Ionicons"
         size={theme.SF(26)}
+        color={theme.colors.primary || '#009BFF'}
       />
     ),
-    [theme.colors.primary, theme.SF],
+    [theme.SF, theme.colors.primary]
   );
 
   return (
@@ -287,7 +288,7 @@ export default function BookAppointment() {
               minDate={todayString}
               disableAllTouchEventsForDisabledDays
               enableSwipeMonths
-              renderArrow={renderArrow}
+              renderArrow={renderCalendarArrow}
               theme={{
                 backgroundColor: theme.colors.white,
                 calendarBackground: theme.colors.white,

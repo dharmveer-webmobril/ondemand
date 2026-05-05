@@ -8,7 +8,10 @@ type AddressCardProps = {
   onViewLocation: () => void;
 };
 
-export default function AddressCard({ address, onViewLocation }: AddressCardProps) {
+export default function AddressCard({
+  address,
+  onViewLocation,
+}: AddressCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -16,18 +19,25 @@ export default function AddressCard({ address, onViewLocation }: AddressCardProp
 
   return (
     <View style={styles.card}>
-      <CustomText
-        fontSize={theme.SF(15)}
-        fontFamily={theme.fonts.SEMI_BOLD}
-        color={theme.colors.text}
-        marginBottom={theme.SH(12)}
-      >
-        Service Address
-      </CustomText>
-      <Pressable
-        style={styles.detailRow}
-        onPress={onViewLocation}
-      >
+      <View style={styles.titleContainer}>
+        <CustomText
+          fontSize={theme.SF(15)}
+          fontFamily={theme.fonts.SEMI_BOLD}
+          color={theme.colors.text}
+          marginBottom={theme.SH(12)}
+        >
+          Service Address
+        </CustomText>
+        <Pressable onPress={onViewLocation}>
+          <VectoreIcons
+            name="directions"
+            icon="FontAwesome5"
+            size={theme.SF(24)}
+            color={theme.colors.primary}
+          />
+        </Pressable>
+      </View>
+      <Pressable style={styles.detailRow}>
         <VectoreIcons
           name="location-outline"
           icon="Ionicons"
@@ -78,6 +88,9 @@ const createStyles = (theme: ThemeType) =>
       flex: 1,
     },
     titleContainer: {
-      marginBottom: theme.SH(12),
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: theme.SH(10),
     },
   });
