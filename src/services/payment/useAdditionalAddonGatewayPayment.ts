@@ -92,6 +92,7 @@ export function useAdditionalAddonGatewayPayment() {
       const { transactionId, clientSecret, redirectUrl } =
         getPaymentResponseDetails(initiateRes);
 
+        console.log('initiateRes----- useAdditionalAddonGatewayPayment', initiateRes);
       if (paymentGateway === 'stripe') {
         if (!clientSecret) {
           if (handleApiFailureResponse)

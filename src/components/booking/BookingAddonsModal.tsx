@@ -59,7 +59,7 @@ export default function BookingAddonsModal({
 
   const catalogServiceId = bookedService ? getCatalogServiceId(bookedService) : null;
 
-  const { data, isLoading, isError } = useGetServiceAddOns(
+  const { data, isLoading, isError, refetch, isFetching } = useGetServiceAddOns(
     catalogServiceId ?? undefined,
     visible && !!catalogServiceId,
   );
@@ -142,21 +142,39 @@ export default function BookingAddonsModal({
             </View>
 
             {!catalogServiceId ? (
-              <CustomText style={styles.muted}>
-                {t('bookingDetail.addOns.noService')}
-              </CustomText>
+              <View style={styles.emptyState}>
+                <CustomText style={styles.emptyStateText}>
+                  {t('bookingDetail.addOns.noService')}
+                </CustomText>
+              </View>
             ) : isLoading ? (
-              <View style={styles.center}>
+              <View style={styles.emptyState}>
                 <ActivityIndicator color={theme.colors.primary} />
               </View>
-            ) : isError ? (
-              <CustomText style={styles.error}>
-                {t('bookingDetail.addOns.loadError')}
-              </CustomText>
-            ) : addons.length === 0 ? (
-              <CustomText style={styles.muted}>
-                {t('bookingDetail.addOns.empty')}
-              </CustomText>
+            ) : isError || addons.length === 0 ? (
+              <View style={styles.emptyState}>
+                <CustomText
+                  style={[
+                    styles.emptyStateText,
+                    ...(isError ? [styles.emptyStateTextError] : []),
+                  ]}
+                >
+                  {isError
+                    ? t('bookingDetail.addOns.loadError')
+                    : t('bookingDetail.addOns.empty')}
+                </CustomText>
+                <CustomButton
+                  title={t('common.retry')}
+                  onPress={() => refetch()}
+                  isLoading={isFetching}
+                  disable={isProcessing}
+                  backgroundColor={theme.colors.primary}
+                  textColor={theme.colors.white}
+                  paddingHorizontal={theme.SW(32)}
+                  marginTop={theme.SH(16)}
+                  buttonStyle={styles.reloadButton}
+                />
+              </View>
             ) : (
               <FlatList
                 data={addons}
@@ -282,9 +300,10 @@ const createStyles = (theme: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: theme.SH(12),
-      paddingHorizontal: theme.SW(4),
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border || '#e5e7eb',
+      paddingHorizontal: theme.SW(8),
+      borderRadius: theme.borderRadius?.md ?? 12,
+      marginBottom: theme.SH(8),
+      backgroundColor: 'rgba(19, 93, 150, 0.06)',
     },
     rowSelected: {
       backgroundColor: 'rgba(19, 93, 150, 0.06)',
@@ -297,27 +316,32 @@ const createStyles = (theme: any) =>
     desc: {
       fontSize: theme.fontSize?.xs ?? 12,
       color: theme.colors.lightText,
-      marginTop: theme.SH(4),
+      // marginTop: theme.SH(4),
     },
     priceLine: {
       fontSize: theme.fontSize?.sm ?? 13,
       fontFamily: theme.fonts?.MEDIUM,
       color: theme.colors.primary,
-      marginTop: theme.SH(6),
+      // marginTop: theme.SH(6),
     },
-    muted: {
+    emptyState: {
+      minHeight: SH(280),
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: theme.SH(24),
+      paddingHorizontal: theme.SW(8),
+    },
+    emptyStateText: {
       fontSize: theme.fontSize?.sm ?? 14,
       color: theme.colors.lightText,
-      marginVertical: theme.SH(16),
+      textAlign: 'center',
     },
-    error: {
-      fontSize: theme.fontSize?.sm ?? 14,
+    emptyStateTextError: {
       color: theme.colors.error || '#c00',
-      marginVertical: theme.SH(16),
     },
-    center: {
-      paddingVertical: theme.SH(24),
-      alignItems: 'center',
+    reloadButton: {
+      borderRadius: theme.borderRadius?.md ?? 12,
+      alignSelf: 'center',
     },
     footer: {
       marginTop: theme.SH(12),

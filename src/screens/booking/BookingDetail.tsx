@@ -235,12 +235,12 @@ export default function BookingDetail() {
     'stripe' | 'paypal' | null
   >(null);
 
-  const { mutateAsync: addBookedServiceAddon } =
-    useAddBookedServiceAdditionalAddon();
-  const {
-    runAdditionalAddonGatewayPayment,
-    isPending: isAdditionalAddonGatewayPending,
-  } = useAdditionalAddonGatewayPayment();
+  const { mutateAsync: addBookedServiceAddon } = useAddBookedServiceAdditionalAddon();
+
+  
+  // Additional addon gateway payment===================================
+  //===================================================================
+  const {runAdditionalAddonGatewayPayment,isPending: isAdditionalAddonGatewayPending} = useAdditionalAddonGatewayPayment();
 
   // Transform API booking data to component format
   const booking = useMemo(() => {
