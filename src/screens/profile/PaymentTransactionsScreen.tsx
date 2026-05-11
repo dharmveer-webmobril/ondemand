@@ -150,7 +150,7 @@ export default function PaymentTransactionsScreen() {
                   credit ? styles.amountCredit : styles.amountDebit,
                 ]}
               >
-                {credit ? '+' : '−'}
+                {/* {credit ? '+' : '−'} */}
                 {formatAmount(amt, cur)}
               </CustomText>
             </View>

@@ -18,6 +18,8 @@ type BookingCardProps = {
   price: string;
   image?: any;
   onBookAgain?: () => void;
+  onRateNow?: () => void;
+  showRateNow?: boolean;
   onPress?: () => void;
 };
 
@@ -32,6 +34,8 @@ export default function BookingCard({
   price,
   image,
   onBookAgain,
+  onRateNow,
+  showRateNow = false,
   onPress,
 }: BookingCardProps) {
   const theme = useThemeContext();
@@ -132,26 +136,33 @@ export default function BookingCard({
             {price}
           </CustomText>
         </View>
-        {status === 'completed' && onBookAgain && (
+        {status === 'completed' && (onBookAgain || (showRateNow && onRateNow)) ? (
           <View style={styles.buttonContainer}>
-            <CustomButton
-              title={t('myBookingScreen.bookAgain')}
-              onPress={onBookAgain}
-              backgroundColor={theme.colors.primary || '#135D96'}
-              textColor={theme.colors.white}
-              buttonStyle={styles.bookAgainButton}
-              buttonTextStyle={styles.buttonText}
-            />
-            <CustomButton
-              title={t('myBookingScreen.rateNow')}
-              onPress={onBookAgain}
-              backgroundColor={theme.colors.primary || '#135D96'}
-              textColor={theme.colors.white}
-              buttonStyle={styles.rateNowButton}
-              buttonTextStyle={styles.buttonText}
-            />
+            {onBookAgain ? (
+              <CustomButton
+                title={t('myBookingScreen.bookAgain')}
+                onPress={onBookAgain}
+                backgroundColor={theme.colors.primary || '#135D96'}
+                textColor={theme.colors.white}
+                buttonStyle={styles.bookAgainButton}
+                buttonTextStyle={styles.buttonText}
+              />
+            ) : null}
+            {showRateNow && onRateNow ? (
+              <CustomButton
+                title={t('myBookingScreen.rateNow')}
+                onPress={onRateNow}
+                backgroundColor={theme.colors.primary || '#135D96'}
+                textColor={theme.colors.white}
+                buttonStyle={[
+                  styles.rateNowButton,
+                  onBookAgain ? styles.rateNowButtonWithGap : null,
+                ]}
+                buttonTextStyle={styles.buttonText}
+              />
+            ) : null}
           </View>
-        )}
+        ) : null}
       </View>
     </Pressable>
   );
@@ -237,6 +248,8 @@ const createStyles = (theme: ThemeType) =>
       height: theme.SH(25),
       borderRadius: theme.borderRadius.md || 8,
       width: 100,
+    },
+    rateNowButtonWithGap: {
       marginLeft: theme.SW(10),
     },
   });

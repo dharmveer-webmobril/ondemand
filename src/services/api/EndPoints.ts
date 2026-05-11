@@ -61,4 +61,7 @@ export default {
     DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
     FAVORITE_SP: '/customer/favorite-sp',
     FAVORITE_SP_BY_ID: (spId: string) => `/customer/favorite-sp/${spId}`,
+    SERVICE_RATING_REVIEW: '/customer/rating-reviews/service-rating-reviews',
+    SP_RATING_REVIEW: '/customer/rating-reviews/sp-rating-reviews',
+    MEMBER_RATING_REVIEW: '/customer/rating-reviews/member-rating-reviews',
 };

@@ -27,6 +27,8 @@ import BookingListFilters, {
   BookingStatusOption,
 } from '@components/booking/BookingListFilters';
 import BookingListCalendarModal from '@components/booking/BookingListCalendarModal';
+import RateReviewModal from '@components/booking/RateReviewModal';
+import { bookingHasPendingCustomerReviews } from '@utils/bookingReviewHelpers';
 
 // Format date from API (YYYY-MM-DD) to display e.g. 06-March-2025
 const formatDate = (dateString: string): string => {
@@ -138,6 +140,7 @@ export default function BookingList() {
   const [page, setPage] = useState(1);
   const [allBookings, setAllBookings] = useState<any[]>([]);
   const [hasLoadedFirstPage, setHasLoadedFirstPage] = useState(false);
+  const [rateReviewBookingId, setRateReviewBookingId] = useState<string | null>(null);
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -290,34 +293,39 @@ export default function BookingList() {
     console.log('Book again for:', bookingId);
   }, []);
 
-  const handleCardPress = useCallback((bookingId: string) => {
-    // Navigate to booking detail with booking ID - API will fetch the details
+  const handleCardPress = useCallback((bookingId: string,flag:string='noraml') => {
     navigate(SCREEN_NAMES.BOOKING_DETAIL, {
       bookingId: bookingId,
+      flag: flag,
     });
   }, []);
 
   const renderBookingItem = useCallback(
-    ({ item }: any) => (
-      <BookingCard
-        bookingId={item.bookingId}
-        friendName={item.friendName}
-        status={item.status}
-        statusColor={item.statusColor}
-        date={item.date}
-        time={item.time}
-        shopName={item.shopName}
-        address={item.address}
-        price={item.price}
-        image={item.image}
-        onBookAgain={
-          item.status?.toLowerCase() === 'completed'
-            ? () => handleBookAgain(item.bookingId || item.id)
-            : undefined
-        }
-        onPress={() => handleCardPress(item.id)}
-      />
-    ),
+    ({ item }: any) => {
+      const completed = item.status?.toLowerCase() === 'completed';
+      const showRateNow =
+        completed && bookingHasPendingCustomerReviews(item.originalBooking);
+      return (
+        <BookingCard
+          bookingId={item.bookingId}
+          friendName={item.friendName}
+          status={item.status}
+          statusColor={item.statusColor}
+          date={item.date}
+          time={item.time}
+          shopName={item.shopName}
+          address={item.address}
+          price={item.price}
+          image={item.image}
+          onBookAgain={
+            completed ? () => handleBookAgain(item.bookingId || item.id) : undefined
+          }
+          showRateNow={showRateNow}
+          onRateNow={showRateNow ? () => handleCardPress(item.id,'open-rate-review') : undefined}
+          onPress={() => handleCardPress(item.id)}
+        />
+      );
+    },
     [handleBookAgain, handleCardPress],
   );
 
@@ -403,6 +411,15 @@ export default function BookingList() {
         onClose={closeCalendarModal}
         onDateSelect={handleDateSelect as (day: DateData) => void}
       />
+
+      {/* <RateReviewModal
+        visible={!!rateReviewBookingId}
+        bookingMongoId={rateReviewBookingId}
+        onClose={() => setRateReviewBookingId(null)}
+        onSubmitted={() => {
+          refetchBookings();
+        }}
+      /> */}
     </Container>
   );
 }

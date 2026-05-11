@@ -87,3 +87,7 @@ export {
   getAddonPayableAmount,
   getCatalogServiceId,
 } from './booking/BookingAddonsModal'
+export { default as RateReviewModal } from './booking/RateReviewModal'
+export { default as BookingServiceReviewsTabs } from './booking/BookingServiceReviewsTabs'
+export { default as BookingReviewsView } from './booking/BookingReviewsView'
+export { default as ReviewChipsStrip } from './booking/ReviewChipsStrip'

@@ -1324,6 +1324,108 @@ export const useGetBookingDetail = (bookingId: string | null) => {
   });
 };
 
+export type ServiceRatingItem = {
+  serviceId: string;
+  bookedServiceId: string;
+  rating: number;
+  review: string;
+};
+
+export type SpRatingItem = {
+  spId: string;
+  bookingId: string;
+  rating: number;
+  review: string;
+};
+
+export type MemberRatingItem = {
+  memberId: string;
+  bookedServiceId: string;
+  rating: number;
+  review: string;
+};
+
+export type SubmitAllRatingReviewsVariables = {
+  /** Mongo `_id` of the booking, used to invalidate the detail query after submit. */
+  bookingMongoId: string;
+  services?: ServiceRatingItem[];
+  sp?: SpRatingItem[];
+  members?: MemberRatingItem[];
+};
+
+export type RatingReviewSectionResult =
+  | { status: 'skipped' }
+  | { status: 'success'; data?: any }
+  | { status: 'error'; message: string };
+
+export type SubmitAllRatingReviewsResult = {
+  service: RatingReviewSectionResult;
+  sp: RatingReviewSectionResult;
+  member: RatingReviewSectionResult;
+};
+
+export const useSubmitAllRatingReviews = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SubmitAllRatingReviewsResult,
+    Error,
+    SubmitAllRatingReviewsVariables
+  >({
+    mutationFn: async vars => {
+      const result: SubmitAllRatingReviewsResult = {
+        service: { status: 'skipped' },
+        sp: { status: 'skipped' },
+        member: { status: 'skipped' },
+      };
+
+      const handleSection = async (
+        items: any[] | undefined,
+        url: string,
+        key: 'service' | 'sp' | 'member',
+      ) => {
+
+
+
+        if (!items || items.length === 0) return;
+         
+        try {
+          const res = await axiosInstance.post(url, { items });
+          if (res.data?.succeeded === false) {
+            result[key] = {
+              status: 'error',
+              message: res.data?.ResponseMessage || 'Request failed',
+            };
+          } else {
+            result[key] = { status: 'success', data: res.data };
+          }
+        } catch (e: any) {
+          result[key] = {
+            status: 'error',
+            message:
+              e?.response?.data?.ResponseMessage ||
+              e?.message ||
+              'Request failed',
+          };
+        }
+      };
+
+      await Promise.all([
+        handleSection(vars.services, EndPoints.SERVICE_RATING_REVIEW, 'service'),
+        handleSection(vars.sp, EndPoints.SP_RATING_REVIEW, 'sp'),
+        handleSection(vars.members, EndPoints.MEMBER_RATING_REVIEW, 'member'),
+      ]);
+
+      return result;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({
+        queryKey: ['bookingDetail', vars.bookingMongoId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
+    },
+  });
+};
+
 // Cancel Booking Request/Response interfaces
 export interface CancelBookingRequest {
   reason: string;

@@ -10,7 +10,11 @@ import {
   Pressable,
   StatusBar,
 } from 'react-native';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import {
   Container,
@@ -43,6 +47,9 @@ import {
 import MemberSelectionModal, {
   Member,
 } from '@components/booking/MemberSelectionModal';
+import RateReviewModal from '@components/booking/RateReviewModal';
+import BookingReviewsView from '@components/booking/BookingReviewsView';
+import { bookedServiceHasAnySubmittedReview } from '@utils/bookingReviewHelpers';
 import { SweetAlert } from '@components/common';
 import { queryClient } from '@services/api';
 import {
@@ -132,7 +139,15 @@ export default function BookingDetail() {
     refetch: refetchBooking,
   } = useGetBookingDetail(bookingId);
 
-
+  const flag = route?.params?.flag ?? '';
+  useEffect(() => {
+    if (flag === 'open-rate-review') {
+      let timer = setTimeout(() => {
+        setRateReviewOpen(true);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [flag]);
 
   useEffect(() => {
     const id = bookingDetailData?.ResponseData?.booking?._id;
@@ -234,13 +249,17 @@ export default function BookingDetail() {
   const [addonProcessingGateway, setAddonProcessingGateway] = useState<
     'stripe' | 'paypal' | null
   >(null);
+  const [rateReviewOpen, setRateReviewOpen] = useState(false);
 
-  const { mutateAsync: addBookedServiceAddon } = useAddBookedServiceAdditionalAddon();
+  const { mutateAsync: addBookedServiceAddon } =
+    useAddBookedServiceAdditionalAddon();
 
-  
   // Additional addon gateway payment===================================
   //===================================================================
-  const {runAdditionalAddonGatewayPayment,isPending: isAdditionalAddonGatewayPending} = useAdditionalAddonGatewayPayment();
+  const {
+    runAdditionalAddonGatewayPayment,
+    isPending: isAdditionalAddonGatewayPending,
+  } = useAdditionalAddonGatewayPayment();
 
   // Transform API booking data to component format
   const booking = useMemo(() => {
@@ -307,6 +326,7 @@ export default function BookingDetail() {
         addOnsTotal: addOnsTotal,
         bookingStatus: bookedService?.bookingStatus,
         assignedMember: assignedMember,
+        customerReviewInfo: bookedService?.customerReviewInfo,
       };
     });
 
@@ -375,7 +395,9 @@ export default function BookingDetail() {
     });
 
     if (url) {
-      Linking.openURL(url).catch(err => console.error('Error opening map', err));
+      Linking.openURL(url).catch(err =>
+        console.error('Error opening map', err),
+      );
     }
 
     // const encodedAddress = encodeURIComponent(address);
@@ -762,9 +784,13 @@ export default function BookingDetail() {
 
         handleSuccessToast(t('bookingDetail.addOns.paymentSuccess'));
         if (bookingId) {
-          queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingId] });
+          queryClient.invalidateQueries({
+            queryKey: ['bookingDetail', bookingId],
+          });
         }
-        queryClient.invalidateQueries({ queryKey: ['customerPaymentTransactions'] });
+        queryClient.invalidateQueries({
+          queryKey: ['customerPaymentTransactions'],
+        });
         await refetchBooking();
         setAddonsModalService(null);
       } catch (e: unknown) {
@@ -795,13 +821,15 @@ export default function BookingDetail() {
       const payErr = route.params?.paymentError;
 
       if (result === 'success') {
-        handleSuccessToast(
-          msg || t('bookingDetail.addOns.paymentSuccess'),
-        );
+        handleSuccessToast(msg || t('bookingDetail.addOns.paymentSuccess'));
         if (bookingId) {
-          queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingId] });
+          queryClient.invalidateQueries({
+            queryKey: ['bookingDetail', bookingId],
+          });
         }
-        queryClient.invalidateQueries({ queryKey: ['customerPaymentTransactions'] });
+        queryClient.invalidateQueries({
+          queryKey: ['customerPaymentTransactions'],
+        });
         refetchBooking();
         navigation.setParams({
           paymentResult: undefined,
@@ -1010,6 +1038,64 @@ export default function BookingDetail() {
               </CustomText>
             </View>
           </View>
+
+          {(() => {
+            if (booking?.bookingStatus !== 'completed') return null;
+            const completedServices = (booking?.services || []).filter(
+              (s: any) => s?.bookingStatus === 'completed',
+            );
+            if (completedServices.length === 0) return null;
+            const hasAnySubmitted = completedServices.some((s: any) =>
+              bookedServiceHasAnySubmittedReview(s),
+            );
+            const hasPending = !hasAnySubmitted;
+            const providerForView = booking?.providerData
+              ? {
+                  _id: booking?.providerData?._id,
+                  name:
+                    booking?.providerData?.name || booking?.providerName,
+                  profileImage: booking?.providerData?.profileImage,
+                }
+              : null;
+            return (
+              <View style={styles.card}>
+                <View style={styles.titleContainer}>
+                  <CustomText
+                    fontSize={theme.SF(15)}
+                    fontFamily={theme.fonts.SEMI_BOLD}
+                    color={theme.colors.text}
+                  >
+                    {t('bookingDetail.rateReview.sectionTitle')}
+                  </CustomText>
+                </View>
+                {hasPending ? (
+                  <View style={styles.reviewSectionBody}>
+                    <CustomText
+                      fontSize={theme.fontSize?.sm ?? 13}
+                      fontFamily={theme.fonts.REGULAR}
+                      color={theme.colors.lightText}
+                      style={styles.reviewSectionSubtitle}
+                    >
+                      {t('bookingDetail.rateReview.sectionSubtitle')}
+                    </CustomText>
+                    <CustomButton
+                      title={t('myBookingScreen.rateNow')}
+                      onPress={() => setRateReviewOpen(true)}
+                      backgroundColor={theme.colors.primary}
+                      textColor={theme.colors.white}
+                      buttonStyle={styles.reviewRateButton}
+                      paddingHorizontal={theme.SW(28)}
+                    />
+                  </View>
+                ) : null}
+                <BookingReviewsView
+                  services={completedServices}
+                  provider={providerForView}
+                />
+              </View>
+            );
+          })()}
+
           {(booking?.status === 'requested' ||
             booking?.status === 'accepted' ||
             booking?.status === 'rescheduledBySp' ||
@@ -1185,6 +1271,28 @@ export default function BookingDetail() {
         isProcessing={addonPaymentBusy || isAdditionalAddonGatewayPending}
         paymentGatewayHint={addonProcessingGateway}
       />
+
+      <RateReviewModal
+        visible={rateReviewOpen}
+        bookingId={booking?.id ?? null}
+        services={(booking?.services || []).filter(
+          (s: any) => s?.bookingStatus === 'completed',
+        )}
+        provider={
+          booking?.providerData
+            ? {
+                _id: booking?.providerData?._id,
+                name: booking?.providerData?.name || booking?.providerName,
+                profileImage: booking?.providerData?.profileImage,
+              }
+            : null
+        }
+        onClose={() => setRateReviewOpen(false)}
+        onSubmitted={() => {
+          refetchBooking();
+          queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -1282,5 +1390,16 @@ const createStyles = (theme: ThemeType) =>
     },
     cancelPolicyText: {
       marginLeft: theme.SW(8),
+    },
+    reviewSectionBody: {
+      paddingHorizontal: theme.SW(20),
+      alignItems: 'flex-start',
+    },
+    reviewSectionSubtitle: {
+      marginBottom: theme.SH(12),
+    },
+    reviewRateButton: {
+      borderRadius: theme.borderRadius?.md ?? 12,
+      minWidth: theme.SW(140),
     },
   });
