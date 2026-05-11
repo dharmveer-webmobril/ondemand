@@ -712,6 +712,7 @@ export const english = {
       "error": "Something went wrong"
     },
     "bookAgain": "Book Again",
+    "rateNow": "Rate Now",
     "filter": {
       "allBookings": "All Bookings",
       "requested": "Requested",

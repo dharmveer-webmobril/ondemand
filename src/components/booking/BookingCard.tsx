@@ -66,7 +66,7 @@ export default function BookingCard({
             fontFamily={theme.fonts.SEMI_BOLD}
             color={theme.colors.white}
           >
-            {statusLabel}{" "}
+            {statusLabel}{' '}
           </CustomText>
         </View>
 
@@ -86,9 +86,7 @@ export default function BookingCard({
           style={styles.bookingIdText}
           numberOfLines={2}
         >
-          {
-            shopName
-          }
+          {shopName}
           {/* {bookingId || '—'} */}
         </CustomText>
         {/* Service Provider */}
@@ -107,21 +105,22 @@ export default function BookingCard({
           color={theme.colors.lightText || '#999999'}
           style={styles.detailLine}
         >
-          {date},   {time}
+          {date}, {time}
         </CustomText>
         {/* Time */}
 
-
         {/* Address */}
-        {address && <CustomText
-          fontSize={theme.fontSize.xxs}
-          fontFamily={theme.fonts.REGULAR}
-          color={theme.colors.lightText || '#999999'}
-          numberOfLines={2}
-          style={styles.detailLine}
-        >
-          {address}
-        </CustomText>}
+        {address && (
+          <CustomText
+            fontSize={theme.fontSize.xxs}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.lightText || '#999999'}
+            numberOfLines={2}
+            style={styles.detailLine}
+          >
+            {address}
+          </CustomText>
+        )}
 
         {/* Footer: Price + Book Again */}
         <View style={styles.footerRow}>
@@ -132,9 +131,9 @@ export default function BookingCard({
           >
             {price}
           </CustomText>
-          
         </View>
         {status === 'completed' && onBookAgain && (
+          <View style={styles.buttonContainer}>
             <CustomButton
               title={t('myBookingScreen.bookAgain')}
               onPress={onBookAgain}
@@ -143,7 +142,16 @@ export default function BookingCard({
               buttonStyle={styles.bookAgainButton}
               buttonTextStyle={styles.buttonText}
             />
-          )}
+            <CustomButton
+              title={t('myBookingScreen.rateNow')}
+              onPress={onBookAgain}
+              backgroundColor={theme.colors.primary || '#135D96'}
+              textColor={theme.colors.white}
+              buttonStyle={styles.rateNowButton}
+              buttonTextStyle={styles.buttonText}
+            />
+          </View>
+        )}
       </View>
     </Pressable>
   );
@@ -212,12 +220,23 @@ const createStyles = (theme: ThemeType) =>
       height: theme.SH(25),
       // paddingHorizontal: theme.SW(16),
       borderRadius: theme.borderRadius.md || 8,
-      width:100,
-      marginTop:5
+      width: 100,
+      marginTop: 5,
     },
     buttonText: {
       fontSize: theme.fontSize.xs,
       fontFamily: theme.fonts.SEMI_BOLD,
       color: theme.colors.white,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: theme.SH(12),
+    },
+    rateNowButton: {
+      height: theme.SH(25),
+      borderRadius: theme.borderRadius.md || 8,
+      width: 100,
+      marginLeft: theme.SW(10),
     },
   });
