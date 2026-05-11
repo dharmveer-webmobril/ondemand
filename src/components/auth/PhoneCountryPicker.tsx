@@ -29,6 +29,11 @@ export interface PhoneCountryPickerProps {
   errorText?: string;
   marginTop?: number;
   onNationalBlur?: () => void;
+  /**
+   * `white` (default) – white text/border, intended for colored auth backgrounds.
+   * `default` – dark text on a light/white surface (e.g. ProfileSetup).
+   */
+  inputTheme?: 'white' | 'default';
 }
 
 export default function PhoneCountryPicker({
@@ -40,10 +45,17 @@ export default function PhoneCountryPicker({
   errorText,
   marginTop = 0,
   onNationalBlur,
+  inputTheme = 'white',
 }: PhoneCountryPickerProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  const isLight = inputTheme === 'default';
+  const accentColor = isLight ? theme.colors.text : theme.colors.white;
+  const borderColor = isLight
+    ? theme.colors.secondary || '#E0E0E0'
+    : theme.colors.white;
 
   const closePicker = useCallback(() => setPickerOpen(false), []);
 
@@ -105,6 +117,8 @@ export default function PhoneCountryPicker({
           onPress={() => setPickerOpen(true)}
           style={[
             styles.dialTrigger,
+            { borderColor },
+            isLight && { backgroundColor: theme.colors.white },
             Platform.OS === 'ios' &&
               (Platform as { OS: string; isPad?: boolean }).isPad &&
               styles.dialTriggerPad,
@@ -113,7 +127,7 @@ export default function PhoneCountryPicker({
           <CustomText
             fontSize={theme.fontSize.md}
             fontFamily={theme.fonts.MEDIUM}
-            color={theme.colors.white}
+            color={accentColor}
           >
             {dialCode}
           </CustomText>
@@ -121,14 +135,15 @@ export default function PhoneCountryPicker({
             icon="Ionicons"
             name="chevron-down"
             size={theme.SF(16)}
-            color={theme.colors.white}
+            color={accentColor}
           />
         </Pressable>
         <View style={styles.phoneWrap}>
           <CustomInput
             leftIcon={imagePaths.mobile_icon}
             placeholder={phonePlaceholder}
-            inputTheme="white"
+            inputTheme={isLight ? '' : 'white'}
+            withBackground={isLight ? theme.colors.white : ''}
             value={nationalNumber}
             onChangeText={handlePhoneChange}
             onBlur={onNationalBlur}
@@ -179,7 +194,6 @@ const createStyles = (theme: ThemeType) =>
       paddingVertical: theme.SH(10),
       borderRadius: theme.borderRadius.md,
       borderWidth: 1,
-      borderColor: theme.colors.white,
       gap: theme.SW(4),
     },
     dialTriggerPad: {

@@ -9,7 +9,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText } from '@components/common';
+import { CustomText, VectoreIcons } from '@components/common';
 import ImageLoader from '@components/common/ImageLoader';
 import imagePaths from '@assets';
 import type {
@@ -50,6 +50,12 @@ export default function FeaturedServiceCard({
 
   const imageUri = service.images?.[0] ?? null;
   const showOfferMeta = listType === 'topOffered';
+
+  const averageRating =
+    typeof service.averageRating === 'number' ? service.averageRating : 0;
+  const ratingCount =
+    typeof service.ratingCount === 'number' ? service.ratingCount : 0;
+  const showRatingBadge = averageRating > 0;
 
   const discountPercent = useMemo(() => {
     const d = typeof service.discountPercentage === 'number' ? service.discountPercentage : 0;
@@ -104,6 +110,25 @@ export default function FeaturedServiceCard({
               {t('home.offerDiscount', {
                 percent: Math.round(discountPercent),
               })}
+            </CustomText>
+          </View>
+        ) : null}
+        {showRatingBadge ? (
+          <View style={styles.ratingBadge}>
+            <VectoreIcons
+              icon="Ionicons"
+              name="star"
+              size={theme.SF(11)}
+              color="#FFC107"
+            />
+            <CustomText
+              color="#FFFFFF"
+              fontFamily={theme.fonts.SEMI_BOLD}
+              fontSize={theme.fontSize.xs}
+              style={styles.ratingText}
+            >
+              {averageRating.toFixed(1)}
+              {ratingCount > 0 ? ` (${ratingCount})` : ''}
             </CustomText>
           </View>
         ) : null}
@@ -203,6 +228,20 @@ const createStyles = (theme: ThemeType, variant: 'carousel' | 'grid') => {
       paddingVertical: SH(4),
       borderRadius: SF(8),
       backgroundColor: theme.colors.primary || '#135D96',
+    },
+    ratingBadge: {
+      position: 'absolute',
+      top: SH(8),
+      left: SW(8),
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: SW(6),
+      paddingVertical: SH(3),
+      borderRadius: SF(8),
+      backgroundColor: 'rgba(0,0,0,0.6)',
+    },
+    ratingText: {
+      marginLeft: SW(3),
     },
     metaFooter: {
       paddingHorizontal: SW(8),

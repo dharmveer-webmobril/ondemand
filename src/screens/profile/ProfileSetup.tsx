@@ -6,32 +6,31 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { Container, AppHeader, CustomInput, CustomButton, CustomText, ImageLoader, VectoreIcons, CountryCodeSelector, CountryModal, showToast, ImagePickerModal } from '@components';
+import {
+  Container,
+  AppHeader,
+  CustomInput,
+  CustomButton,
+  CustomText,
+  ImageLoader,
+  VectoreIcons,
+  showToast,
+  ImagePickerModal,
+} from '@components';
+import PhoneCountryPicker from '@components/auth/PhoneCountryPicker';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useNavigation } from '@react-navigation/native';
 import imagePaths from '@assets';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useGetCities, useGetCountries, useUpdateProfile, useUploadDocument } from '@services/index';
+import { useUpdateProfile, useUploadDocument } from '@services/index';
 import { useTranslation } from 'react-i18next';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { updateUserDetails } from '@store/slices/authSlice';
 import regex from '@utils/regexList';
-import { setUserCity } from '@store/slices/appSlice';
+import { isValidNationalPhoneNumber } from '@utils/phoneValidation';
 
-
-interface Country {
-  _id: string;
-  name: string;
-  countryCode: string;
-  phoneCode: string;
-}
-
-interface City {
-  _id: string;
-  name: string;
-}
 export default function ProfileSetup() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -40,140 +39,103 @@ export default function ProfileSetup() {
   const { t } = useTranslation();
 
   const userDetails = useAppSelector((state) => state.auth.userDetails);
-  const [showCountryModal, setShowCountryModal] = useState(false);
   const [profileImage, setProfileImage] = useState('');
   const [showImagePicker, setShowImagePicker] = useState(false);
-
-  const [showCityModal, setShowCityModal] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [selectedCity, setSelectedCity] = useState<City | null>(null);
-  const { data: countryData, isLoading: countryLoading } = useGetCountries();
-
-  const countries = useMemo(() => {
-    return countryData?.ResponseData || [];
-  }, [countryData]);
-
-  const [hasInitializedFromUserData, setHasInitializedFromUserData] = useState(false);
-  console.log('userDetails--------ProfileSetup', userDetails);
-  const { data: citiesData, isLoading: citiesLoading } = useGetCities(selectedCountry?._id || null);
-
-  const cities = useMemo(() => {
-    return citiesData?.ResponseData || [];
-  }, [citiesData]);
-
-  // Set default country only if no userData exists
-  useEffect(() => {
-    if (countries.length > 0 && !hasInitializedFromUserData && !userDetails) {
-      setSelectedCountry(countries[0]);
-    }
-  }, [countries, hasInitializedFromUserData, userDetails]);
+  const [hasInitializedFromUserData, setHasInitializedFromUserData] =
+    useState(false);
 
   // Initialize from userData (only once)
   useEffect(() => {
-    if (userDetails && !hasInitializedFromUserData && countries.length > 0) {
-      const userCountryId = userDetails?.country?._id || userDetails?.country;
-      const userCityId = userDetails?.city?._id || userDetails?.city;
+    if (userDetails && !hasInitializedFromUserData) {
+      const storedContact = String(userDetails?.contact || '');
+      const storedPhoneCode = String(userDetails?.phoneCode || '').trim();
+      const storedIso2 = String(
+        userDetails?.countryIso2 || userDetails?.country?.countryCode || '',
+      ).toLowerCase();
+
+      // Best-effort split if `contact` was stored as a single E.164 string.
+      let dialCode = storedPhoneCode || '+91';
+      let nationalNumber = storedContact;
+      if (!storedPhoneCode && storedContact.startsWith('+')) {
+        const match = storedContact.match(/^(\+\d{1,4})(\d+)$/);
+        if (match) {
+          dialCode = match[1];
+          nationalNumber = match[2];
+        }
+      }
 
       formik.setValues({
         name: userDetails?.name || '',
         email: userDetails?.email || '',
-        contact: userDetails?.contact || '',
-        city: userCityId || '',
-        country: userCountryId || '',
+        nationalNumber: nationalNumber.replace(/\D/g, ''),
+        phoneDialCode: dialCode || '+91',
+        phoneCountryIso2: storedIso2 || 'in',
       });
-
-      // Set country from userData
-      if (userCountryId) {
-        const foundCountry = countries.find((c: Country) => c._id === userCountryId);
-        if (foundCountry) {
-          setSelectedCountry(foundCountry);
-        }
-      } else if (countries.length > 0) {
-        setSelectedCountry(countries[0]);
-      }
 
       setProfileImage(userDetails?.profileImage || '');
       setHasInitializedFromUserData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDetails, countries, hasInitializedFromUserData]);
+  }, [userDetails, hasInitializedFromUserData]);
 
-  // Set city after cities are loaded (only if we have initialized from userData)
-  useEffect(() => {
-    if (hasInitializedFromUserData && cities.length > 0 && userDetails) {
-      const userCityId = userDetails?.city?._id || userDetails?.city;
-      if (userCityId) {
-        const foundCity = cities.find((c: City) => c._id === userCityId);
-        if (foundCity) {
-          setSelectedCity(foundCity);
-        }
-      }
-    }
-  }, [cities, hasInitializedFromUserData, userDetails]);
-
-  const validationSchema = Yup.object().shape({
-    name: Yup.string()
-      .min(3, t('validation.fullNameMinLength'))
-      .matches(regex.NAME_REGEX, t('validation.validFullName'))
-      .required(t('validation.emptyFullName')),
-    email: Yup.string()
-      .email(t('validation.validEmail'))
-      .required(t('validation.emptyEmail')),
-    contact: Yup.string()
-      .matches(regex.MOBILE, t('validation.validMobile'))
-      .required(t('validation.emptyMobile')),
-
-    country: Yup.string().required(t('validation.emptyCountry')),
-    city: Yup.string().required(t('validation.emptyCity')),
-  });
+  const validationSchema = useMemo(
+    () =>
+      Yup.object().shape({
+        name: Yup.string()
+          .min(3, t('validation.fullNameMinLength'))
+          .matches(regex.NAME_REGEX, t('validation.validFullName'))
+          .required(t('validation.emptyFullName')),
+        email: Yup.string()
+          .email(t('validation.validEmail'))
+          .required(t('validation.emptyEmail')),
+        phoneDialCode: Yup.string().required(),
+        phoneCountryIso2: Yup.string().required(),
+        nationalNumber: Yup.string()
+          .required(t('validation.emptyMobile'))
+          .test('phone-valid', t('validation.validMobile'), function (value) {
+            const iso = this.parent.phoneCountryIso2;
+            if (!iso || value == null || value === '') return false;
+            return isValidNationalPhoneNumber(String(value), String(iso));
+          }),
+      }),
+    [t],
+  );
 
   const updateProfileMutation = useUpdateProfile();
   const formik = useFormik({
     initialValues: {
       name: '',
       email: '',
-      contact: '',
-      city: '',
-      country: '',
+      nationalNumber: '',
+      phoneDialCode: '+91',
+      phoneCountryIso2: 'in',
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
-        // Ensure country is set
-        const countryId = selectedCountry?._id || values.country;
-        if (!countryId) {
-          showToast({
-            type: 'error',
-            title: t('messages.error') || 'Error',
-            message: t('validation.emptyCountry') || 'Country is required',
-          });
-          return;
-        }
-
-        // Ensure city is set
-        const cityId = selectedCity?._id || values.city;
-        if (!cityId) {
-          showToast({
-            type: 'error',
-            title: t('messages.error') || 'Error',
-            message: t('validation.emptyCity') || 'City is required',
-          });
-          return;
-        }
+        const nationalDigits = String(values.nationalNumber || '').replace(
+          /\D/g,
+          '',
+        );
+        const rawDial = String(values.phoneDialCode || '').trim();
+        const phoneCode = rawDial
+          ? rawDial.startsWith('+')
+            ? rawDial
+            : `+${rawDial.replace(/^\++/, '')}`
+          : '';
 
         const data = {
           name: values.name,
           email: values.email,
-          contact: values.contact,
-          city: cityId,
-          country: countryId,
+          contact: nationalDigits,
+          phoneCode,
+          countryIso2: values.phoneCountryIso2,
           profileImage: profileImage,
         };
 
         const response = await updateProfileMutation.mutateAsync(data);
         if (response.succeeded && response.ResponseCode === 200) {
           dispatch(updateUserDetails(response.ResponseData));
-          dispatch(setUserCity(response.ResponseData?.city));
           showToast({
             type: 'success',
             title: t('messages.success'),
@@ -200,43 +162,19 @@ export default function ProfileSetup() {
     },
   });
 
-  const handleCountrySelect = (country: Country) => {
-    console.log('country------handleCountrySelect', country);
-    setSelectedCountry(country);
-    // Reset city when country changes
-    setSelectedCity(null);
-    formik.setFieldValue('country', country._id, false);
-    formik.setFieldValue('city', '', false);
-    formik.setFieldTouched('city', false, false);
-    formik.validateField('country');
-    setShowCountryModal(false);
-  };
-
-  const handleCitySelect = (city: City) => {
-    setSelectedCity(city);
-    formik.setFieldValue('city', city._id, false);
-    setShowCityModal(false);
-    setTimeout(() => {
-      formik.setFieldTouched('city', true);
-      formik.validateField('city');
-    }, 100);
-  };
   const handleFormSubmit = () => {
-    // Mark all fields as touched to show errors
     formik.setTouched({
       name: true,
       email: true,
-      contact: true,
-      country: true,
-      city: true,
+      nationalNumber: true,
+      phoneDialCode: true,
+      phoneCountryIso2: true,
     });
 
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit();
       } else {
-        console.log('Validation errors:', errors);
-        // Show first error in toast
         const firstError = Object.values(errors)[0];
         if (firstError) {
           showToast({
@@ -363,77 +301,35 @@ export default function ProfileSetup() {
               style={styles.label}
               fontFamily={theme.fonts.MEDIUM}
             >
-              Mobile Number
+              {t('profile.mobileNumber') || 'Mobile Number'}
             </CustomText>
-            <View style={styles.contactContainer}>
-              <Pressable
-                style={styles.countryCodeContainer}
-                onPress={() => setShowCountryModal(true)}
-              >
-                <CountryCodeSelector
-                  borderColor='#000000'
-                  countryCode={selectedCountry?.phoneCode?.toString() || ''}
-                  onPress={() => setShowCountryModal(true)}
-                />
-              </Pressable>
-              <View style={styles.phoneInputContainer}>
-                <CustomInput
-                  leftIcon={imagePaths.mobile_icon}
-                  placeholder={t('placeholders.mobileno')}
-                  withBackground={theme.colors.white}
-                  value={formik.values.contact}
-                  onChangeText={formik.handleChange('contact')}
-                  onBlur={formik.handleBlur('contact')}
-                  keyboardType='number-pad'
-                  errortext={formik.touched.contact && formik.errors.contact ? formik.errors.contact : ''}
-                />
-              </View>
-            </View>
-            {formik.touched.country && formik.errors.country && (
-              <View style={{ marginTop: theme.SH(5), marginLeft: theme.SW(5) }}>
-                <CustomText
-                  fontSize={theme.fontSize.xxs}
-                  color={theme.colors.errorText || '#FF0000'}
-                >
-                  {formik.errors.country}
-                </CustomText>
-              </View>
-            )}
-          </View>
-          {/* City Selection */}
-          <View style={styles.inputWrapper}>
-            <CustomText
-              variant="h5"
-              style={styles.label}
-              fontFamily={theme.fonts.MEDIUM}
-            >
-              City
-            </CustomText>
-            <Pressable
-              onPress={() => {
-                if (selectedCountry) {
-                  setShowCityModal(true);
-                } else {
-                  showToast({
-                    type: 'error',
-                    title: t('messages.error'),
-                    message: t('signup.selectCountryFirst') + '\n' + t('signup.selectCountry'),
-                  });
-                }
+            <PhoneCountryPicker
+              inputTheme="default"
+              marginTop={theme.SH(5)}
+              dialCode={formik.values.phoneDialCode}
+              nationalNumber={formik.values.nationalNumber}
+              onSelectionChange={next => {
+                formik.setFieldValue('phoneDialCode', next.dialCode);
+                formik.setFieldValue('phoneCountryIso2', next.countryIso2);
+                setTimeout(() => {
+                  if (formik.values.nationalNumber) {
+                    formik.validateField('nationalNumber');
+                  }
+                }, 50);
               }}
-              disabled={!selectedCountry}
-            >
-              <CustomInput
-                leftIcon={imagePaths.city}
-                placeholder={t('placeholders.selectCity')}
-                errortext={formik.touched.city && formik.errors.city ? formik.errors.city : ''}
-                withBackground={theme.colors.white}
-                value={selectedCity?.name || ''}
-                editable={false}
-                marginTop={theme.SH(5)}
-                rightIcon={imagePaths.right_icon}
-              />
-            </Pressable>
+              onNationalNumberChange={digits =>
+                formik.setFieldValue('nationalNumber', digits)
+              }
+              onNationalBlur={() =>
+                formik.setFieldTouched('nationalNumber', true)
+              }
+              phonePlaceholder={t('placeholders.mobileno')}
+              errorText={
+                formik.touched.nationalNumber && formik.errors.nationalNumber
+                  ? (formik.errors.nationalNumber as string)
+                  : ''
+              }
+            />
           </View>
           <View style={styles.inputWrapper}>
             <CustomText
@@ -466,27 +362,6 @@ export default function ProfileSetup() {
         />
 
       </KeyboardAwareScrollView>
-      {/* Country Modal */}
-      <CountryModal
-        type='country'
-        data={countries || []}
-        visible={showCountryModal}
-        onClose={() => setShowCountryModal(false)}
-        onSelect={handleCountrySelect}
-        selectedId={selectedCountry?._id || null}
-        isLoading={countryLoading}
-      />
-
-      {/* City Modal */}
-      <CountryModal
-        type='city'
-        data={cities || []}
-        visible={showCityModal}
-        onClose={() => setShowCityModal(false)}
-        onSelect={handleCitySelect}
-        selectedId={selectedCity?._id || null}
-        isLoading={citiesLoading}
-      />
       {/* Image Picker Modal */}
       <ImagePickerModal
         visible={showImagePicker}
@@ -571,17 +446,6 @@ const createStyles = (theme: ThemeType) =>
       borderRadius: theme.borderRadius.md,
       height: theme.SF(45),
       marginTop: theme.SF(40),
-    },
-    contactContainer: {
-      flexDirection: 'row',
-      gap: theme.SW(10),
-      marginTop: theme.SH(5),
-    },
-    countryCodeContainer: {
-      width: theme.SW(90),
-    },
-    phoneInputContainer: {
-      flex: 1,
     },
     loadingContainer: {
       justifyContent: 'center',

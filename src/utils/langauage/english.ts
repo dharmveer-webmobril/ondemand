@@ -546,6 +546,7 @@ export const english = {
     "nearbyServices": "Service Provider Near You",
     "categories": "Categories",
     "nearestProvider": "Nearest Provider",
+    "topRatedProviders": "Top Rated Service Providers",
     "serviceProviders": "Service Providers",
     "featuredServicesAds": "Featured Services (Ads)",
     "topRatedServices": "Top Rated Services",
@@ -815,7 +816,26 @@ export const english = {
     "providerDefaultName": "Provider",
     "serviceProviderDefault": "Service Provider",
     "share": "Share",
-    "openInMaps": "Open in Maps"
+    "openInMaps": "Open in Maps",
+    "reviews": {
+      "viewBy": "View by",
+      "viewByProvider": "Provider",
+      "viewByServices": "Services",
+      "viewByTeam": "Team",
+      "service": "Service",
+      "teamMember": "Team member",
+      "averageThisPage": "Average (this page)",
+      "reviewTotal_one": "{{count}} review total",
+      "reviewTotal_other": "{{count}} reviews total",
+      "noReviewText": "No review text provided",
+      "noReviewsYet": "No reviews yet.",
+      "selectService": "Pick a service to view its reviews.",
+      "selectMember": "Pick a team member to view their reviews.",
+      "noServices": "No services available.",
+      "noTeam": "No team members available.",
+      "failedToLoad": "Failed to load reviews.",
+      "starsLabel": "{{count}}★"
+    }
   },
   "paymentPolicy": {
     "title": "Payment & Cancellation Policy"

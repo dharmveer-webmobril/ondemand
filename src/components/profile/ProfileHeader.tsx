@@ -19,7 +19,7 @@ export default function ProfileHeader({
   const { userDetails } = useAppSelector(state => state.auth);
   const profileImage = userDetails?.profileImage ? { uri: userDetails?.profileImage } : imagePaths.no_user_img;
   const name = userDetails?.name ? userDetails?.name : '';
-  const phone = userDetails?.contact ? `${userDetails?.country?.phoneCode}-${userDetails?.contact}` : '';
+  const phone = userDetails?.contact ? `${userDetails?.phoneCode}-${userDetails?.contact}` : '';
   // console.log('userDetails', userDetails);
   return (
     <View style={styles.container}>

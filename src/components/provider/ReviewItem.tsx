@@ -1,7 +1,7 @@
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
+import { CustomText, ImageLoader } from '@components/common';
 import StarRating from 'react-native-star-rating-widget';
 import imagePaths from '@assets';
 
@@ -13,32 +13,21 @@ type ReviewItemProps = {
   reviewText: string;
   timeAgo: string;
   isVerified?: boolean;
-  likes?: number;
-  dislikes?: number;
-  onLike?: () => void;
-  onDislike?: () => void;
-  onReport?: () => void;
 };
 
 export default function ReviewItem({
-  id,
   userName,
   userImage,
   rating,
   reviewText,
   timeAgo,
   isVerified = false,
-  likes = 0,
-  dislikes = 0,
-  onLike,
-  onDislike,
-  onReport,
 }: ReviewItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.card}>
       <View style={styles.header}>
         <ImageLoader
           source={userImage ? { uri: userImage } : imagePaths.no_image}
@@ -47,15 +36,18 @@ export default function ReviewItem({
         />
         <View style={styles.userInfo}>
           <View style={styles.nameRow}>
-            <CustomText style={styles.userName}>{userName}</CustomText>
-            {isVerified && (
+            <CustomText style={styles.userName} numberOfLines={1}>
+              {userName}
+            </CustomText>
+            {isVerified ? (
               <View style={styles.verifiedBadge}>
-                <CustomText style={styles.verifiedText}>Verified User</CustomText>
+                <CustomText style={styles.verifiedText}>
+                  Verified User
+                </CustomText>
               </View>
-            )}
+            ) : null}
           </View>
-          <View style={styles.metaRow}>
-            <CustomText style={styles.timeAgo}>{timeAgo}</CustomText>
+          <View style={styles.starsRow}>
             <StarRating
               rating={rating}
               onChange={() => {}}
@@ -65,55 +57,12 @@ export default function ReviewItem({
             />
           </View>
         </View>
+        {timeAgo ? (
+          <CustomText style={styles.timeAgo}>{timeAgo}</CustomText>
+        ) : null}
       </View>
 
       <CustomText style={styles.reviewText}>{reviewText}</CustomText>
-
-      <View style={styles.actions}>
-        <View style={styles.reactionContainer}>
-          <Pressable
-            onPress={onLike}
-            style={({ pressed }) => [
-              styles.reactionButton,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <VectoreIcons
-              name="thumbs-up"
-              icon="Ionicons"
-              size={theme.SF(18)}
-              color={theme.colors.textAppColor || theme.colors.text}
-            />
-            <CustomText style={styles.reactionCount}>{likes}</CustomText>
-          </Pressable>
-          <Pressable
-            onPress={onDislike}
-            style={({ pressed }) => [
-              styles.reactionButton,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <VectoreIcons
-              name="thumbs-down"
-              icon="Ionicons"
-              size={theme.SF(18)}
-              color={theme.colors.textAppColor || theme.colors.text}
-            />
-            <CustomText style={styles.reactionCount}>{dislikes}</CustomText>
-          </Pressable>
-        </View>
-        {onReport && (
-          <Pressable
-            onPress={onReport}
-            style={({ pressed }) => [
-              styles.reportButton,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <CustomText style={styles.reportText}>Report</CustomText>
-          </Pressable>
-        )}
-      </View>
     </View>
   );
 }
@@ -121,16 +70,25 @@ export default function ReviewItem({
 const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
   return StyleSheet.create({
-    container: {
+    card: {
       backgroundColor: Colors.white,
-      paddingHorizontal: SW(20),
-      paddingVertical: SH(16),
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.gray || '#E0E0E0',
+      marginHorizontal: SW(16),
+      marginBottom: SH(10),
+      paddingHorizontal: SW(14),
+      paddingVertical: SH(14),
+      borderRadius: SF(12),
+      borderWidth: 1,
+      borderColor: Colors.border || '#E5E7EB',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 1,
     },
     header: {
       flexDirection: 'row',
-      marginBottom: SH(12),
+      alignItems: 'flex-start',
+      marginBottom: SH(10),
     },
     avatar: {
       width: SF(40),
@@ -147,10 +105,15 @@ const createStyles = (theme: ThemeType) => {
       marginBottom: SH(4),
     },
     userName: {
+      flexShrink: 1,
       fontSize: SF(14),
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
       marginRight: SW(8),
+    },
+    starsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     verifiedBadge: {
       backgroundColor: Colors.secondary || '#E3F2FD',
@@ -163,51 +126,17 @@ const createStyles = (theme: ThemeType) => {
       fontFamily: Fonts.MEDIUM,
       color: Colors.primary,
     },
-    metaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SW(8),
-    },
     timeAgo: {
-      fontSize: SF(12),
+      marginLeft: SW(8),
+      fontSize: SF(11),
       fontFamily: Fonts.REGULAR,
-      color: Colors.textAppColor || Colors.text,
+      color: Colors.lightText || Colors.textAppColor || Colors.text,
     },
     reviewText: {
       fontSize: SF(13),
       fontFamily: Fonts.REGULAR,
       color: Colors.text,
       lineHeight: SF(20),
-      marginBottom: SH(12),
-    },
-    actions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    reactionContainer: {
-      flexDirection: 'row',
-      gap: SW(16),
-    },
-    reactionButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SW(4),
-    },
-    reactionCount: {
-      fontSize: SF(12),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.textAppColor || Colors.text,
-    },
-    reportButton: {
-      paddingHorizontal: SW(12),
-      paddingVertical: SH(4),
-    },
-    reportText: {
-      fontSize: SF(12),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.red || '#FF0000',
     },
   });
 };
-

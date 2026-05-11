@@ -1426,6 +1426,116 @@ export const useSubmitAllRatingReviews = () => {
   });
 };
 
+// ----- Rating & Review LIST queries -----------------------------------------
+
+export type RatingReviewCustomerInfo = {
+  _id?: string;
+  name?: string;
+  email?: string;
+  profileImage?: string | null;
+};
+
+export type RatingReviewListItem = {
+  _id: string;
+  rating: number;
+  review?: { text?: string } | null;
+  createdAt?: string;
+  updatedAt?: string;
+  status?: boolean;
+  customerId?: RatingReviewCustomerInfo;
+  bookingId?: string;
+  bookedServiceId?: string;
+  serviceId?: { _id: string; name?: string } | string;
+  spId?: { _id: string; name?: string; profileImage?: string | null } | string;
+  memberId?: { _id: string; name?: string; profileImage?: string | null } | string;
+};
+
+export interface RatingReviewListResponse {
+  ResponseCode?: number;
+  ResponseMessage?: string;
+  succeeded?: boolean;
+  ResponseData?: RatingReviewListItem[];
+  pagination?: { page: number; limit: number; total: number; totalPages: number };
+}
+
+type ListReviewsParams = {
+  page?: number;
+  limit?: number;
+  enabled?: boolean;
+};
+
+/** GET reviews for a service (by `serviceId`). */
+export const useGetServiceReviews = (
+  serviceId: string | null | undefined,
+  params: ListReviewsParams = {},
+) => {
+  const { page = 1, limit = 10, enabled = true } = params;
+  return useQuery<RatingReviewListResponse>({
+    queryKey: ['serviceReviews', serviceId, page, limit],
+    queryFn: async () => {
+      if (!serviceId) throw new Error('serviceId is required');
+      const qs = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        serviceId,
+      });
+      const res = await axiosInstance.get<RatingReviewListResponse>(
+        `${EndPoints.SERVICE_RATING_REVIEW}?${qs.toString()}`,
+      );
+      return res.data;
+    },
+    enabled: !!serviceId && enabled,
+  });
+};
+
+/** GET reviews for a service provider (by `spId`). */
+export const useGetSpReviews = (
+  spId: string | null | undefined,
+  params: ListReviewsParams = {},
+) => {
+  const { page = 1, limit = 10, enabled = true } = params;
+  return useQuery<RatingReviewListResponse>({
+    queryKey: ['spReviews', spId, page, limit],
+    queryFn: async () => {
+      if (!spId) throw new Error('spId is required');
+      const qs = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        spId,
+      });
+      const res = await axiosInstance.get<RatingReviewListResponse>(
+        `${EndPoints.SP_RATING_REVIEW}?${qs.toString()}`,
+      );
+      return res.data;
+    },
+    enabled: !!spId && enabled,
+  });
+};
+
+/** GET reviews for a team member (by `memberId`). */
+export const useGetMemberReviews = (
+  memberId: string | null | undefined,
+  params: ListReviewsParams = {},
+) => {
+  const { page = 1, limit = 10, enabled = true } = params;
+  return useQuery<RatingReviewListResponse>({
+    queryKey: ['memberReviews', memberId, page, limit],
+    queryFn: async () => {
+      if (!memberId) throw new Error('memberId is required');
+      const qs = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        memberId,
+      });
+      const res = await axiosInstance.get<RatingReviewListResponse>(
+        `${EndPoints.MEMBER_RATING_REVIEW}?${qs.toString()}`,
+      );
+      return res.data;
+    },
+    enabled: !!memberId && enabled,
+  });
+};
+
 // Cancel Booking Request/Response interfaces
 export interface CancelBookingRequest {
   reason: string;

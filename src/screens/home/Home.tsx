@@ -110,6 +110,18 @@ export default function Home() {
   });
 
   const {
+    data: topRatedProvidersData,
+    isError: topRatedProvidersError,
+    isFetching: topRatedProvidersFetching,
+    refetch: refetchTopRatedProviders,
+  } = useGetServiceProviders({
+    page: 1,
+    limit: 4,
+    cityName,
+    sortBy: 'ratingonhome',
+  });
+
+  const {
     data: topRatedRaw,
     isError: topRatedError,
     isFetching: topRatedFetching,
@@ -180,6 +192,7 @@ export default function Home() {
     isCityUpdating ||
     (!!cityName.trim() &&
       (providersFetching ||
+        topRatedProvidersFetching ||
         topRatedFetching ||
         topOfferedFetching));
 
@@ -190,6 +203,7 @@ export default function Home() {
       await Promise.all([
         refetchBanners(),
         providerReftech(),
+        refetchTopRatedProviders(),
         refetchTopRated(),
         refetchTopOffered(),
       ]);
@@ -198,7 +212,13 @@ export default function Home() {
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBanners, providerReftech, refetchTopRated, refetchTopOffered]);
+  }, [
+    refetchBanners,
+    providerReftech,
+    refetchTopRatedProviders,
+    refetchTopRated,
+    refetchTopOffered,
+  ]);
 
   /** Address / city change — only refetch location-dependent APIs */
   const handleCityUpdate = useCallback(async () => {
@@ -206,13 +226,19 @@ export default function Home() {
     try {
       await Promise.all([
         providerReftech(),
+        refetchTopRatedProviders(),
         refetchTopRated(),
         refetchTopOffered(),
       ]);
     } finally {
       setIsCityUpdating(false);
     }
-  }, [providerReftech, refetchTopRated, refetchTopOffered]);
+  }, [
+    providerReftech,
+    refetchTopRatedProviders,
+    refetchTopRated,
+    refetchTopOffered,
+  ]);
 
   // Handle search
   const handleSearch = useCallback((text: string) => {
@@ -274,6 +300,10 @@ export default function Home() {
           providersLoading={showMasterSkeleton || showLocationSkeleton}
           providersError={providerError}
           onRetryProviders={providerReftech}
+          topRatedProvidersData={topRatedProvidersData}
+          topRatedProvidersLoading={showMasterSkeleton || showLocationSkeleton}
+          topRatedProvidersError={topRatedProvidersError}
+          onRetryTopRatedProviders={refetchTopRatedProviders}
         />
       </View>
     </SafeAreaView>

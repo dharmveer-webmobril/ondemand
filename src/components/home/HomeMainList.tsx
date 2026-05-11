@@ -32,6 +32,10 @@ type HomeMainListProps = {
   providersLoading?: boolean;
   providersError?: boolean;
   onRetryProviders?: () => void;
+  topRatedProvidersData?: any;
+  topRatedProvidersLoading?: boolean;
+  topRatedProvidersError?: boolean;
+  onRetryTopRatedProviders?: () => void;
   topRatedServices?: FeaturedServiceItem[];
   topRatedLoading?: boolean;
   topRatedError?: boolean;
@@ -58,6 +62,10 @@ export default function HomeMainList({
   providersLoading,
   providersError,
   onRetryProviders,
+  topRatedProvidersData,
+  topRatedProvidersLoading,
+  topRatedProvidersError,
+  onRetryTopRatedProviders,
   topRatedServices = [],
   topRatedLoading = false,
   topRatedError = false,
@@ -159,6 +167,34 @@ export default function HomeMainList({
         providersLoading={providersLoading}
         providersError={providersError}
         onRetryProviders={onRetryProviders}
+      />
+
+      <Spacing space={10} />
+
+      <View style={[styles.headerContainer, styles.sectionHeader]}>
+        <CustomText
+          color={theme.colors.text}
+          fontSize={theme.fontSize.sm}
+          fontFamily={theme.fonts.BOLD}
+        >
+          {t('home.topRatedProviders')}
+        </CustomText>
+        <CustomText
+          color={theme.colors.primary || '#135D96'}
+          style={styles.viewAllText}
+          fontSize={theme.fontSize.sm}
+          fontFamily={theme.fonts.SEMI_BOLD}
+          onPress={() => handleViewAll('provider')}
+        >
+          {t('home.categoryViewAll')}
+        </CustomText>
+      </View>
+      <HomeProvider
+        cityName={cityName}
+        providersData={topRatedProvidersData}
+        providersLoading={topRatedProvidersLoading}
+        providersError={topRatedProvidersError}
+        onRetryProviders={onRetryTopRatedProviders}
       />
 
       <Spacing space={10} />

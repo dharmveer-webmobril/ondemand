@@ -32,39 +32,6 @@ import localStorage from '@utils/StorageProvider';
 
 type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
 
-// Mock data - Replace with actual API calls
-const mockReviews = [
-  {
-    id: '1',
-    userName: 'Guy Hawkins',
-    rating: 5,
-    reviewText:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    timeAgo: '1 week ago',
-    isVerified: true,
-    likes: 10,
-    dislikes: 3,
-  },
-  {
-    id: '2',
-    userName: 'John Doe',
-    rating: 4,
-    reviewText: 'Great service and professional staff. Highly recommended!',
-    timeAgo: '2 weeks ago',
-    isVerified: false,
-    likes: 5,
-    dislikes: 0,
-  },
-];
-
-const ratingDistribution = [
-  { stars: 5, percentage: 75, count: 150 },
-  { stars: 4, percentage: 21, count: 42 },
-  { stars: 3, percentage: 3, count: 6 },
-  { stars: 2, percentage: 1, count: 2 },
-  { stars: 1, percentage: 0, count: 0 },
-];
-
 export default function ProviderDetailsScreen() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -362,13 +329,10 @@ export default function ProviderDetailsScreen() {
       case 'reviews':
         return (
           <ProviderReviewsTab
-            reviews={mockReviews}
-            overallRating={provider.rating || 0}
-            ratingDistribution={ratingDistribution}
-            isFetching={isFetching}
+            spId={provider?._id || spId}
+            services={services}
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            onReport={handleReportPress}
           />
         );
       case 'portfolio':

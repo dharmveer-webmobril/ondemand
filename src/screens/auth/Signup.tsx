@@ -24,7 +24,7 @@ import * as Yup from 'yup';
 import { useSignup } from '@services/api/queries/authQueries';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import regex from '@utils/regexList';
-import { isValidPhoneNumber } from 'libphonenumber-js';
+import { isValidNationalPhoneNumber } from '@utils/phoneValidation';
 import type { SignupAddressSelection } from '@utils/address';
 
 const Signup = () => {
@@ -53,10 +53,9 @@ const Signup = () => {
     nationalNumber: Yup.string()
       .required(t('validation.emptyMobile'))
       .test('phone-valid', t('validation.validMobile'), function (value) {
-        const dial = this.parent.phoneDialCode;
-        if (!dial || value == null || value === '') return false;
-        const full = `${String(dial).replace(/\s/g, '')}${value}`;
-        return isValidPhoneNumber(full);
+        const iso = this.parent.phoneCountryIso2;
+        if (!iso || value == null || value === '') return false;
+        return isValidNationalPhoneNumber(String(value), String(iso));
       }),
     password: Yup.string()
       .matches(regex.PASSWORD, t('validation.passValid'))
@@ -107,15 +106,24 @@ const Signup = () => {
         return;
       }
 
-      const dial = String(values.phoneDialCode).replace(/\s/g, '');
-      const contact = `${dial}${values.nationalNumber}`.trim();
+      const nationalDigits = String(values.nationalNumber || '').replace(
+        /\D/g,
+        '',
+      );
+      const dial = String(values.phoneDialCode || '').replace(/\s/g, '');
+      const phoneCode = dial
+        ? dial.startsWith('+')
+          ? dial
+          : `+${dial.replace(/^\++/, '')}`
+        : '';
 
       try {
         const signupData = {
           name: values.name,
           email: values.email,
           password: values.password,
-          contact,
+          contact: nationalDigits,
+          phoneCode,
           formattedAddress: addr.formattedAddress,
           googlePlaceId: addr.googlePlaceId,
           coordinates: addr.coordinates,
