@@ -57,6 +57,8 @@ const authSlice = createSlice({
       state.token = null;
       state.userDetails = null;
       state.isAuthenticated = false;
+      state.cityId = null;
+      state.countryId = null;
     },
   },
 });

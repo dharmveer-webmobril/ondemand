@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next';
 import LinearGradient from 'react-native-linear-gradient';
 import { useAppDispatch } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
-import { useNavigation } from '@react-navigation/native';
+import { resetUserScopedAppState } from '@store/slices/appSlice';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useLogout } from '@services/index';
+import { useQueryClient } from '@tanstack/react-query';
+import { resetAndNavigate } from '@utils/NavigationUtils';
 
 interface LogoutModalProps {
     visible: boolean;
@@ -20,18 +22,37 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
     const styles = useMemo(() => createStyles(theme), [theme]);
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const navigation = useNavigation<any>();
-    const { mutateAsync: logoutMutation ,isPending} = useLogout();
+    const queryClient = useQueryClient();
+    const { mutateAsync: logoutMutation, isPending } = useLogout();
+
+    const clearLocalSession = () => {
+        // Wipe all React Query caches so the next user doesn't see stale
+        // booking/chat/profile data while fresh queries are in flight.
+        queryClient.cancelQueries();
+        queryClient.removeQueries();
+        queryClient.clear();
+
+        // Reset user-scoped Redux state across slices.
+        dispatch(logout());
+        dispatch(resetUserScopedAppState());
+    };
+
     const logOutButton = () => {
-        logoutMutation().then(() => {
-            dispatch(logout())
-            navigation.navigate(SCREEN_NAMES.LOGIN)
-        }).catch((error) => {
-            console.log('❌ Logout Error Message:', error.message);
-            console.log('❌ Status Code:', error.response?.status);
-            console.log('❌ API Response:', error.response?.data);
-        })
-    }
+        logoutMutation()
+            .then(() => {
+                clearLocalSession();
+                resetAndNavigate(SCREEN_NAMES.LOGIN);
+            })
+            .catch(error => {
+                console.log('❌ Logout Error Message:', error.message);
+                console.log('❌ Status Code:', error.response?.status);
+                console.log('❌ API Response:', error.response?.data);
+                // Even if the server call fails we still want the device to
+                // forget the previous session, otherwise stale data lingers.
+                clearLocalSession();
+                resetAndNavigate(SCREEN_NAMES.LOGIN);
+            });
+    };
 
     return (
         <Modal

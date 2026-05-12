@@ -1088,10 +1088,14 @@ export default function BookingDetail() {
                     />
                   </View>
                 ) : null}
-                <BookingReviewsView
-                  services={completedServices}
-                  provider={providerForView}
-                />
+                {
+                  hasAnySubmitted ? (
+                    <BookingReviewsView
+                      services={completedServices}
+                      provider={providerForView}
+                    />
+                  ) : null
+                }
               </View>
             );
           })()}
@@ -1401,5 +1405,6 @@ const createStyles = (theme: ThemeType) =>
     reviewRateButton: {
       borderRadius: theme.borderRadius?.md ?? 12,
       minWidth: theme.SW(140),
+      alignSelf:"center"
     },
   });

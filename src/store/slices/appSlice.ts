@@ -67,6 +67,18 @@ const appSlice = createSlice({
     clearCurrentLocationAddress: state => {
       state.currentLocationAddress = null;
     },
+    /**
+     * Clears all user-scoped runtime state on logout so the next user does
+     * not briefly see the previous user's data. `language` and `theme` are
+     * intentionally preserved (they are app preferences, not user data).
+     */
+    resetUserScopedAppState: state => {
+      state.isLoading = false;
+      state.isUserActiveOrNotModal = false;
+      state.inactiveMessage = '';
+      state.userCity = '';
+      state.currentLocationAddress = null;
+    },
   },
 });
 
@@ -80,5 +92,6 @@ export const {
   setCurrentLocationAddress,
   mergeCurrentLocationAddress,
   clearCurrentLocationAddress,
+  resetUserScopedAppState,
 } = appSlice.actions;
 export default appSlice.reducer;

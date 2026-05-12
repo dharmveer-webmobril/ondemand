@@ -462,6 +462,7 @@ const createStyles = (theme: ThemeType) =>
     },
     body: {
       paddingTop: theme.SH(12),
+      paddingHorizontal: theme.SW(10),
     },
     helperText: {
       fontSize: theme.fontSize?.xs ?? 12,

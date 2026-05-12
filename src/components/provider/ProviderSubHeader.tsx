@@ -1,7 +1,7 @@
 
 
 
-import { View, StyleSheet, Pressable, } from 'react-native';
+import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, VectoreIcons } from '@components/common';
@@ -16,6 +16,8 @@ type ProviderHeaderProps = {
   onShare?: () => void;
   onFavorite?: (isFavorite: boolean) => void;
   isFavorite?: boolean;
+  /** Show a spinner in place of the heart icon while the toggle is in flight. */
+  isFavoriteLoading?: boolean;
 };
 
 export default function ProviderHeader({
@@ -25,6 +27,7 @@ export default function ProviderHeader({
   onShare,
   onFavorite,
   isFavorite: initialFavorite = false,
+  isFavoriteLoading = false,
 }: ProviderHeaderProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -35,6 +38,7 @@ export default function ProviderHeader({
   }, [initialFavorite]);
 
   const handleFavoritePress = () => {
+    if (isFavoriteLoading) return;
     const newFavorite = !isFavorite;
     setIsFavorite(newFavorite);
     if (onFavorite) {
@@ -80,17 +84,26 @@ export default function ProviderHeader({
         {onFavorite && (
           <Pressable
             onPress={handleFavoritePress}
+            disabled={isFavoriteLoading}
             style={({ pressed }) => [
               styles.actionButton,
-              pressed && { opacity: 0.7 },
+              pressed && !isFavoriteLoading && { opacity: 0.7 },
+              isFavoriteLoading && styles.actionButtonLoading,
             ]}
           >
-            <VectoreIcons
-              name={isFavorite ? 'heart' : 'heart-outline'}
-              icon="Ionicons"
-              size={theme.SF(24)}
-              color={isFavorite ? '#FF0000' : theme.colors.text}
-            />
+            {isFavoriteLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={isFavorite ? '#FF0000' : theme.colors.primary}
+              />
+            ) : (
+              <VectoreIcons
+                name={isFavorite ? 'heart' : 'heart-outline'}
+                icon="Ionicons"
+                size={theme.SF(24)}
+                color={isFavorite ? '#FF0000' : theme.colors.text}
+              />
+            )}
           </Pressable>
         )}
       </View>
@@ -169,6 +182,12 @@ const createStyles = (theme: ThemeType) => {
     },
     actionButton: {
       padding: SW(8),
+    },
+    actionButtonLoading: {
+      width: SF(24) + SW(16),
+      height: SF(24) + SW(16),
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 };

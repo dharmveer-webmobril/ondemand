@@ -17,11 +17,30 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const PAGE_SIZE = 14;
 
+/**
+ * Map our internal language codes (used in `i18n.ts`) to BCP-47 locales
+ * accepted by `toLocale*String`. Falls back to the raw code when we don't
+ * have a mapping (Intl will fall back to its own default in that case).
+ */
+const APP_LANG_TO_LOCALE: Record<string, string> = {
+  en: 'en-US',
+  sp: 'es-ES',
+  frcd: 'fr-CA',
+  pt: 'pt-BR',
+  hn: 'hi-IN',
+};
+
+const resolveLocale = (langCode: string | undefined): string =>
+  APP_LANG_TO_LOCALE[langCode || 'en'] || langCode || 'en-US';
 
 /**
- * Format timestamp to readable time
+ * Format timestamp to a readable, locale-aware label.
  */
-const formatTimestamp = (timestamp: string): string => {
+const formatTimestamp = (
+  timestamp: string,
+  locale: string,
+  yesterdayLabel: string,
+): string => {
   try {
     const date = new Date(timestamp);
     const now = new Date();
@@ -29,22 +48,21 @@ const formatTimestamp = (timestamp: string): string => {
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) {
-      // Today - show time
-      return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      }).toLowerCase();
+      return date
+        .toLocaleTimeString(locale, {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+        .toLowerCase();
     } else if (diffInDays === 1) {
-      return 'Yesterday';
+      return yesterdayLabel;
     } else if (diffInDays < 7) {
-      // This week - show day name
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
+      return date.toLocaleDateString(locale, { weekday: 'short' });
     } else {
-      // Older - show date
-      return date.toLocaleDateString('en-US', {
+      return date.toLocaleDateString(locale, {
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       });
     }
   } catch {
@@ -57,10 +75,14 @@ const formatTimestamp = (timestamp: string): string => {
  */
 const mapConversationToChatListItem = (
   conversation: Conversation,
-  currentUserId: string | null
+  currentUserId: string | null,
+  locale: string,
+  yesterdayLabel: string,
+  unknownLabel: string,
 ): ChatListItemData => {
   // Determine which participant to show (the other person, not current user)
-  const isCurrentUserParticipantOne = conversation.participantOne._id === currentUserId;
+  const isCurrentUserParticipantOne =
+    conversation.participantOne._id === currentUserId;
   const otherParticipant = isCurrentUserParticipantOne
     ? conversation.participantTwo
     : conversation.participantOne;
@@ -72,22 +94,33 @@ const mapConversationToChatListItem = (
 
   return {
     id: conversation._id,
-    name: otherParticipant.name || conversation.chatTitle || 'Unknown',
+    name: otherParticipant.name || conversation.chatTitle || unknownLabel,
     chatTitle: conversation.chatTitle || '',
     lastMessage: conversation.lastMessage || '',
-    timestamp: formatTimestamp(conversation.lastMessageTime),
+    timestamp: formatTimestamp(
+      conversation.lastMessageTime,
+      locale,
+      yesterdayLabel,
+    ),
     image: otherParticipant.profileImage
       ? { uri: otherParticipant.profileImage }
-      : imagePaths.recomanded1,
+      : imagePaths.no_user_img,
     // Store additional data for navigation
     conversationId: conversation._id,
     bookingId: conversation.bookingId?._id || conversation.bookingId?.bookingId,
     unreadCount,
-  } as ChatListItemData & { conversationId: string; bookingId?: string; unreadCount: number };
+  } as ChatListItemData & {
+    conversationId: string;
+    bookingId?: string;
+    unreadCount: number;
+  };
 };
 
 export default function InboxScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = useMemo(() => resolveLocale(i18n.language), [i18n.language]);
+  const yesterdayLabel = t('chat.yesterday');
+  const unknownLabel = t('chat.unknownUser');
   const [_, setShowListItemMenu] = useState(false);
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -170,10 +203,16 @@ export default function InboxScreen() {
 
   const chatListItems = useMemo(() => {
     if (!conversations.length || !currentUserId) return [];
-    return conversations.map((conversation) =>
-      mapConversationToChatListItem(conversation, currentUserId)
+    return conversations.map(conversation =>
+      mapConversationToChatListItem(
+        conversation,
+        currentUserId,
+        locale,
+        yesterdayLabel,
+        unknownLabel,
+      ),
     );
-  }, [conversations, currentUserId]);
+  }, [conversations, currentUserId, locale, yesterdayLabel, unknownLabel]);
 
   const handleChatPress = (chat: ChatListItemData & { conversationId?: string; bookingId?: string }) => {
     const [name, bookingId] =chat?.chatTitle?.split(" - ") ||['','']
@@ -191,13 +230,13 @@ export default function InboxScreen() {
     <Container safeArea={true} style={styles.container}>
       <AppHeader
         title={t('chat.title')}
-        rightIconName="search-outline"
-        rightIconFamily="Ionicons"
-        onRightPress={() => { }}
+        // rightIconName="search-outline"
+        // rightIconFamily="Ionicons"
+        // onRightPress={() => { }}
         containerStyle={styles.headerContainer}
       />
       <View style={styles.recentHeader}>
-        <CustomText style={styles.recentText}>Recent</CustomText>
+        <CustomText style={styles.recentText}>{t('chat.recent')}</CustomText>
       </View>
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -206,7 +245,7 @@ export default function InboxScreen() {
       ) : error ? (
         <View style={styles.emptyContainer}>
           <CustomText style={styles.emptyText}>
-            {t('chat.errorLoadingConversations') || 'Error loading conversations'}
+            {t('chat.errorLoadingConversations')}
           </CustomText>
         </View>
       ) : (
@@ -226,7 +265,7 @@ export default function InboxScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <CustomText style={styles.emptyText}>
-                {t('chat.noRecentChats') || 'No recent chats'}
+                {t('chat.noChats')}
               </CustomText>
             </View>
           }

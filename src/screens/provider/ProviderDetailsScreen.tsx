@@ -498,6 +498,7 @@ export default function ProviderDetailsScreen() {
             onShare={() => console.log('Share pressed')}
             isFavorite={favoriteShown}
             onFavorite={handleFavoriteToggle}
+            isFavoriteLoading={addFavorite.isPending || removeFavorite.isPending}
           />
           <ProviderTabs activeTab={activeTab} onTabChange={setActiveTab} />
         </>
