@@ -34,7 +34,24 @@ export default function BookAppointment() {
     refetch: refetchServices
   } = useGetServiceProviderServices(providerId, bookingDetails.deliveryMode);
 
-  const services = servicesData?.ResponseData?.services || [];
+  // Always include the services that were passed in via `selectedServices`
+  // (e.g. "Book Again" from a past completed booking), even when the live
+  // catalog filtered by the current delivery mode no longer contains them.
+  // This guarantees they show up in the cart and in the service-picker modal.
+  const services = useMemo(() => {
+    const catalog: any[] = servicesData?.ResponseData?.services || [];
+    const initialSelected: any[] = Array.isArray(selectedServices)
+      ? selectedServices
+      : [];
+    if (!initialSelected.length) return catalog;
+    const catalogIds = new Set(
+      catalog.map((s: any) => s?._id).filter(Boolean),
+    );
+    const extras = initialSelected.filter(
+      (s: any) => s?._id && !catalogIds.has(s._id),
+    );
+    return [...catalog, ...extras];
+  }, [servicesData, selectedServices]);
   console.log('route--------route', route);
   console.log('services--------services', services);
   console.log('services--------services', isLoadingServices);

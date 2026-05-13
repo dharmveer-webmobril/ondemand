@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { DateData } from 'react-native-calendars';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Container,
   AppHeader,
   BookingCard,
   CustomText,
   LoadingComp,
+  showToast,
 } from '@components';
 import { useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +23,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useGetCustomerBookings } from '@services/api/queries/appQueries';
+import axiosInstance from '@services/api/axiosInstance';
+import EndPoints from '@services/api/EndPoints';
 import { formatAddress, getStatusColor } from '@utils/tools';
 import imagePaths from '@assets';
 import BookingListFilters, {
@@ -141,7 +145,9 @@ export default function BookingList() {
   const [allBookings, setAllBookings] = useState<any[]>([]);
   const [hasLoadedFirstPage, setHasLoadedFirstPage] = useState(false);
   const [rateReviewBookingId, setRateReviewBookingId] = useState<string | null>(null);
+  const [bookAgainLoadingId, setBookAgainLoadingId] = useState<string | null>(null);
 
+  const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Fetch bookings from API
@@ -288,10 +294,104 @@ export default function BookingList() {
     }, [refetchBookings]),
   );
 
-  const handleBookAgain = useCallback((bookingId: string) => {
-    // TODO: Navigate to booking screen
-    console.log('Book again for:', bookingId);
-  }, []);
+  const fetchBookingDetail = useCallback(
+    async (bookingDbId: string) => {
+      return queryClient.fetchQuery({
+        queryKey: ['bookingDetail', bookingDbId],
+        queryFn: async () => {
+          const response = await axiosInstance.get<any>(
+            `${EndPoints.GET_BOOKING_DETAIL}/${bookingDbId}`,
+          );
+          return response.data;
+        },
+        // Keep recently fetched detail to avoid re-hitting the API if the
+        // user opens it again immediately.
+        staleTime: 30_000,
+      });
+    },
+    [queryClient],
+  );
+
+  const handleBookAgain = useCallback(
+    async (bookingDbId: string) => {
+      if (!bookingDbId || bookAgainLoadingId) return;
+
+      try {
+        setBookAgainLoadingId(bookingDbId);
+        const detail = await fetchBookingDetail(bookingDbId);
+        const apiBooking = detail?.ResponseData?.booking;
+        const bookedServices: any[] = (
+          detail?.ResponseData?.bookedServices || []
+        ).filter((s: any) => s && s.serviceId);
+
+        const providerId =
+          apiBooking?.spId?._id ||
+          (typeof apiBooking?.spId === 'string' ? apiBooking?.spId : null);
+
+        if (!providerId) {
+          showToast({
+            type: 'error',
+            title: t('messages.error'),
+            message: t('messages.somethingWentWrong'),
+          });
+          return;
+        }
+
+        if (!bookedServices.length) {
+          showToast({
+            type: 'info',
+            title: t('messages.error'),
+            message: t('messages.somethingWentWrong'),
+          });
+          return;
+        }
+
+        // Default to the original delivery preference (e.g. 'atHome' / 'atShop').
+        const preferences: string[] = Array.isArray(apiBooking?.preferences)
+          ? apiBooking.preferences
+          : [];
+        const deliveryMode = preferences[0] || 'atShop';
+
+        // Reconstruct selected services in the shape BookAppointment expects:
+        // each entry is a service object with `selectedAddOns` attached so the
+        // cart and totals work straight away.
+        const selectedServices = bookedServices.map((bs: any) => {
+          const service = bs?.serviceId || {};
+          return {
+            ...service,
+            selectedAddOns: Array.isArray(bs?.addOnServices)
+              ? bs.addOnServices.filter(Boolean)
+              : [],
+          };
+        });
+
+        const providerData = {
+          ...(apiBooking?.spId || {}),
+          businessProfile: apiBooking?.spBusinessProfile,
+        };
+
+        navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
+          providerId,
+          serviceId: selectedServices[0]?._id,
+          selectedServices,
+          bookingDetails: { deliveryMode },
+          providerData,
+        });
+      } catch (error: any) {
+        console.error('Book again error:', error);
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message:
+            error?.response?.data?.ResponseMessage ||
+            t('messages.somethingWentWrong'),
+        });
+      } finally {
+        setBookAgainLoadingId(null);
+      }
+    },
+    [bookAgainLoadingId, fetchBookingDetail, t],
+  );
 
   const handleCardPress = useCallback((bookingId: string,flag:string='noraml') => {
     navigate(SCREEN_NAMES.BOOKING_DETAIL, {
@@ -318,15 +418,16 @@ export default function BookingList() {
           price={item.price}
           image={item.image}
           onBookAgain={
-            completed ? () => handleBookAgain(item.bookingId || item.id) : undefined
+            completed ? () => handleBookAgain(item.id) : undefined
           }
+          bookAgainLoading={bookAgainLoadingId === item.id}
           showRateNow={showRateNow}
           onRateNow={showRateNow ? () => handleCardPress(item.id,'open-rate-review') : undefined}
           onPress={() => handleCardPress(item.id)}
         />
       );
     },
-    [handleBookAgain, handleCardPress],
+    [handleBookAgain, handleCardPress, bookAgainLoadingId],
   );
 
   const showEmptyState =

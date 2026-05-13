@@ -18,6 +18,7 @@ type BookingCardProps = {
   price: string;
   image?: any;
   onBookAgain?: () => void;
+  bookAgainLoading?: boolean;
   onRateNow?: () => void;
   showRateNow?: boolean;
   onPress?: () => void;
@@ -34,6 +35,7 @@ export default function BookingCard({
   price,
   image,
   onBookAgain,
+  bookAgainLoading = false,
   onRateNow,
   showRateNow = false,
   onPress,
@@ -146,6 +148,8 @@ export default function BookingCard({
                 textColor={theme.colors.white}
                 buttonStyle={styles.bookAgainButton}
                 buttonTextStyle={styles.buttonText}
+                isLoading={bookAgainLoading}
+                disable={bookAgainLoading}
               />
             ) : null}
             {showRateNow && onRateNow ? (

@@ -362,7 +362,13 @@ export default function Checkout() {
       });
       return;
     }
-    // handle success toast and navigate to booking list of the booking is created successfully for cash and wallet payment
+    // Cash, full-wallet, and wallet-fully-covered-partial flows: no gateway step,
+    // so surface the same confirmation modal that the online flow shows.
+    if (response?.ResponseData?.booking) {
+      invalidateCheckoutQueries();
+      openCheckoutPaymentSuccessModal(response, payload);
+      return;
+    }
     handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
     invalidateCheckoutQueries();
     setTimeout(() => navigateToBookingList(payload), 800);
