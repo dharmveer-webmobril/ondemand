@@ -10,27 +10,46 @@ export interface PaymentResponseDetails {
 
 /** Parse initiate payment API response for transactionId, clientSecret (Stripe), redirectUrl (PayPal) */
 export function getPaymentResponseDetails(response: any): PaymentResponseDetails {
+  const rd = response?.ResponseData;
   const transactionId =
-    response?.ResponseData?.transaction?.transactionId ??
-    response?.ResponseData?.transactionId ??
-    response?.ResponseData?.gatewayTransaction?.transactionId ??
+    rd?.gatewayTransaction?.transactionId ??
+    rd?.transactionId ??
+    rd?.transaction?.transactionId ??
     null;
   const clientSecret =
-    response?.ResponseData?.paymentIntent?.client_secret ??
-    response?.ResponseData?.gatewayTransaction?.gatewayResponse?.client_secret ??
+    rd?.paymentIntent?.client_secret ??
+    rd?.gatewayTransaction?.gatewayResponse?.client_secret ??
     null;
   const redirectUrl =
-    response?.ResponseData?.redirectUrl ??
-    response?.ResponseData?.gatewayTransaction?.redirectUrl ??
-    null;
+    rd?.redirectUrl ?? rd?.gatewayTransaction?.redirectUrl ?? null;
   return { transactionId, clientSecret, redirectUrl };
 }
 
+/** Wallet leg id for `wallet_partial` — returned on initiate (not always on create booking). */
+export function getWalletTransactionIdFromInitiate(response: any): string | null {
+  const rd = response?.ResponseData;
+  if (!rd) {
+    return null;
+  }
+  const top = rd.walletTransactionId;
+  if (top != null && String(top).trim() !== '') {
+    return String(top).trim();
+  }
+  const wt = rd.walletTransaction?.transactionId;
+  if (wt != null && String(wt).trim() !== '') {
+    return String(wt).trim();
+  }
+  return null;
+}
+
 export function isSuccessfulPaymentInitiation(response: any): boolean {
+  const rd = response?.ResponseData;
   const hasPaymentData =
-    !!response?.ResponseData?.paymentIntent ||
-    !!response?.ResponseData?.transaction ||
-    !!response?.ResponseData?.gatewayTransaction;
+    !!rd?.paymentIntent ||
+    !!rd?.transaction ||
+    !!rd?.gatewayTransaction ||
+    !!rd?.walletTransaction ||
+    (rd?.transactionId != null && String(rd.transactionId).trim() !== '');
   return (response?.succeeded || response?.ResponseCode === 200) && hasPaymentData;
 }
 
@@ -38,12 +57,13 @@ export function isSuccessfulPaymentInitiation(response: any): boolean {
 export interface RunGatewayPaymentParams {
   bookingId: string;
   amount: number;
-  paymentGateway: GatewayPaymentMethod;
+  /** Omit for post–create wallet-only initiate (no Stripe/PayPal). */
+  paymentGateway?: GatewayPaymentMethod;
   /** Booking payment mode from checkout (required for `wallet_partial` initiate/confirm chain). */
   paymentType?: string;
   walletAmountUsed?: number;
   paymentMethod?: string;
-  /** When wallet_partial: send this in confirm instead of bookingId (for both Stripe and PayPal) */
+  /** Optional legacy: wallet leg id from create booking; if omitted, `wallet_partial` reads it from initiate response. */
   walletTransactionId?: string | null;
   /** Required for PayPal: where to go after WebView and params to pass back (e.g. { bookingData }) */
   returnTo?: string;

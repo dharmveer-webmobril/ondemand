@@ -1,5 +1,6 @@
 export {
   getPaymentResponseDetails,
+  getWalletTransactionIdFromInitiate,
   isSuccessfulPaymentInitiation,
   isPayPalSuccessUrl,
   isPayPalFailureUrl,

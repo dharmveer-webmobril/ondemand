@@ -3,31 +3,16 @@ import { usePaymentSheet } from '@stripe/stripe-react-native';
 import {
   useConfirmBookingPayment,
   useInitiateBookingPayment,
+  type InitiateBookingPaymentRequest,
 } from '@services/api/queries/appQueries';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import {
-  getPaymentResponseDetails,
-  isSuccessfulPaymentInitiation,
-  type RunGatewayPaymentParams,
-} from './gatewayPayment';
+import type { RunGatewayPaymentParams } from './gatewayPayment';
+import * as GatewayPayment from './gatewayPayment';
 
 /**
- * Common payment hook – use from Checkout, Wallet, BookingDetail.
- * For Stripe: initiate → present sheet → confirm → onSuccess/onCancel/onError.
- * For PayPal: initiate → get payment URL → navigate to PaymentWebView → success/failure handled in WebView.
- *
- * Usage from any screen (e.g. BookingDetail "Pay now", Wallet top-up):
- *   const { runGatewayPayment, isPending } = useGatewayPayment();
- *   runGatewayPayment(navigation, {
- *     bookingId, amount, paymentGateway: 'stripe' | 'paypal', walletAmountUsed,
- *     returnTo: SCREEN_NAMES.BOOKING_DETAIL,  // required for PayPal
- *     returnParams: { bookingId },
- *     onSuccess: (confirmResponse) => { ... }, // confirm POST response (transaction + booking)
- *     onCancel: (id) => { ... },
- *     onError: (err, id) => { ... },
- *     handleApiError, handleApiFailureResponse, failureMessage,
- *   });
- * When returning from PayPal WebView, handle route.params.paymentResult ('success'|'cancel'|'failure').
+ * Booking / checkout payment: initiate → (Stripe sheet | PayPal WebView | wallet-only) → confirm.
+ * - Card (online / wallet_partial remainder): initiate with gateway → sheet/WebView → confirm.
+ * - Full wallet after create: initiate without gateway, paymentMethod `wallet` → confirm with transactionId only.
  */
 export function useGatewayPayment() {
   const { mutateAsync: initiatePayment, isPending: isInitiatingPayment } =
@@ -57,52 +42,122 @@ export function useGatewayPayment() {
         failureMessage = 'Payment initiation failed',
       } = params;
 
-      const paymentRequest = {
+      const paymentRequest: InitiateBookingPaymentRequest = {
         bookingId,
         amount,
-        paymentGateway,
-        ...(paymentType != null && paymentType !== '' ? { paymentType } : {}),
+        ...(paymentType != null && String(paymentType) !== ''
+          ? { paymentType: String(paymentType) }
+          : {}),
         paymentMethod,
-        useWallet: walletAmountUsed > 0,
-        walletAmount: walletAmountUsed,
         platform: 'app',
+        useWallet:
+          paymentType === 'wallet_partial' ||
+          paymentType === 'wallet' ||
+          walletAmountUsed > 0,
       };
-      console.log('paymentRequest------ 64', paymentRequest);
+
+      if (paymentGateway != null) {
+        paymentRequest.paymentGateway = paymentGateway;
+      }
+
+      if (paymentType === 'wallet_partial' && walletAmountUsed > 0) {
+        paymentRequest.walletAmount = walletAmountUsed;
+      }
+
+// console.log('paymentRequest------ 66 ---->', paymentRequest);
       let initiateRes: any;
       try {
         initiateRes = await initiatePayment(paymentRequest);
-        console.log('initiateRes------ 68', initiateRes);
       } catch (err) {
-        if (handleApiError) handleApiError(err);
-        else onError(err, bookingId);
+        if (handleApiError) {
+          handleApiError(err);
+        } else {
+          onError(err, bookingId);
+        }
         return;
       }
-
-      if (!isSuccessfulPaymentInitiation(initiateRes)) {
-        if (handleApiFailureResponse)
+// console.log('initiateRes------ 78 ---->', initiateRes);
+// console.log('initiateRes------ 78 ---->', initiateRes);
+// console.log('initiateRes------ 78 ---->', initiateRes);
+      if (!GatewayPayment.isSuccessfulPaymentInitiation(initiateRes)) {
+        if (handleApiFailureResponse) {
           handleApiFailureResponse(initiateRes, failureMessage);
-        else
+        } else {
           onError(
             new Error(initiateRes?.ResponseMessage ?? failureMessage),
             bookingId,
           );
+        }
         return;
       }
 
-      const { transactionId, clientSecret, redirectUrl } = getPaymentResponseDetails(initiateRes);
-      console.log('transactionId------ 82', transactionId);
-      console.log('clientSecret------ 83', clientSecret);
-      console.log('redirectUrl------ 84', redirectUrl);
+      const { transactionId, clientSecret, redirectUrl } =
+        GatewayPayment.getPaymentResponseDetails(initiateRes);
 
-      if (paymentGateway === 'stripe') {
-        if (!clientSecret) {
-          console.log('No payment intent------ 83');
-          if (handleApiFailureResponse)
+      const walletTxFromInitiate =
+        paymentType === 'wallet_partial'
+          ? GatewayPayment.getWalletTransactionIdFromInitiate(initiateRes)
+          : null;
+      const effectiveWalletTransactionId =
+        walletTransactionId != null && String(walletTransactionId).trim() !== ''
+          ? String(walletTransactionId).trim()
+          : walletTxFromInitiate;
+
+      const confirmWithIds = async (txId: string) => {
+        const w = effectiveWalletTransactionId;
+        const payload =
+          w != null && String(w).trim() !== ''
+            ? { transactionId: txId, walletTransactionId: w }
+            : { transactionId: txId };
+        return confirmPayment(payload);
+      };
+
+      if (paymentGateway === 'paypal' && redirectUrl) {
+        if (paymentType === 'wallet_partial' && !effectiveWalletTransactionId) {
+          onError(
+            new Error(
+              'Missing wallet transaction id from payment initiation — cannot confirm partial wallet payment.',
+            ),
+            bookingId,
+          );
+          return;
+        }
+        if (!transactionId) {
+          if (handleApiFailureResponse) {
             handleApiFailureResponse(
-              { ResponseMessage: 'No payment intent' },
+              { ResponseMessage: 'No transaction for PayPal' },
               failureMessage,
             );
-          else onError(new Error('No payment intent'), bookingId);
+          } else {
+            onError(new Error('No transaction for PayPal'), bookingId);
+          }
+          return;
+        }
+        if (!returnTo) {
+          onError(new Error('returnTo is required for PayPal'), bookingId);
+          return;
+        }
+        navigation.navigate(SCREEN_NAMES.PAYMENT_WEBVIEW, {
+          paymentUrl: redirectUrl,
+          bookingId,
+          transactionId,
+          walletTransactionId: effectiveWalletTransactionId ?? undefined,
+          initiateRes,
+          returnTo,
+          returnRouteKey,
+          returnParams,
+        });
+        return;
+      }
+
+      if (paymentGateway === 'stripe' && clientSecret) {
+        if (paymentType === 'wallet_partial' && !effectiveWalletTransactionId) {
+          onError(
+            new Error(
+              'Missing wallet transaction id from payment initiation — cannot confirm partial wallet payment.',
+            ),
+            bookingId,
+          );
           return;
         }
         const { error: initError } = await initPaymentSheet({
@@ -110,78 +165,60 @@ export function useGatewayPayment() {
           merchantDisplayName: 'Squedio',
         });
         if (initError) {
-          console.log('initError------ 92', initError);
           onError(initError, bookingId);
-          // if (handleApiError) handleApiError(initError);
-          // else onError(initError, bookingId);
           return;
         }
         const { error: presentError, didCancel } = await presentPaymentSheet();
         if (didCancel) {
-          console.log('didCancel------ 100', didCancel);
           onCancel(bookingId);
           return;
         }
         if (presentError) {
-          console.log('presentError------ 103', presentError);
-          // if (handleApiError) handleApiError(presentError);
-          // else onError(presentError, bookingId);
           onError(presentError, bookingId);
           return;
         }
+        if (!transactionId) {
+          onError(
+            new Error(
+              'Missing gateway transaction id after payment — cannot confirm booking payment.',
+            ),
+            bookingId,
+          );
+          return;
+        }
         try {
-          let confirmRes: any = initiateRes;
-          if (transactionId) {
-            const confirmPayload = walletTransactionId
-              ? { transactionId, walletTransactionId }
-              : { transactionId, bookingId };
-            confirmRes = await confirmPayment(confirmPayload);
-          }
+          const confirmRes = await confirmWithIds(transactionId);
           onSuccess(confirmRes);
         } catch (err) {
-          console.log('err------ 111', err);
-          // if (handleApiError) handleApiError(err);
-          // else onError(err, bookingId);
           onError(err, bookingId);
         }
         return;
       }
 
-      // PayPal: open WebView screen with payment URL; WebView handles success/failure URLs
-      if (paymentGateway === 'paypal') {
-        if (!redirectUrl) {
-          if (handleApiFailureResponse)
-            handleApiFailureResponse(
-              { ResponseMessage: 'No redirect URL for PayPal' },
-              failureMessage,
-            );
-          else onError(new Error('No redirect URL for PayPal'), bookingId);
-          return;
+      // Pure wallet (or server returns only transactionId — no card / redirect).
+      if (paymentMethod === 'wallet' && transactionId) {
+        try {
+          const confirmRes = await confirmWithIds(transactionId);
+          onSuccess(confirmRes);
+        } catch (err) {
+          onError(err, bookingId);
         }
-        if (!transactionId) {
-          if (handleApiFailureResponse)
-            handleApiFailureResponse(
-              { ResponseMessage: 'No transaction for PayPal' },
-              failureMessage,
-            );
-          else onError(new Error('No transaction for PayPal'), bookingId);
-          return;
-        }
-        if (!returnTo) {
-          onError(new Error('returnTo is required for PayPal'), bookingId);
-          
-          return;
-        }
-        navigation.navigate(SCREEN_NAMES.PAYMENT_WEBVIEW, {
-          paymentUrl: redirectUrl,
+        return;
+      }
+
+      if (handleApiFailureResponse) {
+        handleApiFailureResponse(
+          { ResponseMessage: 'Unsupported payment response from server' },
+          failureMessage,
+        );
+      } else {
+        onError(
+          new Error(
+            initiateRes?.ResponseMessage ??
+              'Unsupported payment response from server',
+          ),
           bookingId,
-          transactionId,
-          walletTransactionId: walletTransactionId ?? undefined,
-          initiateRes,
-          returnTo,
-          returnRouteKey,
-          returnParams,
-        });
+        );
       }
     },
     [initiatePayment, confirmPayment, initPaymentSheet, presentPaymentSheet],

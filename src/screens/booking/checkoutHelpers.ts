@@ -152,6 +152,28 @@ export const buildSelectedServicesPayload = (selectedServices: any[] = []) => {
     }));
 };
 
+/** Booking id from create-booking (shape varies: string id, object, or bookingId). */
+export function getBookingIdFromCreateResponse(response: any): string | null {
+  const data = response?.ResponseData;
+  if (!data) {
+    return null;
+  }
+  const raw = data.booking;
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    return raw.trim();
+  }
+  if (raw && typeof raw === 'object') {
+    const id = raw._id ?? raw.id;
+    if (id != null && String(id).trim() !== '') {
+      return String(id).trim();
+    }
+  }
+  if (data.bookingId != null && String(data.bookingId).trim() !== '') {
+    return String(data.bookingId).trim();
+  }
+  return null;
+}
+
 export const buildBookingPayload = ({
   bookingData,
   selectedServices,
@@ -205,15 +227,16 @@ export const shouldUseGatewayPayment = (
   );
 };
 
+/** Initiate-payment `amount`: full booking total; backend applies `wallet_partial` split. */
 export const getGatewayChargeAmount = (
   selectedPaymentMethod: BookingPaymentMethod,
-  paymentMode: PaymentModeKey,
-  remainingAfterWallet: number,
+  _paymentMode: PaymentModeKey,
+  _remainingAfterWallet: number,
   totalPrice: number,
 ) => {
   if (!shouldUseGatewayPayment(selectedPaymentMethod)) {
     return 0;
   }
 
-  return paymentMode === 'wallet_partial' ? remainingAfterWallet : totalPrice;
+  return totalPrice;
 };

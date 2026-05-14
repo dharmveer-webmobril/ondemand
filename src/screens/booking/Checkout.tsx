@@ -25,6 +25,7 @@ import {
   OtherPersonDetails,
   PaymentModeKey,
   buildBookingPayload,
+  getBookingIdFromCreateResponse,
   getRemainingAfterWallet,
   getWalletPartialAmount,
   hasInvalidPartialWalletAmount,
@@ -300,11 +301,9 @@ export default function Checkout() {
       return;
     }
 
-    const bookingId = response?.ResponseData?.booking?._id ?? null;
+    const bookingId = getBookingIdFromCreateResponse(response);
 
     if (!bookingId) {
-
-      // handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
       navigateToBookingList(payload);
       return;
@@ -312,27 +311,35 @@ export default function Checkout() {
 
     await localStorage.saveItem('bookingId', bookingId as string);
 
-    const gatewayChargeTotal = paymentMode === 'wallet_partial' ? remainingAfterWallet : totalPrice;
+    const needsCardGateway = shouldUseGatewayPayment(selectedPaymentMethod) && totalPrice > 0 &&  (paymentMode === 'online' || (paymentMode === 'wallet_partial' && remainingAfterWallet > 0));
 
-    if (shouldUseGatewayPayment(selectedPaymentMethod) && gatewayChargeTotal > 0) {
-      const walletTransactionId =  paymentMode === 'wallet_partial' ? response?.ResponseData?.walletTransaction?.transactionId ||
-            response?.ResponseData?.walletTransactionId ||
-            null
-          : null;
-
+    if (needsCardGateway) {
       runGatewayPayment(navigation, {
         bookingId,
-        amount: gatewayChargeTotal,
+        amount: totalPrice,
         paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal',
         paymentType: paymentMode,
+        paymentMethod: 'card',
         walletAmountUsed,
-        walletTransactionId,
         returnTo: SCREEN_NAMES.CHECKOUT,
         returnRouteKey: route.key,
         returnParams: { bookingData, checkoutPayload: payload },
         failureMessage: t('checkout.failedToCreateBooking'),
         onSuccess: (confirmRes: any) => {
-          if (confirmRes?.ResponseData?.booking) {
+          const bookingPayload = confirmRes?.ResponseData?.booking;
+          const hasBooking = !!(
+            bookingPayload?._id ??
+            bookingPayload?.id ??
+            confirmRes?.ResponseData?.bookingId
+          );
+          if (paymentMode === 'wallet_partial' && !hasBooking) {
+            showCheckoutError(
+              confirmRes?.ResponseMessage ||
+                t('checkout.wallet.cardPaymentNotCompleted'),
+            );
+            return;
+          }
+          if (hasBooking) {
             openCheckoutPaymentSuccessModal(confirmRes, payload);
             return;
           }
@@ -344,19 +351,64 @@ export default function Checkout() {
           invalidateCheckoutQueries();
           setTimeout(() => navigateToBookingList(payload), 800);
         },
-        onCancel: () => {
-          // navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId });
-        },
+        onCancel: () => {},
         onError: (error: any) => {
-          console.log('onError------ 227', error);
           showCheckoutError(error);
-          // setTimeout(() => navigation.navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId }), 300);
         },
       });
       return;
     }
-    // Cash, full-wallet, and wallet-fully-covered-partial flows: no gateway step,
-    // so surface the same confirmation modal that the online flow shows.
+
+    const needsWalletInitiateConfirm =
+      paymentMode === 'wallet' ||
+      (paymentMode === 'wallet_partial' &&
+        selectedPaymentMethod === 'wallet' &&
+        remainingAfterWallet <= 0);
+
+    if (needsWalletInitiateConfirm) {
+      runGatewayPayment(navigation, {
+        bookingId,
+        amount: totalPrice,
+        paymentType: 'wallet',
+        paymentMethod: 'wallet',
+        walletAmountUsed: 0,
+        walletTransactionId: null,
+        returnTo: SCREEN_NAMES.CHECKOUT,
+        returnRouteKey: route.key,
+        returnParams: { bookingData, checkoutPayload: payload },
+        failureMessage: t('checkout.failedToCreateBooking'),
+        onSuccess: (confirmRes: any) => {
+          const bookingPayload = confirmRes?.ResponseData?.booking;
+          const hasBooking = !!(
+            bookingPayload?._id ??
+            bookingPayload?.id ??
+            confirmRes?.ResponseData?.bookingId
+          );
+          if (!hasBooking) {
+            showCheckoutError(
+              confirmRes?.ResponseMessage || t('checkout.failedToCreateBooking'),
+            );
+            return;
+          }
+          openCheckoutPaymentSuccessModal(confirmRes, payload);
+        },
+        onCancel: () => {},
+        onError: (error: any) => {
+          showCheckoutError(error);
+        },
+      });
+      return;
+    }
+
+    if (
+      paymentMode === 'wallet_partial' &&
+      remainingAfterWallet > 0 &&
+      !shouldUseGatewayPayment(selectedPaymentMethod)
+    ) {
+      showCheckoutError(t('checkout.wallet.cardPaymentNotCompleted'));
+      return;
+    }
+
     if (response?.ResponseData?.booking) {
       invalidateCheckoutQueries();
       openCheckoutPaymentSuccessModal(response, payload);
@@ -382,7 +434,6 @@ export default function Checkout() {
       bookingId: undefined,
     });
 
-    console.log('Final Booking Data:', JSON.stringify(payload, null, 2));
     createBooking(payload, {
       onSuccess: async (response) => {
         await handleBookingCreated(

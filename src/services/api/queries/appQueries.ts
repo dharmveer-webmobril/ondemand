@@ -940,7 +940,8 @@ export const useRequestWalletSettlement = () => {
 export interface InitiateBookingPaymentRequest {
   bookingId: string;
   amount: number;
-  paymentGateway: 'stripe' | 'paypal';
+  /** Omitted for pure wallet settlement after create (server uses paymentMethod `wallet`). */
+  paymentGateway?: 'stripe' | 'paypal';
   /** Mirrors create-booking payment mode: `wallet`, `wallet_partial`, `online`, etc. */
   paymentType?: string;
   paymentMethod: string;
