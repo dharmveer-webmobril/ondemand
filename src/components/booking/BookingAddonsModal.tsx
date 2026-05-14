@@ -38,11 +38,11 @@ type BookingAddonsModalProps = {
   bookedService: any | null;
   onProceedToPayment: (
     selectedAddons: ServiceAddonItem[],
-    gateway: 'stripe' | 'paypal',
+    gateway: 'stripe' | 'paypal' | 'flutterwave',
   ) => void;
   isProcessing?: boolean;
-  /** When true, overlay shows "Connecting to PayPal…" instead of generic processing */
-  paymentGatewayHint?: 'stripe' | 'paypal' | null;
+  /** When true, overlay shows gateway-specific connecting text instead of generic processing */
+  paymentGatewayHint?: 'stripe' | 'paypal' | 'flutterwave' | null;
 };
 
 export default function BookingAddonsModal({
@@ -104,7 +104,7 @@ export default function BookingAddonsModal({
     setShowPayModal(true);
   };
 
-  const handlePaymentMethodConfirm = (method: 'paypal' | 'stripe' | 'cash') => {
+  const handlePaymentMethodConfirm = (method: 'paypal' | 'stripe' | 'flutterwave' | 'cash') => {
     if (method === 'cash') {
       return;
     }
@@ -241,7 +241,9 @@ export default function BookingAddonsModal({
             <CustomText style={styles.processingLabel}>
               {paymentGatewayHint === 'paypal'
                 ? t('bookingDetail.addOns.connectingPayPal')
-                : t('bookingDetail.addOns.processingPayment')}
+                : paymentGatewayHint === 'flutterwave'
+                  ? t('bookingDetail.addOns.connectingFlutterwave')
+                  : t('bookingDetail.addOns.processingPayment')}
             </CustomText>
           </View>
         ) : null}
@@ -253,7 +255,7 @@ export default function BookingAddonsModal({
         onClose={() => setShowPayModal(false)}
         onConfirm={handlePaymentMethodConfirm}
         selectedPaymentMethod="stripe"
-        allowedMethods={['stripe', 'paypal']}
+        allowedMethods={['stripe', 'paypal', 'flutterwave']}
       />
     </>
   );

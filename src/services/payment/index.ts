@@ -1,7 +1,9 @@
 export {
+  FLUTTERWAVE_PAYMENT_ENABLED,
   getPaymentResponseDetails,
   getWalletTransactionIdFromInitiate,
   isSuccessfulPaymentInitiation,
+  isWebRedirectGateway,
   isPayPalSuccessUrl,
   isPayPalFailureUrl,
   PAYPAL_SUCCESS_URL_PATTERNS,

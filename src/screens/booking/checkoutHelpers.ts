@@ -1,5 +1,5 @@
 export type PaymentModeKey = 'cash' | 'online' | 'wallet' | 'wallet_partial';
-export type BookingPaymentMethod = 'paypal' | 'stripe' | 'cash' | 'wallet';
+export type BookingPaymentMethod = 'paypal' | 'stripe' | 'flutterwave' | 'cash' | 'wallet';
 
 type LocationValue = { name?: string } | string;
 
@@ -223,7 +223,9 @@ export const shouldUseGatewayPayment = (
   selectedPaymentMethod: BookingPaymentMethod,
 ) => {
   return (
-    selectedPaymentMethod === 'stripe' || selectedPaymentMethod === 'paypal'
+    selectedPaymentMethod === 'stripe' ||
+    selectedPaymentMethod === 'paypal' ||
+    selectedPaymentMethod === 'flutterwave'
   );
 };
 

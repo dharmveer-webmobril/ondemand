@@ -62,7 +62,7 @@ import {
   useAddBookedServiceAdditionalAddon,
   type ServiceAddonItem,
 } from '@services/api/queries/appQueries';
-import { useAdditionalAddonGatewayPayment } from '@services/payment';
+import { useAdditionalAddonGatewayPayment, isWebRedirectGateway } from '@services/payment';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
@@ -247,7 +247,7 @@ export default function BookingDetail() {
   const [addonsModalService, setAddonsModalService] = useState<any>(null);
   const [addonPaymentBusy, setAddonPaymentBusy] = useState(false);
   const [addonProcessingGateway, setAddonProcessingGateway] = useState<
-    'stripe' | 'paypal' | null
+    'stripe' | 'paypal' | 'flutterwave' | null
   >(null);
   const [rateReviewOpen, setRateReviewOpen] = useState(false);
 
@@ -724,14 +724,14 @@ export default function BookingDetail() {
   // console.log('booking', JSON.stringify(booking, null, 2));
 
   const handleProceedAddons = useCallback(
-    async (selected: ServiceAddonItem[], gateway: 'stripe' | 'paypal') => {
+    async (selected: ServiceAddonItem[], gateway: 'stripe' | 'paypal' | 'flutterwave') => {
       if (!addonsModalService?._id || selected.length === 0) return;
 
       let items = [...selected];
-      if (gateway === 'paypal' && items.length > 1) {
+      if (isWebRedirectGateway(gateway) && items.length > 1) {
         Alert.alert(
-          t('bookingDetail.addOns.paypalOneTitle'),
-          t('bookingDetail.addOns.paypalOneMessage'),
+          t('bookingDetail.addOns.webCheckoutOneTitle'),
+          t('bookingDetail.addOns.webCheckoutOneMessage'),
         );
         items = [items[0]];
       }
@@ -747,12 +747,12 @@ export default function BookingDetail() {
           const amount = getAddonPayableAmount(addon);
           await addBookedServiceAddon({ bookedServiceId, addonId: addon._id });
 
-          if (gateway === 'paypal') {
+          if (isWebRedirectGateway(gateway)) {
             await runAdditionalAddonGatewayPayment(navigation, {
               bookedServiceId,
               addonId: addon._id,
               amount,
-              paymentGateway: 'paypal',
+              paymentGateway: gateway,
               returnTo: SCREEN_NAMES.BOOKING_DETAIL,
               returnRouteKey: route.key,
               returnParams: { bookingId },

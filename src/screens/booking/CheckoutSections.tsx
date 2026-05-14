@@ -77,8 +77,8 @@ type CheckoutModalsProps = {
   closeServiceForModal: () => void;
   closePaymentModal: () => void;
   onServiceForConfirm: (value: 'self' | 'other') => void;
-  onPaymentMethodConfirm: (value: 'paypal' | 'stripe' | 'cash') => void;
-  paymentType: 'paypal' | 'stripe' | 'cash';
+  onPaymentMethodConfirm: (value: 'paypal' | 'stripe' | 'flutterwave' | 'cash') => void;
+  paymentType: 'paypal' | 'stripe' | 'flutterwave' | 'cash';
   paymentMode: PaymentModeKey;
 };
 
@@ -463,7 +463,7 @@ export const CheckoutModals = ({
         selectedPaymentMethod={paymentType}
         allowedMethods={
           paymentMode === 'online' || paymentMode === 'wallet_partial'
-            ? ['stripe', 'paypal']
+            ? ['stripe', 'paypal', 'flutterwave']
             : undefined
         }
       />

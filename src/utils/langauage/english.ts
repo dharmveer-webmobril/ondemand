@@ -906,8 +906,11 @@ export const english = {
       "paymentFailed": "Payment could not be started.",
       "paypalOneTitle": "PayPal",
       "paypalOneMessage": "PayPal completes one add-on at a time. We will charge the first selected add-on now. You can repeat for other add-ons.",
+      "webCheckoutOneTitle": "Web checkout",
+      "webCheckoutOneMessage": "This payment method completes one add-on at a time. We will charge the first selected add-on now. You can repeat for other add-ons.",
       "processingPayment": "Processing payment…",
-      "connectingPayPal": "Connecting to PayPal…"
+      "connectingPayPal": "Connecting to PayPal…",
+      "connectingFlutterwave": "Connecting to Flutterwave…"
     },
     "rateReview": {
       "sectionTitle": "Ratings & reviews",

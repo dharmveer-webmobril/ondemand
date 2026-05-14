@@ -25,7 +25,7 @@ export default function SplashScreen() {
   const dispatch = useAppDispatch();
   console.log('error------ 29', error);
 
-  /** Start GPS → reverse geocode → Redux early so Home has no visible lag (deduped). */
+  /** If location not set yet, resolve once (GPS or first saved address); otherwise leave as-is. */
   useEffect(() => {
     if (!token || !isAuthenticated) return;
     void ensureCurrentLocationHydrated(dispatch, queryClient, () => store.getState());

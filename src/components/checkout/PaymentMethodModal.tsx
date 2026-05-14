@@ -3,8 +3,9 @@ import { View, StyleSheet, Modal, Pressable } from 'react-native';
 import { useMemo, useState, useEffect } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons, Checkbox } from '@components/common';
+import { FLUTTERWAVE_PAYMENT_ENABLED } from '@services/payment/gatewayPayment';
 
-export type PaymentMethod = 'paypal' | 'stripe' | 'cash';
+export type PaymentMethod = 'paypal' | 'stripe' | 'flutterwave' | 'cash';
 
 type PaymentMethodModalProps = {
   visible: boolean;
@@ -17,9 +18,17 @@ type PaymentMethodModalProps = {
 
 const ALL_PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
   { id: 'paypal', label: 'PayPal' },
+  { id: 'flutterwave', label: 'Flutterwave' },
   { id: 'stripe', label: 'Stripe' },
   { id: 'cash', label: 'Pay Onsite' },
 ];
+
+function isPaymentMethodSelectable(methodId: PaymentMethod): boolean {
+  if (methodId === 'flutterwave' && !FLUTTERWAVE_PAYMENT_ENABLED) {
+    return false;
+  }
+  return true;
+}
 
 export default function PaymentMethodModal({
   visible,
@@ -32,26 +41,39 @@ export default function PaymentMethodModal({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(selectedPaymentMethod);
 
-  const paymentMethods = useMemo(
-    () =>
-      allowedMethods && allowedMethods.length > 0
-        ? ALL_PAYMENT_METHODS.filter((m) => allowedMethods.includes(m.id))
-        : ALL_PAYMENT_METHODS,
-    [allowedMethods],
-  );
+  const paymentMethods = useMemo(() => {
+    if (allowedMethods && allowedMethods.length > 0) {
+      return ALL_PAYMENT_METHODS.filter((m) => allowedMethods.includes(m.id));
+    }
+    return ALL_PAYMENT_METHODS;
+  }, [allowedMethods]);
 
-  const defaultMethod = paymentMethods[0]?.id ?? 'cash';
+  const defaultMethod = paymentMethods.find((m) => isPaymentMethodSelectable(m.id))?.id ?? 'cash';
 
   useEffect(() => {
-    if (visible) {
-      const validSelected = paymentMethods.some((m) => m.id === selectedPaymentMethod)
-        ? selectedPaymentMethod
-        : defaultMethod;
-      setSelectedMethod(validSelected);
+    if (!visible) {
+      return;
     }
-  }, [visible, selectedPaymentMethod, defaultMethod, paymentMethods]);
+    const inList = paymentMethods.some((m) => m.id === selectedPaymentMethod);
+    const selectable =
+      inList && isPaymentMethodSelectable(selectedPaymentMethod);
+    if (selectable) {
+      setSelectedMethod(selectedPaymentMethod);
+      return;
+    }
+    setSelectedMethod(defaultMethod);
+  }, [
+    visible,
+    selectedPaymentMethod,
+    defaultMethod,
+    paymentMethods,
+    FLUTTERWAVE_PAYMENT_ENABLED,
+  ]);
 
   const handleConfirm = () => {
+    if (!isPaymentMethodSelectable(selectedMethod)) {
+      return;
+    }
     onConfirm(selectedMethod);
     onClose();
   };
@@ -98,7 +120,8 @@ export default function PaymentMethodModal({
         <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
           <View style={styles.header}>
             <CustomText style={styles.title}>
-            {allowedMethods?.length === 2 && !allowedMethods.includes('cash')
+            {(allowedMethods?.length ?? 0) >= 2 &&
+            !allowedMethods?.includes('cash')
               ? 'Pay with card'
               : 'Select payment method'}
           </CustomText>
@@ -114,25 +137,40 @@ export default function PaymentMethodModal({
 
           <View style={styles.optionsContainer}>
             {paymentMethods.map((method) => {
+              const isDisabled = !isPaymentMethodSelectable(method.id);
               const isSelected = selectedMethod === method.id;
               return (
                 <Pressable
                   key={method.id}
+                  disabled={isDisabled}
                   style={[
                     styles.paymentOptionCard,
                     isSelected && styles.paymentOptionCardSelected,
+                    isDisabled && styles.paymentOptionCardDisabled,
                   ]}
                   onPress={() => setSelectedMethod(method.id)}
                 >
                   <View style={styles.paymentOptionContent}>
-                    {/* {renderPaymentIcon(method.id)} */}
-                    <CustomText style={styles.paymentOptionText}>{method.label}</CustomText>
+                    <CustomText
+                      style={[
+                        styles.paymentOptionText,
+                        isDisabled && styles.paymentOptionTextDisabled,
+                      ]}
+                    >
+                      {method.label}
+                    </CustomText>
                   </View>
-                  <Checkbox
-                    checked={isSelected}
-                    onChange={() => setSelectedMethod(method.id)}
-                    size={theme.SF(18)}
-                  />
+                  <View pointerEvents={isDisabled ? 'none' : 'auto'}>
+                    <Checkbox
+                      checked={isSelected}
+                      onChange={() => {
+                        if (!isDisabled) {
+                          setSelectedMethod(method.id);
+                        }
+                      }}
+                      size={theme.SF(18)}
+                    />
+                  </View>
                 </Pressable>
               );
             })}
@@ -199,6 +237,12 @@ const createStyles = (theme: ThemeType) => {
     paymentOptionCardSelected: {
       borderColor: Colors.primary,
       borderWidth: 1.5,
+    },
+    paymentOptionCardDisabled: {
+      opacity: 0.45,
+    },
+    paymentOptionTextDisabled: {
+      color: Colors.gray || '#888888',
     },
     paymentOptionContent: {
       flexDirection: 'row',

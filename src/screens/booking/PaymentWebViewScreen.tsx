@@ -33,6 +33,8 @@ type RouteParams = {
   returnParams: Record<string, any>;
   /** Use booking confirm vs additional-addon confirm API */
   paymentFlow?: 'booking' | 'additional_addon';
+  /** Which web checkout opened (header label only; success URLs are shared). */
+  webCheckoutGateway?: 'paypal' | 'flutterwave';
 };
 
 export default function PaymentWebViewScreen() {
@@ -58,7 +60,13 @@ export default function PaymentWebViewScreen() {
     returnRouteKey,
     returnParams = {},
     paymentFlow = 'booking',
+    webCheckoutGateway,
   } = (route.params || {}) as RouteParams;
+
+  const webViewTitle =
+    webCheckoutGateway === 'flutterwave'
+      ? 'Pay with Flutterwave'
+      : 'Pay with PayPal';
 
   const closeWithResult = useCallback(
     (
@@ -213,7 +221,7 @@ export default function PaymentWebViewScreen() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title="Pay with PayPal"
+        title={webViewTitle}
         onLeftPress={handleClose}
         backgroundColor={theme.colors.background}
         tintColor={theme.colors.text}

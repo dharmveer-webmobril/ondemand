@@ -7,9 +7,9 @@ import { queryClient } from '@services/api';
 import { store } from '@store/index';
 
 /**
- * Resolves `currentLocationAddress` with a fresh GPS read on mount and when
- * returning from background. Falls back to first saved address if GPS fails and
- * nothing is in Redux. Splash may start the same work earlier — de-duplicated.
+ * Ensures `currentLocationAddress` is set **once** when still null (Splash/Home first load,
+ * or resume from background while unset). Does not replace an existing address — user must
+ * change location via the picker. Logout clears the address.
  */
 export function useHomeCurrentAddress() {
   const dispatch = useAppDispatch();

@@ -264,7 +264,6 @@ export default function Home() {
         barStyle="light-content"
       />
       <View style={styles.container}>
-       
         <HomeHeader
           onCityUpdate={handleCityUpdate}
           onCityUpdateLoading={setIsCityUpdating}

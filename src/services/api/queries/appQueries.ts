@@ -941,7 +941,7 @@ export interface InitiateBookingPaymentRequest {
   bookingId: string;
   amount: number;
   /** Omitted for pure wallet settlement after create (server uses paymentMethod `wallet`). */
-  paymentGateway?: 'stripe' | 'paypal';
+  paymentGateway?: 'stripe' | 'paypal' | 'flutterwave';
   /** Mirrors create-booking payment mode: `wallet`, `wallet_partial`, `online`, etc. */
   paymentType?: string;
   paymentMethod: string;
@@ -1063,7 +1063,7 @@ export interface InitiateAdditionalAddonPaymentRequest {
   bookedServiceId: string;
   addonId: string;
   amount: number;
-  paymentGateway: 'stripe' | 'paypal';
+  paymentGateway: 'stripe' | 'paypal' | 'flutterwave';
   paymentMethod: string;
   platform: string;
 }

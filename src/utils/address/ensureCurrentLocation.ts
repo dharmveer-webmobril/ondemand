@@ -9,8 +9,9 @@ import { tryResolveLocationFromDevice } from './deviceLocation';
 let inflight: Promise<void> | null = null;
 
 /**
- * 1) Always tries fresh GPS + reverse geocode → `setCurrentLocationAddress` (lat/lng updated)
- * 2) If GPS fails, keeps existing Redux address if any; else first saved address from GET `/auth/customer/addresses`
+ * Sets `currentLocationAddress` only when it is still **null** (first open / first login).
+ * Does not overwrite after the user (or this flow) has set an address — user must change it
+ * via the location picker. If GPS fails and nothing is set, uses first saved address.
  * De-duplicated across Splash, Home, AppState resume, etc.
  */
 export async function ensureCurrentLocationHydrated(
@@ -24,13 +25,15 @@ export async function ensureCurrentLocationHydrated(
 
   inflight = (async () => {
     try {
+      if (getState().app.currentLocationAddress != null) {
+        return;
+      }
+
       const fromGps = await tryResolveLocationFromDevice();
       if (fromGps) {
         dispatch(setCurrentLocationAddress(fromGps));
         return;
       }
-
-      if (getState().app.currentLocationAddress != null) return;
 
       const data = await queryClient.fetchQuery({
         queryKey: ['customerAddresses'],

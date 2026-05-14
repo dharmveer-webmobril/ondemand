@@ -1,6 +1,16 @@
 import type { InitiateBookingPaymentRequest } from '@services/api/queries/appQueries';
 
-export type GatewayPaymentMethod = 'stripe' | 'paypal';
+export type GatewayPaymentMethod = 'stripe' | 'paypal' | 'flutterwave';
+
+/** When `false`, Flutterwave stays visible in the payment modal but cannot be selected; set `true` when backend is live. */
+export const FLUTTERWAVE_PAYMENT_ENABLED = false;
+
+/** PayPal and Flutterwave: server returns `redirectUrl` and the app completes payment in `PaymentWebViewScreen`. */
+export function isWebRedirectGateway(
+  g: GatewayPaymentMethod | string | undefined | null,
+): boolean {
+  return g === 'paypal' || g === 'flutterwave';
+}
 
 export interface PaymentResponseDetails {
   transactionId: string | null;
@@ -8,7 +18,7 @@ export interface PaymentResponseDetails {
   redirectUrl: string | null;
 }
 
-/** Parse initiate payment API response for transactionId, clientSecret (Stripe), redirectUrl (PayPal) */
+/** Parse initiate payment API response for transactionId, clientSecret (Stripe), redirectUrl (web checkout) */
 export function getPaymentResponseDetails(response: any): PaymentResponseDetails {
   const rd = response?.ResponseData;
   const transactionId =
@@ -57,7 +67,7 @@ export function isSuccessfulPaymentInitiation(response: any): boolean {
 export interface RunGatewayPaymentParams {
   bookingId: string;
   amount: number;
-  /** Omit for post–create wallet-only initiate (no Stripe/PayPal). */
+  /** Omit for post–create wallet-only initiate (no Stripe / web checkout). */
   paymentGateway?: GatewayPaymentMethod;
   /** Booking payment mode from checkout (required for `wallet_partial` initiate/confirm chain). */
   paymentType?: string;
@@ -65,7 +75,7 @@ export interface RunGatewayPaymentParams {
   paymentMethod?: string;
   /** Optional legacy: wallet leg id from create booking; if omitted, `wallet_partial` reads it from initiate response. */
   walletTransactionId?: string | null;
-  /** Required for PayPal: where to go after WebView and params to pass back (e.g. { bookingData }) */
+  /** Required for PayPal / Flutterwave WebView: where to go after checkout and params to pass back */
   returnTo?: string;
   returnRouteKey?: string;
   returnParams?: Record<string, any>;
@@ -78,7 +88,7 @@ export interface RunGatewayPaymentParams {
   failureMessage?: string;
 }
 
-/** Params passed to PaymentWebView screen for PayPal (payment URL + context for success/failure) */
+/** Params passed to PaymentWebView screen for PayPal / Flutterwave (payment URL + context for success/failure) */
 export interface PaymentWebViewParams {
   paymentUrl: string;
   bookingId: string;

@@ -65,9 +65,9 @@ export default function Checkout() {
   const [paymentMode, setPaymentMode] = useState<PaymentModeKey>(
     draft?.paymentMode ?? 'cash',
   );
-  const [paymentType, setPaymentType] = useState<'paypal' | 'stripe' | 'cash'>(
-    draft?.paymentType ?? 'cash',
-  );
+  const [paymentType, setPaymentType] = useState<
+    'paypal' | 'stripe' | 'flutterwave' | 'cash'
+  >(draft?.paymentType ?? 'cash');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [walletPartialAmount, setWalletPartialAmount] = useState(
     draft?.walletPartialAmount ?? '',
@@ -317,7 +317,7 @@ export default function Checkout() {
       runGatewayPayment(navigation, {
         bookingId,
         amount: totalPrice,
-        paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal',
+        paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal' | 'flutterwave',
         paymentType: paymentMode,
         paymentMethod: 'card',
         walletAmountUsed,
@@ -484,7 +484,9 @@ export default function Checkout() {
     }
   };
 
-  const handlePaymentMethodConfirm = (selectedPaymentMethod: 'paypal' | 'stripe' | 'cash') => {
+  const handlePaymentMethodConfirm = (
+    selectedPaymentMethod: 'paypal' | 'stripe' | 'flutterwave' | 'cash',
+  ) => {
     setPaymentType(selectedPaymentMethod);
     setShowPaymentModal(false);
 

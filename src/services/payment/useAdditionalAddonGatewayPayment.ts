@@ -8,10 +8,11 @@ import SCREEN_NAMES from '@navigation/ScreenNames';
 import {
   getPaymentResponseDetails,
   isSuccessfulPaymentInitiation,
+  isWebRedirectGateway,
 } from './gatewayPayment';
 import { Platform } from 'react-native';
 
-export type AdditionalAddonGateway = 'stripe' | 'paypal';
+export type AdditionalAddonGateway = 'stripe' | 'paypal' | 'flutterwave';
 
 export interface RunAdditionalAddonGatewayParams {
   bookedServiceId: string;
@@ -31,7 +32,7 @@ export interface RunAdditionalAddonGatewayParams {
 }
 
 /**
- * Stripe / PayPal flow for additional add-on payments (after POST …/additional-addon).
+ * Stripe / PayPal / Flutterwave flow for additional add-on payments (after POST …/additional-addon).
  * Mirrors booking gateway flow; confirm uses /payments/additional-addon/confirm.
  */
 export function useAdditionalAddonGatewayPayment() {
@@ -92,7 +93,6 @@ export function useAdditionalAddonGatewayPayment() {
       const { transactionId, clientSecret, redirectUrl } =
         getPaymentResponseDetails(initiateRes);
 
-        console.log('initiateRes----- useAdditionalAddonGatewayPayment', initiateRes);
       if (paymentGateway === 'stripe') {
         if (!clientSecret) {
           if (handleApiFailureResponse)
@@ -131,27 +131,27 @@ export function useAdditionalAddonGatewayPayment() {
         return;
       }
 
-      if (paymentGateway === 'paypal') {
+      if (isWebRedirectGateway(paymentGateway)) {
         if (!redirectUrl) {
           if (handleApiFailureResponse)
             handleApiFailureResponse(
-              { ResponseMessage: 'No redirect URL for PayPal' },
+              { ResponseMessage: 'No redirect URL for web checkout' },
               failureMessage,
             );
-          else onError(new Error('No redirect URL for PayPal'), bookedServiceId);
+          else onError(new Error('No redirect URL for web checkout'), bookedServiceId);
           return;
         }
         if (!transactionId) {
           if (handleApiFailureResponse)
             handleApiFailureResponse(
-              { ResponseMessage: 'No transaction for PayPal' },
+              { ResponseMessage: 'No transaction for web checkout' },
               failureMessage,
             );
-          else onError(new Error('No transaction for PayPal'), bookedServiceId);
+          else onError(new Error('No transaction for web checkout'), bookedServiceId);
           return;
         }
         if (!returnTo) {
-          onError(new Error('returnTo is required for PayPal'), bookedServiceId);
+          onError(new Error('returnTo is required for web checkout'), bookedServiceId);
           return;
         }
         navigation.navigate(SCREEN_NAMES.PAYMENT_WEBVIEW, {
@@ -164,7 +164,9 @@ export function useAdditionalAddonGatewayPayment() {
           returnRouteKey,
           returnParams,
           paymentFlow: 'additional_addon',
+          webCheckoutGateway: paymentGateway,
         });
+        return;
       }
     },
     [

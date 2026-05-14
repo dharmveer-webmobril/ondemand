@@ -10,7 +10,7 @@ import type { RunGatewayPaymentParams } from './gatewayPayment';
 import * as GatewayPayment from './gatewayPayment';
 
 /**
- * Booking / checkout payment: initiate → (Stripe sheet | PayPal WebView | wallet-only) → confirm.
+ * Booking / checkout payment: initiate → (Stripe sheet | PayPal / Flutterwave WebView | wallet-only) → confirm.
  * - Card (online / wallet_partial remainder): initiate with gateway → sheet/WebView → confirm.
  * - Full wallet after create: initiate without gateway, paymentMethod `wallet` → confirm with transactionId only.
  */
@@ -112,7 +112,7 @@ export function useGatewayPayment() {
         return confirmPayment(payload);
       };
 
-      if (paymentGateway === 'paypal' && redirectUrl) {
+      if (GatewayPayment.isWebRedirectGateway(paymentGateway) && redirectUrl) {
         if (paymentType === 'wallet_partial' && !effectiveWalletTransactionId) {
           onError(
             new Error(
@@ -125,16 +125,16 @@ export function useGatewayPayment() {
         if (!transactionId) {
           if (handleApiFailureResponse) {
             handleApiFailureResponse(
-              { ResponseMessage: 'No transaction for PayPal' },
+              { ResponseMessage: 'No transaction for web checkout' },
               failureMessage,
             );
           } else {
-            onError(new Error('No transaction for PayPal'), bookingId);
+            onError(new Error('No transaction for web checkout'), bookingId);
           }
           return;
         }
         if (!returnTo) {
-          onError(new Error('returnTo is required for PayPal'), bookingId);
+          onError(new Error('returnTo is required for web checkout'), bookingId);
           return;
         }
         navigation.navigate(SCREEN_NAMES.PAYMENT_WEBVIEW, {
@@ -146,6 +146,7 @@ export function useGatewayPayment() {
           returnTo,
           returnRouteKey,
           returnParams,
+          webCheckoutGateway: paymentGateway,
         });
         return;
       }

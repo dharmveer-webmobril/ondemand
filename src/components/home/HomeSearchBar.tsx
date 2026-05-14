@@ -1,4 +1,10 @@
-import { View, StyleSheet, Pressable, Image, TextInput } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Image,
+  TextInput,
+} from 'react-native';
 import  { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -56,21 +62,26 @@ export default function HomeSearchBar({
 }
 
 const createStyles = (theme: ThemeType) => {
-  const { colors: Colors, SF, SW, SH } = theme;
+  const { colors: Colors, SF, SW } = theme;
+  /** Filter drives row height; pull up by half for “half on header, half on content”. */
+  const rowH = SF(48);
+  const overlapHalf = rowH / 2;
   return StyleSheet.create({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: SW(20),
-      paddingTop: SH(12),
+      paddingTop: 0,
+      marginTop: -overlapHalf,
       gap: SW(12),
-      marginTop: -SH(30),
     },
     searchContainer: {
       flex: 1,
       backgroundColor: '#fff',
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: rowH,
       paddingLeft: theme.SF(10),
       borderRadius: theme.SF(10),
       shadowColor: '#000',

@@ -3,6 +3,10 @@ import { useEffect } from 'react'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 import { QueryClientProvider } from '@tanstack/react-query'
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context'
 import { StripeProvider } from '@stripe/stripe-react-native'
 import RootNavigator from './src/navigation/RootNavigator'
 import { StorageProvider, ThemeProvider } from '@utils/index';
@@ -41,20 +45,22 @@ const App = () => {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
-          <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-            <SocketProvider>
-              <View style={{ flex: 1 }}>
-                <ApplicationProvider {...eva} theme={eva.light}>
-                  <MenuProvider>
-                    <ThemeProvider>
-                      <RootNavigator />
-                    </ThemeProvider>
-                  </MenuProvider>
-                </ApplicationProvider>
-              </View>
-            </SocketProvider>
-            <Toast config={toastConfig} />
-          </StripeProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+              <SocketProvider>
+                <View style={{ flex: 1 }}>
+                  <ApplicationProvider {...eva} theme={eva.light}>
+                    <MenuProvider>
+                      <ThemeProvider>
+                        <RootNavigator />
+                      </ThemeProvider>
+                    </MenuProvider>
+                  </ApplicationProvider>
+                </View>
+              </SocketProvider>
+              <Toast config={toastConfig} />
+            </StripeProvider>
+          </SafeAreaProvider>
         </QueryClientProvider>
       </PersistGate>
     </Provider>

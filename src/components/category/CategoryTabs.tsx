@@ -39,7 +39,7 @@ export default function CategoryTabs({
           flatListRef.current?.scrollToIndex({
             index,
             animated: true,
-            viewPosition: 0, // Scroll to show at the start (left side)
+            viewPosition: 0.05, // Scroll to show at the start (left side)
           });
         }, 200);
       }
