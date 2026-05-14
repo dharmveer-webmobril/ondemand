@@ -61,5 +61,48 @@ target 'Squedio' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # {fmt} 11.x + Apple Clang (newer Xcode): "call to consteval function ... is not a constant
+    # expression" in basic_format_string. fmt 12.1+ honors -DFMT_USE_CONSTEVAL=0; RN 0.82 pins fmt
+    # 11.0.2 which does not, so patch the vendored header once per pod install.
+    fmt_base = File.join(installer.sandbox.root, 'fmt', 'include', 'fmt', 'base.h')
+    if File.exist?(fmt_base)
+      contents = File.read(fmt_base)
+      marker = 'Squedio_FMT_APPLE_CONSTEVAL_OFF'
+      unless contents.include?(marker)
+        old = "#elif defined(__cpp_consteval)\n#  define FMT_USE_CONSTEVAL 1\n"
+        new = <<~PATCH
+          #elif defined(__cpp_consteval)
+          #  if defined(__apple_build_version__)  // #{marker}
+          #    define FMT_USE_CONSTEVAL 0
+          #  else
+          #    define FMT_USE_CONSTEVAL 1
+          #  endif
+        PATCH
+        if contents.include?(old)
+          File.chmod(0644, fmt_base)
+          File.write(fmt_base, contents.sub(old, new))
+          Pod::UI.puts 'Patched fmt: disabled consteval for Apple Clang (Xcode / {fmt} workaround)'.green
+        else
+          Pod::UI.warn 'fmt consteval workaround skipped: consteval block in base.h not found (fmt version changed?)'
+        end
+      end
+    end
+
+    # @stripe/stripe-react-native < 0.61: StripeSwiftInterop.h used NS_ENUM(NSUInteger, STPPaymentStatus)
+    # while Swift exposes NSInteger — Xcode 26+ errors with "Enumeration redeclared with different underlying type".
+    # Fixed upstream in 0.61.0; keep this for older resolved versions.
+    stripe_interop = File.join(__dir__, '..', 'node_modules', '@stripe', 'stripe-react-native', 'ios', 'StripeSwiftInterop.h')
+    if File.exist?(stripe_interop)
+      si = File.read(stripe_interop)
+      if si.include?('typedef NS_ENUM(NSUInteger, STPPaymentStatus);')
+        si = si.sub(
+          'typedef NS_ENUM(NSUInteger, STPPaymentStatus);',
+          'typedef NS_ENUM(NSInteger, STPPaymentStatus);'
+        )
+        File.write(stripe_interop, si)
+        Pod::UI.puts 'Patched StripeSwiftInterop.h: STPPaymentStatus uses NSInteger (Xcode 26+ / Stripe RN)'.green
+      end
+    end
   end
 end

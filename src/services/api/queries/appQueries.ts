@@ -202,6 +202,7 @@ export const useGetServiceProviders = (params: any) => {
     minRating,
     maxDistance,
     sortBy,
+    enabled = true,
   } = params;
 
   // Normalize query key - use null instead of undefined for consistent caching
@@ -301,6 +302,7 @@ export const useGetServiceProviders = (params: any) => {
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchOnReconnect: false, // Don't refetch on reconnect
+    enabled,
   });
 };
 
@@ -699,6 +701,7 @@ export const useLogout = () => {
 
 // Booking interfaces
 export interface CreateBookingRequest {
+  _id?: string;
   spId: string;
   services: Array<{
     serviceId: string;
@@ -718,6 +721,8 @@ export interface CreateBookingRequest {
   paymentType: string;
   remark?: string;
   preferences: string[];
+  /** Sent only for full wallet checkout when the API expects the amount to reserve. */
+  walletAmountUsed?: number;
 }
 
 export interface CreateBookingResponse {
@@ -936,9 +941,12 @@ export interface InitiateBookingPaymentRequest {
   bookingId: string;
   amount: number;
   paymentGateway: 'stripe' | 'paypal';
+  /** Mirrors create-booking payment mode: `wallet`, `wallet_partial`, `online`, etc. */
+  paymentType?: string;
   paymentMethod: string;
   useWallet: boolean;
   walletAmount?: number;
+  platform?: string;
 }
 
 export interface InitiateBookingPaymentResponse {

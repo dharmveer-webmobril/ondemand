@@ -9,7 +9,12 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Container, AppHeader, CustomText, VectoreIcons } from '@components/common';
+import {
+  Container,
+  AppHeader,
+  CustomText,
+  VectoreIcons,
+} from '@components/common';
 import { WithdrawRequestForm } from '@components';
 import { useThemeContext } from '@utils/theme';
 import {
@@ -63,7 +68,8 @@ function extractTransactionRows(resp: any): WalletTransaction[] {
   const rd = resp?.ResponseData;
   if (Array.isArray(rd)) return rd as WalletTransaction[];
   if (Array.isArray(rd?.data)) return rd.data as WalletTransaction[];
-  if (Array.isArray(rd?.transactions)) return rd.transactions as WalletTransaction[];
+  if (Array.isArray(rd?.transactions))
+    return rd.transactions as WalletTransaction[];
   return [];
 }
 
@@ -91,7 +97,10 @@ function settlementPages(resp: any): number {
   return 0;
 }
 
-function statusLabel(item: WalletTransaction, t: (k: string) => string): string {
+function statusLabel(
+  item: WalletTransaction,
+  t: (k: string) => string,
+): string {
   if (item.isRefund) return t('wallet.statusRefund');
   const s = (item.status || '').toLowerCase();
   if (s === 'completed') return t('wallet.filterCompleted');
@@ -100,18 +109,34 @@ function statusLabel(item: WalletTransaction, t: (k: string) => string): string 
 
 function txPillStyle(item: WalletTransaction, theme: any) {
   if (item.isRefund)
-    return { bg: 'rgba(19, 93, 150, 0.12)', color: theme.colors.primary || '#135D96' };
+    return {
+      bg: 'rgba(19, 93, 150, 0.12)',
+      color: theme.colors.primary || '#135D96',
+    };
   return settlementStatusStyle(item.status, theme);
 }
 
 function settlementStatusStyle(status: string, theme: any) {
   const s = (status || '').toLowerCase();
   if (s === 'approved' || s === 'processed' || s === 'completed')
-    return { bg: 'rgba(34,197,94,0.12)', color: theme.colors.success || '#16a34a' };
-  if (s === 'pending') return { bg: 'rgba(234,179,8,0.15)', color: theme.colors.warning || '#ca8a04' };
+    return {
+      bg: 'rgba(34,197,94,0.12)',
+      color: theme.colors.success || '#16a34a',
+    };
+  if (s === 'pending')
+    return {
+      bg: 'rgba(234,179,8,0.15)',
+      color: theme.colors.warning || '#ca8a04',
+    };
   if (s === 'rejected' || s === 'failed')
-    return { bg: 'rgba(239,68,68,0.12)', color: theme.colors.error || '#dc2626' };
-  return { bg: 'rgba(19,93,150,0.12)', color: theme.colors.primary || '#135D96' };
+    return {
+      bg: 'rgba(239,68,68,0.12)',
+      color: theme.colors.error || '#dc2626',
+    };
+  return {
+    bg: 'rgba(19,93,150,0.12)',
+    color: theme.colors.primary || '#135D96',
+  };
 }
 
 type FieldRowProps = {
@@ -123,9 +148,18 @@ type FieldRowProps = {
   isLast?: boolean;
 };
 
-function SettlementFieldRow({ icon, label, value, theme, styles, isLast }: FieldRowProps) {
+function SettlementFieldRow({
+  icon,
+  label,
+  value,
+  theme,
+  styles,
+  isLast,
+}: FieldRowProps) {
   return (
-    <View style={[styles.settlementField, isLast && styles.settlementFieldLast]}>
+    <View
+      style={[styles.settlementField, isLast && styles.settlementFieldLast]}
+    >
       <View style={styles.settlementFieldIcon}>
         <VectoreIcons
           name={icon}
@@ -152,14 +186,22 @@ export default function WalletScreen() {
 
   const [activeTab, setActiveTab] = useState<WalletTab>('transactions');
   const [page, setPage] = useState(1);
-  const [transactionsList, setTransactionsList] = useState<WalletTransaction[]>([]);
+  const [transactionsList, setTransactionsList] = useState<WalletTransaction[]>(
+    [],
+  );
   const [settlementPage, setSettlementPage] = useState(1);
-  const [settlementList, setSettlementList] = useState<WithdrawRequestItem[]>([]);
-  const [settlementStatusFilter, setSettlementStatusFilter] = useState<string>('all');
+  const [settlementList, setSettlementList] = useState<WithdrawRequestItem[]>(
+    [],
+  );
+  const [settlementStatusFilter, setSettlementStatusFilter] =
+    useState<string>('all');
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  const { data: walletData, isLoading: loadingWallet, refetch: refetchWallet } =
-    useGetWallet();
+  const {
+    data: walletData,
+    isLoading: loadingWallet,
+    refetch: refetchWallet,
+  } = useGetWallet();
 
   const {
     data: transactionsData,
@@ -182,7 +224,8 @@ export default function WalletScreen() {
   } = useGetSettlementRequests({
     page: settlementPage,
     limit: SETTLEMENT_PAGE_SIZE,
-    status: settlementStatusFilter === 'all' ? undefined : settlementStatusFilter,
+    status:
+      settlementStatusFilter === 'all' ? undefined : settlementStatusFilter,
   });
 
   const { mutateAsync: requestWithdraw, isPending: submittingWithdraw } =
@@ -192,7 +235,9 @@ export default function WalletScreen() {
   const currency = res?.currency ?? 'USD';
   const balance = Number(res?.balance ?? res?.totalBalance ?? 0) || 0;
   const withdrawable =
-    Number(res?.withdrawableBalance ?? res?.withdrawableAmount ?? res?.balance ?? 0) || 0;
+    Number(
+      res?.withdrawableBalance ?? res?.withdrawableAmount ?? res?.balance ?? 0,
+    ) || 0;
   const totalCredited = Number(res?.totalCredited ?? 0) || 0;
   const totalUsed = Number(res?.totalUsed ?? 0) || 0;
   const totalSettled = Number(res?.totalSettled ?? 0) || 0;
@@ -201,7 +246,9 @@ export default function WalletScreen() {
   const pageTransactions = extractTransactionRows(transactionsData);
   const txTotalPages = txPages(transactionsData);
   const hasMoreTx =
-    txTotalPages > 0 ? page < txTotalPages : pageTransactions.length >= PAGE_SIZE;
+    txTotalPages > 0
+      ? page < txTotalPages
+      : pageTransactions.length >= PAGE_SIZE;
   const loadingMoreTx = isFetching && page > 1;
 
   const pageSettlements = extractSettlementRows(settlementData);
@@ -219,7 +266,9 @@ export default function WalletScreen() {
       setTransactionsList(prev => {
         if (pageTransactions.length === 0) return prev;
         const ids = new Set(prev.map(x => x._id || x.transactionId));
-        const next = pageTransactions.filter(x => !ids.has(x._id || x.transactionId));
+        const next = pageTransactions.filter(
+          x => !ids.has(x._id || x.transactionId),
+        );
         return next.length ? [...prev, ...next] : prev;
       });
     }
@@ -273,7 +322,9 @@ export default function WalletScreen() {
         setSettlementPage(1);
         setSettlementList([]);
         queryClient.invalidateQueries({ queryKey: ['customerWallet'] });
-        queryClient.invalidateQueries({ queryKey: ['customerSettlementRequests'] });
+        queryClient.invalidateQueries({
+          queryKey: ['customerSettlementRequests'],
+        });
         refetchWallet();
         refetchSettlement();
         setActiveTab('settlements');
@@ -285,7 +336,12 @@ export default function WalletScreen() {
   );
 
   const loadMoreTx = useCallback(() => {
-    if (!loadingMoreTx && hasMoreTx && !loadingTransactions && activeTab === 'transactions') {
+    if (
+      !loadingMoreTx &&
+      hasMoreTx &&
+      !loadingTransactions &&
+      activeTab === 'transactions'
+    ) {
       setPage(p => p + 1);
     }
   }, [loadingMoreTx, hasMoreTx, loadingTransactions, activeTab]);
@@ -326,13 +382,21 @@ export default function WalletScreen() {
                   credit ? styles.txAmountCredit : styles.txAmountDebit,
                 ]}
               >
-                {credit ? '+' : '−'}
+                {/* {credit ? '+' : '−'} */}
+                {item.status === 'completed' && item.isRefund && '+'}
+                {item.status === 'completed' && !item.isRefund && '-'}{' '}
                 {formatAmount(amt, cur)}
               </CustomText>
             </View>
-            <CustomText style={styles.txDateMuted}>{formatDate(item.createdAt)}</CustomText>
-            <View style={[styles.statusPill, { backgroundColor: pillStyle.bg }]}>
-              <CustomText style={[styles.statusPillText, { color: pillStyle.color }]}>
+            <CustomText style={styles.txDateMuted}>
+              {formatDate(item.createdAt)}
+            </CustomText>
+            <View
+              style={[styles.statusPill, { backgroundColor: pillStyle.bg }]}
+            >
+              <CustomText
+                style={[styles.statusPillText, { color: pillStyle.color }]}
+              >
                 {statusLabel(item, t)}
               </CustomText>
             </View>
@@ -359,13 +423,19 @@ export default function WalletScreen() {
           <View style={[styles.settlementHero, { borderLeftColor: st.color }]}>
             <View style={styles.settlementHeroTop}>
               <View style={styles.settlementAmountBlock}>
-                <CustomText style={styles.settlementAmountCaption}>{t('wallet.amount')}</CustomText>
+                <CustomText style={styles.settlementAmountCaption}>
+                  {t('wallet.amount')}
+                </CustomText>
                 <CustomText style={styles.settlementAmountHero}>
                   {formatAmount(Math.abs(item.amount), cur)}
                 </CustomText>
               </View>
-              <View style={[styles.settlementHeroPill, { backgroundColor: st.bg }]}>
-                <CustomText style={[styles.settlementHeroPillText, { color: st.color }]}>
+              <View
+                style={[styles.settlementHeroPill, { backgroundColor: st.bg }]}
+              >
+                <CustomText
+                  style={[styles.settlementHeroPillText, { color: st.color }]}
+                >
                   {item.status || '—'}
                 </CustomText>
               </View>
@@ -378,12 +448,16 @@ export default function WalletScreen() {
                 size={theme.SF(15)}
                 color={theme.colors.lightText || '#64748b'}
               />
-              <CustomText style={styles.settlementMetaText}>{formatDate(reqAt)}</CustomText>
+              <CustomText style={styles.settlementMetaText}>
+                {formatDate(reqAt)}
+              </CustomText>
             </View>
 
             {ext.requestId ? (
               <View style={styles.settlementIdCard}>
-                <CustomText style={styles.settlementIdLabel}>{t('wallet.requestId')}</CustomText>
+                <CustomText style={styles.settlementIdLabel}>
+                  {t('wallet.requestId')}
+                </CustomText>
                 <CustomText style={styles.settlementIdValue} selectable>
                   {ext.requestId}
                 </CustomText>
@@ -392,7 +466,9 @@ export default function WalletScreen() {
           </View>
 
           <View style={styles.settlementBankSection}>
-            <CustomText style={styles.settlementSectionTitle}>{t('wallet.bankDetailsSection')}</CustomText>
+            <CustomText style={styles.settlementSectionTitle}>
+              {t('wallet.bankDetailsSection')}
+            </CustomText>
             <SettlementFieldRow
               icon="business-outline"
               label={t('wallet.bankName')}
@@ -455,7 +531,9 @@ export default function WalletScreen() {
                 />
               </View>
               <View style={styles.heroTextCol}>
-                <CustomText style={styles.heroLabel}>{t('wallet.availableBalance')}</CustomText>
+                <CustomText style={styles.heroLabel}>
+                  {t('wallet.availableBalance')}
+                </CustomText>
                 {loadingWallet ? (
                   <ActivityIndicator
                     size="small"
@@ -464,8 +542,12 @@ export default function WalletScreen() {
                   />
                 ) : (
                   <>
-                    <CustomText style={styles.heroAmount}>{formatAmount(balance, currency)}</CustomText>
-                    <CustomText style={styles.heroCurrency}>{currency}</CustomText>
+                    <CustomText style={styles.heroAmount}>
+                      {formatAmount(balance, currency)}
+                    </CustomText>
+                    <CustomText style={styles.heroCurrency}>
+                      {currency}
+                    </CustomText>
                   </>
                 )}
               </View>
@@ -481,7 +563,9 @@ export default function WalletScreen() {
                 size={theme.SF(18)}
                 color={theme.colors.primary || '#135D96'}
               />
-              <CustomText style={styles.heroCtaText}>{t('wallet.requestWithdrawal')}</CustomText>
+              <CustomText style={styles.heroCtaText}>
+                {t('wallet.requestWithdrawal')}
+              </CustomText>
             </TouchableOpacity>
           </View>
         </View>
@@ -491,8 +575,12 @@ export default function WalletScreen() {
             <View key={row.labelKey}>
               {index > 0 ? <View style={styles.summaryDivider} /> : null}
               <View style={styles.kvRow}>
-                <CustomText style={styles.kvLabel}>{t(row.labelKey)}</CustomText>
-                <CustomText style={styles.kvValue}>{formatAmount(row.value, currency)}</CustomText>
+                <CustomText style={styles.kvLabel}>
+                  {t(row.labelKey)}
+                </CustomText>
+                <CustomText style={styles.kvValue}>
+                  {formatAmount(row.value, currency)}
+                </CustomText>
               </View>
             </View>
           ))}
@@ -500,7 +588,10 @@ export default function WalletScreen() {
 
         <View style={styles.tabBar}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'transactions' && styles.tabActive]}
+            style={[
+              styles.tab,
+              activeTab === 'transactions' && styles.tabActive,
+            ]}
             onPress={() => setActiveTab('transactions')}
             activeOpacity={0.75}
           >
@@ -514,12 +605,18 @@ export default function WalletScreen() {
             </CustomText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'settlements' && styles.tabActive]}
+            style={[
+              styles.tab,
+              activeTab === 'settlements' && styles.tabActive,
+            ]}
             onPress={() => setActiveTab('settlements')}
             activeOpacity={0.75}
           >
             <CustomText
-              style={[styles.tabText, activeTab === 'settlements' && styles.tabTextActive]}
+              style={[
+                styles.tabText,
+                activeTab === 'settlements' && styles.tabTextActive,
+              ]}
             >
               {t('wallet.tabSettlementRequests')}
             </CustomText>
@@ -557,7 +654,10 @@ export default function WalletScreen() {
                 activeOpacity={0.75}
               >
                 <CustomText
-                  style={[styles.filterChipText, active && styles.filterChipTextActive]}
+                  style={[
+                    styles.filterChipText,
+                    active && styles.filterChipTextActive,
+                  ]}
                 >
                   {t(item.labelKey)}
                 </CustomText>
@@ -567,20 +667,11 @@ export default function WalletScreen() {
         />
       </View>
     ),
-    [
-      handleSettlementFilterChange,
-      settlementStatusFilter,
-      styles,
-      t,
-    ],
+    [handleSettlementFilterChange, settlementStatusFilter, styles, t],
   );
 
   const transactionsHeader = useMemo(
-    () => (
-      <>
-        {ListHeaderShared}
-      </>
-    ),
+    () => <>{ListHeaderShared}</>,
     [ListHeaderShared],
   );
 
@@ -629,13 +720,17 @@ export default function WalletScreen() {
             <View style={styles.flexFill}>
               {transactionsHeader}
               <View style={styles.centerLoader}>
-                <CustomText style={styles.emptyText}>{t('wallet.loadError')}</CustomText>
+                <CustomText style={styles.emptyText}>
+                  {t('wallet.loadError')}
+                </CustomText>
               </View>
             </View>
           ) : (
             <FlatList
               data={transactionsList}
-              keyExtractor={item => item._id || item.transactionId || String(Math.random())}
+              keyExtractor={item =>
+                item._id || item.transactionId || String(Math.random())
+              }
               renderItem={renderTransaction}
               ListHeaderComponent={transactionsHeader}
               ListFooterComponent={
@@ -660,11 +755,16 @@ export default function WalletScreen() {
               ListEmptyComponent={
                 loadingTransactions && page === 1 ? (
                   <View style={styles.emptyTxWrap}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <ActivityIndicator
+                      size="large"
+                      color={theme.colors.primary}
+                    />
                   </View>
                 ) : (
                   <View style={styles.emptyTxWrap}>
-                    <CustomText style={styles.emptyText}>{t('wallet.noTransactions')}</CustomText>
+                    <CustomText style={styles.emptyText}>
+                      {t('wallet.noTransactions')}
+                    </CustomText>
                   </View>
                 )
               }
@@ -698,7 +798,10 @@ export default function WalletScreen() {
             ListEmptyComponent={
               loadingSettlement && settlementPage === 1 ? (
                 <View style={styles.emptyTxWrap}>
-                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <ActivityIndicator
+                    size="large"
+                    color={theme.colors.primary}
+                  />
                 </View>
               ) : (
                 <View style={styles.infoBanner}>
@@ -708,7 +811,9 @@ export default function WalletScreen() {
                     size={theme.SF(22)}
                     color={theme.colors.primary || '#135D96'}
                   />
-                  <CustomText style={styles.infoBannerText}>{t('wallet.noSettlementRequests')}</CustomText>
+                  <CustomText style={styles.infoBannerText}>
+                    {t('wallet.noSettlementRequests')}
+                  </CustomText>
                 </View>
               )
             }
@@ -1156,4 +1261,3 @@ const createStyles = (theme: any) =>
       alignItems: 'center',
     },
   });
-

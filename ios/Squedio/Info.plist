@@ -53,6 +53,8 @@
 	<string>Squedio needs your location to provide personalized services while using the app.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Squedio needs access to your microphone for audio recording. Your recordings will not be shared without your permission.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Squedio uses speech recognition to turn your voice into text when you use quick voice input.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>App needs access to save images to your gallery</string>
 	<key>NSPhotoLibraryUsageDescription</key>

@@ -1,8 +1,8 @@
 import React,{ useState, useCallback, useEffect, useMemo } from 'react';
-import { StatusBar, View, StyleSheet, Platform } from 'react-native';
+import { StatusBar, View, StyleSheet, Platform, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { HomeHeader, HomeMainList, HomeSearchBar } from '@components';
+import { HomeHeader, HomeMainList, HomeSearchBar, VectoreIcons } from '@components';
 import { SCREEN_NAMES } from '@navigation/ScreenNames';
 import { useDisableGestures, useHomeCurrentAddress } from '@utils/hooks';
 import {
@@ -19,12 +19,15 @@ import {
 import { useAppSelector } from '@store/hooks';
 import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
 import { updateFcmToken } from '@services/api/queries/authQueries';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useThemeContext } from '@utils/theme';
 
 export default function Home() {
   useDisableGestures();
   useHomeCurrentAddress();
   const navigation = useNavigation<any>();
+  const theme = useThemeContext();
+  const insets = useSafeAreaInsets();
 
   const { t } = useTranslation();
   const authToken = useAppSelector(state => state.auth.token);
@@ -305,6 +308,28 @@ export default function Home() {
           topRatedProvidersError={topRatedProvidersError}
           onRetryTopRatedProviders={refetchTopRatedProviders}
         />
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('home.quickVoiceTitle')}
+          onPress={() => navigation.navigate(SCREEN_NAMES.HOME_QUICK_VOICE)}
+          style={({ pressed }) => [
+            styles.quickChatFab,
+            {
+              bottom: insets.bottom + theme.SH(75) + theme.SH(12),
+              right: theme.SW(16),
+              backgroundColor: theme.colors.primary,
+            },
+            pressed && { opacity: 0.9 },
+          ]}
+        >
+          <VectoreIcons
+            icon="Ionicons"
+            name="chatbubbles"
+            size={theme.SF(26)}
+            color={theme.colors.white}
+          />
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -318,5 +343,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  quickChatFab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 50,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
 });

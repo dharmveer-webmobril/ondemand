@@ -33,6 +33,8 @@ type CategoryProvidersRouteParams = {
   category?: Category;
   resetSession?: boolean;
   openFilters?: boolean;
+  /** Seed search bar when opening from assistant / deep link */
+  initialSearch?: string;
 };
 
 export default function CategoryProviders() {
@@ -90,7 +92,7 @@ export default function CategoryProviders() {
     useCallback(() => {
       const p = (route.params || {}) as CategoryProvidersRouteParams;
       if (p.resetSession) {
-        setSearchQuery('');
+        setSearchQuery(p.initialSearch?.trim() ?? '');
         setAppliedMinRating('');
         setAppliedMaxDistance('');
         setAppliedSortBy('rating');
@@ -106,6 +108,7 @@ export default function CategoryProviders() {
         (navigation as any).setParams({
           resetSession: undefined,
           openFilters: undefined,
+          initialSearch: undefined,
         });
         if (p.openFilters) {
           requestAnimationFrame(() => setFilterModalVisible(true));

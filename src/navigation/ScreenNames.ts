@@ -58,6 +58,8 @@ export const SCREEN_NAMES = {
   LANGUAGE_SETTINGS: 'LanguageSettings',
   MULTI_LANGUAGE_CURRENCY: 'MultiLanguageCurrency',
   FAVORITE_PROVIDERS: 'FavoriteProviders',
+  /** Home → voice + assistant search for services / providers */
+  HOME_QUICK_VOICE: 'HomeQuickVoice',
 } as const;
 export default SCREEN_NAMES;
 // Type for screen names

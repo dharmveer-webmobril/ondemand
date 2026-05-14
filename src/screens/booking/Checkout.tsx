@@ -25,7 +25,6 @@ import {
   OtherPersonDetails,
   PaymentModeKey,
   buildBookingPayload,
-  getGatewayChargeAmount,
   getRemainingAfterWallet,
   getWalletPartialAmount,
   hasInvalidPartialWalletAmount,
@@ -313,25 +312,19 @@ export default function Checkout() {
 
     await localStorage.saveItem('bookingId', bookingId as string);
 
-    const amountToCharge = getGatewayChargeAmount(
-      selectedPaymentMethod,
-      paymentMode,
-      remainingAfterWallet,
-      totalPrice,
-    );
+    const gatewayChargeTotal = paymentMode === 'wallet_partial' ? remainingAfterWallet : totalPrice;
 
-    if (shouldUseGatewayPayment(selectedPaymentMethod) && amountToCharge > 0) {
-      const walletTransactionId =
-        paymentMode === 'wallet_partial'
-          ? response?.ResponseData?.walletTransaction?.transactionId ||
+    if (shouldUseGatewayPayment(selectedPaymentMethod) && gatewayChargeTotal > 0) {
+      const walletTransactionId =  paymentMode === 'wallet_partial' ? response?.ResponseData?.walletTransaction?.transactionId ||
             response?.ResponseData?.walletTransactionId ||
             null
           : null;
 
       runGatewayPayment(navigation, {
         bookingId,
-        amount: totalPrice,
+        amount: gatewayChargeTotal,
         paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal',
+        paymentType: paymentMode,
         walletAmountUsed,
         walletTransactionId,
         returnTo: SCREEN_NAMES.CHECKOUT,
@@ -378,9 +371,6 @@ export default function Checkout() {
     selectedPaymentMethod: BookingPaymentMethod,
     walletAmountUsed: number = 0,
   ) => {
-
-    let bookingId = await localStorage.getItem('bookingId');
-    
     const payload = buildBookingPayload({
       bookingData,
       selectedServices,
@@ -389,7 +379,7 @@ export default function Checkout() {
       otherPersonDetails,
       paymentMode,
       walletAmountUsed,
-      bookingId,
+      bookingId: undefined,
     });
 
     console.log('Final Booking Data:', JSON.stringify(payload, null, 2));

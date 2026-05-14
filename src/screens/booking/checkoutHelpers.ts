@@ -162,6 +162,14 @@ export const buildBookingPayload = ({
   walletAmountUsed,
   bookingId,
 }: BuildBookingPayloadParams) => {
+  const remark =
+    typeof bookingData?.remark === 'string' && bookingData.remark.trim() !== ''
+      ? bookingData.remark.trim()
+      : undefined;
+
+  // Create-booking API: wallet / wallet_partial match server shape (wallet split happens on initiate).
+  const includeWalletOnCreate =  paymentMode === 'wallet' && walletAmountUsed > 0 ? walletAmountUsed : undefined;
+
   return {
     ...(bookingId ? { _id: bookingId } : {}),
     spId: bookingData?.providerData?._id,
@@ -181,7 +189,10 @@ export const buildBookingPayload = ({
     date: bookingData?.date,
     time: bookingData?.timeSlot,
     paymentType: paymentMode,
-    walletAmountUsed: walletAmountUsed > 0 ? walletAmountUsed : undefined,
+    ...(remark != null ? { remark } : {}),
+    ...(includeWalletOnCreate != null
+      ? { walletAmountUsed: includeWalletOnCreate }
+      : {}),
     preferences: [bookingData?.deliveryMode],
   };
 };

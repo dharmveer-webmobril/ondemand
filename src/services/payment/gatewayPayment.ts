@@ -39,6 +39,8 @@ export interface RunGatewayPaymentParams {
   bookingId: string;
   amount: number;
   paymentGateway: GatewayPaymentMethod;
+  /** Booking payment mode from checkout (required for `wallet_partial` initiate/confirm chain). */
+  paymentType?: string;
   walletAmountUsed?: number;
   paymentMethod?: string;
   /** When wallet_partial: send this in confirm instead of bookingId (for both Stripe and PayPal) */
