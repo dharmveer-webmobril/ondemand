@@ -1,4 +1,11 @@
-import { View, StyleSheet, Modal, Pressable, FlatList, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Modal,
+  Pressable,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
 import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -6,6 +13,7 @@ import { CustomText, CustomButton, VectoreIcons } from '@components/common';
 import { useGetCustomerAddresses } from '@services/index';
 import { useNavigation } from '@react-navigation/native';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Address = {
   _id: string;
@@ -38,16 +46,14 @@ export default function AddressSelectionModal({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const [selectedId, setSelectedId] = useState<string | undefined>(selectedAddressId);
+  const [selectedId, setSelectedId] = useState<string | undefined>(
+    selectedAddressId,
+  );
 
-  const {
-    data: addressesData,
-    isLoading,
-    refetch,
-  } = useGetCustomerAddresses();
+  const { data: addressesData, isLoading, refetch } = useGetCustomerAddresses();
 
   const addresses = addressesData?.ResponseData || [];
-  const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0];
+  const defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0];
 
   // Set default address when modal opens
   useEffect(() => {
@@ -61,7 +67,7 @@ export default function AddressSelectionModal({
   };
 
   const handleConfirm = () => {
-    const selectedAddress = addresses.find((addr) => addr._id === selectedId);
+    const selectedAddress = addresses.find(addr => addr._id === selectedId);
     if (selectedAddress) {
       onConfirm(selectedAddress);
       onClose();
@@ -69,9 +75,12 @@ export default function AddressSelectionModal({
   };
 
   const handleAddNewAddress = () => {
-    navigation.navigate(SCREEN_NAMES.ADD_ADDRESS as never, { 
-      addData: null,
-    } as never);
+    navigation.navigate(
+      SCREEN_NAMES.ADD_ADDRESS as never,
+      {
+        addData: null,
+      } as never,
+    );
   };
 
   // Refetch addresses when modal becomes visible
@@ -137,58 +146,72 @@ export default function AddressSelectionModal({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <CustomText style={styles.title}>Select Address</CustomText>
-              <Pressable onPress={onClose} style={styles.closeButton}>
-                <VectoreIcons
-                  name="close"
-                  icon="Ionicons"
-                  size={theme.SF(24)}
-                  color={theme.colors.text}
-                />
-              </Pressable>
-            </View>
-
-            <Pressable style={styles.addButton} onPress={handleAddNewAddress}>
-              <CustomText style={styles.addButtonText}>+ Add New Address</CustomText>
-            </Pressable>
-
-            {isLoading ? (
-              <View style={styles.loaderContainer}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
-                <CustomText style={styles.loaderText}>Loading addresses...</CustomText>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={styles.content}>
+              <View style={styles.header}>
+                <CustomText style={styles.title}>Select Address</CustomText>
+                <Pressable onPress={onClose} style={styles.closeButton}>
+                  <VectoreIcons
+                    name="close"
+                    icon="Ionicons"
+                    size={theme.SF(24)}
+                    color={theme.colors.text}
+                  />
+                </Pressable>
               </View>
-            ) : addresses.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <CustomText style={styles.emptyText}>No addresses found</CustomText>
-                <CustomText style={styles.emptySubtext}>
-                  Please add an address to continue
+
+              <Pressable style={styles.addButton} onPress={handleAddNewAddress}>
+                <CustomText style={styles.addButtonText}>
+                  + Add New Address
                 </CustomText>
-              </View>
-            ) : (
-              <FlatList
-                data={addresses}
-                keyExtractor={(item) => item._id}
-                renderItem={renderAddressItem}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
+              </Pressable>
 
-            <CustomButton
-              title={t('category.confirm') || 'Confirm'}
-              onPress={handleConfirm}
-              buttonStyle={styles.confirmButton}
-              backgroundColor={theme.colors.primary}
-              textColor={theme.colors.whitetext}
-              disable={!selectedId || addresses.length === 0}
-            />
-          </View>
+              {isLoading ? (
+                <View style={styles.loaderContainer}>
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.colors.primary}
+                  />
+                  <CustomText style={styles.loaderText}>
+                    Loading addresses...
+                  </CustomText>
+                </View>
+              ) : addresses.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <CustomText style={styles.emptyText}>
+                    No addresses found
+                  </CustomText>
+                  <CustomText style={styles.emptySubtext}>
+                    Please add an address to continue
+                  </CustomText>
+                </View>
+              ) : (
+                <FlatList
+                  data={addresses}
+                  keyExtractor={item => item._id}
+                  renderItem={renderAddressItem}
+                  contentContainerStyle={styles.listContent}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+
+              <CustomButton
+                title={t('category.confirm') || 'Confirm'}
+                onPress={handleConfirm}
+                buttonStyle={styles.confirmButton}
+                backgroundColor={theme.colors.primary}
+                textColor={theme.colors.whitetext}
+                disable={!selectedId || addresses.length === 0}
+              />
+            </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

@@ -1,19 +1,68 @@
-import { View, StyleSheet, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native';
-import { useMemo, useState, useCallback } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Calendar, DateData } from 'react-native-calendars';
-import { Container, AppHeader, CustomText, CustomButton, showToast, CalendarArrow, VectoreIcons } from '@components/common';
+import {
+  AppHeader,
+  CustomText,
+  CustomButton,
+  showToast,
+  SweetAlert,
+} from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { useGetServiceProviderAvailability, useGetServiceProviderServices } from '@services/index';
-import { generateTimeSlots } from '@utils/timeSlotUtils';
+import { useGetServiceProviderServices } from '@services/index';
 import ServiceSelectionModal from '@components/provider/ServiceSelectionModal';
 import AddOnSelectionModal from '@components/provider/AddOnSelectionModal';
 import ServiceCart from '@components/provider/ServiceCart';
+import BookAppointmentDateTimeModal from '@components/provider/BookAppointmentDateTimeModal';
+import BookAppointmentPreferenceRow from '@components/provider/BookAppointmentPreferenceRow';
+import BookAppointmentBookingTypeSelector, {
+  type BookingType,
+} from '@components/provider/BookAppointmentBookingTypeSelector';
+import RoutineHowItWorksSection from '@components/provider/RoutineHowItWorksSection';
+import VolumeDiscountTiersSection from '@components/provider/VolumeDiscountTiersSection';
+import BookAppointmentSessionSection from '@components/provider/BookAppointmentSessionSection';
+import RoutinePackageSummaryCard from '@components/provider/RoutinePackageSummaryCard';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  ROUTINE_MIN_SESSIONS,
+  ROUTINE_MAX_SESSIONS,
+  ROUTINE_MAX_DAYS_AHEAD,
+  type RoutineSession,
+  getVolumeDiscountForSessionCount,
+  applyVolumeDiscount,
+  addDaysToDateString,
+  formatDateDisplay,
+} from '@utils/routineVolumeDiscount';
+import {
+  isCartRoutineEligible,
+  isServiceRoutineEnabled,
+  getAggregatedRoutineLimits,
+  getDiscountTiersForServices,
+  getRoutineMinDateString,
+  getRoutineAdvanceNoticeMs,
+  shouldRestrictServicePickerToRoutine,
+  serviceSupportsDeliveryPreference,
+  catalogOffersRoutineBooking,
+  getNonRoutineServicesInCart,
+} from '@utils/serviceRoutineConfig';
 
-// Format date to YYYY-MM-DD
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const formatDateToString = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -27,36 +76,27 @@ export default function BookAppointment() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { bookingDetails, providerId, selectedServices, providerData } = route?.params;
+  const { bookingDetails, providerId, selectedServices, providerData } =
+    route?.params ?? {};
+
   const {
     data: servicesData,
     isLoading: isLoadingServices,
-    refetch: refetchServices
-  } = useGetServiceProviderServices(providerId, bookingDetails.deliveryMode);
+    refetch: refetchServices,
+  } = useGetServiceProviderServices(providerId, bookingDetails?.deliveryMode);
 
-  // Always include the services that were passed in via `selectedServices`
-  // (e.g. "Book Again" from a past completed booking), even when the live
-  // catalog filtered by the current delivery mode no longer contains them.
-  // This guarantees they show up in the cart and in the service-picker modal.
   const services = useMemo(() => {
     const catalog: any[] = servicesData?.ResponseData?.services || [];
     const initialSelected: any[] = Array.isArray(selectedServices)
       ? selectedServices
       : [];
     if (!initialSelected.length) return catalog;
-    const catalogIds = new Set(
-      catalog.map((s: any) => s?._id).filter(Boolean),
-    );
+    const catalogIds = new Set(catalog.map((s: any) => s?._id).filter(Boolean));
     const extras = initialSelected.filter(
       (s: any) => s?._id && !catalogIds.has(s._id),
     );
     return [...catalog, ...extras];
   }, [servicesData, selectedServices]);
-  console.log('route--------route', route);
-  console.log('services--------services', services);
-  console.log('services--------services', isLoadingServices);
-  console.log('services--------services', refetchServices);
-
 
   const today = useMemo(() => {
     const date = new Date();
@@ -64,153 +104,273 @@ export default function BookAppointment() {
     return date;
   }, []);
   const todayString = useMemo(() => formatDateToString(today), [today]);
+  const routineMaxDate = useMemo(
+    () => addDaysToDateString(todayString, ROUTINE_MAX_DAYS_AHEAD),
+    [todayString],
+  );
 
-  // Get today's date as default selected date
-  const [selectedDateString, setSelectedDateString] = useState<string>(todayString);
-  const [currentMonth, setCurrentMonth] = useState<string>(() => {
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  });
+  const [bookingType, setBookingType] = useState<BookingType>('single');
+  const [showDateTimeModal, setShowDateTimeModal] = useState(false);
+  const [showRoutineHowItWorks, setShowRoutineHowItWorks] = useState(false);
+  const [showVolumeTiers, setShowVolumeTiers] = useState(false);
+
+  const [selectedDateString, setSelectedDateString] =
+    useState<string>(todayString);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-  const [currentSelectedServices, setCurrentSelectedServices] = useState<any[]>(selectedServices || []);
+  const [routineSessions, setRoutineSessions] = useState<RoutineSession[]>([]);
+
+  const [currentSelectedServices, setCurrentSelectedServices] = useState<any[]>(
+    selectedServices || [],
+  );
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showSwitchToRoutineAlert, setShowSwitchToRoutineAlert] = useState(false);
+  const [nonRoutineNamesForAlert, setNonRoutineNamesForAlert] = useState('');
   const [showAddOnModal, setShowAddOnModal] = useState(false);
-  const [selectedServiceForAddOns, setSelectedServiceForAddOns] = useState<any>(null);
-  // Fetch availability for selected date
-  const {
-    data: availabilityData,
-    isLoading: isLoadingAvailability,
-    isError: isErrorAvailability,
-    isFetching: isFetchingAvailability,
-  } = useGetServiceProviderAvailability(providerId, selectedDateString);
+  const [selectedServiceForAddOns, setSelectedServiceForAddOns] =
+    useState<any>(null);
 
-  // Generate time slots based on availability (in 24-hour format).
-  // If selected date is today, show only slots that are at least 1 hour from now.
-  const timeSlots = useMemo(() => {
-    if (!availabilityData?.ResponseData?.availability) {
-      return [];
-    }
-    const availability = availabilityData.ResponseData.availability;
-    if (!availabilityData.ResponseData.available || availability.close) {
-      return [];
-    }
-    const slots = generateTimeSlots(availability.startTime, availability.endTime, availability.close);
+  const routineEligible = useMemo(
+    () => isCartRoutineEligible(currentSelectedServices),
+    [currentSelectedServices],
+  );
 
-    // For today: only show slots that start at least 1 hour from now
-    if (selectedDateString === todayString) {
-      const now = new Date();
-      const cutoff = new Date(now.getTime() + 60 * 30 * 1000); // now + 1 hr
-      return slots.filter((slot) => {
-        const [hours, minutes] = slot.time.split(':').map(Number);
-        const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
-        return slotDate >= cutoff;
+  const routineLimits = useMemo(
+    () => getAggregatedRoutineLimits(currentSelectedServices),
+    [currentSelectedServices],
+  );
+
+  const discountTiers = useMemo(
+    () => getDiscountTiersForServices(currentSelectedServices),
+    [currentSelectedServices],
+  );
+
+  const routineMinDate = useMemo(
+    () => getRoutineMinDateString(todayString, currentSelectedServices),
+    [todayString, currentSelectedServices],
+  );
+
+  const routineAdvanceNoticeMs = useMemo(
+    () => getRoutineAdvanceNoticeMs(currentSelectedServices),
+    [currentSelectedServices],
+  );
+
+  const maxRoutineSessions = routineLimits.maxSessions;
+
+  const deliveryMode = bookingDetails?.deliveryMode ?? '';
+
+  const restrictServicePickerToRoutine = useMemo(
+    () =>
+      shouldRestrictServicePickerToRoutine({
+        bookingType,
+        routineSessionCount: routineSessions.length,
+      }),
+    [bookingType, routineSessions.length],
+  );
+
+  const showBookingTypeTabs = useMemo(
+    () => catalogOffersRoutineBooking(services, deliveryMode),
+    [services, deliveryMode],
+  );
+
+  useEffect(() => {
+    if (!routineEligible && bookingType === 'routine') {
+      setBookingType('single');
+      setRoutineSessions([]);
+      setShowVolumeTiers(false);
+      setShowRoutineHowItWorks(false);
+    }
+  }, [routineEligible, bookingType]);
+
+  const applySwitchToRoutine = useCallback(() => {
+    const routineOnly = currentSelectedServices.filter((s: any) =>
+      isServiceRoutineEnabled(s),
+    );
+    if (routineOnly.length === 0) {
+      showToast({
+        type: 'error',
+        message: t('bookAppointment.noRoutineServicesAfterSwitch'),
       });
-    }
-
-    // Future date: show all slots
-    return slots;
-  }, [availabilityData, selectedDateString, todayString]);
-
-  // Handle date selection from Calendar
-  const handleDayPress = useCallback((day: DateData) => {
-    const selectedDate = new Date(day.dateString);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    // Don't allow selecting past dates
-    if (selectedDate < today) {
       return;
     }
+    setCurrentSelectedServices(routineOnly);
+    setBookingType('routine');
+    setShowVolumeTiers(false);
+    setShowRoutineHowItWorks(false);
+    setRoutineSessions([]);
+  }, [currentSelectedServices, t]);
 
-    setSelectedDateString(day.dateString);
-    setSelectedTimeSlot(null); // Reset time slot when date changes
-  }, [today]);
-
-  // Handle month change
-  const handleMonthChange = useCallback((month: { month: number; year: number }) => {
-    const monthString = `${month.year}-${String(month.month).padStart(2, '0')}`;
-    setCurrentMonth(monthString);
-  }, []);
-
-  // Marked dates for calendar
-  const markedDates = useMemo(() => {
-    return {
-      [selectedDateString]: {
-        selected: true,
-        selectedColor: theme.colors.primary,
-        selectedTextColor: theme.colors.white,
-      },
-    };
-  }, [selectedDateString, theme.colors.primary, theme.colors.white]);
-
-
-
-  const totalPrice = useMemo(() => {
-    const price = (currentSelectedServices || []).reduce((sum: number, service: any) => {
-      const basePrice = Number(service?.price) || 0;
-      let addOnsTotal = 0;
-      if (service?.selectedAddOns?.length > 0) {
-        service.selectedAddOns.forEach((addOn: any) => {
-          if (!addOn) return;
-          const addOnPrice = Number(addOn.price) || 0;
-          const discountPct = Math.min(100, Math.max(0, Number(addOn.discountPercentage) || 0));
-          const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
-          addOnsTotal += Number.isFinite(discountedAddOnPrice) ? discountedAddOnPrice : addOnPrice;
-        });
+  const handleBookingTypeChange = useCallback(
+    (type: BookingType) => {
+      if (type === 'single') {
+        setBookingType('single');
+        setShowVolumeTiers(false);
+        setShowRoutineHowItWorks(false);
+        setRoutineSessions([]);
+        return;
       }
-      return sum + basePrice + addOnsTotal;
-    }, 0);
+
+      if (type === 'routine') {
+        const nonRoutine = getNonRoutineServicesInCart(currentSelectedServices);
+        if (nonRoutine.length > 0) {
+          const names = nonRoutine
+            .map(s => s.name?.trim())
+            .filter(Boolean)
+            .join(', ');
+          setNonRoutineNamesForAlert(names || t('bookAppointment.routineNotAvailable'));
+          setShowSwitchToRoutineAlert(true);
+          return;
+        }
+
+        if (!isCartRoutineEligible(currentSelectedServices)) {
+          showToast({
+            type: 'error',
+            message: t('bookAppointment.noRoutineServicesAfterSwitch'),
+          });
+          return;
+        }
+
+        setBookingType('routine');
+        setShowVolumeTiers(false);
+        setShowRoutineHowItWorks(false);
+      }
+    },
+    [currentSelectedServices, t],
+  );
+
+  const openDateTimeModal = useCallback(() => {
+    if (
+      bookingType === 'routine' &&
+      routineSessions.length >= maxRoutineSessions
+    ) {
+      showToast({
+        type: 'error',
+        message: t('bookAppointment.routineMaxSessions', {
+          max: maxRoutineSessions,
+        }),
+      });
+      return;
+    }
+    setShowDateTimeModal(true);
+  }, [bookingType, routineSessions.length, maxRoutineSessions, t]);
+
+  const servicesSubtotal = useMemo(() => {
+    const price = (currentSelectedServices || []).reduce(
+      (sum: number, service: any) => {
+        const basePrice = Number(service?.price) || 0;
+        let addOnsTotal = 0;
+        if (service?.selectedAddOns?.length > 0) {
+          service.selectedAddOns.forEach((addOn: any) => {
+            if (!addOn) return;
+            const addOnPrice = Number(addOn.price) || 0;
+            const discountPct = Math.min(
+              100,
+              Math.max(0, Number(addOn.discountPercentage) || 0),
+            );
+            const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
+            addOnsTotal += Number.isFinite(discountedAddOnPrice)
+              ? discountedAddOnPrice
+              : addOnPrice;
+          });
+        }
+        return sum + basePrice + addOnsTotal;
+      },
+      0,
+    );
     return Number.isFinite(price) ? price : 0;
   }, [currentSelectedServices]);
 
+  const sessionCount = routineSessions.length;
+  const activeVolumeTier = useMemo(
+    () => getVolumeDiscountForSessionCount(sessionCount, discountTiers),
+    [sessionCount, discountTiers],
+  );
+
+  const routinePricing = useMemo(() => {
+    const perSessionSubtotal = servicesSubtotal;
+    const packageSubtotal = perSessionSubtotal * sessionCount;
+    if (!activeVolumeTier) {
+      return {
+        perSessionSubtotal,
+        packageSubtotal,
+        discountPercent: 0,
+        discountAmount: 0,
+        totalPrice: packageSubtotal,
+        tier: null as string | null,
+      };
+    }
+    const { discountAmount, total } = applyVolumeDiscount(
+      packageSubtotal,
+      activeVolumeTier.discountPercent,
+    );
+    return {
+      perSessionSubtotal,
+      packageSubtotal,
+      discountPercent: activeVolumeTier.discountPercent,
+      discountAmount,
+      totalPrice: total,
+      tier: activeVolumeTier.tier,
+    };
+  }, [servicesSubtotal, sessionCount, activeVolumeTier]);
+
+  const totalPrice =
+    bookingType === 'routine' ? routinePricing.totalPrice : servicesSubtotal;
+
   const totalDuration = useMemo(() => {
-    let duration = currentSelectedServices.reduce((sum: number, service: any) => {
-      let serviceDuration = service.time || 0;
-      // Add add-ons duration
-      if (service.selectedAddOns && service.selectedAddOns.length > 0) {
-        service.selectedAddOns.forEach((addOn: any) => {
-          serviceDuration += addOn.duration || 0;
-        });
-      }
-      return sum + serviceDuration;
-    }, 0);
-    return duration;
-  }, [currentSelectedServices]);
+    const perService = currentSelectedServices.reduce(
+      (sum: number, service: any) => {
+        let serviceDuration = service.time || 0;
+        if (service.selectedAddOns?.length > 0) {
+          service.selectedAddOns.forEach((addOn: any) => {
+            serviceDuration += addOn.duration || 0;
+          });
+        }
+        return sum + serviceDuration;
+      },
+      0,
+    );
+    return bookingType === 'routine'
+      ? perService * Math.max(sessionCount, 1)
+      : perService;
+  }, [currentSelectedServices, bookingType, sessionCount]);
 
   const handleRemoveService = (serviceId: string) => {
     if (currentSelectedServices.length > 1) {
-      setCurrentSelectedServices((prev) => prev.filter((s) => s._id !== serviceId));
+      setCurrentSelectedServices(prev => prev.filter(s => s._id !== serviceId));
     }
   };
 
-  const handleAddService = () => {
-    setShowServiceModal(true);
-  };
+  const handleAddService = () => setShowServiceModal(true);
 
   const handleServiceSelection = (selectedServiceIds: string[]) => {
-    // Ensure at least one service is selected
-    if (selectedServiceIds.length === 0) {
-      return;
+    let ids = selectedServiceIds;
+
+    if (restrictServicePickerToRoutine) {
+      ids = ids.filter(serviceId => {
+        const service = services.find((s: any) => s._id === serviceId);
+        return service && isServiceRoutineEnabled(service);
+      });
+    } else {
+      ids = ids.filter(serviceId => {
+        const service = services.find((s: any) => s._id === serviceId);
+        return (
+          service &&
+          serviceSupportsDeliveryPreference(service, deliveryMode)
+        );
+      });
     }
 
-    // Map selected IDs to full service objects with their current state
-    const updatedServices = selectedServiceIds.map((serviceId: string) => {
-      // Find if this service is already in currentSelectedServices
-      const existingService = currentSelectedServices.find((s: any) => s._id === serviceId);
+    if (ids.length === 0) return;
 
-      if (existingService) {
-        // Keep existing service with its add-ons
-        return existingService;
-      } else {
-        // Find the service from all available services
+    const updatedServices = ids
+      .map((serviceId: string) => {
+        const existing = currentSelectedServices.find(
+          (s: any) => s._id === serviceId,
+        );
+        if (existing) return existing;
         const service = services.find((s: any) => s._id === serviceId);
-        if (service) {
-          return { ...service, selectedAddOns: [] };
-        }
-        return null;
-      }
-    }).filter((s: any) => s !== null); // Remove any null entries
-
+        return service ? { ...service, selectedAddOns: [] } : null;
+      })
+      .filter(Boolean);
     setCurrentSelectedServices(updatedServices);
     setShowServiceModal(false);
   };
@@ -222,63 +382,138 @@ export default function BookAppointment() {
 
   const handleAddOnSelection = (selectedAddOnIds: string[]) => {
     if (!selectedServiceForAddOns) return;
-
-    const addOns = selectedServiceForAddOns.serviceAddOns?.filter((addOn: any) =>
-      selectedAddOnIds.includes(addOn._id)
-    ) || [];
-
-    setCurrentSelectedServices((prev) =>
-      prev.map((service) =>
+    const addOns =
+      selectedServiceForAddOns.serviceAddOns?.filter((addOn: any) =>
+        selectedAddOnIds.includes(addOn._id),
+      ) || [];
+    setCurrentSelectedServices(prev =>
+      prev.map(service =>
         service._id === selectedServiceForAddOns._id
           ? { ...service, selectedAddOns: addOns }
-          : service
-      )
+          : service,
+      ),
     );
     setShowAddOnModal(false);
     setSelectedServiceForAddOns(null);
   };
 
-  const handleBook = () => {
-    if (!selectedTimeSlot) {
+  const handleSingleDateTimeConfirm = (date: string, time: string) => {
+    setSelectedDateString(date);
+    setSelectedTimeSlot(time);
+  };
+
+  const handleAddRoutineSession = (date: string, time: string) => {
+    const duplicate = routineSessions.some(
+      s => s.date === date && s.time === time,
+    );
+    if (duplicate) {
       showToast({
-        title: 'Error',
         type: 'error',
-        message: 'Please select a time slot',
-      })
+        message: t('bookAppointment.routineDuplicateSession'),
+      });
       return;
     }
-    const time = timeSlots.find((slot: any) => slot.id === selectedTimeSlot);
-    console.log('time--------time', time);
-    // Prepare booking JSON with all selected details
+    if (routineSessions.length >= maxRoutineSessions) {
+      showToast({
+        type: 'error',
+        message: t('bookAppointment.routineMaxSessions', {
+          max: maxRoutineSessions,
+        }),
+      });
+      return;
+    }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setRoutineSessions(prev => [
+      ...prev,
+      { id: `${date}_${time}_${Date.now()}`, date, time },
+    ]);
+    showToast({
+      type: 'success',
+      message: t('bookAppointment.routineSessionAdded'),
+    });
+  };
+
+  const handleRemoveRoutineSession = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setRoutineSessions(prev => prev.filter(s => s.id !== id));
+  };
+
+  const handleBook = () => {
+    if (bookingType === 'single') {
+      if (!selectedTimeSlot) {
+        showToast({
+          type: 'error',
+          message: t('bookAppointment.messages.selectSlot'),
+        });
+        return;
+      }
+      const bookingJson = {
+        bookingType: 'single' as const,
+        providerId,
+        selectedServices: currentSelectedServices,
+        date: selectedDateString,
+        timeSlot: selectedTimeSlot,
+        deliveryMode: bookingDetails.deliveryMode,
+        totalPrice,
+        totalDuration: `${totalDuration}m`,
+        providerData,
+        promotionsDisabled: false,
+      };
+      navigation.navigate(SCREEN_NAMES.BOOKING_SUMMARY, {
+        bookingData: bookingJson,
+      });
+      return;
+    }
+
+    if (sessionCount < ROUTINE_MIN_SESSIONS) {
+      showToast({
+        type: 'error',
+        message: t('bookAppointment.routineMinSessions', {
+          min: ROUTINE_MIN_SESSIONS,
+        }),
+      });
+      return;
+    }
+
     const bookingJson = {
-      providerId: providerId,
+      bookingType: 'routine' as const,
+      providerId,
       selectedServices: currentSelectedServices,
-      date: selectedDateString,
-      timeSlot: time?.time,
+      sessions: routineSessions.map(({ date, time }) => ({
+        date,
+        timeSlot: time,
+      })),
+      sessionCount,
       deliveryMode: bookingDetails.deliveryMode,
-      totalPrice: totalPrice,
+      subtotalBeforeDiscount: routinePricing.packageSubtotal,
+      volumeDiscount: activeVolumeTier
+        ? {
+            percent: activeVolumeTier.discountPercent,
+            tier: activeVolumeTier.tier,
+            amount: routinePricing.discountAmount,
+          }
+        : null,
+      totalPrice: routinePricing.totalPrice,
       totalDuration: `${totalDuration}m`,
-      providerData: providerData,
+      providerData,
+      promotionsDisabled: true,
     };
 
-    // console.log('Booking JSON:', JSON.stringify(bookingJson, null, 2));
-    // Navigate to Checkout page
     navigation.navigate(SCREEN_NAMES.BOOKING_SUMMARY, {
       bookingData: bookingJson,
     });
   };
 
-  const renderCalendarArrow = useCallback(
-    (direction: 'left' | 'right') => (
-      <VectoreIcons
-        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
-        icon="Ionicons"
-        size={theme.SF(26)}
-        color={theme.colors.primary || '#009BFF'}
-      />
-    ),
-    [theme.SF, theme.colors.primary]
-  );
+  const singleDateTimeLabel =
+    selectedTimeSlot != null
+      ? `${formatDateDisplay(selectedDateString)} · ${selectedTimeSlot}`
+      : t('bookAppointment.tapToSelectDateTime');
+
+  const canBook =
+    bookingType === 'single'
+      ? !!selectedTimeSlot && currentSelectedServices.length > 0
+      : sessionCount >= ROUTINE_MIN_SESSIONS &&
+        currentSelectedServices.length > 0;
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
@@ -289,155 +524,138 @@ export default function BookAppointment() {
         tintColor={theme.colors.text}
         containerStyle={{ marginHorizontal: theme.SW(20) }}
       />
+
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
       >
-        {/* Calendar Section */}
-        <View style={[styles.section,{paddingTop:0}]}>
-          <View style={styles.calendarContainer}>
-            <Calendar
-              current={currentMonth}
-              onDayPress={handleDayPress}
-              onMonthChange={handleMonthChange}
-              markedDates={markedDates}
-              minDate={todayString}
-              disableAllTouchEventsForDisabledDays
-              enableSwipeMonths
-              renderArrow={renderCalendarArrow}
-              theme={{
-                backgroundColor: theme.colors.white,
-                calendarBackground: theme.colors.white,
-                textSectionTitleColor: theme.colors.text,
-                selectedDayBackgroundColor: theme.colors.primary,
-                selectedDayTextColor: theme.colors.white,
-                todayTextColor: theme.colors.primary,
-                dayTextColor: theme.colors.text,
-                textDisabledColor: theme.colors.lightText,
-                dotColor: theme.colors.primary,
-                selectedDotColor: theme.colors.white,
-                arrowColor: theme.colors.primary,
-                monthTextColor: theme.colors.text,
-                textDayFontFamily: theme.fonts.REGULAR,
-                textMonthFontFamily: theme.fonts.SEMI_BOLD,
-                textDayHeaderFontFamily: theme.fonts.MEDIUM,
-                textDayFontSize: theme.fontSize.sm,
-                textMonthFontSize: theme.fontSize.lg,
-                textDayHeaderFontSize: theme.fontSize.xs,
-              } as any}
-              style={styles.calendar}
-            />
-          </View>
-        </View>
-
-        {/* Time Slots */}
-        <View style={styles.section}>
-          <CustomText style={styles.sectionTitle}>Select Time</CustomText>
-          {isLoadingAvailability || isFetchingAvailability ? (
-            <View style={styles.slotsLoaderContainer}>
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-              <CustomText
-                fontSize={theme.fontSize.sm}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.lightText}
-                style={{ marginTop: theme.SH(8) }}
-              >
-                Loading available slots...
-              </CustomText>
-            </View>
-          ) : isErrorAvailability || !availabilityData?.ResponseData?.available || timeSlots.length === 0 ? (
-            <View style={styles.notAvailableContainer}>
-              <CustomText
-                fontSize={theme.fontSize.sm}
-                fontFamily={theme.fonts.REGULAR}
-                color={theme.colors.lightText}
-                textAlign="center"
-              >
-                {isErrorAvailability
-                  ? t('bookAppointment.notAvailable')
-                  : availabilityData?.ResponseData?.availability?.close
-                    ? t('bookAppointment.closedOnThisDate')
-                    : t('bookAppointment.noSlotsAvailable')}
-              </CustomText>
-            </View>
-          ) : (
-            <FlatList
-              data={timeSlots}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.timeSlotsContainer}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => {
-                const isSelected = selectedTimeSlot === item.id;
-                const isAvailable = item.available;
-                return (
-                  <Pressable
-                    onPress={() => { isAvailable && setSelectedTimeSlot(item.id); console.log('item--------item', item); }}
-                    disabled={!isAvailable}
-                    style={({ pressed }) => [
-                      styles.timeSlot,
-                      isSelected && styles.selectedTimeSlot,
-                      !isAvailable && styles.unavailableTimeSlot,
-                      pressed && isAvailable && { opacity: 0.7 },
-                    ]}
-                  >
-                    <CustomText
-                      style={[
-                        styles.timeSlotText,
-                        isSelected ? styles.selectedTimeSlotText : {},
-                        !isAvailable ? styles.unavailableText : {},
-                      ]}
-                    >
-                      {item.time}
-                    </CustomText>
-                  </Pressable>
-                );
-              }}
-            />
-          )}
-        </View>
-
-        {/* Selected Services */}
-        <ServiceCart
-          services={currentSelectedServices}
-          onRemoveService={handleRemoveService}
-          onAddAddOns={handleAddAddOns}
-          onAddService={handleAddService}
+        <BookAppointmentPreferenceRow
+          deliveryMode={bookingDetails?.deliveryMode ?? ''}
         />
+
+        {showBookingTypeTabs ? (
+          <BookAppointmentBookingTypeSelector
+            value={bookingType}
+            onChange={handleBookingTypeChange}
+          />
+        ) : null}
+
+        {bookingType === 'routine' && routineEligible ? (
+          <>
+            <RoutineHowItWorksSection
+              expanded={showRoutineHowItWorks}
+              onToggle={() => setShowRoutineHowItWorks(v => !v)}
+            />
+            <VolumeDiscountTiersSection
+              expanded={showVolumeTiers}
+              onToggle={() => setShowVolumeTiers(v => !v)}
+              sessionCount={sessionCount}
+              activeTier={activeVolumeTier}
+              discountTiers={discountTiers}
+            />
+          </>
+        ) : null}
+
+        <BookAppointmentSessionSection
+          bookingType={bookingType}
+          singleDateTimeLabel={singleDateTimeLabel}
+          hasSingleTime={!!selectedTimeSlot}
+          routineSessions={routineSessions}
+          routineMaxDate={routineMaxDate}
+          maxRoutineSessions={maxRoutineSessions}
+          onOpenModal={openDateTimeModal}
+          onRemoveSession={handleRemoveRoutineSession}
+        />
+
+        
+
+        {isLoadingServices ? (
+          <ActivityIndicator
+            color={theme.colors.primary}
+            style={{ marginVertical: theme.SH(16) }}
+          />
+        ) : (
+          <ServiceCart
+            services={currentSelectedServices}
+            onRemoveService={handleRemoveService}
+            onAddAddOns={handleAddAddOns}
+            onAddService={handleAddService}
+          />
+        )}
+        {bookingType === 'routine' && sessionCount >= ROUTINE_MIN_SESSIONS ? (
+          <RoutinePackageSummaryCard
+            packageSubtotal={routinePricing.packageSubtotal}
+            discountAmount={routinePricing.discountAmount}
+            totalPrice={routinePricing.totalPrice}
+            activeTier={activeVolumeTier}
+          />
+        ) : null}
       </ScrollView>
 
-      {/* Booking Summary */}
-      <View style={styles.summaryContainer}>
-        {/* <View style={styles.summaryRow}>
-          <CustomText style={styles.summaryLabel}>
-            ${totalPrice.toFixed(2)}
-          </CustomText>
-          <CustomText style={styles.summaryLabel}>
-            {totalDuration}m
-          </CustomText>
-        </View> */}
+      <View style={styles.footer}>
+        {bookingType === 'routine' && sessionCount > 0 ? (
+          <View style={styles.summaryPreview}>
+            <CustomText style={styles.summaryPreviewText}>
+              ${totalPrice.toFixed(2)} · {sessionCount}{' '}
+              {t('bookAppointment.sessionsLabel')}
+            </CustomText>
+          </View>
+        ) : null}
         <CustomButton
           title={t('bookAppointment.bookButton')}
           onPress={handleBook}
+          disable={!canBook}
           buttonStyle={styles.bookButton}
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}
-        // disable={!selectedTimeSlot || currentSelectedServices.length === 0}
         />
       </View>
 
-      {/* Service Selection Modal */}
+      <BookAppointmentDateTimeModal
+        visible={showDateTimeModal}
+        providerId={providerId}
+        mode={bookingType}
+        initialDate={
+          bookingType === 'single' ? selectedDateString : routineMinDate
+        }
+        initialTime={bookingType === 'single' ? selectedTimeSlot : null}
+        minDate={bookingType === 'single' ? todayString : routineMinDate}
+        maxDate={bookingType === 'routine' ? routineMaxDate : undefined}
+        onClose={() => setShowDateTimeModal(false)}
+        onConfirmSingle={handleSingleDateTimeConfirm}
+        onAddRoutineSession={handleAddRoutineSession}
+        routineSessionCount={sessionCount}
+        maxRoutineSessions={maxRoutineSessions}
+        routineAdvanceNoticeMs={routineAdvanceNoticeMs}
+      />
+
       <ServiceSelectionModal
         visible={showServiceModal}
         onClose={() => setShowServiceModal(false)}
         onConfirm={handleServiceSelection}
         services={services}
         selectedServiceIds={currentSelectedServices.map((s: any) => s._id)}
+        bookingType={bookingType}
+        deliveryMode={deliveryMode}
+        restrictToRoutineServices={restrictServicePickerToRoutine}
       />
 
-      {/* Add-on Selection Modal */}
-      {selectedServiceForAddOns && (
+      <SweetAlert
+        visible={showSwitchToRoutineAlert}
+        message={t('bookAppointment.switchToRoutineRemoveAlert', {
+          names: nonRoutineNamesForAlert,
+        })}
+        isConfirmType="confirm"
+        onOk={() => {
+          setShowSwitchToRoutineAlert(false);
+          applySwitchToRoutine();
+        }}
+        onCancel={() => setShowSwitchToRoutineAlert(false)}
+      />
+
+      {selectedServiceForAddOns ? (
         <AddOnSelectionModal
           visible={showAddOnModal}
           onClose={() => {
@@ -446,105 +664,44 @@ export default function BookAppointment() {
           }}
           onConfirm={handleAddOnSelection}
           addOns={selectedServiceForAddOns.serviceAddOns || []}
-          selectedAddOnIds={selectedServiceForAddOns.selectedAddOns?.map((a: any) => a._id) || []}
+          selectedAddOnIds={
+            selectedServiceForAddOns.selectedAddOns?.map((a: any) => a._id) ||
+            []
+          }
         />
-      )}
+      ) : null}
     </SafeAreaView>
   );
 }
 
 const createStyles = (theme: ThemeType) => {
-  const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
+  const { colors: Colors, SF, SW, fonts: Fonts, SH } = theme;
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: Colors.white,
     },
-    scrollView: {
-      flex: 1,
-    },
-    content: {
-      paddingBottom: SH(100),
-    },
-    section: {
+    scrollView: { flex: 1 },
+    scrollContent: {
       paddingHorizontal: SW(20),
-      paddingVertical: SH(20),
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.gray || '#E0E0E0',
+      paddingTop: SH(4),
+      paddingBottom: SH(16),
+      gap: SH(12),
     },
-    sectionTitle: {
-      fontSize: SF(16),
-      fontFamily: Fonts.SEMI_BOLD,
-      color: Colors.text,
-      marginBottom: SH(16),
-    },
-    calendarContainer: {
-      backgroundColor: Colors.white,
-      borderRadius: SF(12),
-      overflow: 'hidden',
-    },
-    calendar: {
-      borderRadius: SF(12),
-      paddingVertical: SH(10),
-    },
-    timeSlotsContainer: {
-      gap: SW(12),
-    },
-    slotsLoaderContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: SW(12),
-    },
-    notAvailableContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    timeSlot: {
-      paddingHorizontal: SW(20),
-      paddingVertical: SH(10),
-      borderRadius: SF(8),
-      borderWidth: 1,
-      borderColor: Colors.gray || '#E0E0E0',
-      backgroundColor: Colors.white,
-    },
-    selectedTimeSlot: {
-      backgroundColor: Colors.primary,
-      borderColor: Colors.primary,
-    },
-    unavailableTimeSlot: {
-      opacity: 0.5,
-    },
-    timeSlotText: {
-      fontSize: SF(14),
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.text,
-    },
-    selectedTimeSlotText: {
-      color: Colors.whitetext,
-    },
-    unavailableText: {
-      color: Colors.textAppColor || Colors.text,
-    },
-    summaryContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
+    footer: {
       backgroundColor: Colors.white,
       paddingHorizontal: SW(20),
       paddingVertical: SH(16),
       borderTopWidth: 1,
       borderTopColor: Colors.gray || '#E0E0E0',
     },
-    summaryRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: SH(12),
+    summaryPreview: {
+      marginBottom: SH(8),
+      alignItems: 'center',
     },
-    summaryLabel: {
-      fontSize: SF(16),
-      fontFamily: Fonts.SEMI_BOLD,
+    summaryPreviewText: {
+      fontSize: SF(14),
+      fontFamily: Fonts.MEDIUM,
       color: Colors.text,
     },
     bookButton: {
@@ -552,4 +709,3 @@ const createStyles = (theme: ThemeType) => {
     },
   });
 };
-

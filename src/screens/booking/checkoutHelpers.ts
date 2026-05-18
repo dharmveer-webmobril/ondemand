@@ -152,6 +152,45 @@ export const buildSelectedServicesPayload = (selectedServices: any[] = []) => {
     }));
 };
 
+export function isRoutineCheckout(bookingData: any): boolean {
+  return bookingData?.bookingType === 'routine';
+}
+
+/** Routine booking Mongo id from create-routine response. */
+export function getRoutineBookingIdFromCreateResponse(response: any): string | null {
+  const data = response?.ResponseData;
+  if (!data) {
+    return null;
+  }
+  const raw = data.routineBooking;
+  if (raw && typeof raw === 'object') {
+    const id = raw._id ?? raw.id;
+    if (id != null && String(id).trim() !== '') {
+      return String(id).trim();
+    }
+  }
+  if (data.routineBookingId != null && String(data.routineBookingId).trim() !== '') {
+    return String(data.routineBookingId).trim();
+  }
+  return null;
+}
+
+/** Payable amount from create-routine (falls back to client total). */
+export function getRoutineAmountFromCreateResponse(
+  response: any,
+  fallbackTotal: number,
+): number {
+  const amount = response?.ResponseData?.amount;
+  if (amount != null && Number.isFinite(Number(amount))) {
+    return Number(amount);
+  }
+  const cents = response?.ResponseData?.routineBooking?.pricing?.totalCents;
+  if (cents != null && Number.isFinite(Number(cents))) {
+    return Number(cents) / 100;
+  }
+  return fallbackTotal;
+}
+
 /** Booking id from create-booking (shape varies: string id, object, or bookingId). */
 export function getBookingIdFromCreateResponse(response: any): string | null {
   const data = response?.ResponseData;
@@ -173,6 +212,39 @@ export function getBookingIdFromCreateResponse(response: any): string | null {
   }
   return null;
 }
+
+export const buildRoutineBookingPayload = ({
+  bookingData,
+  selectedServices,
+  serviceFor,
+  selectedAddress,
+  paymentMode,
+}: Omit<BuildBookingPayloadParams, 'otherPersonDetails' | 'walletAmountUsed' | 'bookingId'>) => {
+  const remark =
+    typeof bookingData?.remark === 'string' && bookingData.remark.trim() !== ''
+      ? bookingData.remark.trim()
+      : undefined;
+
+  const sessions = (Array.isArray(bookingData?.sessions) ? bookingData.sessions : [])
+    .map((session: { date?: string; time?: string; timeSlot?: string }) => ({
+      date: session?.date ?? '',
+      time: session?.time ?? session?.timeSlot ?? '',
+    }))
+    .filter((session: { date: string; time: string }) => session.date && session.time);
+
+  const preferences = bookingData?.deliveryMode ? [bookingData.deliveryMode] : [];
+
+  return {
+    spId: bookingData?.providerData?._id ?? bookingData?.providerId,
+    services: buildSelectedServicesPayload(selectedServices),
+    sessions,
+    paymentType: paymentMode,
+    preferences,
+    bookedFor: serviceFor,
+    ...(selectedAddress?._id ? { addressId: selectedAddress._id } : {}),
+    ...(remark != null ? { remark } : {}),
+  };
+};
 
 export const buildBookingPayload = ({
   bookingData,

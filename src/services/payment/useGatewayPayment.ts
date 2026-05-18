@@ -25,6 +25,7 @@ export function useGatewayPayment() {
     async (navigation: any, params: RunGatewayPaymentParams) => {
       const {
         bookingId,
+        routineBookingId,
         amount,
         paymentGateway,
         paymentType,
@@ -42,8 +43,16 @@ export function useGatewayPayment() {
         failureMessage = 'Payment initiation failed',
       } = params;
 
+      const paymentEntityId = routineBookingId ?? bookingId;
+      if (!paymentEntityId) {
+        onError(new Error('Missing booking id for payment'), paymentEntityId);
+        return;
+      }
+
       const paymentRequest: InitiateBookingPaymentRequest = {
-        bookingId,
+        ...(routineBookingId
+          ? { routineBookingId }
+          : { bookingId: bookingId! }),
         amount,
         ...(paymentType != null && String(paymentType) !== ''
           ? { paymentType: String(paymentType) }
@@ -72,7 +81,7 @@ export function useGatewayPayment() {
         if (handleApiError) {
           handleApiError(err);
         } else {
-          onError(err, bookingId);
+          onError(err, paymentEntityId);
         }
         return;
       }
@@ -85,7 +94,7 @@ export function useGatewayPayment() {
         } else {
           onError(
             new Error(initiateRes?.ResponseMessage ?? failureMessage),
-            bookingId,
+            paymentEntityId,
           );
         }
         return;
@@ -118,7 +127,7 @@ export function useGatewayPayment() {
             new Error(
               'Missing wallet transaction id from payment initiation — cannot confirm partial wallet payment.',
             ),
-            bookingId,
+            paymentEntityId,
           );
           return;
         }
@@ -129,17 +138,17 @@ export function useGatewayPayment() {
               failureMessage,
             );
           } else {
-            onError(new Error('No transaction for web checkout'), bookingId);
+            onError(new Error('No transaction for web checkout'), paymentEntityId);
           }
           return;
         }
         if (!returnTo) {
-          onError(new Error('returnTo is required for web checkout'), bookingId);
+          onError(new Error('returnTo is required for web checkout'), paymentEntityId);
           return;
         }
         navigation.navigate(SCREEN_NAMES.PAYMENT_WEBVIEW, {
           paymentUrl: redirectUrl,
-          bookingId,
+          bookingId: paymentEntityId,
           transactionId,
           walletTransactionId: effectiveWalletTransactionId ?? undefined,
           initiateRes,
@@ -157,7 +166,7 @@ export function useGatewayPayment() {
             new Error(
               'Missing wallet transaction id from payment initiation — cannot confirm partial wallet payment.',
             ),
-            bookingId,
+            paymentEntityId,
           );
           return;
         }
@@ -166,16 +175,16 @@ export function useGatewayPayment() {
           merchantDisplayName: 'Squedio',
         });
         if (initError) {
-          onError(initError, bookingId);
+          onError(initError, paymentEntityId);
           return;
         }
         const { error: presentError, didCancel } = await presentPaymentSheet();
         if (didCancel) {
-          onCancel(bookingId);
+          onCancel(paymentEntityId);
           return;
         }
         if (presentError) {
-          onError(presentError, bookingId);
+          onError(presentError, paymentEntityId);
           return;
         }
         if (!transactionId) {
@@ -183,7 +192,7 @@ export function useGatewayPayment() {
             new Error(
               'Missing gateway transaction id after payment — cannot confirm booking payment.',
             ),
-            bookingId,
+            paymentEntityId,
           );
           return;
         }
@@ -191,7 +200,7 @@ export function useGatewayPayment() {
           const confirmRes = await confirmWithIds(transactionId);
           onSuccess(confirmRes);
         } catch (err) {
-          onError(err, bookingId);
+          onError(err, paymentEntityId);
         }
         return;
       }
@@ -202,7 +211,7 @@ export function useGatewayPayment() {
           const confirmRes = await confirmWithIds(transactionId);
           onSuccess(confirmRes);
         } catch (err) {
-          onError(err, bookingId);
+          onError(err, paymentEntityId);
         }
         return;
       }
@@ -218,7 +227,7 @@ export function useGatewayPayment() {
             initiateRes?.ResponseMessage ??
               'Unsupported payment response from server',
           ),
-          bookingId,
+          paymentEntityId,
         );
       }
     },

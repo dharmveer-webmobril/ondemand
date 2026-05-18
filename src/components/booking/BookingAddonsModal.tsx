@@ -16,6 +16,7 @@ import {
   type ServiceAddonItem,
 } from '@services/api/queries/appQueries';
 import { SH } from '@utils/dimensions';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export function getCatalogServiceId(service: any): string | null {
   if (!service) return null;
@@ -27,7 +28,10 @@ export function getCatalogServiceId(service: any): string | null {
 
 export function getAddonPayableAmount(addon: ServiceAddonItem): number {
   const price = Number(addon?.price) || 0;
-  const pct = Math.min(100, Math.max(0, Number(addon?.discountPercentage) || 0));
+  const pct = Math.min(
+    100,
+    Math.max(0, Number(addon?.discountPercentage) || 0),
+  );
   const raw = price * (1 - pct / 100);
   return Math.round(raw * 100) / 100;
 }
@@ -57,7 +61,9 @@ export default function BookingAddonsModal({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
 
-  const catalogServiceId = bookedService ? getCatalogServiceId(bookedService) : null;
+  const catalogServiceId = bookedService
+    ? getCatalogServiceId(bookedService)
+    : null;
 
   const { data, isLoading, isError, refetch, isFetching } = useGetServiceAddOns(
     catalogServiceId ?? undefined,
@@ -94,8 +100,7 @@ export default function BookingAddonsModal({
   );
 
   const totalAmount = useMemo(
-    () =>
-      selectedAddons.reduce((sum, a) => sum + getAddonPayableAmount(a), 0),
+    () => selectedAddons.reduce((sum, a) => sum + getAddonPayableAmount(a), 0),
     [selectedAddons],
   );
 
@@ -104,7 +109,9 @@ export default function BookingAddonsModal({
     setShowPayModal(true);
   };
 
-  const handlePaymentMethodConfirm = (method: 'paypal' | 'stripe' | 'flutterwave' | 'cash') => {
+  const handlePaymentMethodConfirm = (
+    method: 'paypal' | 'stripe' | 'flutterwave' | 'cash',
+  ) => {
     if (method === 'cash') {
       return;
     }
@@ -113,7 +120,10 @@ export default function BookingAddonsModal({
   };
 
   const formatMoney = (n: number) =>
-    n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    n.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   return (
     <>
@@ -126,128 +136,145 @@ export default function BookingAddonsModal({
         }}
         statusBarTranslucent
       >
-        <View style={styles.modalRoot}>
-          <Pressable
-            style={styles.overlay}
-            onPress={isProcessing ? undefined : onClose}
-          >
-            <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
-            <View style={styles.header}>
-              <CustomText style={styles.title}>
-                {t('bookingDetail.addOns.title')}
-              </CustomText>
-              <Pressable onPress={isProcessing ? undefined : onClose} hitSlop={12}>
-                <CustomText style={styles.close}>{'\u2715'}</CustomText>
-              </Pressable>
-            </View>
+        <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+          <View style={styles.modalRoot}>
+            <Pressable
+              style={styles.overlay}
+              onPress={isProcessing ? undefined : onClose}
+            >
+              <Pressable
+                style={styles.sheet}
+                onPress={e => e.stopPropagation()}
+              >
+                <View style={styles.header}>
+                  <CustomText style={styles.title}>
+                    {t('bookingDetail.addOns.title')}
+                  </CustomText>
+                  <Pressable
+                    onPress={isProcessing ? undefined : onClose}
+                    hitSlop={12}
+                  >
+                    <CustomText style={styles.close}>{'\u2715'}</CustomText>
+                  </Pressable>
+                </View>
 
-            {!catalogServiceId ? (
-              <View style={styles.emptyState}>
-                <CustomText style={styles.emptyStateText}>
-                  {t('bookingDetail.addOns.noService')}
-                </CustomText>
-              </View>
-            ) : isLoading ? (
-              <View style={styles.emptyState}>
-                <ActivityIndicator color={theme.colors.primary} />
-              </View>
-            ) : isError || addons.length === 0 ? (
-              <View style={styles.emptyState}>
-                <CustomText
-                  style={[
-                    styles.emptyStateText,
-                    ...(isError ? [styles.emptyStateTextError] : []),
-                  ]}
-                >
-                  {isError
-                    ? t('bookingDetail.addOns.loadError')
-                    : t('bookingDetail.addOns.empty')}
-                </CustomText>
-                <CustomButton
-                  title={t('common.retry')}
-                  onPress={() => refetch()}
-                  isLoading={isFetching}
-                  disable={isProcessing}
-                  backgroundColor={theme.colors.primary}
-                  textColor={theme.colors.white}
-                  paddingHorizontal={theme.SW(32)}
-                  marginTop={theme.SH(16)}
-                  buttonStyle={styles.reloadButton}
-                />
-              </View>
-            ) : (
-              <FlatList
-                data={addons}
-                keyExtractor={item => item._id}
-                style={styles.list}
-                contentContainerStyle={styles.listContent}
-                renderItem={({ item }) => {
-                  const checked = selectedIds.has(item._id);
-                  const lineTotal = getAddonPayableAmount(item);
-                  return (
-                    <Pressable
-                      style={[styles.row, checked && styles.rowSelected]}
-                      onPress={() => toggleId(item._id)}
+                {!catalogServiceId ? (
+                  <View style={styles.emptyState}>
+                    <CustomText style={styles.emptyStateText}>
+                      {t('bookingDetail.addOns.noService')}
+                    </CustomText>
+                  </View>
+                ) : isLoading ? (
+                  <View style={styles.emptyState}>
+                    <ActivityIndicator color={theme.colors.primary} />
+                  </View>
+                ) : isError || addons.length === 0 ? (
+                  <View style={styles.emptyState}>
+                    <CustomText
+                      style={[
+                        styles.emptyStateText,
+                        ...(isError ? [styles.emptyStateTextError] : []),
+                      ]}
                     >
-                      <View style={{ flex: 1 }}>
-                        <CustomText style={styles.addonName}>{item.name}</CustomText>
-                        {item.description ? (
-                          <CustomText style={styles.desc} numberOfLines={2}>
-                            {item.description}
-                          </CustomText>
-                        ) : null}
-                        <CustomText style={styles.priceLine}>
-                          {formatMoney(lineTotal)}{' '}
-                          {item.discountPercentage != null && item.discountPercentage > 0
-                            ? t('bookingDetail.addOns.afterDiscount', {
-                                pct: String(item.discountPercentage),
-                              })
-                            : null}
-                        </CustomText>
-                      </View>
-                      <Checkbox
-                        checked={checked}
-                        onChange={() => toggleId(item._id)}
-                        size={theme.SF(20)}
-                      />
-                    </Pressable>
-                  );
-                }}
-              />
-            )}
+                      {isError
+                        ? t('bookingDetail.addOns.loadError')
+                        : t('bookingDetail.addOns.empty')}
+                    </CustomText>
+                    <CustomButton
+                      title={t('common.retry')}
+                      onPress={() => refetch()}
+                      isLoading={isFetching}
+                      disable={isProcessing}
+                      backgroundColor={theme.colors.primary}
+                      textColor={theme.colors.white}
+                      paddingHorizontal={theme.SW(32)}
+                      marginTop={theme.SH(16)}
+                      buttonStyle={styles.reloadButton}
+                    />
+                  </View>
+                ) : (
+                  <FlatList
+                    data={addons}
+                    keyExtractor={item => item._id}
+                    style={styles.list}
+                    contentContainerStyle={styles.listContent}
+                    renderItem={({ item }) => {
+                      const checked = selectedIds.has(item._id);
+                      const lineTotal = getAddonPayableAmount(item);
+                      return (
+                        <Pressable
+                          style={[styles.row, checked && styles.rowSelected]}
+                          onPress={() => toggleId(item._id)}
+                        >
+                          <View style={{ flex: 1 }}>
+                            <CustomText style={styles.addonName}>
+                              {item.name}
+                            </CustomText>
+                            {item.description ? (
+                              <CustomText style={styles.desc} numberOfLines={2}>
+                                {item.description}
+                              </CustomText>
+                            ) : null}
+                            <CustomText style={styles.priceLine}>
+                              {formatMoney(lineTotal)}{' '}
+                              {item.discountPercentage != null &&
+                              item.discountPercentage > 0
+                                ? t('bookingDetail.addOns.afterDiscount', {
+                                    pct: String(item.discountPercentage),
+                                  })
+                                : null}
+                            </CustomText>
+                          </View>
+                          <Checkbox
+                            checked={checked}
+                            onChange={() => toggleId(item._id)}
+                            size={theme.SF(20)}
+                          />
+                        </Pressable>
+                      );
+                    }}
+                  />
+                )}
 
-            <View style={styles.footer}>
-              <View style={styles.totalRow}>
-                <CustomText style={styles.totalLabel}>
-                  {t('bookingDetail.addOns.total')}
+                <View style={styles.footer}>
+                  <View style={styles.totalRow}>
+                    <CustomText style={styles.totalLabel}>
+                      {t('bookingDetail.addOns.total')}
+                    </CustomText>
+                    <CustomText style={styles.totalValue}>
+                      ${formatMoney(totalAmount)}
+                    </CustomText>
+                  </View>
+                  <CustomButton
+                    title={t('bookingDetail.addOns.continueToPay')}
+                    onPress={handlePressPay}
+                    disable={
+                      selectedAddons.length === 0 ||
+                      isProcessing ||
+                      !catalogServiceId
+                    }
+                    isLoading={isProcessing}
+                    backgroundColor={theme.colors.primary}
+                    textColor={theme.colors.white}
+                    buttonStyle={styles.cta}
+                  />
+                </View>
+              </Pressable>
+            </Pressable>
+            {isProcessing ? (
+              <View style={styles.processingOverlay} pointerEvents="auto">
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomText style={styles.processingLabel}>
+                  {paymentGatewayHint === 'paypal'
+                    ? t('bookingDetail.addOns.connectingPayPal')
+                    : paymentGatewayHint === 'flutterwave'
+                    ? t('bookingDetail.addOns.connectingFlutterwave')
+                    : t('bookingDetail.addOns.processingPayment')}
                 </CustomText>
-                <CustomText style={styles.totalValue}>${formatMoney(totalAmount)}</CustomText>
               </View>
-              <CustomButton
-                title={t('bookingDetail.addOns.continueToPay')}
-                onPress={handlePressPay}
-                disable={selectedAddons.length === 0 || isProcessing || !catalogServiceId}
-                isLoading={isProcessing}
-                backgroundColor={theme.colors.primary}
-                textColor={theme.colors.white}
-                buttonStyle={styles.cta}
-              />
-            </View>
-          </Pressable>
-        </Pressable>
-        {isProcessing ? (
-          <View style={styles.processingOverlay} pointerEvents="auto">
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <CustomText style={styles.processingLabel}>
-              {paymentGatewayHint === 'paypal'
-                ? t('bookingDetail.addOns.connectingPayPal')
-                : paymentGatewayHint === 'flutterwave'
-                  ? t('bookingDetail.addOns.connectingFlutterwave')
-                  : t('bookingDetail.addOns.processingPayment')}
-            </CustomText>
+            ) : null}
           </View>
-        ) : null}
-        </View>
+        </SafeAreaView>
       </Modal>
 
       <PaymentMethodModal

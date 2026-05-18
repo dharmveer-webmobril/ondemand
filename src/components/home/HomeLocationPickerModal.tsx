@@ -10,7 +10,12 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, CustomButton, VectoreIcons, showToast } from '@components/common';
+import {
+  CustomText,
+  CustomButton,
+  VectoreIcons,
+  showToast,
+} from '@components/common';
 import { useGetCustomerAddresses } from '@services/index';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { setCurrentLocationAddress } from '@store/slices/appSlice';
@@ -20,6 +25,7 @@ import { queryClient } from '@services/api';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import type { Address } from '@services/api/queries/appQueries';
 import { formatAddress } from '@utils/tools';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type HomeLocationPickerModalProps = {
   visible: boolean;
@@ -134,7 +140,7 @@ export default function HomeLocationPickerModal({
     currentLocationAddress?.formattedAddress?.trim() ||
     currentLocationAddress?.line1?.trim() ||
     currentLocationAddress?.cityName?.trim() ||
-    (t('home.tapToDetect'));
+    t('home.tapToDetect');
 
   const isDeviceSource = !currentLocationAddress?._id;
   const selectedSavedId = currentLocationAddress?._id;
@@ -162,7 +168,10 @@ export default function HomeLocationPickerModal({
             </View>
             <View style={styles.savedTextWrap}>
               <CustomText
-                style={[styles.savedTitle, isSelected && styles.savedTitleSelected]}
+                style={[
+                  styles.savedTitle,
+                  isSelected && styles.savedTitleSelected,
+                ]}
                 fontFamily={theme.fonts.SEMI_BOLD}
               >
                 {item.name}
@@ -171,7 +180,9 @@ export default function HomeLocationPickerModal({
                 {formatSavedAddressLine(item)}
               </CustomText>
               {item.contact ? (
-                <CustomText style={styles.savedPhone}>{item.contact}</CustomText>
+                <CustomText style={styles.savedPhone}>
+                  {item.contact}
+                </CustomText>
               ) : null}
             </View>
           </View>
@@ -189,99 +200,111 @@ export default function HomeLocationPickerModal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
-          <View style={styles.headerRow}>
-            <CustomText style={styles.title}>
-              {t('home.chooseLocation')}
-            </CustomText>
-            <Pressable onPress={onClose} hitSlop={12} style={styles.closeHit}>
-              <VectoreIcons
-                name="close"
-                icon="Ionicons"
-                size={theme.SF(24)}
-                color={theme.colors.text}
-              />
-            </Pressable>
-          </View>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.deviceCard,
-              isDeviceSource && styles.deviceCardSelected,
-              pressed && { opacity: 0.9 },
-            ]}
-            onPress={handleUseCurrentLocation}
-            disabled={refreshingDevice}
-          >
-            <View style={styles.deviceRow}>
-              {refreshingDevice ? (
-                <ActivityIndicator size="small" color={theme.colors.primary} />
-              ) : (
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
+            <View style={styles.headerRow}>
+              <CustomText style={styles.title}>
+                {t('home.chooseLocation')}
+              </CustomText>
+              <Pressable onPress={onClose} hitSlop={12} style={styles.closeHit}>
                 <VectoreIcons
-                  name="navigate"
+                  name="close"
                   icon="Ionicons"
-                  size={theme.SF(22)}
-                  color={isDeviceSource ? theme.colors.primary : theme.colors.text}
+                  size={theme.SF(24)}
+                  color={theme.colors.text}
                 />
-              )}
-              <View style={styles.deviceTextWrap}>
-                <CustomText
-                  style={[styles.deviceTitle, isDeviceSource && styles.deviceTitleSelected]}
-                  fontFamily={theme.fonts.SEMI_BOLD}
-                >
-                  {t('home.useCurrentLocation')}
-                </CustomText>
-                <CustomText style={styles.deviceSub} numberOfLines={2}>
-                  {deviceSubtitle}
-                </CustomText>
-              </View>
-              {isDeviceSource ? (
-                <View style={styles.tag}>
-                  <CustomText style={styles.tagText}>
-                    {t('home.locationActive')}
+              </Pressable>
+            </View>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.deviceCard,
+                isDeviceSource && styles.deviceCardSelected,
+                pressed && { opacity: 0.9 },
+              ]}
+              onPress={handleUseCurrentLocation}
+              disabled={refreshingDevice}
+            >
+              <View style={styles.deviceRow}>
+                {refreshingDevice ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.colors.primary}
+                  />
+                ) : (
+                  <VectoreIcons
+                    name="navigate"
+                    icon="Ionicons"
+                    size={theme.SF(22)}
+                    color={
+                      isDeviceSource ? theme.colors.primary : theme.colors.text
+                    }
+                  />
+                )}
+                <View style={styles.deviceTextWrap}>
+                  <CustomText
+                    style={[
+                      styles.deviceTitle,
+                      isDeviceSource && styles.deviceTitleSelected,
+                    ]}
+                    fontFamily={theme.fonts.SEMI_BOLD}
+                  >
+                    {t('home.useCurrentLocation')}
+                  </CustomText>
+                  <CustomText style={styles.deviceSub} numberOfLines={2}>
+                    {deviceSubtitle}
                   </CustomText>
                 </View>
-              ) : null}
-            </View>
-          </Pressable>
+                {isDeviceSource ? (
+                  <View style={styles.tag}>
+                    <CustomText style={styles.tagText}>
+                      {t('home.locationActive')}
+                    </CustomText>
+                  </View>
+                ) : null}
+              </View>
+            </Pressable>
 
-          <CustomButton
-            title={t('home.addNewAddress')}
-            onPress={handleAddNewAddress}
-            buttonStyle={styles.addBtn}
-            backgroundColor={theme.colors.primary}
-            textColor={theme.colors.whitetext}
-          />
-
-          <CustomText style={styles.sectionLabel}>
-            {t('home.savedAddresses')}
-          </CustomText>
-
-          {isLoading ? (
-            <View style={styles.loaderWrap}>
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-              <CustomText style={styles.loaderHint}>{t('home.loadingAddresses')}</CustomText>
-            </View>
-          ) : addresses.length === 0 ? (
-            <View style={styles.emptyWrap}>
-              <CustomText style={styles.emptyText}>
-                {t('home.noSavedAddressesYet')}
-              </CustomText>
-            </View>
-          ) : (
-            <FlatList
-              data={addresses}
-              keyExtractor={item => item._id}
-              renderItem={renderSavedItem}
-              style={styles.list}
-              contentContainerStyle={styles.listContent}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={false}
+            <CustomButton
+              title={t('home.addNewAddress')}
+              onPress={handleAddNewAddress}
+              buttonStyle={styles.addBtn}
+              backgroundColor={theme.colors.primary}
+              textColor={theme.colors.whitetext}
             />
-          )}
+
+            <CustomText style={styles.sectionLabel}>
+              {t('home.savedAddresses')}
+            </CustomText>
+
+            {isLoading ? (
+              <View style={styles.loaderWrap}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <CustomText style={styles.loaderHint}>
+                  {t('home.loadingAddresses')}
+                </CustomText>
+              </View>
+            ) : addresses.length === 0 ? (
+              <View style={styles.emptyWrap}>
+                <CustomText style={styles.emptyText}>
+                  {t('home.noSavedAddressesYet')}
+                </CustomText>
+              </View>
+            ) : (
+              <FlatList
+                data={addresses}
+                keyExtractor={item => item._id}
+                renderItem={renderSavedItem}
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

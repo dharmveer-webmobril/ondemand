@@ -2,8 +2,14 @@ import React from 'react';
 import { View, StyleSheet, Modal, Pressable } from 'react-native';
 import { useMemo, useState, useEffect } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, CustomButton, VectoreIcons, Checkbox } from '@components/common';
+import {
+  CustomText,
+  CustomButton,
+  VectoreIcons,
+  Checkbox,
+} from '@components/common';
 import { FLUTTERWAVE_PAYMENT_ENABLED } from '@services/payment/gatewayPayment';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type PaymentMethod = 'paypal' | 'stripe' | 'flutterwave' | 'cash';
 
@@ -39,22 +45,25 @@ export default function PaymentMethodModal({
 }: PaymentMethodModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(selectedPaymentMethod);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(
+    selectedPaymentMethod,
+  );
 
   const paymentMethods = useMemo(() => {
     if (allowedMethods && allowedMethods.length > 0) {
-      return ALL_PAYMENT_METHODS.filter((m) => allowedMethods.includes(m.id));
+      return ALL_PAYMENT_METHODS.filter(m => allowedMethods.includes(m.id));
     }
     return ALL_PAYMENT_METHODS;
   }, [allowedMethods]);
 
-  const defaultMethod = paymentMethods.find((m) => isPaymentMethodSelectable(m.id))?.id ?? 'cash';
+  const defaultMethod =
+    paymentMethods.find(m => isPaymentMethodSelectable(m.id))?.id ?? 'cash';
 
   useEffect(() => {
     if (!visible) {
       return;
     }
-    const inList = paymentMethods.some((m) => m.id === selectedPaymentMethod);
+    const inList = paymentMethods.some(m => m.id === selectedPaymentMethod);
     const selectable =
       inList && isPaymentMethodSelectable(selectedPaymentMethod);
     if (selectable) {
@@ -116,75 +125,80 @@ export default function PaymentMethodModal({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.header}>
-            <CustomText style={styles.title}>
-            {(allowedMethods?.length ?? 0) >= 2 &&
-            !allowedMethods?.includes('cash')
-              ? 'Pay with card'
-              : 'Select payment method'}
-          </CustomText>
-            <Pressable onPress={onClose} style={styles.closeButton}>
-              <VectoreIcons
-                name="close"
-                icon="Ionicons"
-                size={theme.SF(24)}
-                color={theme.colors.text}
-              />
-            </Pressable>
-          </View>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.modalOverlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContent}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={styles.header}>
+              <CustomText style={styles.title}>
+                {(allowedMethods?.length ?? 0) >= 2 &&
+                !allowedMethods?.includes('cash')
+                  ? 'Pay with card'
+                  : 'Select payment method'}
+              </CustomText>
+              <Pressable onPress={onClose} style={styles.closeButton}>
+                <VectoreIcons
+                  name="close"
+                  icon="Ionicons"
+                  size={theme.SF(24)}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+            </View>
 
-          <View style={styles.optionsContainer}>
-            {paymentMethods.map((method) => {
-              const isDisabled = !isPaymentMethodSelectable(method.id);
-              const isSelected = selectedMethod === method.id;
-              return (
-                <Pressable
-                  key={method.id}
-                  disabled={isDisabled}
-                  style={[
-                    styles.paymentOptionCard,
-                    isSelected && styles.paymentOptionCardSelected,
-                    isDisabled && styles.paymentOptionCardDisabled,
-                  ]}
-                  onPress={() => setSelectedMethod(method.id)}
-                >
-                  <View style={styles.paymentOptionContent}>
-                    <CustomText
-                      style={[
-                        styles.paymentOptionText,
-                        isDisabled && styles.paymentOptionTextDisabled,
-                      ]}
-                    >
-                      {method.label}
-                    </CustomText>
-                  </View>
-                  <View pointerEvents={isDisabled ? 'none' : 'auto'}>
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={() => {
-                        if (!isDisabled) {
-                          setSelectedMethod(method.id);
-                        }
-                      }}
-                      size={theme.SF(18)}
-                    />
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
+            <View style={styles.optionsContainer}>
+              {paymentMethods.map(method => {
+                const isDisabled = !isPaymentMethodSelectable(method.id);
+                const isSelected = selectedMethod === method.id;
+                return (
+                  <Pressable
+                    key={method.id}
+                    disabled={isDisabled}
+                    style={[
+                      styles.paymentOptionCard,
+                      isSelected && styles.paymentOptionCardSelected,
+                      isDisabled && styles.paymentOptionCardDisabled,
+                    ]}
+                    onPress={() => setSelectedMethod(method.id)}
+                  >
+                    <View style={styles.paymentOptionContent}>
+                      <CustomText
+                        style={[
+                          styles.paymentOptionText,
+                          isDisabled && styles.paymentOptionTextDisabled,
+                        ]}
+                      >
+                        {method.label}
+                      </CustomText>
+                    </View>
+                    <View pointerEvents={isDisabled ? 'none' : 'auto'}>
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => {
+                          if (!isDisabled) {
+                            setSelectedMethod(method.id);
+                          }
+                        }}
+                        size={theme.SF(18)}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-          <CustomButton
-            title="Confirm"
-            onPress={handleConfirm}
-            buttonStyle={styles.confirmButton}
-            backgroundColor={theme.colors.primary}
-            textColor={theme.colors.white}
-          />
+            <CustomButton
+              title="Confirm"
+              onPress={handleConfirm}
+              buttonStyle={styles.confirmButton}
+              backgroundColor={theme.colors.primary}
+              textColor={theme.colors.white}
+            />
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

@@ -65,7 +65,8 @@ export function isSuccessfulPaymentInitiation(response: any): boolean {
 
 /** Params for the common runGatewayPayment (used from Checkout, Wallet, BookingDetail) */
 export interface RunGatewayPaymentParams {
-  bookingId: string;
+  bookingId?: string;
+  routineBookingId?: string;
   amount: number;
   /** Omit for post–create wallet-only initiate (no Stripe / web checkout). */
   paymentGateway?: GatewayPaymentMethod;
@@ -81,8 +82,8 @@ export interface RunGatewayPaymentParams {
   returnParams?: Record<string, any>;
   /** Full confirm-payment API response (includes transaction + booking when succeeded). */
   onSuccess: (confirmResponse: any) => void;
-  onCancel: (bookingId: string) => void;
-  onError: (error: any, bookingId: string) => void;
+  onCancel: (bookingId?: string) => void;
+  onError: (error: any, bookingId?: string) => void;
   handleApiError?: (error: any) => void;
   handleApiFailureResponse?: (response: any, defaultMessage: string) => void;
   failureMessage?: string;

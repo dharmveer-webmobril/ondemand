@@ -3,14 +3,23 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+import {
+  isServiceRoutineEnabled,
+  serviceSupportsDeliveryPreference,
+  formatDeliveryPreferenceLabel,
+} from '@utils/serviceRoutineConfig';
+import type { BookingType } from './BookAppointmentBookingTypeSelector';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Service = {
   _id: string;
   name: string;
   price: number;
   time: number;
+  preferences?: string[];
   serviceAddOns?: any[];
   images?: string[];
+  routineConfig?: { enabled?: boolean };
 };
 
 type ServiceSelectionModalProps = {
@@ -19,6 +28,9 @@ type ServiceSelectionModalProps = {
   onConfirm: (selectedServiceIds: string[]) => void;
   services: Service[];
   selectedServiceIds: string[];
+  bookingType?: BookingType;
+  deliveryMode?: string;
+  restrictToRoutineServices?: boolean;
 };
 
 export default function ServiceSelectionModal({
@@ -27,60 +39,111 @@ export default function ServiceSelectionModal({
   onConfirm,
   services,
   selectedServiceIds,
+  bookingType = 'single',
+  deliveryMode = '',
+  restrictToRoutineServices = false,
 }: ServiceSelectionModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<string[]>(selectedServiceIds);
 
-  useEffect(() => {
-    if (visible) {
-      setSelectedIds(selectedServiceIds);
-    }
-  }, [visible, selectedServiceIds]);
+  const isRoutineMode =
+    restrictToRoutineServices || bookingType === 'routine';
 
-  const handleToggleService = (serviceId: string) => {
+  const preferenceLabel = formatDeliveryPreferenceLabel(deliveryMode);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    if (isRoutineMode) {
+      const allowed = selectedServiceIds.filter(id => {
+        const service = services.find(s => s._id === id);
+        return service && isServiceRoutineEnabled(service);
+      });
+      setSelectedIds(allowed);
+      return;
+    }
+
+    const allowed = selectedServiceIds.filter(id => {
+      const service = services.find(s => s._id === id);
+      return (
+        service && serviceSupportsDeliveryPreference(service, deliveryMode)
+      );
+    });
+    setSelectedIds(allowed);
+  }, [
+    visible,
+    selectedServiceIds,
+    isRoutineMode,
+    services,
+    deliveryMode,
+  ]);
+
+  const handleToggleService = (item: Service) => {
+    const routineAvailable = isServiceRoutineEnabled(item);
+    const preferenceOk = serviceSupportsDeliveryPreference(item, deliveryMode);
+
+    if (isRoutineMode) {
+      if (!routineAvailable) return;
+    } else if (!preferenceOk) {
+      return;
+    }
+
+    const serviceId = item._id;
     setSelectedIds((prev: string[]) => {
       if (prev.includes(serviceId)) {
-        // Prevent deselecting if only one service is selected (mandatory minimum)
-        if (prev.length === 1) {
-          return prev; // Keep at least one selected
-        }
+        if (prev.length === 1) return prev;
         return prev.filter((id: string) => id !== serviceId);
-      } else {
-        return [...prev, serviceId];
       }
+      return [...prev, serviceId];
     });
   };
 
   const handleConfirm = () => {
-    // Ensure at least one service is selected
-    if (selectedIds.length === 0) {
-      return; // Don't allow confirming with no services
-    }
+    if (selectedIds.length === 0) return;
     onConfirm(selectedIds);
     onClose();
   };
 
   const renderServiceItem = ({ item }: { item: Service }) => {
     const isSelected = selectedIds.includes(item._id);
+    const routineAvailable = isServiceRoutineEnabled(item);
+    const preferenceOk = serviceSupportsDeliveryPreference(item, deliveryMode);
+
+    let disabled = false;
+    let disabledReason: 'routine' | 'preference' | null = null;
+
+    if (isRoutineMode) {
+      if (!routineAvailable) {
+        disabled = true;
+        disabledReason = 'routine';
+      }
+    } else if (!preferenceOk) {
+      disabled = true;
+      disabledReason = 'preference';
+    }
+
     return (
       <Pressable
         style={({ pressed }) => [
           styles.serviceItem,
-          isSelected && styles.selectedServiceItem,
-          pressed && { opacity: 0.7 },
+          isSelected && !disabled && styles.selectedServiceItem,
+          disabled && styles.serviceItemDisabled,
+          pressed && !disabled && { opacity: 0.7 },
         ]}
-        onPress={() => handleToggleService(item._id)}
+        onPress={() => handleToggleService(item)}
+        disabled={disabled}
       >
         <View style={styles.serviceContent}>
           <View
             style={[
               styles.checkbox,
-              isSelected && styles.checkboxSelected,
+              isSelected && !disabled && styles.checkboxSelected,
+              disabled && styles.checkboxDisabled,
             ]}
           >
-            {isSelected && (
+            {isSelected && !disabled && (
               <VectoreIcons
                 name="checkmark"
                 icon="Ionicons"
@@ -93,14 +156,32 @@ export default function ServiceSelectionModal({
             <CustomText
               style={[
                 styles.serviceName,
-                isSelected && styles.selectedServiceName,
+                isSelected && !disabled && styles.selectedServiceName,
+                disabled && styles.serviceNameDisabled,
               ]}
             >
               {item.name}
             </CustomText>
-            <CustomText style={styles.servicePrice}>
+            <CustomText
+              style={[
+                styles.servicePrice,
+                disabled && styles.serviceNameDisabled,
+              ]}
+            >
               ${item.price.toFixed(2)} • {item.time}m
             </CustomText>
+            {disabledReason === 'routine' ? (
+              <CustomText style={styles.unavailableLabel}>
+                {t('bookAppointment.routineNotAvailable')}
+              </CustomText>
+            ) : null}
+            {disabledReason === 'preference' ? (
+              <CustomText style={styles.unavailableLabel}>
+                {t('bookAppointment.preferenceNotAvailable', {
+                  preference: preferenceLabel,
+                })}
+              </CustomText>
+            ) : null}
           </View>
         </View>
       </Pressable>
@@ -113,41 +194,58 @@ export default function ServiceSelectionModal({
       visible={visible}
       animationType="slide"
       onRequestClose={onClose}
-      statusBarTranslucent={true}
+      statusBarTranslucent
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <CustomText style={styles.title}>Select Services</CustomText>
-              <Pressable onPress={onClose} style={styles.closeButton}>
-                <VectoreIcons
-                  name="close"
-                  icon="Ionicons"
-                  size={theme.SF(24)}
-                  color={theme.colors.text}
-                />
-              </Pressable>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={styles.content}>
+              <View style={styles.header}>
+                <CustomText style={styles.title}>Select Services</CustomText>
+                <Pressable onPress={onClose} style={styles.closeButton}>
+                  <VectoreIcons
+                    name="close"
+                    icon="Ionicons"
+                    size={theme.SF(24)}
+                    color={theme.colors.text}
+                  />
+                </Pressable>
+              </View>
+
+              {isRoutineMode ? (
+                <CustomText style={styles.hint}>
+                  {t('bookAppointment.routineOnlyServicesHint')}
+                </CustomText>
+              ) : (
+                <CustomText style={styles.hint}>
+                  {t('bookAppointment.singlePreferenceHint', {
+                    preference: preferenceLabel,
+                  })}
+                </CustomText>
+              )}
+
+              <FlatList
+                data={services}
+                keyExtractor={item => item._id}
+                renderItem={renderServiceItem}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+              />
+
+              <CustomButton
+                title={t('category.confirm') || 'Confirm'}
+                onPress={handleConfirm}
+                buttonStyle={styles.confirmButton}
+                backgroundColor={theme.colors.primary}
+                textColor={theme.colors.whitetext}
+              />
             </View>
-
-            <FlatList
-              data={services}
-              keyExtractor={(item) => item._id}
-              renderItem={renderServiceItem}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-            />
-
-            <CustomButton
-              title={t('category.confirm') || 'Confirm'}
-              onPress={handleConfirm}
-              buttonStyle={styles.confirmButton}
-              backgroundColor={theme.colors.primary}
-              textColor={theme.colors.whitetext}
-            />
-          </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -190,6 +288,12 @@ const createStyles = (theme: ThemeType) => {
     closeButton: {
       padding: SW(4),
     },
+    hint: {
+      fontSize: SF(12),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.lightText,
+      lineHeight: SF(18),
+    },
     listContent: {
       paddingVertical: SH(10),
       gap: SH(12),
@@ -204,6 +308,24 @@ const createStyles = (theme: ThemeType) => {
     selectedServiceItem: {
       borderColor: Colors.primary,
       backgroundColor: Colors.secondary || '#E3F2FD',
+    },
+    serviceItemDisabled: {
+      opacity: 0.42,
+      backgroundColor: Colors.background || '#F0F0F0',
+      borderColor: Colors.gray || '#DDD',
+    },
+    checkboxDisabled: {
+      borderColor: Colors.gray || '#CCC',
+      backgroundColor: Colors.background || '#EEE',
+    },
+    serviceNameDisabled: {
+      color: Colors.lightText || '#999',
+    },
+    unavailableLabel: {
+      fontSize: SF(12),
+      fontFamily: Fonts.MEDIUM,
+      color: Colors.errorText || '#C0392B',
+      marginTop: SH(4),
     },
     serviceContent: {
       flexDirection: 'row',

@@ -14,6 +14,7 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
 import { useGetServiceProviderAvailability } from '@services/index';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Format date to YYYY-MM-DD
 const formatDateToString = (date: Date): string => {
@@ -193,6 +194,8 @@ export default function RescheduleModal({
       onRequestClose={handleClose}
       statusBarTranslucent={true}
     >
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           {/* Header */}
@@ -392,6 +395,7 @@ export default function RescheduleModal({
           </View>
         </View>
       </View>
+      </SafeAreaView>
     </Modal>
   );
 }

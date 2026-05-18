@@ -7,10 +7,17 @@ import {
   FlatList,
   Platform,
 } from 'react-native';
-import { CustomText, CustomButton, VectoreIcons, ImageLoader, CustomInput } from '@components/common';
+import {
+  CustomText,
+  CustomButton,
+  VectoreIcons,
+  ImageLoader,
+  CustomInput,
+} from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type Member = {
   id: string;
@@ -99,15 +106,15 @@ export default function MemberSelectionModal({
     }
     const query = searchQuery.toLowerCase();
     return mockMembers.filter(
-      (member) =>
+      member =>
         member.name.toLowerCase().includes(query) ||
-        member.role?.toLowerCase().includes(query)
+        member.role?.toLowerCase().includes(query),
     );
   }, [searchQuery]);
 
   const handleSelect = useCallback(() => {
     if (selectedMemberId) {
-      const member = mockMembers.find((m) => m.id === selectedMemberId);
+      const member = mockMembers.find(m => m.id === selectedMemberId);
       if (member) {
         onSelect(member);
         setSelectedMemberId(null);
@@ -116,9 +123,12 @@ export default function MemberSelectionModal({
     }
   }, [selectedMemberId, onSelect]);
 
-  const handleMemberPress = useCallback((memberId: string) => {
-    setSelectedMemberId(memberId === selectedMemberId ? null : memberId);
-  }, [selectedMemberId]);
+  const handleMemberPress = useCallback(
+    (memberId: string) => {
+      setSelectedMemberId(memberId === selectedMemberId ? null : memberId);
+    },
+    [selectedMemberId],
+  );
 
   const renderMemberItem = useCallback(
     ({ item }: { item: Member }) => {
@@ -231,7 +241,7 @@ export default function MemberSelectionModal({
         </Pressable>
       );
     },
-    [selectedMemberId, currentMemberId, theme, styles, handleMemberPress]
+    [selectedMemberId, currentMemberId, theme, styles, handleMemberPress],
   );
 
   return (
@@ -242,94 +252,98 @@ export default function MemberSelectionModal({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <CustomText
-                fontSize={theme.fontSize.lg}
-                fontFamily={theme.fonts.SEMI_BOLD}
-                color={theme.colors.text}
-              >
-                {serviceName
-                  ? `${t('bookingDetails.assignMemberTitle')} - ${serviceName}`
-                  : t('bookingDetails.selectMemberTitle')}
-              </CustomText>
-              {serviceName && (
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
                 <CustomText
-                  fontSize={theme.fontSize.xs}
-                  fontFamily={theme.fonts.REGULAR}
-                  color={theme.colors.lightText}
-                  marginTop={theme.SH(4)}
+                  fontSize={theme.fontSize.lg}
+                  fontFamily={theme.fonts.SEMI_BOLD}
+                  color={theme.colors.text}
                 >
-                  {t('bookingDetails.chooseMemberForService')}
+                  {serviceName
+                    ? `${t(
+                        'bookingDetails.assignMemberTitle',
+                      )} - ${serviceName}`
+                    : t('bookingDetails.selectMemberTitle')}
                 </CustomText>
-              )}
-            </View>
-            <Pressable onPress={onClose} style={styles.closeButton}>
-              <VectoreIcons
-                name="close"
-                icon="Ionicons"
-                size={theme.SF(24)}
-                color={theme.colors.text}
-              />
-            </Pressable>
-          </View>
-
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <CustomInput
-              placeholder={t('bookingDetails.searchMembersPlaceholder')}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              inputTheme="default"
-              withBackground={theme.colors.secondary}
-            />
-          </View>
-
-          {/* Members List */}
-          <FlatList
-            data={filteredMembers}
-            keyExtractor={(item) => item.id}
-            renderItem={renderMemberItem}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <CustomText
-                  fontSize={theme.fontSize.sm}
-                  fontFamily={theme.fonts.REGULAR}
-                  color={theme.colors.lightText}
-                  textAlign="center"
-                >
-                  {t('bookingDetails.noMembersFound')}
-                </CustomText>
+                {serviceName && (
+                  <CustomText
+                    fontSize={theme.fontSize.xs}
+                    fontFamily={theme.fonts.REGULAR}
+                    color={theme.colors.lightText}
+                    marginTop={theme.SH(4)}
+                  >
+                    {t('bookingDetails.chooseMemberForService')}
+                  </CustomText>
+                )}
               </View>
-            }
-          />
+              <Pressable onPress={onClose} style={styles.closeButton}>
+                <VectoreIcons
+                  name="close"
+                  icon="Ionicons"
+                  size={theme.SF(24)}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+            </View>
 
-          {/* Footer Buttons */}
-          <View style={styles.footer}>
-            <CustomButton
-              title={t('common.cancel')}
-              onPress={onClose}
-              backgroundColor={theme.colors.secondary}
-              textColor={theme.colors.text}
-              buttonStyle={styles.cancelButton}
-              marginRight={theme.SW(8)}
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <CustomInput
+                placeholder={t('bookingDetails.searchMembersPlaceholder')}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                inputTheme="default"
+                withBackground={theme.colors.secondary}
+              />
+            </View>
+
+            {/* Members List */}
+            <FlatList
+              data={filteredMembers}
+              keyExtractor={item => item.id}
+              renderItem={renderMemberItem}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <CustomText
+                    fontSize={theme.fontSize.sm}
+                    fontFamily={theme.fonts.REGULAR}
+                    color={theme.colors.lightText}
+                    textAlign="center"
+                  >
+                    {t('bookingDetails.noMembersFound')}
+                  </CustomText>
+                </View>
+              }
             />
-            <CustomButton
-              title={t('common.assign')}
-              onPress={handleSelect}
-              backgroundColor={theme.colors.primary}
-              textColor={theme.colors.white}
-              buttonStyle={styles.assignButton}
-              disable={!selectedMemberId}
-            />
+
+            {/* Footer Buttons */}
+            <View style={styles.footer}>
+              <CustomButton
+                title={t('common.cancel')}
+                onPress={onClose}
+                backgroundColor={theme.colors.secondary}
+                textColor={theme.colors.text}
+                buttonStyle={styles.cancelButton}
+                marginRight={theme.SW(8)}
+              />
+              <CustomButton
+                title={t('common.assign')}
+                onPress={handleSelect}
+                backgroundColor={theme.colors.primary}
+                textColor={theme.colors.white}
+                buttonStyle={styles.assignButton}
+                disable={!selectedMemberId}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -457,11 +471,11 @@ const createStyles = (theme: ThemeType) =>
     cancelButton: {
       flex: 1,
       borderRadius: theme.borderRadius.md,
-      marginRight:6
+      marginRight: 6,
     },
     assignButton: {
       flex: 1,
       borderRadius: theme.borderRadius.md,
-      marginLeft:6
+      marginLeft: 6,
     },
   });

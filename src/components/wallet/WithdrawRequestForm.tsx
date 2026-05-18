@@ -12,8 +12,12 @@ import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
 import { CustomText, CustomInput, CustomButton } from '@components/common';
 import { useThemeContext } from '@utils/theme';
-import { withdrawRequestSchema, type WithdrawRequestFormValues } from '@utils/validationSchemas';
+import {
+  withdrawRequestSchema,
+  type WithdrawRequestFormValues,
+} from '@utils/validationSchemas';
 import regex from '@utils/regexList';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export interface WithdrawRequestFormProps {
   visible: boolean;
@@ -44,7 +48,7 @@ export default function WithdrawRequestForm({
 
   const validationSchema = useMemo(
     () => withdrawRequestSchema(t, regex, balance),
-    [t, balance]
+    [t, balance],
   );
 
   const formik = useFormik<WithdrawRequestFormValues>({
@@ -52,7 +56,7 @@ export default function WithdrawRequestForm({
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
-    onSubmit: async (values) => {
+    onSubmit: async values => {
       await onSubmit(values);
       formik.resetForm();
     },
@@ -70,103 +74,110 @@ export default function WithdrawRequestForm({
       transparent
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalContentWrap}
-        >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <CustomText style={styles.modalTitle}>{t('wallet.withdrawRequest')}</CustomText>
-              <TouchableOpacity
-                onPress={handleClose}
-                style={styles.modalCloseBtn}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalContentWrap}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <CustomText style={styles.modalTitle}>
+                  {t('wallet.withdrawRequest')}
+                </CustomText>
+                <TouchableOpacity
+                  onPress={handleClose}
+                  style={styles.modalCloseBtn}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
+                  <CustomText style={styles.modalCloseText}>×</CustomText>
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                style={styles.modalBody}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
               >
-                <CustomText style={styles.modalCloseText}>×</CustomText>
-              </TouchableOpacity>
+                <CustomInput
+                  label={t('wallet.amount')}
+                  placeholder={t('wallet.amountPlaceholder')}
+                  value={formik.values.amount}
+                  onChangeText={formik.handleChange('amount')}
+                  onBlur={formik.handleBlur('amount')}
+                  keyboardType="decimal-pad"
+                  marginTop={10}
+                  errortext={
+                    formik.touched.amount && formik.errors.amount
+                      ? formik.errors.amount
+                      : ''
+                  }
+                />
+                <CustomInput
+                  label={t('wallet.accountHolderName')}
+                  placeholder={t('wallet.accountHolderNamePlaceholder')}
+                  value={formik.values.accountHolderName}
+                  onChangeText={formik.handleChange('accountHolderName')}
+                  onBlur={formik.handleBlur('accountHolderName')}
+                  marginTop={10}
+                  errortext={
+                    formik.touched.accountHolderName &&
+                    formik.errors.accountHolderName
+                      ? formik.errors.accountHolderName
+                      : ''
+                  }
+                />
+                <CustomInput
+                  label={t('wallet.bankName')}
+                  placeholder={t('wallet.bankNamePlaceholder')}
+                  value={formik.values.bankName}
+                  onChangeText={formik.handleChange('bankName')}
+                  onBlur={formik.handleBlur('bankName')}
+                  marginTop={10}
+                  errortext={
+                    formik.touched.bankName && formik.errors.bankName
+                      ? formik.errors.bankName
+                      : ''
+                  }
+                />
+                <CustomInput
+                  label={t('wallet.accountNumber')}
+                  placeholder={t('wallet.accountNumberPlaceholder')}
+                  value={formik.values.accountNumber}
+                  onChangeText={formik.handleChange('accountNumber')}
+                  onBlur={formik.handleBlur('accountNumber')}
+                  keyboardType="number-pad"
+                  marginTop={10}
+                  errortext={
+                    formik.touched.accountNumber && formik.errors.accountNumber
+                      ? formik.errors.accountNumber
+                      : ''
+                  }
+                />
+                <CustomInput
+                  label={t('wallet.ifscCode')}
+                  placeholder={t('wallet.ifscCodePlaceholder')}
+                  value={formik.values.ifscCode}
+                  onChangeText={formik.handleChange('ifscCode')}
+                  onBlur={formik.handleBlur('ifscCode')}
+                  marginTop={10}
+                  errortext={
+                    formik.touched.ifscCode && formik.errors.ifscCode
+                      ? formik.errors.ifscCode
+                      : ''
+                  }
+                />
+                <CustomButton
+                  title={t('wallet.makeRequest')}
+                  onPress={() => formik.handleSubmit()}
+                  isLoading={isSubmitting || formik.isSubmitting}
+                  disable={isSubmitting || formik.isSubmitting}
+                  buttonStyle={styles.submitBtn}
+                />
+              </ScrollView>
             </View>
-            <ScrollView
-              style={styles.modalBody}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <CustomInput
-                label={t('wallet.amount')}
-                placeholder={t('wallet.amountPlaceholder')}
-                value={formik.values.amount}
-                onChangeText={formik.handleChange('amount')}
-                onBlur={formik.handleBlur('amount')}
-                keyboardType="decimal-pad"
-                marginTop={10}
-                errortext={
-                  formik.touched.amount && formik.errors.amount ? formik.errors.amount : ''
-                }
-              />
-              <CustomInput
-                label={t('wallet.accountHolderName')}
-                placeholder={t('wallet.accountHolderNamePlaceholder')}
-                value={formik.values.accountHolderName}
-                onChangeText={formik.handleChange('accountHolderName')}
-                onBlur={formik.handleBlur('accountHolderName')}
-                marginTop={10}
-                errortext={
-                  formik.touched.accountHolderName && formik.errors.accountHolderName
-                    ? formik.errors.accountHolderName
-                    : ''
-                }
-              />
-              <CustomInput
-                label={t('wallet.bankName')}
-                placeholder={t('wallet.bankNamePlaceholder')}
-                value={formik.values.bankName}
-                onChangeText={formik.handleChange('bankName')}
-                onBlur={formik.handleBlur('bankName')}
-                marginTop={10}
-                errortext={
-                  formik.touched.bankName && formik.errors.bankName
-                    ? formik.errors.bankName
-                    : ''
-                }
-              />
-              <CustomInput
-                label={t('wallet.accountNumber')}
-                placeholder={t('wallet.accountNumberPlaceholder')}
-                value={formik.values.accountNumber}
-                onChangeText={formik.handleChange('accountNumber')}
-                onBlur={formik.handleBlur('accountNumber')}
-                keyboardType="number-pad"
-                marginTop={10}
-                errortext={
-                  formik.touched.accountNumber && formik.errors.accountNumber
-                    ? formik.errors.accountNumber
-                    : ''
-                }
-              />
-              <CustomInput
-                label={t('wallet.ifscCode')}
-                placeholder={t('wallet.ifscCodePlaceholder')}
-                value={formik.values.ifscCode}
-                onChangeText={formik.handleChange('ifscCode')}
-                onBlur={formik.handleBlur('ifscCode')}
-                marginTop={10}
-                errortext={
-                  formik.touched.ifscCode && formik.errors.ifscCode
-                    ? formik.errors.ifscCode
-                    : ''
-                }
-              />
-              <CustomButton
-                title={t('wallet.makeRequest')}
-                onPress={() => formik.handleSubmit()}
-                isLoading={isSubmitting || formik.isSubmitting}
-                disable={isSubmitting || formik.isSubmitting}
-                buttonStyle={styles.submitBtn}
-              />
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+          </KeyboardAvoidingView>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 }

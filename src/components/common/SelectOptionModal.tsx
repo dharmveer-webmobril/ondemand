@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 import VectoreIcons from '@components/common/VectoreIcons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type OptionItem = {
   id: string;
@@ -110,6 +111,7 @@ export default function SelectOptionModal({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
+      <SafeAreaView edges={['top', 'bottom']} style={{flex: 1}}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
           <View style={styles.content}>
@@ -173,6 +175,7 @@ export default function SelectOptionModal({
           </View>
         </Pressable>
       </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

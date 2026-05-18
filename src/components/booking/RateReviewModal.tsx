@@ -26,6 +26,7 @@ import {
   type MemberRatingItem,
 } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type RateReviewTab = 'service' | 'sp' | 'member';
 
@@ -64,7 +65,9 @@ export type ReviewPayload = {
   members: MemberRatingItem[];
 };
 
-function getServiceCatalogId(svc: ServiceLike | undefined | null): string | null {
+function getServiceCatalogId(
+  svc: ServiceLike | undefined | null,
+): string | null {
   if (!svc) return null;
   const sid = svc.serviceId;
   if (typeof sid === 'string' && sid.length > 0) return sid;
@@ -82,7 +85,10 @@ function dedupeMembers(services: ServiceLike[]): Array<{
   name: string;
   profileImage?: string | null;
 }> {
-  const map = new Map<string, { id: string; name: string; profileImage?: string | null }>();
+  const map = new Map<
+    string,
+    { id: string; name: string; profileImage?: string | null }
+  >();
   services.forEach(s => {
     const m = s?.assignedMember;
     if (!m) return;
@@ -115,7 +121,10 @@ export default function RateReviewModal({
     [services],
   );
 
-  const members = useMemo(() => dedupeMembers(completedServices), [completedServices]);
+  const members = useMemo(
+    () => dedupeMembers(completedServices),
+    [completedServices],
+  );
   const hasMembers = members.length > 0;
 
   const tabs = useMemo(() => {
@@ -124,18 +133,30 @@ export default function RateReviewModal({
       { key: 'sp', label: t('bookingDetail.rateReview.tabSp') },
     ];
     if (hasMembers) {
-      opts.push({ key: 'member', label: t('bookingDetail.rateReview.tabMember') });
+      opts.push({
+        key: 'member',
+        label: t('bookingDetail.rateReview.tabMember'),
+      });
     }
     return opts;
   }, [hasMembers, t]);
 
   const [tab, setTab] = useState<RateReviewTab>('service');
 
-  const [serviceEntries, setServiceEntries] = useState<Record<string, EntryState>>({});
-  const [memberEntries, setMemberEntries] = useState<Record<string, EntryState>>({});
-  const [providerEntry, setProviderEntry] = useState<EntryState>({ rating: 0, review: '' });
+  const [serviceEntries, setServiceEntries] = useState<
+    Record<string, EntryState>
+  >({});
+  const [memberEntries, setMemberEntries] = useState<
+    Record<string, EntryState>
+  >({});
+  const [providerEntry, setProviderEntry] = useState<EntryState>({
+    rating: 0,
+    review: '',
+  });
 
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
+    null,
+  );
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -256,13 +277,23 @@ export default function RateReviewModal({
 
       const errors: string[] = [];
       if (result.service.status === 'error') {
-        errors.push(`${t('bookingDetail.rateReview.tabService')}: ${result.service.message}`);
+        errors.push(
+          `${t('bookingDetail.rateReview.tabService')}: ${
+            result.service.message
+          }`,
+        );
       }
       if (result.sp.status === 'error') {
-        errors.push(`${t('bookingDetail.rateReview.tabSp')}: ${result.sp.message}`);
+        errors.push(
+          `${t('bookingDetail.rateReview.tabSp')}: ${result.sp.message}`,
+        );
       }
       if (result.member.status === 'error') {
-        errors.push(`${t('bookingDetail.rateReview.tabMember')}: ${result.member.message}`);
+        errors.push(
+          `${t('bookingDetail.rateReview.tabMember')}: ${
+            result.member.message
+          }`,
+        );
       }
 
       if (errors.length === 0) {
@@ -331,7 +362,9 @@ export default function RateReviewModal({
 
     Alert.alert(
       t('bookingDetail.rateReview.missingTitle'),
-      `${t('bookingDetail.rateReview.missingMessage')}\n\n${missing.join('\n')}`,
+      `${t('bookingDetail.rateReview.missingMessage')}\n\n${missing.join(
+        '\n',
+      )}`,
       [
         {
           text: t('bookingDetail.rateReview.keepEditing'),
@@ -349,18 +382,18 @@ export default function RateReviewModal({
   // Resolve currently selected items + entries for the active tab
   const selectedService =
     completedServices.find(s => String(s._id) === selectedServiceId) || null;
-  const selectedServiceEntry =
-    (selectedServiceId && serviceEntries[selectedServiceId]) || {
-      rating: 0,
-      review: '',
-    };
+  const selectedServiceEntry = (selectedServiceId &&
+    serviceEntries[selectedServiceId]) || {
+    rating: 0,
+    review: '',
+  };
 
   const selectedMember = members.find(m => m.id === selectedMemberId) || null;
-  const selectedMemberEntry =
-    (selectedMemberId && memberEntries[selectedMemberId]) || {
-      rating: 0,
-      review: '',
-    };
+  const selectedMemberEntry = (selectedMemberId &&
+    memberEntries[selectedMemberId]) || {
+    rating: 0,
+    review: '',
+  };
 
   const serviceChipItems: ReviewChipItem[] = completedServices.map(s => ({
     id: String(s._id),
@@ -384,234 +417,247 @@ export default function RateReviewModal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <KeyboardAvoidingView
-        style={styles.modalRoot}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={styles.overlay} onPress={onClose}>
-          <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
-            <View style={styles.header}>
-              <CustomText style={styles.title}>
-                {t('bookingDetail.rateReview.title')}
-              </CustomText>
-              <Pressable onPress={onClose} hitSlop={12}>
-                <CustomText style={styles.close}>{'\u2715'}</CustomText>
-              </Pressable>
-            </View>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          style={styles.modalRoot}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <Pressable style={styles.overlay} onPress={onClose}>
+            <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
+              <View style={styles.header}>
+                <CustomText style={styles.title}>
+                  {t('bookingDetail.rateReview.title')}
+                </CustomText>
+                <Pressable onPress={onClose} hitSlop={12}>
+                  <CustomText style={styles.close}>{'\u2715'}</CustomText>
+                </Pressable>
+              </View>
 
-            <View style={styles.tabRow}>
-              {tabs.map(opt => {
-                const active = opt.key === tab;
-                return (
-                  <Pressable
-                    key={opt.key}
-                    style={styles.tabCell}
-                    onPress={() => setTab(opt.key)}
-                  >
-                    <CustomText
-                      style={[
-                        styles.tabText,
-                        ...(active ? [styles.tabTextActive] : []),
-                      ]}
-                      numberOfLines={1}
+              <View style={styles.tabRow}>
+                {tabs.map(opt => {
+                  const active = opt.key === tab;
+                  return (
+                    <Pressable
+                      key={opt.key}
+                      style={styles.tabCell}
+                      onPress={() => setTab(opt.key)}
                     >
-                      {opt.label}
-                    </CustomText>
-                    {active ? (
-                      <View style={styles.tabUnderline} />
-                    ) : (
-                      <View style={styles.tabUnderlineSpacer} />
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
+                      <CustomText
+                        style={[
+                          styles.tabText,
+                          ...(active ? [styles.tabTextActive] : []),
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {opt.label}
+                      </CustomText>
+                      {active ? (
+                        <View style={styles.tabUnderline} />
+                      ) : (
+                        <View style={styles.tabUnderlineSpacer} />
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
 
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {tab === 'service' ? (
-                completedServices.length === 0 ? (
-                  <CustomText style={styles.mutedCenter}>
-                    {t('bookingDetail.rateReview.noServices')}
-                  </CustomText>
-                ) : (
-                  <>
-                    <CustomText style={styles.helperText}>
-                      {t('bookingDetail.rateReview.selectServiceHint')}
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+              >
+                {tab === 'service' ? (
+                  completedServices.length === 0 ? (
+                    <CustomText style={styles.mutedCenter}>
+                      {t('bookingDetail.rateReview.noServices')}
                     </CustomText>
-                    <ReviewChipsStrip
-                      items={serviceChipItems}
-                      selectedId={selectedServiceId}
-                      onSelect={id => setSelectedServiceId(id)}
-                    />
-                    {selectedService ? (
-                      <View style={styles.formCard}>
-                        <CustomText style={styles.formTitle} numberOfLines={2}>
-                          {selectedService.name || '—'}
-                        </CustomText>
-                        <View style={styles.starsWrap}>
-                          <StarRating
-                            rating={selectedServiceEntry.rating}
-                            onChange={v =>
+                  ) : (
+                    <>
+                      <CustomText style={styles.helperText}>
+                        {t('bookingDetail.rateReview.selectServiceHint')}
+                      </CustomText>
+                      <ReviewChipsStrip
+                        items={serviceChipItems}
+                        selectedId={selectedServiceId}
+                        onSelect={id => setSelectedServiceId(id)}
+                      />
+                      {selectedService ? (
+                        <View style={styles.formCard}>
+                          <CustomText
+                            style={styles.formTitle}
+                            numberOfLines={2}
+                          >
+                            {selectedService.name || '—'}
+                          </CustomText>
+                          <View style={styles.starsWrap}>
+                            <StarRating
+                              rating={selectedServiceEntry.rating}
+                              onChange={v =>
+                                updateServiceEntry(
+                                  String(selectedService._id),
+                                  {
+                                    rating: v,
+                                  },
+                                )
+                              }
+                              starSize={theme.SF(34)}
+                              color="#FFC107"
+                              starStyle={styles.star}
+                            />
+                          </View>
+                          <TextInput
+                            style={styles.input}
+                            placeholder={t(
+                              'bookingDetail.rateReview.placeholderService',
+                            )}
+                            placeholderTextColor={theme.colors.lightText}
+                            value={selectedServiceEntry.review}
+                            onChangeText={v =>
                               updateServiceEntry(String(selectedService._id), {
-                                rating: v,
+                                review: v,
                               })
                             }
-                            starSize={theme.SF(34)}
-                            color="#FFC107"
-                            starStyle={styles.star}
+                            multiline
+                            textAlignVertical="top"
                           />
                         </View>
-                        <TextInput
-                          style={styles.input}
-                          placeholder={t(
-                            'bookingDetail.rateReview.placeholderService',
-                          )}
-                          placeholderTextColor={theme.colors.lightText}
-                          value={selectedServiceEntry.review}
-                          onChangeText={v =>
-                            updateServiceEntry(String(selectedService._id), {
-                              review: v,
-                            })
+                      ) : null}
+                    </>
+                  )
+                ) : null}
+
+                {tab === 'sp' ? (
+                  <View style={styles.formCard}>
+                    <View style={styles.providerHeader}>
+                      <View style={styles.providerAvatarWrap}>
+                        <ImageLoader
+                          source={
+                            provider?.profileImage
+                              ? { uri: provider.profileImage }
+                              : imagePaths.no_image
                           }
-                          multiline
-                          textAlignVertical="top"
+                          mainImageStyle={styles.providerAvatar}
+                          resizeMode="cover"
+                          fallbackImage={imagePaths.no_image}
                         />
                       </View>
-                    ) : null}
-                  </>
-                )
-              ) : null}
-
-              {tab === 'sp' ? (
-                <View style={styles.formCard}>
-                  <View style={styles.providerHeader}>
-                    <View style={styles.providerAvatarWrap}>
-                      <ImageLoader
-                        source={
-                          provider?.profileImage
-                            ? { uri: provider.profileImage }
-                            : imagePaths.no_image
+                      <CustomText style={styles.formTitle} numberOfLines={2}>
+                        {provider?.name ||
+                          t('bookingList.serviceProviderDefault')}
+                      </CustomText>
+                    </View>
+                    <View style={styles.starsWrap}>
+                      <StarRating
+                        rating={providerEntry.rating}
+                        onChange={v =>
+                          setProviderEntry(p => ({ ...p, rating: v }))
                         }
-                        mainImageStyle={styles.providerAvatar}
-                        resizeMode="cover"
-                        fallbackImage={imagePaths.no_image}
+                        starSize={theme.SF(34)}
+                        color="#FFC107"
+                        starStyle={styles.star}
                       />
                     </View>
-                    <CustomText style={styles.formTitle} numberOfLines={2}>
-                      {provider?.name ||
-                        t('bookingList.serviceProviderDefault')}
-                    </CustomText>
-                  </View>
-                  <View style={styles.starsWrap}>
-                    <StarRating
-                      rating={providerEntry.rating}
-                      onChange={v =>
-                        setProviderEntry(p => ({ ...p, rating: v }))
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('bookingDetail.rateReview.placeholderSp')}
+                      placeholderTextColor={theme.colors.lightText}
+                      value={providerEntry.review}
+                      onChangeText={v =>
+                        setProviderEntry(p => ({ ...p, review: v }))
                       }
-                      starSize={theme.SF(34)}
-                      color="#FFC107"
-                      starStyle={styles.star}
+                      multiline
+                      textAlignVertical="top"
                     />
                   </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('bookingDetail.rateReview.placeholderSp')}
-                    placeholderTextColor={theme.colors.lightText}
-                    value={providerEntry.review}
-                    onChangeText={v =>
-                      setProviderEntry(p => ({ ...p, review: v }))
-                    }
-                    multiline
-                    textAlignVertical="top"
-                  />
-                </View>
-              ) : null}
+                ) : null}
 
-              {tab === 'member' ? (
-                members.length === 0 ? (
-                  <CustomText style={styles.mutedCenter}>
-                    {t('bookingDetail.rateReview.noMembers')}
-                  </CustomText>
-                ) : (
-                  <>
-                    <CustomText style={styles.helperText}>
-                      {t('bookingDetail.rateReview.selectMemberHint')}
+                {tab === 'member' ? (
+                  members.length === 0 ? (
+                    <CustomText style={styles.mutedCenter}>
+                      {t('bookingDetail.rateReview.noMembers')}
                     </CustomText>
-                    <ReviewChipsStrip
-                      items={memberChipItems}
-                      selectedId={selectedMemberId}
-                      onSelect={id => setSelectedMemberId(id)}
-                    />
-                    {selectedMember ? (
-                      <View style={styles.formCard}>
-                        <CustomText style={styles.formTitle} numberOfLines={2}>
-                          {selectedMember.name}
-                        </CustomText>
-                        <View style={styles.starsWrap}>
-                          <StarRating
-                            rating={selectedMemberEntry.rating}
-                            onChange={v =>
+                  ) : (
+                    <>
+                      <CustomText style={styles.helperText}>
+                        {t('bookingDetail.rateReview.selectMemberHint')}
+                      </CustomText>
+                      <ReviewChipsStrip
+                        items={memberChipItems}
+                        selectedId={selectedMemberId}
+                        onSelect={id => setSelectedMemberId(id)}
+                      />
+                      {selectedMember ? (
+                        <View style={styles.formCard}>
+                          <CustomText
+                            style={styles.formTitle}
+                            numberOfLines={2}
+                          >
+                            {selectedMember.name}
+                          </CustomText>
+                          <View style={styles.starsWrap}>
+                            <StarRating
+                              rating={selectedMemberEntry.rating}
+                              onChange={v =>
+                                updateMemberEntry(selectedMember.id, {
+                                  rating: v,
+                                })
+                              }
+                              starSize={theme.SF(34)}
+                              color="#FFC107"
+                              starStyle={styles.star}
+                            />
+                          </View>
+                          <TextInput
+                            style={styles.input}
+                            placeholder={t(
+                              'bookingDetail.rateReview.placeholderMember',
+                            )}
+                            placeholderTextColor={theme.colors.lightText}
+                            value={selectedMemberEntry.review}
+                            onChangeText={v =>
                               updateMemberEntry(selectedMember.id, {
-                                rating: v,
+                                review: v,
                               })
                             }
-                            starSize={theme.SF(34)}
-                            color="#FFC107"
-                            starStyle={styles.star}
+                            multiline
+                            textAlignVertical="top"
                           />
                         </View>
-                        <TextInput
-                          style={styles.input}
-                          placeholder={t(
-                            'bookingDetail.rateReview.placeholderMember',
-                          )}
-                          placeholderTextColor={theme.colors.lightText}
-                          value={selectedMemberEntry.review}
-                          onChangeText={v =>
-                            updateMemberEntry(selectedMember.id, { review: v })
-                          }
-                          multiline
-                          textAlignVertical="top"
-                        />
-                      </View>
-                    ) : null}
-                  </>
-                )
-              ) : null}
-            </ScrollView>
+                      ) : null}
+                    </>
+                  )
+                ) : null}
+              </ScrollView>
 
-            <View style={styles.footerRow}>
-              <Pressable
-                style={[
-                  styles.cancelOutline,
-                  ...(submitting ? [styles.disabledSoft] : []),
-                ]}
-                onPress={submitting ? undefined : onClose}
-                disabled={submitting}
-              >
-                <CustomText style={styles.cancelOutlineText}>
-                  {t('bookingDetail.rateReview.cancel')}
-                </CustomText>
-              </Pressable>
-              <View style={styles.footerSpacer} />
-              <CustomButton
-                title={t('bookingDetail.rateReview.submit')}
-                onPress={handleSubmit}
-                disable={!hasAnyRating || submitting}
-                isLoading={submitting}
-                backgroundColor={theme.colors.primary}
-                textColor={theme.colors.white}
-                buttonStyle={styles.submitBtn}
-                paddingHorizontal={theme.SW(20)}
-              />
-            </View>
+              <View style={styles.footerRow}>
+                <Pressable
+                  style={[
+                    styles.cancelOutline,
+                    ...(submitting ? [styles.disabledSoft] : []),
+                  ]}
+                  onPress={submitting ? undefined : onClose}
+                  disabled={submitting}
+                >
+                  <CustomText style={styles.cancelOutlineText}>
+                    {t('bookingDetail.rateReview.cancel')}
+                  </CustomText>
+                </Pressable>
+                <View style={styles.footerSpacer} />
+                <CustomButton
+                  title={t('bookingDetail.rateReview.submit')}
+                  onPress={handleSubmit}
+                  disable={!hasAnyRating || submitting}
+                  isLoading={submitting}
+                  backgroundColor={theme.colors.primary}
+                  textColor={theme.colors.white}
+                  buttonStyle={styles.submitBtn}
+                  paddingHorizontal={theme.SW(20)}
+                />
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 }

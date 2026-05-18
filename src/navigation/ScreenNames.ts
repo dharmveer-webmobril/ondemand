@@ -47,6 +47,7 @@ export const SCREEN_NAMES = {
   REPORT: 'Report',
   BOOK_APPOINTMENT: 'BookAppointment',
   BOOKING_DETAIL: 'BookingDetail',
+  ROUTINE_BOOKING_DETAIL: 'RoutineBookingDetail',
   CHECKOUT: 'Checkout',
   ADD_OTHER_PERSON_DETAIL: 'AddOtherPersonDetail',
   BOOKING_SUMMARY: 'BookingSummary',

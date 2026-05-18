@@ -5,7 +5,11 @@ import { AppHeader, Container, LoadingComp, SweetAlert } from '@components/commo
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
-import { useCreateBooking, useGetWallet } from '@services/api/queries/appQueries';
+import {
+  useCreateBooking,
+  useCreateRoutineBooking,
+  useGetWallet,
+} from '@services/api/queries/appQueries';
 import { useGatewayPayment } from '@services/payment';
 import { handleSuccessToast } from '@utils/apiHelpers';
 import { useThemeContext } from '@utils/theme';
@@ -25,7 +29,11 @@ import {
   OtherPersonDetails,
   PaymentModeKey,
   buildBookingPayload,
+  buildRoutineBookingPayload,
   getBookingIdFromCreateResponse,
+  getRoutineAmountFromCreateResponse,
+  getRoutineBookingIdFromCreateResponse,
+  isRoutineCheckout,
   getRemainingAfterWallet,
   getWalletPartialAmount,
   hasInvalidPartialWalletAmount,
@@ -45,6 +53,7 @@ export default function Checkout() {
   const navigation = useNavigation<any>();
 
   const bookingData = route.params?.bookingData || {};
+  const isRoutine = isRoutineCheckout(bookingData);
   const deliveryMode = bookingData.deliveryMode;
   const selectedServices = bookingData.selectedServices || [];
   const needsAddress = deliveryMode === 'atHome';
@@ -126,6 +135,8 @@ export default function Checkout() {
     Number(walletData?.ResponseData?.balance ?? walletData?.ResponseData?.amount ?? 0) || 0;
 
   const { mutate: createBooking, isPending: isCreatingBooking } = useCreateBooking();
+  const { mutate: createRoutineBooking, isPending: isCreatingRoutine } =
+    useCreateRoutineBooking();
 
   const { runGatewayPayment, isPending: isGatewayPaymentPending } = useGatewayPayment();
 
@@ -156,7 +167,8 @@ export default function Checkout() {
     walletPartialAmount,
   );
 
-  const isLoading = isCreatingBooking || isGatewayPaymentPending;
+  const isLoading =
+    isCreatingBooking || isCreatingRoutine || isGatewayPaymentPending;
   const isFormValid = isCheckoutFormValid({
     deliveryMode,
     needsAddress,
@@ -233,6 +245,15 @@ export default function Checkout() {
     setShowPaymentSuccessModal(false);
     setPaymentSuccessConfirmRes(null);
     invalidateCheckoutQueries();
+
+    const routineBooking =
+      data?.confirmRes?.ResponseData?.routineBooking ??
+      data?.fallbackPayload?.routineBooking;
+    if (routineBooking || isRoutine) {
+      navigateToBookingList(data?.fallbackPayload ?? {});
+      return;
+    }
+
     const bookingMongoId =
       data?.confirmRes?.ResponseData?.booking?._id ??
       data?.confirmRes?.ResponseData?.booking?.id;
@@ -250,7 +271,7 @@ export default function Checkout() {
     } else if (data?.fallbackPayload) {
       navigateToBookingList(data.fallbackPayload);
     }
-  }, [navigation]);
+  }, [navigation, isRoutine]);
 
   // Handle return from PayPal WebView (success/cancel/failure)
   useFocusEffect(
@@ -261,7 +282,10 @@ export default function Checkout() {
       const confirmRes = route.params?.paymentConfirmResponse;
       if (result === 'success' && payload) {
         invalidateCheckoutQueries();
-        if (confirmRes?.ResponseData?.booking) {
+        if (
+          confirmRes?.ResponseData?.booking ||
+          confirmRes?.ResponseData?.routineBooking
+        ) {
           openCheckoutPaymentSuccessModal(confirmRes, payload);
         } else {
           handleSuccessToast(message || t('checkout.bookingCreatedSuccess'));
@@ -290,33 +314,26 @@ export default function Checkout() {
     }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentConfirmResponse, route.params?.paymentError, showCheckoutError, openCheckoutPaymentSuccessModal, t]),
   );
 
-  const handleBookingCreated = async (
+  const runPaymentAfterCreate = async (
+    entityId: string,
+    paymentAmount: number,
     response: any,
     payload: any,
     selectedPaymentMethod: BookingPaymentMethod,
     walletAmountUsed: number,
+    options: { isRoutine: boolean },
   ) => {
-    if (!response?.succeeded && !response?.ResponseData) {
-      showCheckoutError(response?.ResponseMessage, t('checkout.failedToCreateBooking'));
-      return;
-    }
-
-    const bookingId = getBookingIdFromCreateResponse(response);
-
-    if (!bookingId) {
-      queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
-      navigateToBookingList(payload);
-      return;
-    }
-
-    await localStorage.saveItem('bookingId', bookingId as string);
+    const { isRoutine: routineFlow } = options;
+    const gatewayParams = routineFlow
+      ? { routineBookingId: entityId }
+      : { bookingId: entityId };
 
     const needsCardGateway = shouldUseGatewayPayment(selectedPaymentMethod) && totalPrice > 0 &&  (paymentMode === 'online' || (paymentMode === 'wallet_partial' && remainingAfterWallet > 0));
 
     if (needsCardGateway) {
       runGatewayPayment(navigation, {
-        bookingId,
-        amount: totalPrice,
+        ...gatewayParams,
+        amount: paymentAmount,
         paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal' | 'flutterwave',
         paymentType: paymentMode,
         paymentMethod: 'card',
@@ -326,6 +343,21 @@ export default function Checkout() {
         returnParams: { bookingData, checkoutPayload: payload },
         failureMessage: t('checkout.failedToCreateBooking'),
         onSuccess: (confirmRes: any) => {
+          if (routineFlow) {
+            const hasRoutine = !!confirmRes?.ResponseData?.routineBooking;
+            if (hasRoutine) {
+              openCheckoutPaymentSuccessModal(confirmRes, {
+                ...payload,
+                routineBooking: confirmRes.ResponseData.routineBooking,
+              });
+              return;
+            }
+            showCheckoutError(
+              confirmRes?.ResponseMessage || t('checkout.failedToCreateBooking'),
+            );
+            return;
+          }
+
           const bookingPayload = confirmRes?.ResponseData?.booking;
           const hasBooking = !!(
             bookingPayload?._id ??
@@ -367,8 +399,8 @@ export default function Checkout() {
 
     if (needsWalletInitiateConfirm) {
       runGatewayPayment(navigation, {
-        bookingId,
-        amount: totalPrice,
+        ...gatewayParams,
+        amount: paymentAmount,
         paymentType: 'wallet',
         paymentMethod: 'wallet',
         walletAmountUsed: 0,
@@ -378,6 +410,20 @@ export default function Checkout() {
         returnParams: { bookingData, checkoutPayload: payload },
         failureMessage: t('checkout.failedToCreateBooking'),
         onSuccess: (confirmRes: any) => {
+          if (routineFlow) {
+            if (confirmRes?.ResponseData?.routineBooking) {
+              openCheckoutPaymentSuccessModal(confirmRes, {
+                ...payload,
+                routineBooking: confirmRes.ResponseData.routineBooking,
+              });
+              return;
+            }
+            showCheckoutError(
+              confirmRes?.ResponseMessage || t('checkout.failedToCreateBooking'),
+            );
+            return;
+          }
+
           const bookingPayload = confirmRes?.ResponseData?.booking;
           const hasBooking = !!(
             bookingPayload?._id ??
@@ -409,6 +455,15 @@ export default function Checkout() {
       return;
     }
 
+    if (routineFlow && response?.ResponseData?.routineBooking) {
+      invalidateCheckoutQueries();
+      openCheckoutPaymentSuccessModal(response, {
+        ...payload,
+        routineBooking: response.ResponseData.routineBooking,
+      });
+      return;
+    }
+
     if (response?.ResponseData?.booking) {
       invalidateCheckoutQueries();
       openCheckoutPaymentSuccessModal(response, payload);
@@ -419,10 +474,102 @@ export default function Checkout() {
     setTimeout(() => navigateToBookingList(payload), 800);
   };
 
+  const handleBookingCreated = async (
+    response: any,
+    payload: any,
+    selectedPaymentMethod: BookingPaymentMethod,
+    walletAmountUsed: number,
+  ) => {
+    if (!response?.succeeded && !response?.ResponseData) {
+      showCheckoutError(response?.ResponseMessage, t('checkout.failedToCreateBooking'));
+      return;
+    }
+
+    const bookingId = getBookingIdFromCreateResponse(response);
+
+    if (!bookingId) {
+      queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
+      navigateToBookingList(payload);
+      return;
+    }
+
+    await localStorage.saveItem('bookingId', bookingId as string);
+
+    await runPaymentAfterCreate(
+      bookingId,
+      totalPrice,
+      response,
+      payload,
+      selectedPaymentMethod,
+      walletAmountUsed,
+      { isRoutine: false },
+    );
+  };
+
+  const handleRoutineBookingCreated = async (
+    response: any,
+    payload: any,
+    selectedPaymentMethod: BookingPaymentMethod,
+    walletAmountUsed: number,
+  ) => {
+    if (!response?.succeeded && !response?.ResponseData) {
+      showCheckoutError(response?.ResponseMessage, t('checkout.failedToCreateBooking'));
+      return;
+    }
+
+    const routineBookingId = getRoutineBookingIdFromCreateResponse(response);
+    const paymentAmount = getRoutineAmountFromCreateResponse(response, totalPrice);
+
+    if (!routineBookingId) {
+      queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
+      handleSuccessToast(
+        response?.ResponseMessage || t('checkout.bookingCreatedSuccess'),
+      );
+      navigateToBookingList(payload);
+      return;
+    }
+
+    await runPaymentAfterCreate(
+      routineBookingId,
+      paymentAmount,
+      response,
+      payload,
+      selectedPaymentMethod,
+      walletAmountUsed,
+      { isRoutine: true },
+    );
+  };
+
   const submitBooking = async (
     selectedPaymentMethod: BookingPaymentMethod,
     walletAmountUsed: number = 0,
   ) => {
+    if (isRoutine) {
+      const routinePayload = buildRoutineBookingPayload({
+        bookingData,
+        selectedServices,
+        serviceFor,
+        selectedAddress,
+        paymentMode,
+      });
+
+      createRoutineBooking(routinePayload, {
+        onSuccess: async (response) => {
+          await handleRoutineBookingCreated(
+            response,
+            routinePayload,
+            selectedPaymentMethod,
+            walletAmountUsed,
+          );
+        },
+        onError: (error) => {
+          console.error('Routine booking creation error:', error);
+          showCheckoutError(error);
+        },
+      });
+      return;
+    }
+
     const payload = buildBookingPayload({
       bookingData,
       selectedServices,
@@ -521,7 +668,10 @@ export default function Checkout() {
           totalPrice={totalPrice}
           styles={styles}
         />
-        <SelectedServicesSection selectedServices={selectedServices} />
+        <SelectedServicesSection
+          selectedServices={selectedServices}
+          showPromotionalOffers={!isRoutine && !bookingData?.promotionsDisabled}
+        />
         <ServiceForSection
           styles={styles}
           theme={theme}

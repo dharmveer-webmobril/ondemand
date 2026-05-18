@@ -1,19 +1,18 @@
-import { View, StyleSheet, Modal, Pressable, FlatList,  } from 'react-native';
-import { useMemo, useState, } from 'react';
+import { View, StyleSheet, Modal, Pressable, FlatList } from 'react-native';
+import { useMemo, useState } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomButton, CustomText, CustomInput } from '@components/common';
 import { useTranslation } from 'react-i18next';
 
 import imagePaths from '@assets';
-
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PhoneNumberPickerProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (country: any) => void;
-  data: any
-  selectedContact: string | null
+  data: any;
+  selectedContact: string | null;
 }
 
 export default function PhoneNumberPicker({
@@ -21,7 +20,7 @@ export default function PhoneNumberPicker({
   onClose,
   onSelect,
   data,
-  selectedContact
+  selectedContact,
 }: PhoneNumberPickerProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -33,9 +32,12 @@ export default function PhoneNumberPicker({
   // Filter countries based on search
   const filteredContacts = useMemo(() => {
     if (!searchCountry) return data;
-    return data.filter((contact: any) =>
-      contact.displayName.toLowerCase().includes(searchCountry.toLowerCase()) ||
-      contact.phoneNumber.toLowerCase().includes(searchCountry.toLowerCase())
+    return data.filter(
+      (contact: any) =>
+        contact.displayName
+          .toLowerCase()
+          .includes(searchCountry.toLowerCase()) ||
+        contact.phoneNumber.toLowerCase().includes(searchCountry.toLowerCase()),
     );
   }, [data, searchCountry]);
 
@@ -44,8 +46,6 @@ export default function PhoneNumberPicker({
     onSelect(country);
     onClose();
   };
-
-
 
   const renderCountryItem = ({ item }: { item: any }) => {
     const isSelected = item._id === selectedContact;
@@ -56,9 +56,11 @@ export default function PhoneNumberPicker({
         style={[styles.item, isSelected && styles.selectedItem]}
         onPress={() => handleCountrySelect(item)}
       >
-        <CustomText style={styles.countryName} numberOfLines={1}>{item?.displayName}</CustomText>
+        <CustomText style={styles.countryName} numberOfLines={1}>
+          {item?.displayName}
+        </CustomText>
         <CustomText style={styles.phoneNumber}>{item?.phoneNumber}</CustomText>
-      </Pressable>  
+      </Pressable>
     );
   };
 
@@ -70,45 +72,47 @@ export default function PhoneNumberPicker({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.content}>
-            <CustomText style={styles.title}>
-              Select Contact
-            </CustomText>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={styles.content}>
+              <CustomText style={styles.title}>Select Contact</CustomText>
 
-            <CustomInput
-              placeholder={t('placeholders.search')}
-              value={searchCountry}
-              onChangeText={setSearchCountry}
-              leftIcon={imagePaths.Search}
-              marginTop={theme.SH(10)}
-            />
-
-            <FlatList
-              data={filteredContacts || []}
-              renderItem={renderCountryItem}
-              keyExtractor={(item) => item._id}
-              style={styles.list}
-              contentContainerStyle={styles.listContent}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={false}
-            />
-
-
-            <View style={styles.buttonsContainer}>
-              <CustomButton
-                onPress={onClose}
-                title={t('imagePickerModal.cancel')}
-                buttonStyle={styles.confirmButton}
-                buttonTextStyle={styles.confirmButtonText}
-                backgroundColor={theme.colors.white}
-                textColor={theme.colors.primary}
+              <CustomInput
+                placeholder={t('placeholders.search')}
+                value={searchCountry}
+                onChangeText={setSearchCountry}
+                leftIcon={imagePaths.Search}
+                marginTop={theme.SH(10)}
               />
+
+              <FlatList
+                data={filteredContacts || []}
+                renderItem={renderCountryItem}
+                keyExtractor={item => item._id}
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
+              />
+
+              <View style={styles.buttonsContainer}>
+                <CustomButton
+                  onPress={onClose}
+                  title={t('imagePickerModal.cancel')}
+                  buttonStyle={styles.confirmButton}
+                  buttonTextStyle={styles.confirmButtonText}
+                  backgroundColor={theme.colors.white}
+                  textColor={theme.colors.primary}
+                />
+              </View>
             </View>
-          </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -174,7 +178,7 @@ const createStyles = (theme: ThemeType) =>
       fontFamily: theme.fonts.MEDIUM,
       flex: 1,
     },
-     
+
     phoneNumber: {
       fontSize: theme.fontSize.sm,
       color: theme.colors.text,

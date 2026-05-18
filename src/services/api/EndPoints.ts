@@ -29,7 +29,11 @@ export default {
     UPDATE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     DELETE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     CREATE_BOOKING: '/customer/bookings/bookings',
+    CREATE_ROUTINE_BOOKING: '/customer/bookings/routine',
     GET_CUSTOMER_BOOKINGS: '/customer/bookings/bookings',
+    GET_ROUTINE_BOOKINGS: '/customer/bookings/routine',
+    GET_ROUTINE_BOOKING_DETAIL: (routineBookingId: string) =>
+        `/customer/bookings/routine/${routineBookingId}`,
     GET_TOP_RATED_SERVICES: '/customer/bookings/top-rated-services',
     GET_TOP_OFFERED_SERVICES: '/customer/bookings/top-offered-services',
     GET_BOOKING_DETAIL: '/customer/bookings/bookings',

@@ -33,6 +33,8 @@ type ServiceSummeryCardProps = {
     onAssignMember?: (service: Service) => void;
     onCallMember?: (phone: string) => void;
     pageName?: string;
+    /** When false, promotional offers are hidden (e.g. routine package bookings). */
+    showPromotionalOffers?: boolean;
 };
 
 export default function ServiceSummeryCard({
@@ -43,7 +45,8 @@ export default function ServiceSummeryCard({
     onOfferChange,
     onAssignMember,
     onCallMember,
-    pageName = ''
+    pageName = '',
+    showPromotionalOffers = true,
 }: ServiceSummeryCardProps) {
     const theme = useThemeContext();
     const styles = useMemo(() => createStyles(theme), [theme]);
@@ -152,7 +155,7 @@ export default function ServiceSummeryCard({
                             </View>
                         )}
                         {/* Active Offers with Checkboxes - Only in booking-summery page */}
-                        {service?.activeOffers && pageName === 'booking-summery' && service?.activeOffers.length > 0 && (
+                        {showPromotionalOffers && service?.activeOffers && pageName === 'booking-summery' && service?.activeOffers.length > 0 && (
                             <View style={styles.offersContainer}>
                                 {service.activeOffers.map((offer: any) => {
                                     const isSelected = (selectedOffers[service._id] || service.selectedOfferId) === offer._id;

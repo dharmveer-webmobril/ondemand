@@ -8,6 +8,9 @@ import {
 } from '@components/common';
 import ServiceForModal from '@components/provider/ServiceForModal';
 import { formatAddress } from '@utils/tools';
+import RoutineSessionsList, {
+  toRoutineSessionListItems,
+} from '@components/routine/RoutineSessionsList';
 import {
   Address,
   OtherPersonDetails,
@@ -106,18 +109,46 @@ export const AppointmentDetailsSection = ({
   bookingData,
   totalPrice,
 }: AppointmentDetailsSectionProps) => {
+  const isRoutine = bookingData?.bookingType === 'routine';
+  const sessions = Array.isArray(bookingData?.sessions) ? bookingData.sessions : [];
+  const volumeDiscount = bookingData?.volumeDiscount;
+
   return (
     <View style={styles.section}>
       <CustomText style={styles.sectionTitle}>Appointment Details</CustomText>
       <View style={styles.summaryCard}>
-        <View style={styles.summaryRow}>
-          <CustomText style={styles.summaryLabel}>Date:</CustomText>
-          <CustomText style={styles.summaryValue}>{bookingData?.date}</CustomText>
-        </View>
-        <View style={styles.summaryRow}>
-          <CustomText style={styles.summaryLabel}>Time:</CustomText>
-          <CustomText style={styles.summaryValue}>{bookingData?.timeSlot}</CustomText>
-        </View>
+        {isRoutine ? (
+          <>
+            <CustomText style={styles.routinePackageLabel}>
+              Routine package · {bookingData?.sessionCount ?? sessions.length}{' '}
+              sessions
+            </CustomText>
+            {sessions.length > 0 ? (
+              <RoutineSessionsList
+                sessions={toRoutineSessionListItems(sessions)}
+                defaultCollapsed
+                maxScrollHeight={200}
+              />
+            ) : null}
+            {volumeDiscount ? (
+              <CustomText style={styles.volumeDiscountLine}>
+                {volumeDiscount.tier} ({volumeDiscount.percent}% off) −$
+                {Number(volumeDiscount.amount || 0).toFixed(2)}
+              </CustomText>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <View style={styles.summaryRow}>
+              <CustomText style={styles.summaryLabel}>Date:</CustomText>
+              <CustomText style={styles.summaryValue}>{bookingData?.date}</CustomText>
+            </View>
+            <View style={styles.summaryRow}>
+              <CustomText style={styles.summaryLabel}>Time:</CustomText>
+              <CustomText style={styles.summaryValue}>{bookingData?.timeSlot}</CustomText>
+            </View>
+          </>
+        )}
         <View style={styles.summaryRow}>
           <CustomText style={styles.summaryLabel}>Total:</CustomText>
           <CustomText style={styles.summaryValue}>${totalPrice.toFixed(2)}</CustomText>
@@ -127,7 +158,13 @@ export const AppointmentDetailsSection = ({
   );
 };
 
-export const SelectedServicesSection = ({ selectedServices }: { selectedServices: any[] }) => {
+export const SelectedServicesSection = ({
+  selectedServices,
+  showPromotionalOffers = true,
+}: {
+  selectedServices: any[];
+  showPromotionalOffers?: boolean;
+}) => {
   if (!selectedServices?.length) {
     return null;
   }
@@ -139,6 +176,7 @@ export const SelectedServicesSection = ({ selectedServices }: { selectedServices
       onRemoveService={() => {}}
       onAddAddOns={() => {}}
       onAddService={() => {}}
+      showPromotionalOffers={showPromotionalOffers}
     />
   );
 };

@@ -8,6 +8,7 @@ import {
 import { CustomText, CustomButton, CustomInput, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ReasonInputModalProps = {
   visible: boolean;
@@ -44,7 +45,9 @@ export default function ReasonInputModal({
       animationType="slide"
       onRequestClose={handleClose}
       statusBarTranslucent={true}
-    >
+    > 
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           {/* Header */}
@@ -109,6 +112,7 @@ export default function ReasonInputModal({
           </View>
         </View>
       </View>
+      </SafeAreaView>
     </Modal>
   );
 }

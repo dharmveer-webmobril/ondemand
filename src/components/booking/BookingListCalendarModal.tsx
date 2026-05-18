@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useThemeContext } from '@utils/theme';
-import {  CustomText, VectoreIcons } from '@components/common';
+import { CustomText, VectoreIcons } from '@components/common';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Props = {
   visible: boolean;
@@ -46,53 +47,55 @@ function BookingListCalendarModalComponent({
       transparent
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <CustomText style={styles.modalTitle}>Select Date</CustomText>
-            <TouchableOpacity
-              onPress={onClose}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            >
-              <VectoreIcons
-                name="close"
-                size={24}
-                icon="Ionicons"
-                color={theme.colors.text}
-              />
-            </TouchableOpacity>
-          </View>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.modalOverlay} onPress={onClose}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <CustomText style={styles.modalTitle}>Select Date</CustomText>
+              <TouchableOpacity
+                onPress={onClose}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <VectoreIcons
+                  name="close"
+                  size={24}
+                  icon="Ionicons"
+                  color={theme.colors.text}
+                />
+              </TouchableOpacity>
+            </View>
 
-          <Calendar
-            key={currentMonth}
-            current={currentMonth}
-            onDayPress={onDateSelect}
-            renderArrow={renderCalendarArrow}
-            markedDates={
-              selectedDate
-                ? {
-                    [selectedDate]: {
-                      selected: true,
-                      selectedColor: theme.colors.primary,
-                    },
-                  }
-                : {}
-            }
-            theme={{
-              calendarBackground: theme.colors.white,
-              selectedDayBackgroundColor: theme.colors.primary,
-              selectedDayTextColor: theme.colors.white,
-              todayTextColor: theme.colors.primary,
-              arrowColor: theme.colors.primary,
-              monthTextColor: theme.colors.text,
-              textDayFontFamily: theme.fonts?.REGULAR,
-              textMonthFontFamily: theme.fonts?.BOLD,
-              textDayHeaderFontFamily: theme.fonts?.MEDIUM,
-            }}
-            style={styles.calendar}
-          />
-        </View>
-      </Pressable>
+            <Calendar
+              key={currentMonth}
+              current={currentMonth}
+              onDayPress={onDateSelect}
+              renderArrow={renderCalendarArrow}
+              markedDates={
+                selectedDate
+                  ? {
+                      [selectedDate]: {
+                        selected: true,
+                        selectedColor: theme.colors.primary,
+                      },
+                    }
+                  : {}
+              }
+              theme={{
+                calendarBackground: theme.colors.white,
+                selectedDayBackgroundColor: theme.colors.primary,
+                selectedDayTextColor: theme.colors.white,
+                todayTextColor: theme.colors.primary,
+                arrowColor: theme.colors.primary,
+                monthTextColor: theme.colors.text,
+                textDayFontFamily: theme.fonts?.REGULAR,
+                textMonthFontFamily: theme.fonts?.BOLD,
+                textDayHeaderFontFamily: theme.fonts?.MEDIUM,
+              }}
+              style={styles.calendar}
+            />
+          </View>
+        </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

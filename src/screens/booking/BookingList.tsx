@@ -22,19 +22,29 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import { useGetCustomerBookings } from '@services/api/queries/appQueries';
+import {
+  useGetCustomerBookings,
+  useGetRoutineBookings,
+} from '@services/api/queries/appQueries';
 import axiosInstance from '@services/api/axiosInstance';
 import EndPoints from '@services/api/EndPoints';
-import { formatAddress, getStatusColor } from '@utils/tools';
+import { getStatusColor } from '@utils/tools';
 import imagePaths from '@assets';
 import BookingListFilters, {
   BookingStatusOption,
 } from '@components/booking/BookingListFilters';
 import BookingListCalendarModal from '@components/booking/BookingListCalendarModal';
-import RateReviewModal from '@components/booking/RateReviewModal';
+import BookingListScopeTabs, {
+  type BookingListScope,
+} from '@components/booking/BookingListScopeTabs';
+import RoutineStatusFilterBar from '@components/booking/RoutineStatusFilterBar';
+import RoutineBookingCard from '@components/booking/RoutineBookingCard';
 import { bookingHasPendingCustomerReviews } from '@utils/bookingReviewHelpers';
+import {
+  routineStatusMatchesFilter,
+  type RoutineStatusFilter,
+} from '@utils/routineBookingHelpers';
 
-// Format date from API (YYYY-MM-DD) to display e.g. 06-March-2025
 const formatDate = (dateString: string): string => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -54,29 +64,6 @@ const formatDate = (dateString: string): string => {
   ];
   const day = date.getDate().toString().padStart(2, '0');
   return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
-};
-
-const formatBookingAddress = (booking: any): string => {
-  const preferences = booking.preferences?.[0]?.toLowerCase()?.trim();
-  let addressData: any = null;
-  if (preferences === 'athome') {
-    addressData = booking.addressId;
-  }
-  if (preferences !== 'athome') {
-    addressData = booking.spBusinessProfile;
-  }
-
-  if (addressData) {
-    return formatAddress({
-      line1: addressData.line1,
-      line2: addressData.line2,
-      landmark: addressData.landmark,
-      pincode: addressData.pincode,
-      city: addressData.city?.name,
-      country: addressData.country?.name,
-    });
-  }
-  return '';
 };
 
 const bookingStatusOptions: BookingStatusOption[] = [
@@ -134,73 +121,88 @@ export default function BookingList() {
   const theme = useThemeContext();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const [bookingScope, setBookingScope] = useState<BookingListScope>('general');
+
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [routineStatusFilter, setRoutineStatusFilter] =
+    useState<RoutineStatusFilter>('');
+
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
   const [calendarViewingMonth, setCalendarViewingMonth] = useState<string>(() =>
     getFirstDayOfMonth(''),
   );
   const [refreshing, setRefreshing] = useState(false);
-  const [page, setPage] = useState(1);
+
+  const [generalPage, setGeneralPage] = useState(1);
   const [allBookings, setAllBookings] = useState<any[]>([]);
-  const [hasLoadedFirstPage, setHasLoadedFirstPage] = useState(false);
-  const [rateReviewBookingId, setRateReviewBookingId] = useState<string | null>(null);
+  const [generalLoaded, setGeneralLoaded] = useState(false);
+
+  const [routinePage, setRoutinePage] = useState(1);
+  const [allRoutineBookings, setAllRoutineBookings] = useState<any[]>([]);
+  const [routineLoaded, setRoutineLoaded] = useState(false);
+
   const [bookAgainLoadingId, setBookAgainLoadingId] = useState<string | null>(null);
 
-  const queryClient = useQueryClient();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
-  // Fetch bookings from API
   const {
     data: bookingsData,
     isLoading: bookingsLoading,
     isFetching: bookingsFetching,
     refetch: refetchBookings,
-  } = useGetCustomerBookings(page, 10);
+  } = useGetCustomerBookings(generalPage, 10, 'general');
 
-  const pagination = bookingsData?.pagination;
-  const hasMorePages = (pagination?.page ?? 1) < (pagination?.pages ?? 1);
-  const showInitialLoader =
-    !hasLoadedFirstPage && (bookingsLoading || bookingsFetching);
+  const {
+    data: routineData,
+    isLoading: routineLoading,
+    isFetching: routineFetching,
+    refetch: refetchRoutine,
+  } = useGetRoutineBookings(routinePage, 50);
+
+  const generalPagination = bookingsData?.pagination;
+  const generalHasMore =
+    (generalPagination?.page ?? 1) < (generalPagination?.pages ?? 1);
+
+  const routinePagination = routineData?.pagination;
+  const routineHasMore =
+    (routinePagination?.page ?? 1) <
+    (routinePagination?.totalPages ?? routinePagination?.pages ?? 1);
 
   useEffect(() => {
-    const nextPageBookings = bookingsData?.ResponseData ?? [];
-
+    const next = bookingsData?.ResponseData ?? [];
     setAllBookings(prev => {
-      if (page === 1) {
-        return nextPageBookings;
-      }
-
-      const existingIds = new Set(prev.map((booking: any) => booking?._id));
-      const nextById = new Map(nextPageBookings.map((b: any) => [b?._id, b]));
-
-      const updatedExisting = prev.map((booking: any) => {
-        const id = booking?._id;
-        if (!id) return booking;
-        const updated = nextById.get(id);
-        return updated ? updated : booking;
+      if (generalPage === 1) return next;
+      const existingIds = new Set(prev.map((b: any) => b?._id));
+      const nextById = new Map(next.map((b: any) => [b?._id, b]));
+      const updated = prev.map((b: any) => {
+        const id = b?._id;
+        return id && nextById.has(id) ? nextById.get(id) : b;
       });
-
-      const newBookings = nextPageBookings.filter(
-        (booking: any) => !existingIds.has(booking?._id),
-      );
-      return [...updatedExisting, ...newBookings];
+      const added = next.filter((b: any) => !existingIds.has(b?._id));
+      return [...updated, ...added];
     });
+    if (generalPage === 1 && bookingsData) setGeneralLoaded(true);
+  }, [bookingsData, generalPage]);
 
-    if (page === 1 && bookingsData) {
-      setHasLoadedFirstPage(true);
-    }
-  }, [bookingsData, page]);
+  useEffect(() => {
+    const next = routineData?.ResponseData ?? [];
+    setAllRoutineBookings(prev => {
+      if (routinePage === 1) return next;
+      const existingIds = new Set(prev.map((b: any) => b?._id));
+      const added = next.filter((b: any) => !existingIds.has(b?._id));
+      return [...prev, ...added];
+    });
+    if (routinePage === 1 && routineData) setRoutineLoaded(true);
+  }, [routineData, routinePage]);
 
-  const transformedBookings = useMemo(() => {
-    return allBookings.map((booking: any) => {
-      const bookingData = booking as any;
-      return {
+  const transformedGeneral = useMemo(
+    () =>
+      allBookings.map((booking: any) => ({
         id: booking._id,
         bookingId:
-          bookingData?.bookingId ||
-          booking._id?.slice(-8)?.toUpperCase() ||
-          '—',
+          booking?.bookingId || booking._id?.slice(-8)?.toUpperCase() || '—',
         friendName:
           booking.bookedFor === 'other'
             ? booking.bookedForDetails?.name
@@ -210,7 +212,7 @@ export default function BookingList() {
         date: formatDate(booking.date),
         time: booking.time || '',
         shopName: booking.spId?.name || t('bookingList.serviceProviderDefault'),
-        address: booking?.addressId ? booking?.addressId?.formattedAddress : '',
+        address: booking?.addressId?.formattedAddress || '',
         price: `$${(
           booking.discountedAmount ??
           booking.totalAmount ??
@@ -220,78 +222,88 @@ export default function BookingList() {
           ? { uri: booking.spBusinessProfile.bannerImage }
           : imagePaths.no_image,
         originalBooking: booking,
-      };
-    });
-  }, [allBookings, t]);
+      })),
+    [allBookings, t],
+  );
 
-  // Filter bookings based on selected status
-  const currentBookings = useMemo(() => {
-    return transformedBookings.filter((booking: any) => {
+  const filteredGeneral = useMemo(() => {
+    return transformedGeneral.filter((booking: any) => {
       const statusMatches =
         !selectedStatus ||
         booking.status?.toLowerCase() === selectedStatus.toLowerCase();
       const bookingDate = booking.originalBooking?.date?.slice(0, 10);
       const dateMatches = !selectedDate || bookingDate === selectedDate;
-
       return statusMatches && dateMatches;
     });
-  }, [transformedBookings, selectedStatus, selectedDate]);
+  }, [transformedGeneral, selectedStatus, selectedDate]);
 
-  const handleFilterSelect = useCallback((status: string) => {
-    setSelectedStatus(status);
-  }, []);
-
-  const openCalendarModal = useCallback(() => {
-    setCalendarViewingMonth(
-      getFirstDayOfMonth(selectedDate ?? new Date().toISOString().slice(0, 10)),
+  const filteredRoutine = useMemo(() => {
+    return allRoutineBookings.filter((item: any) =>
+      routineStatusMatchesFilter(item.routineStatus, routineStatusFilter),
     );
-    setCalendarModalVisible(true);
-  }, [selectedDate]);
+  }, [allRoutineBookings, routineStatusFilter]);
 
-  const closeCalendarModal = useCallback(() => {
-    setCalendarModalVisible(false);
-  }, []);
-
-  const handleDateSelect = useCallback((day: DateData) => {
-    setSelectedDate(day.dateString);
-    setCalendarModalVisible(false);
-  }, []);
-
-  const handleClearDate = useCallback(() => {
+  const handleScopeChange = useCallback((scope: BookingListScope) => {
+    setBookingScope(scope);
+    setSelectedStatus('');
     setSelectedDate(null);
+    setRoutineStatusFilter('');
+    setGeneralPage(1);
+    setRoutinePage(1);
   }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      setPage(1);
-      await refetchBookings();
-    } catch (error) {
-      console.error('Error refreshing bookings:', error);
+      if (bookingScope === 'general') {
+        setGeneralPage(1);
+        await refetchBookings();
+      } else {
+        setRoutinePage(1);
+        await refetchRoutine();
+      }
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBookings]);
+  }, [bookingScope, refetchBookings, refetchRoutine]);
 
   const handleEndReached = useCallback(() => {
-    if (bookingsFetching || bookingsLoading || refreshing || !hasMorePages) {
+    if (bookingScope === 'general') {
+      if (bookingsFetching || bookingsLoading || refreshing || !generalHasMore) {
+        return;
+      }
+      setGeneralPage(p => p + 1);
       return;
     }
+    if (routineFetching || routineLoading || refreshing || !routineHasMore) {
+      return;
+    }
+    setRoutinePage(p => p + 1);
+  }, [
+    bookingScope,
+    bookingsFetching,
+    bookingsLoading,
+    routineFetching,
+    routineLoading,
+    refreshing,
+    generalHasMore,
+    routineHasMore,
+  ]);
 
-    setPage(prev => prev + 1);
-  }, [bookingsFetching, bookingsLoading, refreshing, hasMorePages]);
-
-  // Refetch list when screen gains focus (e.g. after checkout or returning from detail).
-  // Do not clear allBookings here — keep showing existing data until new data arrives to avoid a flash of empty state.
   useFocusEffect(
     useCallback(() => {
-      // Reset filters whenever user enters Booking List from other tabs/screens.
       setSelectedStatus('');
       setSelectedDate(null);
+      setRoutineStatusFilter('');
       setCalendarModalVisible(false);
-      setPage(1);
-      refetchBookings();
-    }, [refetchBookings]),
+      setGeneralPage(1);
+      setRoutinePage(1);
+      if (bookingScope === 'general') {
+        refetchBookings();
+      } else {
+        refetchRoutine();
+      }
+    }, [bookingScope, refetchBookings, refetchRoutine]),
   );
 
   const fetchBookingDetail = useCallback(
@@ -304,8 +316,6 @@ export default function BookingList() {
           );
           return response.data;
         },
-        // Keep recently fetched detail to avoid re-hitting the API if the
-        // user opens it again immediately.
         staleTime: 30_000,
       });
     },
@@ -315,7 +325,6 @@ export default function BookingList() {
   const handleBookAgain = useCallback(
     async (bookingDbId: string) => {
       if (!bookingDbId || bookAgainLoadingId) return;
-
       try {
         setBookAgainLoadingId(bookingDbId);
         const detail = await fetchBookingDetail(bookingDbId);
@@ -328,7 +337,7 @@ export default function BookingList() {
           apiBooking?.spId?._id ||
           (typeof apiBooking?.spId === 'string' ? apiBooking?.spId : null);
 
-        if (!providerId) {
+        if (!providerId || !bookedServices.length) {
           showToast({
             type: 'error',
             title: t('messages.error'),
@@ -337,48 +346,29 @@ export default function BookingList() {
           return;
         }
 
-        if (!bookedServices.length) {
-          showToast({
-            type: 'info',
-            title: t('messages.error'),
-            message: t('messages.somethingWentWrong'),
-          });
-          return;
-        }
-
-        // Default to the original delivery preference (e.g. 'atHome' / 'atShop').
         const preferences: string[] = Array.isArray(apiBooking?.preferences)
           ? apiBooking.preferences
           : [];
         const deliveryMode = preferences[0] || 'atShop';
 
-        // Reconstruct selected services in the shape BookAppointment expects:
-        // each entry is a service object with `selectedAddOns` attached so the
-        // cart and totals work straight away.
-        const selectedServices = bookedServices.map((bs: any) => {
-          const service = bs?.serviceId || {};
-          return {
-            ...service,
-            selectedAddOns: Array.isArray(bs?.addOnServices)
-              ? bs.addOnServices.filter(Boolean)
-              : [],
-          };
-        });
-
-        const providerData = {
-          ...(apiBooking?.spId || {}),
-          businessProfile: apiBooking?.spBusinessProfile,
-        };
+        const selectedServices = bookedServices.map((bs: any) => ({
+          ...(bs?.serviceId || {}),
+          selectedAddOns: Array.isArray(bs?.addOnServices)
+            ? bs.addOnServices.filter(Boolean)
+            : [],
+        }));
 
         navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
           providerId,
           serviceId: selectedServices[0]?._id,
           selectedServices,
           bookingDetails: { deliveryMode },
-          providerData,
+          providerData: {
+            ...(apiBooking?.spId || {}),
+            businessProfile: apiBooking?.spBusinessProfile,
+          },
         });
       } catch (error: any) {
-        console.error('Book again error:', error);
         showToast({
           type: 'error',
           title: t('messages.error'),
@@ -393,14 +383,7 @@ export default function BookingList() {
     [bookAgainLoadingId, fetchBookingDetail, t],
   );
 
-  const handleCardPress = useCallback((bookingId: string,flag:string='noraml') => {
-    navigate(SCREEN_NAMES.BOOKING_DETAIL, {
-      bookingId: bookingId,
-      flag: flag,
-    });
-  }, []);
-
-  const renderBookingItem = useCallback(
+  const renderGeneralItem = useCallback(
     ({ item }: any) => {
       const completed = item.status?.toLowerCase() === 'completed';
       const showRateNow =
@@ -422,19 +405,54 @@ export default function BookingList() {
           }
           bookAgainLoading={bookAgainLoadingId === item.id}
           showRateNow={showRateNow}
-          onRateNow={showRateNow ? () => handleCardPress(item.id,'open-rate-review') : undefined}
-          onPress={() => handleCardPress(item.id)}
+          onRateNow={
+            showRateNow
+              ? () =>
+                  navigate(SCREEN_NAMES.BOOKING_DETAIL, {
+                    bookingId: item.id,
+                    flag: 'open-rate-review',
+                  })
+              : undefined
+          }
+          onPress={() =>
+            navigate(SCREEN_NAMES.BOOKING_DETAIL, { bookingId: item.id })
+          }
         />
       );
     },
-    [handleBookAgain, handleCardPress, bookAgainLoadingId],
+    [handleBookAgain, bookAgainLoadingId],
   );
 
-  const showEmptyState =
-    hasLoadedFirstPage &&
-    !bookingsFetching &&
+  const renderRoutineItem = useCallback(
+    ({ item }: { item: any }) => (
+      <RoutineBookingCard
+        routineBookingId={item.routineBookingId}
+        sessionCount={item.pricing?.sessionCount ?? 0}
+        totalCents={item.pricing?.totalCents ?? 0}
+        currency={item.pricing?.currency}
+        routineStatus={item.routineStatus}
+        proRespondBy={item.proRespondBy}
+        onPress={() =>
+          navigate(SCREEN_NAMES.ROUTINE_BOOKING_DETAIL, {
+            routineBookingId: item._id,
+          })
+        }
+      />
+    ),
+    [],
+  );
+
+  const isGeneral = bookingScope === 'general';
+  const showInitialLoader = isGeneral
+    ? !generalLoaded && (bookingsLoading || bookingsFetching)
+    : !routineLoaded && (routineLoading || routineFetching);
+
+  const listData = isGeneral ? filteredGeneral : filteredRoutine;
+  const showEmpty =
+    (isGeneral ? generalLoaded : routineLoaded) &&
+    !(isGeneral ? bookingsFetching : routineFetching) &&
     !showInitialLoader &&
-    currentBookings.length === 0;
+    listData.length === 0;
 
   return (
     <Container
@@ -450,25 +468,44 @@ export default function BookingList() {
         />
       </View>
 
-      <BookingListFilters
-        selectedStatus={selectedStatus}
-        selectedDate={selectedDate}
-        onSelectStatus={handleFilterSelect}
-        onOpenCalendar={openCalendarModal}
-        onClearDate={handleClearDate}
-        formatDateDisplay={formatDateDisplay}
-        statusOptions={bookingStatusOptions}
-      />
+      <BookingListScopeTabs value={bookingScope} onChange={handleScopeChange} />
+
+      {isGeneral ? (
+        <BookingListFilters
+          selectedStatus={selectedStatus}
+          selectedDate={selectedDate}
+          onSelectStatus={setSelectedStatus}
+          onOpenCalendar={() => {
+            setCalendarViewingMonth(
+              getFirstDayOfMonth(
+                selectedDate ?? new Date().toISOString().slice(0, 10),
+              ),
+            );
+            setCalendarModalVisible(true);
+          }}
+          onClearDate={() => setSelectedDate(null)}
+          formatDateDisplay={formatDateDisplay}
+          statusOptions={bookingStatusOptions}
+        />
+      ) : (
+        <RoutineStatusFilterBar
+          selected={routineStatusFilter}
+          onSelect={setRoutineStatusFilter}
+        />
+      )}
 
       {showInitialLoader ? (
         <View style={styles.loadingContainer}>
-          <LoadingComp visible={true} />
+          <LoadingComp visible />
         </View>
       ) : (
         <FlatList
-          data={currentBookings}
-          keyExtractor={item => item.id}
-          renderItem={renderBookingItem}
+          key={bookingScope}
+          data={listData}
+          keyExtractor={item =>
+            isGeneral ? item.id : item._id || item.routineBookingId
+          }
+          renderItem={isGeneral ? renderGeneralItem : renderRoutineItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           onEndReached={handleEndReached}
@@ -482,7 +519,7 @@ export default function BookingList() {
             />
           }
           ListEmptyComponent={
-            showEmptyState ? (
+            showEmpty ? (
               <View style={styles.emptyContainer}>
                 <CustomText
                   fontSize={theme.fontSize.md}
@@ -496,7 +533,8 @@ export default function BookingList() {
             ) : null
           }
           ListFooterComponent={
-            bookingsFetching && page > 1 ? (
+            (isGeneral ? bookingsFetching : routineFetching) &&
+            (isGeneral ? generalPage : routinePage) > 1 ? (
               <View style={styles.paginationLoader}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
               </View>
@@ -505,22 +543,18 @@ export default function BookingList() {
         />
       )}
 
-      <BookingListCalendarModal
-        visible={calendarModalVisible}
-        currentMonth={calendarViewingMonth}
-        selectedDate={selectedDate}
-        onClose={closeCalendarModal}
-        onDateSelect={handleDateSelect as (day: DateData) => void}
-      />
-
-      {/* <RateReviewModal
-        visible={!!rateReviewBookingId}
-        bookingMongoId={rateReviewBookingId}
-        onClose={() => setRateReviewBookingId(null)}
-        onSubmitted={() => {
-          refetchBookings();
-        }}
-      /> */}
+      {isGeneral ? (
+        <BookingListCalendarModal
+          visible={calendarModalVisible}
+          currentMonth={calendarViewingMonth}
+          selectedDate={selectedDate}
+          onClose={() => setCalendarModalVisible(false)}
+          onDateSelect={(day: DateData) => {
+            setSelectedDate(day.dateString);
+            setCalendarModalVisible(false);
+          }}
+        />
+      ) : null}
     </Container>
   );
 }

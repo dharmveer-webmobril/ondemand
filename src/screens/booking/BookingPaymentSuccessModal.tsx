@@ -11,6 +11,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 /** Matches common “success” UI green (see booking-confirmed mockups). */
 const SUCCESS_GREEN = '#58B78D';
@@ -46,6 +47,8 @@ export default function BookingPaymentSuccessModal({
 
   const data = confirmResponse?.ResponseData;
   const booking = data?.booking;
+  const routineBooking = data?.routineBooking;
+  const isRoutine = !!routineBooking;
   const transaction = data?.transaction;
   const paymentFlowKind = data?.paymentMethod;
 
@@ -57,20 +60,34 @@ export default function BookingPaymentSuccessModal({
       : '') ??
     '';
 
+  const routineTotalCents = routineBooking?.pricing?.totalCents;
   const amountDisplay = transaction
     ? formatMoneyAmount(transaction.amount, transaction.currency)
     : typeof booking?.discountedAmount === 'number'
-      ? formatMoneyAmount(booking.discountedAmount, transaction?.currency)
-      : '';
+    ? formatMoneyAmount(booking.discountedAmount, transaction?.currency)
+    : routineTotalCents != null
+    ? formatMoneyAmount(
+        Number(routineTotalCents) / 100,
+        routineBooking?.pricing?.currency ?? transaction?.currency,
+      )
+    : '';
 
   const gatewayLabel =
     transaction?.paymentGateway &&
-    `${transaction.paymentGateway}${transaction.paymentMethod ? ` · ${transaction.paymentMethod}` : ''}`;
+    `${transaction.paymentGateway}${
+      transaction.paymentMethod ? ` · ${transaction.paymentMethod}` : ''
+    }`;
 
   const rows: { label: string; value: string }[] = [
     {
       label: t('checkout.paymentSuccessModal.bookingRef'),
-      value: booking?.bookingId ? String(booking.bookingId) : '',
+      value: isRoutine
+        ? routineBooking?.routineBookingId
+          ? String(routineBooking.routineBookingId)
+          : ''
+        : booking?.bookingId
+        ? String(booking.bookingId)
+        : '',
     },
     {
       label: t('checkout.paymentSuccessModal.provider'),
@@ -82,11 +99,23 @@ export default function BookingPaymentSuccessModal({
     },
     {
       label: t('checkout.paymentSuccessModal.bookingStatus'),
-      value: booking?.bookingStatus ? String(booking.bookingStatus) : '',
+      value: isRoutine
+        ? routineBooking?.routineStatus
+          ? String(routineBooking.routineStatus)
+          : ''
+        : booking?.bookingStatus
+        ? String(booking.bookingStatus)
+        : '',
     },
     {
       label: t('checkout.paymentSuccessModal.paymentStatus'),
-      value: booking?.paymentStatus ? String(booking.paymentStatus) : '',
+      value: isRoutine
+        ? routineBooking?.paymentStatus
+          ? String(routineBooking.paymentStatus)
+          : ''
+        : booking?.paymentStatus
+        ? String(booking.paymentStatus)
+        : '',
     },
     {
       label: t('checkout.paymentSuccessModal.transactionStatus'),
@@ -94,13 +123,13 @@ export default function BookingPaymentSuccessModal({
     },
     {
       label: t('checkout.paymentSuccessModal.transactionId'),
-      value: transaction?.transactionId ? String(transaction.transactionId) : '',
+      value: transaction?.transactionId
+        ? String(transaction.transactionId)
+        : '',
     },
     {
       label: t('checkout.paymentSuccessModal.gateway'),
-      value:
-        gatewayLabel ||
-        (paymentFlowKind ? String(paymentFlowKind) : ''),
+      value: gatewayLabel || (paymentFlowKind ? String(paymentFlowKind) : ''),
     },
   ];
 
@@ -114,91 +143,97 @@ export default function BookingPaymentSuccessModal({
       statusBarTranslucent
       onRequestClose={onContinueToBooking}
     >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <Pressable
-            style={styles.closeFab}
-            onPress={onContinueToBooking}
-            hitSlop={14}
-            accessibilityRole="button"
-            accessibilityLabel={t('checkout.paymentSuccessModal.close')}
-          >
-            <View style={styles.closeFabInner}>
-              <Ionicons name="close" size={theme.SW(22)} color="#5C6370" />
-            </View>
-          </Pressable>
-
-          <View style={styles.hero}>
-            <View style={styles.successBadge}>
-              <Ionicons name="checkmark" size={theme.SW(36)} color="#FFFFFF" />
-            </View>
-            <CustomText
-              fontFamily={theme.fonts.BOLD}
-              fontSize={theme.fontSize.xl}
-              style={styles.confirmedHeading}
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <View style={styles.overlay}>
+          <View style={styles.card}>
+            <Pressable
+              style={styles.closeFab}
+              onPress={onContinueToBooking}
+              hitSlop={14}
+              accessibilityRole="button"
+              accessibilityLabel={t('checkout.paymentSuccessModal.close')}
             >
-              {t('checkout.paymentSuccessModal.confirmedHeading')}
-            </CustomText>
-            {(confirmResponse?.ResponseMessage || '').trim() ? (
-              <CustomText
-                fontFamily={theme.fonts.REGULAR}
-                fontSize={theme.fontSize.sm}
-                color={theme.colors.gray || '#6B7280'}
-                style={styles.heroSubtext}
-                textAlign="center"
-              >
-                {confirmResponse.ResponseMessage}
-              </CustomText>
-            ) : (
-              <CustomText
-                fontFamily={theme.fonts.REGULAR}
-                fontSize={theme.fontSize.sm}
-                color={theme.colors.gray || '#6B7280'}
-                style={styles.heroSubtext}
-                textAlign="center"
-              >
-                {t('checkout.paymentSuccessModal.subtitle')}
-              </CustomText>
-            )}
-          </View>
+              <View style={styles.closeFabInner}>
+                <Ionicons name="close" size={theme.SW(22)} color="#5C6370" />
+              </View>
+            </Pressable>
 
-          <View style={styles.detailsWrap}>
-            <ScrollView
-              style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              bounces={false}
-            >
-              {visibleRows.map((row, idx) => (
-                <View
-                  key={`${row.label}-${idx}`}
-                  style={[
-                    styles.detailRow,
-                    idx === visibleRows.length - 1 && styles.detailRowLast,
-                  ]}
+            <View style={styles.hero}>
+              <View style={styles.successBadge}>
+                <Ionicons
+                  name="checkmark"
+                  size={theme.SW(36)}
+                  color="#FFFFFF"
+                />
+              </View>
+              <CustomText
+                fontFamily={theme.fonts.BOLD}
+                fontSize={theme.fontSize.xl}
+                style={styles.confirmedHeading}
+              >
+                {t('checkout.paymentSuccessModal.confirmedHeading')}
+              </CustomText>
+              {(confirmResponse?.ResponseMessage || '').trim() ? (
+                <CustomText
+                  fontFamily={theme.fonts.REGULAR}
+                  fontSize={theme.fontSize.sm}
+                  color={theme.colors.gray || '#6B7280'}
+                  style={styles.heroSubtext}
+                  textAlign="center"
                 >
-                  <CustomText style={styles.detailLabel} numberOfLines={3}>
-                    {row.label}
-                  </CustomText>
-                  <CustomText style={styles.detailValue} numberOfLines={4}>
-                    {row.value}
-                  </CustomText>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+                  {confirmResponse.ResponseMessage}
+                </CustomText>
+              ) : (
+                <CustomText
+                  fontFamily={theme.fonts.REGULAR}
+                  fontSize={theme.fontSize.sm}
+                  color={theme.colors.gray || '#6B7280'}
+                  style={styles.heroSubtext}
+                  textAlign="center"
+                >
+                  {t('checkout.paymentSuccessModal.subtitle')}
+                </CustomText>
+              )}
+            </View>
 
-          <CustomButton
-            title={t('checkout.paymentSuccessModal.viewBooking')}
-            onPress={onContinueToBooking}
-            backgroundColor={SUCCESS_GREEN}
-            textColor="#FFFFFF"
-            marginTop={theme.SH(8)}
-            buttonStyle={styles.cta}
-          />
+            <View style={styles.detailsWrap}>
+              <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+              >
+                {visibleRows.map((row, idx) => (
+                  <View
+                    key={`${row.label}-${idx}`}
+                    style={[
+                      styles.detailRow,
+                      idx === visibleRows.length - 1 && styles.detailRowLast,
+                    ]}
+                  >
+                    <CustomText style={styles.detailLabel} numberOfLines={3}>
+                      {row.label}
+                    </CustomText>
+                    <CustomText style={styles.detailValue} numberOfLines={4}>
+                      {row.value}
+                    </CustomText>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+
+            <CustomButton
+              title={t('checkout.paymentSuccessModal.viewBooking')}
+              onPress={onContinueToBooking}
+              backgroundColor={SUCCESS_GREEN}
+              textColor="#FFFFFF"
+              marginTop={theme.SH(8)}
+              buttonStyle={styles.cta}
+            />
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

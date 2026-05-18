@@ -565,6 +565,7 @@ export interface AvailabilityResponse {
 export const useGetServiceProviderAvailability = (
   spId: string | null,
   date: string | null,
+  enabled = true,
 ) => {
   return useQuery<AvailabilityResponse>({
     queryKey: ['serviceProviderAvailability', spId, date],
@@ -576,7 +577,7 @@ export const useGetServiceProviderAvailability = (
       );
       return response.data;
     },
-    enabled: !!spId && !!date, // Only run query if spId and date exist
+    enabled: enabled && !!spId && !!date,
     staleTime: 0, // Always refetch
     gcTime: 0, // Don't cache
   });
@@ -742,6 +743,55 @@ export const useCreateBooking = () => {
     mutationFn: async (data: CreateBookingRequest) => {
       const response = await axiosInstance.post<CreateBookingResponse>(
         EndPoints.CREATE_BOOKING,
+        data,
+      );
+      return response.data;
+    },
+  });
+};
+
+export interface CreateRoutineBookingRequest {
+  spId: string;
+  services: Array<{
+    serviceId: string;
+    addOnIds: string[];
+    promotionOfferId: string | null;
+  }>;
+  sessions: Array<{ date: string; time: string }>;
+  paymentType: string;
+  preferences: string[];
+  bookedFor: 'self' | 'other';
+  addressId?: string;
+  remark?: string;
+}
+
+export interface CreateRoutineBookingResponse {
+  ResponseCode: number;
+  ResponseMessage: string;
+  succeeded: boolean;
+  ResponseData?: {
+    routineBooking?: {
+      _id: string;
+      routineBookingId?: string;
+      paymentStatus?: string;
+      routineStatus?: string;
+      [key: string]: any;
+    };
+    sessions?: unknown[];
+    amount?: number;
+    [key: string]: any;
+  };
+}
+
+export const useCreateRoutineBooking = () => {
+  return useMutation<
+    CreateRoutineBookingResponse,
+    Error,
+    CreateRoutineBookingRequest
+  >({
+    mutationFn: async (data: CreateRoutineBookingRequest) => {
+      const response = await axiosInstance.post<CreateRoutineBookingResponse>(
+        EndPoints.CREATE_ROUTINE_BOOKING,
         data,
       );
       return response.data;
@@ -938,7 +988,8 @@ export const useRequestWalletSettlement = () => {
 
 // Initiate Booking Payment
 export interface InitiateBookingPaymentRequest {
-  bookingId: string;
+  bookingId?: string;
+  routineBookingId?: string;
   amount: number;
   /** Omitted for pure wallet settlement after create (server uses paymentMethod `wallet`). */
   paymentGateway?: 'stripe' | 'paypal' | 'flutterwave';
@@ -1185,16 +1236,55 @@ export interface CustomerBookingsResponse {
 export const useGetCustomerBookings = (
   page: number = 1,
   limit: number = 10,
+  bookingScope: 'general' | 'routine' = 'general',
 ) => {
   return useQuery<any>({
-    queryKey: ['customerBookings', page, limit],
+    queryKey: ['customerBookings', page, limit, bookingScope],
     queryFn: async () => {
       const response = await axiosInstance.get<any>(
-        `${EndPoints.GET_CUSTOMER_BOOKINGS}?page=${page}&limit=${limit}`,
+        `${EndPoints.GET_CUSTOMER_BOOKINGS}?page=${page}&limit=${limit}`,//&bookingScope=${bookingScope}
       );
-      console.log('response.data------useGetCustomerBookings', response.data);
       return response.data;
     },
+  });
+};
+
+export interface RoutineBookingsListResponse {
+  ResponseCode: number;
+  ResponseMessage: string;
+  succeeded: boolean;
+  ResponseData: any[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages?: number;
+    pages?: number;
+  };
+}
+
+export const useGetRoutineBookings = (page: number = 1, limit: number = 50) => {
+  return useQuery<RoutineBookingsListResponse>({
+    queryKey: ['routineBookings', page, limit],
+    queryFn: async () => {
+      const response = await axiosInstance.get<RoutineBookingsListResponse>(
+        `${EndPoints.GET_ROUTINE_BOOKINGS}?page=${page}&limit=${limit}`,
+      );
+      return response.data;
+    },
+  });
+};
+
+export const useGetRoutineBookingDetail = (routineBookingId: string) => {
+  return useQuery<any>({
+    queryKey: ['routineBookingDetail', routineBookingId],
+    queryFn: async () => {
+      const response = await axiosInstance.get<any>(
+        EndPoints.GET_ROUTINE_BOOKING_DETAIL(routineBookingId),
+      );
+      return response.data;
+    },
+    enabled: !!routineBookingId,
   });
 };
 

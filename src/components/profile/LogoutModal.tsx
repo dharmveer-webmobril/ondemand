@@ -1,5 +1,5 @@
-import { View, StyleSheet, Modal, Pressable } from 'react-native'
-import  { useMemo } from 'react'
+import { View, StyleSheet, Modal, Pressable } from 'react-native';
+import { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomButton, CustomText } from '@components/common';
 import { useTranslation } from 'react-i18next';
@@ -12,139 +12,149 @@ import { useLogout } from '@services/index';
 import { clearBackendSyncedFcmToken } from '@services/api/queries/authQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { resetAndNavigate } from '@utils/NavigationUtils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface LogoutModalProps {
-    visible: boolean;
-    onClose: () => void;
+  visible: boolean;
+  onClose: () => void;
 }
 
 export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
-    const theme = useThemeContext();
-    const styles = useMemo(() => createStyles(theme), [theme]);
-    const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const queryClient = useQueryClient();
-    const { mutateAsync: logoutMutation, isPending } = useLogout();
+  const theme = useThemeContext();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  const { mutateAsync: logoutMutation, isPending } = useLogout();
 
-    const clearLocalSession = () => {
-        // Wipe all React Query caches so the next user doesn't see stale
-        // booking/chat/profile data while fresh queries are in flight.
-        queryClient.cancelQueries();
-        queryClient.removeQueries();
-        queryClient.clear();
+  const clearLocalSession = () => {
+    // Wipe all React Query caches so the next user doesn't see stale
+    // booking/chat/profile data while fresh queries are in flight.
+    queryClient.cancelQueries();
+    queryClient.removeQueries();
+    queryClient.clear();
 
-        void clearBackendSyncedFcmToken();
+    void clearBackendSyncedFcmToken();
 
-        // Reset user-scoped Redux state across slices.
-        dispatch(logout());
-        dispatch(resetUserScopedAppState());
-    };
+    // Reset user-scoped Redux state across slices.
+    dispatch(logout());
+    dispatch(resetUserScopedAppState());
+  };
 
-    const logOutButton = () => {
-        logoutMutation()
-            .then(() => {
-                clearLocalSession();
-                resetAndNavigate(SCREEN_NAMES.LOGIN);
-            })
-            .catch(error => {
-                console.log('❌ Logout Error Message:', error.message);
-                console.log('❌ Status Code:', error.response?.status);
-                console.log('❌ API Response:', error.response?.data);
-                // Even if the server call fails we still want the device to
-                // forget the previous session, otherwise stale data lingers.
-                clearLocalSession();
-                resetAndNavigate(SCREEN_NAMES.LOGIN);
-            });
-    };
+  const logOutButton = () => {
+    logoutMutation()
+      .then(() => {
+        clearLocalSession();
+        resetAndNavigate(SCREEN_NAMES.LOGIN);
+      })
+      .catch(error => {
+        console.log('❌ Logout Error Message:', error.message);
+        console.log('❌ Status Code:', error.response?.status);
+        console.log('❌ API Response:', error.response?.data);
+        // Even if the server call fails we still want the device to
+        // forget the previous session, otherwise stale data lingers.
+        clearLocalSession();
+        resetAndNavigate(SCREEN_NAMES.LOGIN);
+      });
+  };
 
-    return (
-        <Modal
-            transparent
-            visible={visible}
-            animationType="slide"
-            onRequestClose={onClose}
-            statusBarTranslucent={true}
-        >
-            <Pressable style={styles.overlay} onPress={onClose}>
-                <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-                    <LinearGradient
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={[styles.content]}
-                        colors={theme.colors.gradientColor}
-                    >
-                        <CustomText style={styles.title}>{t('logoutPopup.heading')}</CustomText>
-                        <CustomText style={styles.subtitle}>{t('logoutPopup.subtitle')}</CustomText>
-                        <View style={styles.buttonsContainer}>
-                            <CustomButton
-                                buttonStyle={styles.logoutButton}
-                                buttonTextStyle={styles.logoutButtonText}
-                                backgroundColor={theme.colors.white}
-                                textColor={theme.colors.primary}
-                                onPress={logOutButton}
-                                title={t('logoutPopup.logoutButton')}
-                                isLoading={isPending}
-                            />
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent={true}
+    >
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <LinearGradient
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={[styles.content]}
+              colors={theme.colors.gradientColor}
+            >
+              <CustomText style={styles.title}>
+                {t('logoutPopup.heading')}
+              </CustomText>
+              <CustomText style={styles.subtitle}>
+                {t('logoutPopup.subtitle')}
+              </CustomText>
+              <View style={styles.buttonsContainer}>
+                <CustomButton
+                  buttonStyle={styles.logoutButton}
+                  buttonTextStyle={styles.logoutButtonText}
+                  backgroundColor={theme.colors.white}
+                  textColor={theme.colors.primary}
+                  onPress={logOutButton}
+                  title={t('logoutPopup.logoutButton')}
+                  isLoading={isPending}
+                />
 
-                            <CustomButton
-                                buttonTextStyle={styles.cancelButtonText}
-                                onPress={onClose}
-                                title={t('logoutPopup.cancelButton')}
-                            />
-                        </View>
-                    </LinearGradient>
-                </Pressable>
-            </Pressable>
-        </Modal>
-    );
+                <CustomButton
+                  buttonTextStyle={styles.cancelButtonText}
+                  onPress={onClose}
+                  title={t('logoutPopup.cancelButton')}
+                />
+              </View>
+            </LinearGradient>
+          </Pressable>
+        </Pressable>
+      </SafeAreaView>
+    </Modal>
+  );
 }
 
-const createStyles = (theme: ThemeType) => StyleSheet.create({
+const createStyles = (theme: ThemeType) =>
+  StyleSheet.create({
     overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
     },
     modalContainer: {
-        width: '100%',
+      width: '100%',
     },
     content: {
-        backgroundColor: theme.colors.primary,
-        borderTopLeftRadius: theme.borderRadius.lg,
-        borderTopRightRadius: theme.borderRadius.lg,
-        paddingTop: theme.SH(30),
-        paddingBottom: theme.SH(20),
-        paddingHorizontal: theme.SW(20),
+      backgroundColor: theme.colors.primary,
+      borderTopLeftRadius: theme.borderRadius.lg,
+      borderTopRightRadius: theme.borderRadius.lg,
+      paddingTop: theme.SH(30),
+      paddingBottom: theme.SH(20),
+      paddingHorizontal: theme.SW(20),
     },
     title: {
-        fontSize: theme.fontSize.xxl,
-        color: theme.colors.white,
-        fontFamily: theme.fonts.BOLD,
-        marginBottom: theme.SH(15),
-        textAlign: 'center',
+      fontSize: theme.fontSize.xxl,
+      color: theme.colors.white,
+      fontFamily: theme.fonts.BOLD,
+      marginBottom: theme.SH(15),
+      textAlign: 'center',
     },
     subtitle: {
-        fontSize: theme.fontSize.md,
-        color: theme.colors.white,
-        fontFamily: theme.fonts.MEDIUM,
-        marginBottom: theme.SH(30),
-        textAlign: 'center',
+      fontSize: theme.fontSize.md,
+      color: theme.colors.white,
+      fontFamily: theme.fonts.MEDIUM,
+      marginBottom: theme.SH(30),
+      textAlign: 'center',
     },
     buttonsContainer: {
-        gap: theme.SH(12),
+      gap: theme.SH(12),
     },
     logoutButton: {
-        borderRadius: theme.borderRadius.md,
-        borderWidth: 1,
+      borderRadius: theme.borderRadius.md,
+      borderWidth: 1,
     },
     logoutButtonText: {
-        fontSize: theme.fontSize.md,
-        fontFamily: theme.fonts.BOLD,
+      fontSize: theme.fontSize.md,
+      fontFamily: theme.fonts.BOLD,
     },
-    
-    cancelButtonText: {
-        fontSize: theme.fontSize.md,
-        fontFamily: theme.fonts.BOLD,
-    },
-});
 
+    cancelButtonText: {
+      fontSize: theme.fontSize.md,
+      fontFamily: theme.fonts.BOLD,
+    },
+  });

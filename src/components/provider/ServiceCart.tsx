@@ -139,7 +139,7 @@ const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
   return StyleSheet.create({
     section: {
-      paddingHorizontal: SW(20),
+      // paddingHorizontal: SW(20),
       paddingVertical: SH(20),
       borderBottomWidth: 1,
       borderBottomColor: Colors.gray || '#E0E0E0',

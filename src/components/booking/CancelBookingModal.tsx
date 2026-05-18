@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { Modal, View, StyleSheet, Pressable, Platform } from 'react-native';
 import {
-  Modal,
-  View,
-  StyleSheet,
-  Pressable,
-  Platform,
-} from 'react-native';
-import { CustomText, CustomButton, CustomInput, VectoreIcons } from '@components/common';
+  CustomText,
+  CustomButton,
+  CustomInput,
+  VectoreIcons,
+} from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type CancelBookingModalProps = {
   visible: boolean;
@@ -55,72 +55,78 @@ export default function CancelBookingModal({
       onRequestClose={handleClose}
       statusBarTranslucent={true}
     >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <CustomText
-              fontSize={theme.fontSize.lg}
-              fontFamily={theme.fonts.SEMI_BOLD}
-              color={theme.colors.text}
-            >
-              {resolvedTitle}
-            </CustomText>
-            <Pressable onPress={handleClose} style={styles.closeButton} disabled={isLoading}>
-              <VectoreIcons
-                name="close"
-                icon="Ionicons"
-                size={theme.SF(24)}
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            {/* Header */}
+            <View style={styles.header}>
+              <CustomText
+                fontSize={theme.fontSize.lg}
+                fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
+              >
+                {resolvedTitle}
+              </CustomText>
+              <Pressable
+                onPress={handleClose}
+                style={styles.closeButton}
+                disabled={isLoading}
+              >
+                <VectoreIcons
+                  name="close"
+                  icon="Ionicons"
+                  size={theme.SF(24)}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+            </View>
+
+            {/* Content */}
+            <View style={styles.content}>
+              <CustomText
+                fontSize={theme.fontSize.sm}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText}
+                style={{ marginBottom: theme.SH(12) }}
+              >
+                {resolvedMessage}
+              </CustomText>
+              <CustomInput
+                placeholder={t('bookingDetails.cancelBookingPlaceholder')}
+                value={reason}
+                onChangeText={setReason}
+                multiline
+                numberOfLines={4}
+                maxLength={500}
+                inputTheme="default"
+                withBackground={theme.colors.secondary}
+                isEditable={!isLoading}
               />
-            </Pressable>
-          </View>
+            </View>
 
-          {/* Content */}
-          <View style={styles.content}>
-            <CustomText
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.REGULAR}
-              color={theme.colors.lightText}
-              style={{ marginBottom: theme.SH(12) }}
-            >
-              {resolvedMessage}
-            </CustomText>
-            <CustomInput
-              placeholder={t('bookingDetails.cancelBookingPlaceholder')}
-              value={reason}
-              onChangeText={setReason}
-              multiline
-              numberOfLines={4}
-              maxLength={500}
-              inputTheme="default"
-              withBackground={theme.colors.secondary}
-              isEditable={!isLoading}
-            />
-          </View>
-
-          {/* Footer Buttons */}
-          <View style={styles.footer}>
-            <CustomButton
-              title={t('common.cancel')}
-              onPress={handleClose}
-              backgroundColor={theme.colors.secondary}
-              textColor={theme.colors.text}
-              buttonStyle={styles.cancelButton}
-              disable={isLoading}
-            />
-            <CustomButton
-              title={t('common.confirm')}
-              onPress={handleSubmit}
-              backgroundColor={theme.colors.red || '#F44336'}
-              textColor={theme.colors.white}
-              buttonStyle={styles.confirmButton}
-              disable={!reason.trim() || isLoading}
-              isLoading={isLoading}
-            />
+            {/* Footer Buttons */}
+            <View style={styles.footer}>
+              <CustomButton
+                title={t('common.cancel')}
+                onPress={handleClose}
+                backgroundColor={theme.colors.secondary}
+                textColor={theme.colors.text}
+                buttonStyle={styles.cancelButton}
+                disable={isLoading}
+              />
+              <CustomButton
+                title={t('common.confirm')}
+                onPress={handleSubmit}
+                backgroundColor={theme.colors.red || '#F44336'}
+                textColor={theme.colors.white}
+                buttonStyle={styles.confirmButton}
+                disable={!reason.trim() || isLoading}
+                isLoading={isLoading}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

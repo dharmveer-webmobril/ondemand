@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type AddOn = {
   _id: string;
@@ -31,7 +32,8 @@ export default function AddOnSelectionModal({
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
-  const [selectedIds, setSelectedIds] = React.useState<string[]>(selectedAddOnIds);
+  const [selectedIds, setSelectedIds] =
+    React.useState<string[]>(selectedAddOnIds);
 
   React.useEffect(() => {
     if (visible) {
@@ -40,9 +42,9 @@ export default function AddOnSelectionModal({
   }, [visible, selectedAddOnIds]);
 
   const handleToggleAddOn = (addOnId: string) => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       if (prev.includes(addOnId)) {
-        return prev.filter((id) => id !== addOnId);
+        return prev.filter(id => id !== addOnId);
       } else {
         return [...prev, addOnId];
       }
@@ -55,9 +57,13 @@ export default function AddOnSelectionModal({
   };
 
   const getAddOnDisplayPrice = (addOn: AddOn | null | undefined) => {
-    if (addOn == null) return { original: 0, discounted: 0, discountPct: 0, hasDiscount: false };
+    if (addOn == null)
+      return { original: 0, discounted: 0, discountPct: 0, hasDiscount: false };
     const price = Number(addOn?.price) || 0;
-    const discountPct = Math.min(100, Math.max(0, Number(addOn?.discountPercentage) || 0));
+    const discountPct = Math.min(
+      100,
+      Math.max(0, Number(addOn?.discountPercentage) || 0),
+    );
     const discounted = price * (1 - discountPct / 100);
     return {
       original: price,
@@ -70,7 +76,8 @@ export default function AddOnSelectionModal({
   const renderAddOnItem = ({ item }: { item: AddOn }) => {
     if (item == null) return null;
     const isSelected = selectedIds.includes(item?._id ?? '');
-    const { original, discounted, discountPct, hasDiscount } = getAddOnDisplayPrice(item);
+    const { original, discounted, discountPct, hasDiscount } =
+      getAddOnDisplayPrice(item);
     return (
       <Pressable
         style={({ pressed }) => [
@@ -82,10 +89,7 @@ export default function AddOnSelectionModal({
       >
         <View style={styles.addOnContent}>
           <View
-            style={[
-              styles.checkbox,
-              isSelected && styles.checkboxSelected,
-            ]}
+            style={[styles.checkbox, isSelected && styles.checkboxSelected]}
           >
             {isSelected && (
               <VectoreIcons
@@ -113,8 +117,14 @@ export default function AddOnSelectionModal({
             <View style={styles.priceRow}>
               <CustomText style={styles.addOnPrice}>
                 ${(Number.isFinite(original) ? original : 0).toFixed(2)}
-                {hasDiscount ? ` → $${(Number.isFinite(discounted) ? discounted : original).toFixed(2)} (${discountPct}% off)` : ''}
-                {' • '}{item?.duration ?? 0}m
+                {hasDiscount
+                  ? ` → $${(Number.isFinite(discounted)
+                      ? discounted
+                      : original
+                    ).toFixed(2)} (${discountPct}% off)`
+                  : ''}
+                {' • '}
+                {item?.duration ?? 0}m
               </CustomText>
             </View>
           </View>
@@ -131,45 +141,52 @@ export default function AddOnSelectionModal({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <CustomText style={styles.title}>Select Add-ons</CustomText>
-              <Pressable onPress={onClose} style={styles.closeButton}>
-                <VectoreIcons
-                  name="close"
-                  icon="Ionicons"
-                  size={theme.SF(24)}
-                  color={theme.colors.text}
-                />
-              </Pressable>
-            </View>
-
-            {(Array.isArray(addOns) ? addOns : []).length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <CustomText style={styles.emptyText}>No add-ons available</CustomText>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={styles.content}>
+              <View style={styles.header}>
+                <CustomText style={styles.title}>Select Add-ons</CustomText>
+                <Pressable onPress={onClose} style={styles.closeButton}>
+                  <VectoreIcons
+                    name="close"
+                    icon="Ionicons"
+                    size={theme.SF(24)}
+                    color={theme.colors.text}
+                  />
+                </Pressable>
               </View>
-            ) : (
-              <FlatList
-                data={Array.isArray(addOns) ? addOns : []}
-                keyExtractor={(item) => item?._id ?? ''}
-                renderItem={renderAddOnItem}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
 
-            <CustomButton
-              title={t('category.confirm') || 'Confirm'}
-              onPress={handleConfirm}
-              buttonStyle={styles.confirmButton}
-              backgroundColor={theme.colors.primary}
-              textColor={theme.colors.whitetext}
-            />
-          </View>
+              {(Array.isArray(addOns) ? addOns : []).length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <CustomText style={styles.emptyText}>
+                    No add-ons available
+                  </CustomText>
+                </View>
+              ) : (
+                <FlatList
+                  data={Array.isArray(addOns) ? addOns : []}
+                  keyExtractor={item => item?._id ?? ''}
+                  renderItem={renderAddOnItem}
+                  contentContainerStyle={styles.listContent}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+
+              <CustomButton
+                title={t('category.confirm') || 'Confirm'}
+                onPress={handleConfirm}
+                buttonStyle={styles.confirmButton}
+                backgroundColor={theme.colors.primary}
+                textColor={theme.colors.whitetext}
+              />
+            </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

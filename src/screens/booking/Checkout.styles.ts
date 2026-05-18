@@ -60,6 +60,24 @@ export const createStyles = (theme: ThemeType) => {
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
     },
+    routinePackageLabel: {
+      fontSize: SF(13),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.primary,
+      marginBottom: SH(4),
+    },
+    routineSessionLine: {
+      fontSize: SF(12),
+      fontFamily: Fonts.REGULAR,
+      color: Colors.text,
+      marginTop: SH(2),
+    },
+    volumeDiscountLine: {
+      fontSize: SF(12),
+      fontFamily: Fonts.MEDIUM,
+      color: '#2E7D32',
+      marginTop: SH(6),
+    },
     addressCard: {
       backgroundColor: Colors.background || '#F5F5F5',
       borderRadius: SF(12),

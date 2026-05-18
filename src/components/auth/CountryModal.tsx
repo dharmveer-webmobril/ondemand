@@ -1,12 +1,18 @@
-import { View, StyleSheet, Modal, Pressable, FlatList, ActivityIndicator } from 'react-native';
-import { useMemo, useState, } from 'react';
+import {
+  View,
+  StyleSheet,
+  Modal,
+  Pressable,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
+import { useMemo, useState } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomButton, CustomText, CustomInput } from '@components/common';
 import { useTranslation } from 'react-i18next';
 
 import imagePaths from '@assets';
-
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface CountryModalProps {
   visible: boolean;
@@ -15,7 +21,7 @@ interface CountryModalProps {
   selectedId?: string | null;
   type: 'country' | 'city';
   data: any[];
-  isLoading: boolean
+  isLoading: boolean;
 }
 
 export default function CountryModal({
@@ -25,7 +31,7 @@ export default function CountryModal({
   selectedId,
   type,
   data = [],
-  isLoading = false
+  isLoading = false,
 }: CountryModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -35,9 +41,12 @@ export default function CountryModal({
   // Filter countries based on search
   const filteredCountries = useMemo(() => {
     if (!searchCountry) return data;
-    return data.filter((country: any) =>
-      country.name.toLowerCase().includes(searchCountry.toLowerCase()) ||
-      country.countryCode?.toLowerCase().includes(searchCountry.toLowerCase())
+    return data.filter(
+      (country: any) =>
+        country.name.toLowerCase().includes(searchCountry.toLowerCase()) ||
+        country.countryCode
+          ?.toLowerCase()
+          .includes(searchCountry.toLowerCase()),
     );
   }, [data, searchCountry]);
 
@@ -46,8 +55,6 @@ export default function CountryModal({
     onSelect(country);
     onClose();
   };
-
-
 
   const renderCountryItem = ({ item }: { item: any }) => {
     const isSelected = selectedId === item._id;
@@ -58,18 +65,36 @@ export default function CountryModal({
       >
         <View style={styles.itemContent}>
           {/* Flag placeholder - will be added in future */}
-          {type === 'country' && <View style={styles.flagContainer}>
-            {/* TODO: Add flag image here in future */}
-            <CustomText fontSize={theme.fontSize.lg}>{item?.flag || ''}</CustomText>
-          </View>}
-          {type === 'city' && <CustomText style={[styles.countryName, isSelected ? styles.selectedCountryName : {}]}>
-            {item.name}
-          </CustomText>}
-          {type === 'country' && <View style={styles.countryInfo}>
-            <CustomText style={[styles.countryName, isSelected ? styles.selectedCountryName : {}]}>
-              {item.name} {item?.countryCode && `(${item?.countryCode})`}
+          {type === 'country' && (
+            <View style={styles.flagContainer}>
+              {/* TODO: Add flag image here in future */}
+              <CustomText fontSize={theme.fontSize.lg}>
+                {item?.flag || ''}
+              </CustomText>
+            </View>
+          )}
+          {type === 'city' && (
+            <CustomText
+              style={[
+                styles.countryName,
+                isSelected ? styles.selectedCountryName : {},
+              ]}
+            >
+              {item.name}
             </CustomText>
-          </View>}
+          )}
+          {type === 'country' && (
+            <View style={styles.countryInfo}>
+              <CustomText
+                style={[
+                  styles.countryName,
+                  isSelected ? styles.selectedCountryName : {},
+                ]}
+              >
+                {item.name} {item?.countryCode && `(${item?.countryCode})`}
+              </CustomText>
+            </View>
+          )}
         </View>
       </Pressable>
     );
@@ -83,52 +108,61 @@ export default function CountryModal({
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.content}>
-            <CustomText style={styles.title}>
-              {type === 'country' 
-                ? t('signup.selectCountry') 
-                : t('signup.selectCity')}
-            </CustomText>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={styles.content}>
+              <CustomText style={styles.title}>
+                {type === 'country'
+                  ? t('signup.selectCountry')
+                  : t('signup.selectCity')}
+              </CustomText>
 
-            <CustomInput
-              placeholder={t('placeholders.search')}
-              value={searchCountry}
-              onChangeText={setSearchCountry}
-              leftIcon={imagePaths.Search}
-              marginTop={theme.SH(10)}
-            />
+              <CustomInput
+                placeholder={t('placeholders.search')}
+                value={searchCountry}
+                onChangeText={setSearchCountry}
+                leftIcon={imagePaths.Search}
+                marginTop={theme.SH(10)}
+              />
 
-            {isLoading ? (
-              <View style={styles.listContainer}>
-                <ActivityIndicator size="large" color={theme.colors.white} style={styles.loader} />
+              {isLoading ? (
+                <View style={styles.listContainer}>
+                  <ActivityIndicator
+                    size="large"
+                    color={theme.colors.white}
+                    style={styles.loader}
+                  />
+                </View>
+              ) : (
+                <FlatList
+                  data={filteredCountries}
+                  renderItem={renderCountryItem}
+                  keyExtractor={item => item._id}
+                  style={styles.list}
+                  contentContainerStyle={styles.listContent}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+
+              <View style={styles.buttonsContainer}>
+                <CustomButton
+                  onPress={onClose}
+                  title={t('imagePickerModal.cancel')}
+                  buttonStyle={styles.confirmButton}
+                  buttonTextStyle={styles.confirmButtonText}
+                  backgroundColor={theme.colors.white}
+                  textColor={theme.colors.primary}
+                />
               </View>
-            ) : (
-              <FlatList
-                data={filteredCountries}
-                renderItem={renderCountryItem}
-                keyExtractor={(item) => item._id}
-                style={styles.list}
-                contentContainerStyle={styles.listContent}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator={false}
-              />
-            )}
-
-            <View style={styles.buttonsContainer}>
-              <CustomButton
-                onPress={onClose}
-                title={t('imagePickerModal.cancel')}
-                buttonStyle={styles.confirmButton}
-                buttonTextStyle={styles.confirmButtonText}
-                backgroundColor={theme.colors.white}
-                textColor={theme.colors.primary}
-              />
             </View>
-          </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }

@@ -52,7 +52,12 @@ function BookingListFiltersComponent({
         </View>
       )}
 
-      <View style={styles.filterContainer}>
+      <View
+        style={[
+          styles.filterContainer,
+          { paddingTop: selectedDate ? theme.SH(20) : 0 },
+        ]}
+      >
         <View style={styles.filterRow}>
           <View style={styles.statusFilterWrap}>
             <Menu>
@@ -60,8 +65,9 @@ function BookingListFiltersComponent({
                 <View style={styles.filterButton}>
                   <CustomText style={styles.filterButtonText}>
                     {t(
-                      statusOptions.find(option => option.value === selectedStatus)?.labelKey ||
-                        'myBookingScreen.filter.allBookings',
+                      statusOptions.find(
+                        option => option.value === selectedStatus,
+                      )?.labelKey || 'myBookingScreen.filter.allBookings',
                     )}
                   </CustomText>
                   <CustomText style={styles.filterIcon}>▼</CustomText>
@@ -85,7 +91,9 @@ function BookingListFiltersComponent({
                           isSelected ? styles.menuOptionTextSelected : {},
                         ]}
                       >
-                        {option.labelKey ? t(option.labelKey) : option.label || ''}
+                        {option.labelKey
+                          ? t(option.labelKey)
+                          : option.label || ''}
                       </CustomText>
                     </MenuOption>
                   );
@@ -94,7 +102,10 @@ function BookingListFiltersComponent({
             </Menu>
           </View>
 
-          <TouchableOpacity style={styles.calendarButton} onPress={onOpenCalendar}>
+          <TouchableOpacity
+            style={styles.calendarButton}
+            onPress={onOpenCalendar}
+          >
             <VectoreIcons
               name="calendar-outline"
               icon="Ionicons"
@@ -115,7 +126,7 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     filterContainer: {
       paddingHorizontal: theme.SW(16),
-      paddingTop: theme.SH(20),
+      //
       paddingBottom: theme.SH(10),
     },
     filterRow: {
@@ -223,4 +234,3 @@ const createStyles = (theme: any) =>
       color: theme.colors.primary,
     },
   });
-
