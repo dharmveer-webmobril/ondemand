@@ -60,8 +60,10 @@ import {
   useAcceptRescheduleService,
   useRejectRescheduleService,
   useAddBookedServiceAdditionalAddon,
+  useGetBookedServiceTrackingLink,
   type ServiceAddonItem,
 } from '@services/api/queries/appQueries';
+import { buildMemberTrackingUrl } from '@utils/trackingUrl';
 import { useAdditionalAddonGatewayPayment, isWebRedirectGateway } from '@services/payment';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
@@ -173,6 +175,9 @@ export default function BookingDetail() {
   const [rejectingServiceId, setRejectingServiceId] = useState<string | null>(
     null,
   );
+  const [trackingServiceId, setTrackingServiceId] = useState<string | null>(
+    null,
+  );
 
   // Cancel booking mutation
   const { mutate: cancelBooking, isPending: isCancelingBooking } =
@@ -197,6 +202,9 @@ export default function BookingDetail() {
     mutateAsync: rejectRescheduleService,
     isPending: isRejectingReschedule,
   } = useRejectRescheduleService();
+
+  const { mutateAsync: getBookedServiceTrackingLink } =
+    useGetBookedServiceTrackingLink();
 
   // Update loader type based on mutation states
   React.useEffect(() => {
@@ -713,6 +721,35 @@ export default function BookingDetail() {
     [rejectRescheduleService, refetchBooking, bookingId],
   );
 
+  const handleTrackMember = useCallback(
+    async (service: { _id: string }) => {
+      const bookedServiceId = service?._id;
+      if (!bookedServiceId) return;
+
+      setTrackingServiceId(bookedServiceId);
+      try {
+        const res = await getBookedServiceTrackingLink(bookedServiceId);
+        const trackingToken = res?.ResponseData?.trackingToken;
+        if (!res?.succeeded || !trackingToken) {
+          handleApiError(
+            new Error(res?.ResponseMessage || 'Unable to load tracking link'),
+          );
+          return;
+        }
+
+        navigate(SCREEN_NAMES.TRACKING_WEBVIEW, {
+          trackingUrl: buildMemberTrackingUrl(trackingToken),
+          title: 'Track Member',
+        });
+      } catch (err) {
+        handleApiError(err);
+      } finally {
+        setTrackingServiceId(null);
+      }
+    },
+    [getBookedServiceTrackingLink],
+  );
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -1000,6 +1037,8 @@ export default function BookingDetail() {
               }
               mainBookingStatus={booking?.bookingStatus}
               onAddAddOns={svc => setAddonsModalService(svc)}
+              onTrackMember={handleTrackMember}
+              trackMemberLoadingId={trackingServiceId}
             />
             <View style={styles.totalContainer}>
               <View>

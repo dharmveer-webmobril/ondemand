@@ -2,6 +2,7 @@
 // You can create similar files for different features (e.g., userQueries.ts, productQueries.ts, etc.)
 
 import { useQuery, useMutation } from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../axiosInstance';
 import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
@@ -288,9 +289,70 @@ export interface UpdateFcmTokenPayload {
   deviceType: 'android' | 'ios';
 }
 
+export interface UpdateFcmTokenResponse {
+  ResponseCode: number;
+  ResponseMessage: string;
+  succeeded: boolean;
+}
+
+const BACKEND_SYNCED_FCM_TOKEN_KEY = 'backendSyncedFcmToken';
+
+let fcmTokenSyncInFlight: Promise<boolean> | null = null;
+
+const isFcmTokenUpdateSuccess = (data: UpdateFcmTokenResponse | undefined): boolean =>
+  data?.succeeded === true;
+
 /**
- * Update FCM token on backend (call when app opens / Home focused).
+ * POST /auth/customer/update-fcm-token
  */
-export const updateFcmToken = async (payload: UpdateFcmTokenPayload): Promise<void> => {
-  await axiosInstance.post(EndPoints.UPDATE_FCM_TOKEN, payload);
+export const updateFcmToken = async (
+  payload: UpdateFcmTokenPayload,
+): Promise<UpdateFcmTokenResponse> => {
+  const response = await axiosInstance.post<UpdateFcmTokenResponse>(
+    EndPoints.UPDATE_FCM_TOKEN,
+    payload,
+  );
+  return response.data;
+};
+
+/** Clears local “already synced” state (e.g. on logout). */
+export const clearBackendSyncedFcmToken = async (): Promise<void> => {
+  await AsyncStorage.removeItem(BACKEND_SYNCED_FCM_TOKEN_KEY);
+};
+
+/**
+ * Sends FCM token to backend once per token value.
+ * Skips the API when this token was already accepted (succeeded) by the server.
+ */
+export const syncFcmTokenToBackendIfNeeded = async (
+  fcmToken: string,
+  deviceType: UpdateFcmTokenPayload['deviceType'],
+): Promise<boolean> => {
+  const alreadySynced = await AsyncStorage.getItem(BACKEND_SYNCED_FCM_TOKEN_KEY);
+  if (alreadySynced === fcmToken) {
+    return true;
+  }
+
+  if (fcmTokenSyncInFlight) {
+    return fcmTokenSyncInFlight;
+  }
+
+  fcmTokenSyncInFlight = (async () => {
+    try {
+      const data = await updateFcmToken({
+        fcmToken,
+        deviceToken: fcmToken,
+        deviceType,
+      });
+      if (isFcmTokenUpdateSuccess(data)) {
+        await AsyncStorage.setItem(BACKEND_SYNCED_FCM_TOKEN_KEY, fcmToken);
+        return true;
+      }
+      return false;
+    } finally {
+      fcmTokenSyncInFlight = null;
+    }
+  })();
+
+  return fcmTokenSyncInFlight;
 };

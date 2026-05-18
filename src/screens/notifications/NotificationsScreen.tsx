@@ -15,8 +15,10 @@ import { useThemeContext } from '@utils/theme';
 import {
   useGetNotifications,
   useDeleteNotification,
+  useMarkAllNotificationsRead,
+  refreshNotificationsUnreadCount,
   type NotificationItem,
-} from '@services/api/queries/appQueries';
+} from '@services/api/queries/notificationQueries';
 import { queryClient } from '@services/api';
 import { showToast } from '@components/common';
 import { handleApiError } from '@utils/apiHelpers';
@@ -52,6 +54,7 @@ export default function NotificationsScreen() {
     limit: PAGE_SIZE,
   });
   const deleteMutation = useDeleteNotification();
+  const { mutate: markAllNotificationsRead } = useMarkAllNotificationsRead();
 
   const pagination = data?.pagination;
   const totalPages = pagination?.totalPages ?? 0;
@@ -78,9 +81,12 @@ export default function NotificationsScreen() {
     await refetch();
     setRefreshing(false);
   }, [refetch]);
-useFocusEffect(useCallback(() => {
-  refetch();
-}, [refetch]));
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      markAllNotificationsRead();
+    }, [refetch, markAllNotificationsRead]),
+  );
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore && !isFetching) setPage((p) => p + 1);
   }, [loadingMore, hasMore, isFetching]);
@@ -101,6 +107,7 @@ useFocusEffect(useCallback(() => {
                 await deleteMutation.mutateAsync(item._id);
                 showToast({ type: 'success', message: t('notifications.deleteSuccess') });
                 queryClient.invalidateQueries({ queryKey: ['customerNotifications'] });
+                refreshNotificationsUnreadCount();
                 setList((prev) => prev.filter((x) => x._id !== item._id));
               } catch (err) {
                 handleApiError(err);

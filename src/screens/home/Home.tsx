@@ -16,9 +16,13 @@ import {
   //@ts-ignore
   extractFeaturedServicesArray,
 } from '@services/api/queries/appQueries';
+import {
+  useGetNotificationsUnreadCount,
+  parseNotificationsUnreadCount,
+} from '@services/api/queries/notificationQueries';
 import { useAppSelector } from '@store/hooks';
 import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
-import { updateFcmToken } from '@services/api/queries/authQueries';
+import { syncFcmTokenToBackendIfNeeded } from '@services/api/queries/authQueries';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeContext } from '@utils/theme';
 
@@ -31,6 +35,21 @@ export default function Home() {
 
   const { t } = useTranslation();
   const authToken = useAppSelector(state => state.auth.token);
+
+  const {
+    data: notificationsUnreadData,
+    refetch: refetchNotificationsUnreadCount,
+  } = useGetNotificationsUnreadCount(!!authToken);
+  const notificationUnreadCount = parseNotificationsUnreadCount(
+    notificationsUnreadData,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!authToken) return;
+      refetchNotificationsUnreadCount();
+    }, [authToken, refetchNotificationsUnreadCount]),
+  );
 
   const cityName =
     useAppSelector(state => {
@@ -66,11 +85,10 @@ export default function Home() {
         const fcmToken = await checkPermissionAndGetFcmToken();
         if (cancelled || !fcmToken) return;
         try {
-          await updateFcmToken({
+          await syncFcmTokenToBackendIfNeeded(
             fcmToken,
-            deviceToken: fcmToken,
-            deviceType: Platform.OS === 'ios' ? 'ios' : 'android',
-          });
+            Platform.OS === 'ios' ? 'ios' : 'android',
+          );
         } catch (err) {
           console.warn('Failed to update FCM token:', err);
         }
@@ -209,6 +227,7 @@ export default function Home() {
         refetchTopRatedProviders(),
         refetchTopRated(),
         refetchTopOffered(),
+        refetchNotificationsUnreadCount(),
       ]);
     } catch (error) {
       console.error('Error refreshing home data:', error);
@@ -221,6 +240,7 @@ export default function Home() {
     refetchTopRatedProviders,
     refetchTopRated,
     refetchTopOffered,
+    refetchNotificationsUnreadCount,
   ]);
 
   /** Address / city change — only refetch location-dependent APIs */
@@ -267,6 +287,7 @@ export default function Home() {
         <HomeHeader
           onCityUpdate={handleCityUpdate}
           onCityUpdateLoading={setIsCityUpdating}
+          notificationUnreadCount={notificationUnreadCount}
           onNotificationPress={() =>
             navigation.navigate(SCREEN_NAMES.NOTIFICATIONS)
           }

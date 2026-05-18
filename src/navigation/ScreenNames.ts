@@ -51,6 +51,7 @@ export const SCREEN_NAMES = {
   ADD_OTHER_PERSON_DETAIL: 'AddOtherPersonDetail',
   BOOKING_SUMMARY: 'BookingSummary',
   PAYMENT_WEBVIEW: 'PaymentWebView',
+  TRACKING_WEBVIEW: 'TrackingWebView',
   WALLET: 'Wallet',
   PAYMENT_TRANSACTIONS: 'PaymentTransactions',
   NOTIFICATIONS: 'Notifications',

@@ -11,6 +11,7 @@ import notifee, {
 import imagePaths from '@assets';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { refreshNotificationsUnreadCount } from '@services/api/queries/notificationQueries';
 // import { updateFcmToken } from '@services/api/queries/authQueries';
 // import { navigate } from '../navigators/NavigationService';
 // import ScreenName from './screenName';
@@ -123,6 +124,7 @@ export const notificationListener = (): (() => void) => {
 
   foregroundUnsubscribe = messaging().onMessage(
     async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+      refreshNotificationsUnreadCount();
       await onDisplayNotification(remoteMessage);
     },
   );
@@ -134,6 +136,7 @@ export const notificationListener = (): (() => void) => {
         JSON.stringify(remoteMessage),
       );
       if (remoteMessage) {
+        refreshNotificationsUnreadCount();
         // navigate(ScreenName.NOTIFICATION, {});
       }
     },
@@ -147,6 +150,7 @@ export const notificationListener = (): (() => void) => {
           'Notification received in background:',
           JSON.stringify(remoteMessage),
         );
+        refreshNotificationsUnreadCount();
         // navigate(ScreenName.NOTIFICATION, {});
       }
     });
@@ -159,6 +163,7 @@ export const notificationListener = (): (() => void) => {
  */
 messaging().setBackgroundMessageHandler(
   async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+    refreshNotificationsUnreadCount();
     console.log('Handled in background:', JSON.stringify(remoteMessage));
     console.log('Handled in background:', remoteMessage);
   },

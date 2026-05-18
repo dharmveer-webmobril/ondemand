@@ -22,12 +22,14 @@ type HomeHeaderProps = {
   onCityUpdate?: () => void;
   onCityUpdateLoading?: (isLoading: boolean) => void;
   onNotificationPress?: () => void;
+  notificationUnreadCount?: number;
 };
 
 export default function HomeHeader({
   onCityUpdate,
   onCityUpdateLoading: _onCityUpdateLoading,
   onNotificationPress,
+  notificationUnreadCount = 0,
 }: HomeHeaderProps) {
   const { t } = useTranslation();
   const theme = useThemeContext();
@@ -121,13 +123,22 @@ export default function HomeHeader({
             </Pressable>
             <View style={styles.rightView}>
               <TouchableOpacity
-                style={styles.iconButton}
+                style={styles.notificationButton}
                 onPress={() => onNotificationPress?.()}
               >
                 <Image
                   source={imagePaths.notification_icon}
                   style={styles.icon}
                 />
+                {notificationUnreadCount > 0 ? (
+                  <View style={styles.badge}>
+                    <CustomText style={styles.badgeText}>
+                      {notificationUnreadCount > 99
+                        ? '99+'
+                        : String(notificationUnreadCount)}
+                    </CustomText>
+                  </View>
+                ) : null}
               </TouchableOpacity>
             </View>
           </View>
@@ -217,12 +228,30 @@ const createStyles = (theme: ThemeType) =>
       alignItems: 'center',
       justifyContent: 'flex-end',
     },
-    iconButton: {
+    notificationButton: {
+      position: 'relative',
       paddingHorizontal: theme.SW(5),
     },
     icon: {
       height: theme.SF(27),
       width: theme.SF(27),
       resizeMode: 'contain',
+    },
+    badge: {
+      position: 'absolute',
+      top: -theme.SH(4),
+      right: -theme.SW(2),
+      backgroundColor: '#F50000',
+      borderRadius: theme.SW(10),
+      minWidth: theme.SW(18),
+      height: theme.SH(18),
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: theme.SW(4),
+    },
+    badgeText: {
+      fontSize: theme.fontSize?.xxs || 10,
+      fontFamily: theme.fonts?.SEMI_BOLD,
+      color: theme.colors.white,
     },
   });

@@ -9,6 +9,7 @@ import { logout } from '@store/slices/authSlice';
 import { resetUserScopedAppState } from '@store/slices/appSlice';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useLogout } from '@services/index';
+import { clearBackendSyncedFcmToken } from '@services/api/queries/authQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { resetAndNavigate } from '@utils/NavigationUtils';
 
@@ -31,6 +32,8 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
         queryClient.cancelQueries();
         queryClient.removeQueries();
         queryClient.clear();
+
+        void clearBackendSyncedFcmToken();
 
         // Reset user-scoped Redux state across slices.
         dispatch(logout());

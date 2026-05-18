@@ -2,5 +2,6 @@
 export * from './api';
 export * from './api/queries/authQueries';
 export * from './api/queries/appQueries';
+export * from './api/queries/notificationQueries';
 export * from './api/queries/chatQueries';
 

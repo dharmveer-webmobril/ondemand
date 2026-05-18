@@ -35,7 +35,9 @@ type BookingServiceCardProps = {
   mainBookingStatus?: string;
   onAcceptService?: (bookedServiceId: string) => void;
   onRejectService?: (bookedServiceId: string) => void;
+  onTrackMember?: (service: Service) => void;
   serviceLoadingStates?: Record<string, 'accept' | 'reject' | null>;
+  trackMemberLoadingId?: string | null;
 };
 
 export default function BookingServiceCard({
@@ -48,7 +50,9 @@ export default function BookingServiceCard({
   mainBookingStatus,
   onAcceptService,
   onRejectService,
+  onTrackMember,
   serviceLoadingStates,
+  trackMemberLoadingId,
 }: BookingServiceCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -504,6 +508,28 @@ export default function BookingServiceCard({
                     />
                   </View>
                 ) : null}
+                {serviceStatus === 'onTheWay' && onTrackMember ? (
+                  <View
+                    style={[
+                      styles.serviceActionButtonWrap,
+                      styles.fullWidthServiceAction,
+                    ]}
+                  >
+                    <CustomButton
+                      title="Track Member"
+                      onPress={() => onTrackMember(service)}
+                      isLoading={trackMemberLoadingId === service._id}
+                      disable={trackMemberLoadingId === service._id}
+                      backgroundColor={theme.colors.primary}
+                      textColor={theme.colors.white}
+                      buttonStyle={[
+                        styles.rescheduleButton1,
+                        styles.fullWidthServiceActionButton,
+                      ]}
+                      buttonTextStyle={styles.rescheduleButtonText}
+                    />
+                  </View>
+                ) : null}
                 {/* {(serviceStatus === 'rescheduledByCustomer' ||
                   serviceStatus === 'accepted') && (
                   <View style={styles.serviceActionButtonWrap}>
@@ -831,6 +857,15 @@ const createStyles = (theme: ThemeType) => {
     serviceActionButtonWrap: {
       flexShrink: 0,
       marginBottom: SH(8),
+    },
+    fullWidthServiceAction: {
+      width: '100%',
+      flexBasis: '100%',
+      alignSelf: 'stretch',
+    },
+    fullWidthServiceActionButton: {
+      width: '100%',
+      alignSelf: 'stretch',
     },
     cancelPolicyText: {
       fontSize: SF(12),

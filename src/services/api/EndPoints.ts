@@ -57,6 +57,8 @@ export default {
     MARK_CONVERSATION_AS_READ: '/chat/conversations',
     GET_BOOKING_CHAT_DETAILS: '/chat/conversations/booking',
     GET_NOTIFICATIONS: '/notifications/customer',
+    GET_NOTIFICATIONS_UNREAD_COUNT: '/notifications/customer/unread-count',
+    MARK_ALL_NOTIFICATIONS_READ: '/notifications/customer/mark-all-read',
     CUSTOMER_SUPPORT: '/customer/support',
     DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
     FAVORITE_SP: '/customer/favorite-sp',
@@ -64,4 +66,6 @@ export default {
     SERVICE_RATING_REVIEW: '/customer/rating-reviews/service-rating-reviews',
     SP_RATING_REVIEW: '/customer/rating-reviews/sp-rating-reviews',
     MEMBER_RATING_REVIEW: '/customer/rating-reviews/member-rating-reviews',
+    GET_BOOKED_SERVICE_TRACKING_LINK: (bookedServiceId: string) =>
+        `/tracking/booked-service/${bookedServiceId}/link`,
 };
