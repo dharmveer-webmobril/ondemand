@@ -302,8 +302,12 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const theme = useThemeContext();
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView style={styles.keyboardAvoidingView}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior="padding"
+        keyboardVerticalOffset={0}
+      >
         <View style={[styles.contentContainer]}>
           <ChatHeader
             name={headerData?.name || ''}
@@ -332,7 +336,7 @@ export default function ChatScreen() {
               // listViewProps={{
               //   }}
               keyboardAvoidingViewProps={{
-                keyboardVerticalOffset: insets.bottom + theme.SH(90),
+                keyboardVerticalOffset: 0,
               }}
               renderLoading={() => (
                 <View style={styles.loadingContainer}>

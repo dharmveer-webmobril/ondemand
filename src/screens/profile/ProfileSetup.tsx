@@ -21,7 +21,7 @@ import PhoneCountryPicker from '@components/auth/PhoneCountryPicker';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useNavigation } from '@react-navigation/native';
 import imagePaths from '@assets';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 import { useUpdateProfile, useUploadDocument } from '@services/index';
 import { useTranslation } from 'react-i18next';
 import * as Yup from 'yup';
@@ -223,14 +223,7 @@ export default function ProfileSetup() {
         title={t('profile.profileSetup')}
         onLeftPress={() => navigation.goBack()}
       />
-      <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        enableOnAndroid={false}
-        extraScrollHeight={100}
-        keyboardShouldPersistTaps="handled"
-        enableResetScrollToCoords={false}
-      >
+      <KeyboardFormScroll contentContainerStyle={styles.scrollContent}>
 
         {/* Profile Picture Section */}
         <View style={styles.profileSection}>
@@ -361,7 +354,7 @@ export default function ProfileSetup() {
           buttonStyle={styles.saveButton}
         />
 
-      </KeyboardAwareScrollView>
+      </KeyboardFormScroll>
       {/* Image Picker Modal */}
       <ImagePickerModal
         visible={showImagePicker}

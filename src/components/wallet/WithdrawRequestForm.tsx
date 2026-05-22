@@ -4,20 +4,26 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
-import { CustomText, CustomInput, CustomButton } from '@components/common';
+import {
+  CustomText,
+  CustomInput,
+  CustomButton,
+  KeyboardFormScroll,
+  KeyboardModalAvoiding,
+} from '@components/common';
 import { useThemeContext } from '@utils/theme';
 import {
   withdrawRequestSchema,
   type WithdrawRequestFormValues,
 } from '@utils/validationSchemas';
 import regex from '@utils/regexList';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 export interface WithdrawRequestFormProps {
   visible: boolean;
@@ -44,6 +50,7 @@ export default function WithdrawRequestForm({
 }: WithdrawRequestFormProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
   const validationSchema = useMemo(
@@ -74,13 +81,15 @@ export default function WithdrawRequestForm({
       transparent
       onRequestClose={handleClose}
     >
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.modalContentWrap}
-          >
-            <View style={styles.modalContent}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <KeyboardModalAvoiding style={styles.modalOverlay}>
+          <View style={styles.modalContentWrap}>
+            <View
+              style={[
+                styles.modalContent,
+                { paddingBottom: (theme.SH?.(24) ?? 24) + insets.bottom },
+              ]}
+            >
               <View style={styles.modalHeader}>
                 <CustomText style={styles.modalTitle}>
                   {t('wallet.withdrawRequest')}
@@ -93,10 +102,9 @@ export default function WithdrawRequestForm({
                   <CustomText style={styles.modalCloseText}>×</CustomText>
                 </TouchableOpacity>
               </View>
-              <ScrollView
+              <KeyboardFormScroll
                 style={styles.modalBody}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled
               >
                 <CustomInput
                   label={t('wallet.amount')}
@@ -173,10 +181,10 @@ export default function WithdrawRequestForm({
                   disable={isSubmitting || formik.isSubmitting}
                   buttonStyle={styles.submitBtn}
                 />
-              </ScrollView>
+              </KeyboardFormScroll>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardModalAvoiding>
       </SafeAreaView>
     </Modal>
   );

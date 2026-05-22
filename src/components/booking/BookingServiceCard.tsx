@@ -91,6 +91,11 @@ export default function BookingServiceCard({
                 <CustomText style={styles.serviceName}>
                   {service?.name}
                 </CustomText>
+                {service?.bookedServiceDate && service?.bookedServiceTime && (
+                  <CustomText>
+                    {service?.bookedServiceDate} at {service?.bookedServiceTime}
+                  </CustomText>
+                )}
               </View>
             </View>
 
@@ -101,7 +106,7 @@ export default function BookingServiceCard({
                   color={serviceStatusColor}
                   fontFamily={theme.fonts.MEDIUM}
                   fontSize={theme.fontSize.sm}
-                  style={{marginBottom: theme.SH(3),marginTop: theme.SH(8)}}
+                  style={{ marginBottom: theme.SH(3), marginTop: theme.SH(8) }}
                 >
                   Cancelled by provider
                 </CustomText>
@@ -110,9 +115,12 @@ export default function BookingServiceCard({
                     color={Colors.textAppColor}
                     fontFamily={theme.fonts.REGULAR}
                     fontSize={theme.fontSize.sm}
-                    style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
+                    style={{
+                      marginTop: theme.SH(0),
+                      marginBottom: theme.SH(8),
+                    }}
                   >
-                  {service?.remark}
+                    {service?.remark}
                   </CustomText>
                 )}
               </>
@@ -123,7 +131,7 @@ export default function BookingServiceCard({
                   color={serviceStatusColor}
                   fontFamily={theme.fonts.MEDIUM}
                   fontSize={theme.fontSize.sm}
-                  style={{marginBottom: theme.SH(3),marginTop: theme.SH(8)}}
+                  style={{ marginBottom: theme.SH(3), marginTop: theme.SH(8) }}
                 >
                   Cancelled by customer
                 </CustomText>
@@ -132,33 +140,39 @@ export default function BookingServiceCard({
                     color={serviceStatusColor}
                     fontFamily={theme.fonts.MEDIUM}
                     fontSize={theme.fontSize.sm}
-                    style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
+                    style={{
+                      marginTop: theme.SH(0),
+                      marginBottom: theme.SH(8),
+                    }}
                   >
-                      {service?.remark}
+                    {service?.remark}
                   </CustomText>
                 )}
               </>
             )}
             {serviceStatus === 'rejected' && (
               <>
-              <CustomText
-                color={serviceStatusColor}
-                fontFamily={theme.fonts.MEDIUM}
-                fontSize={theme.fontSize.sm}
-                style={styles.statusText}
-              >
-                Rejected by provider
-              </CustomText>
-               {service?.remark && (
                 <CustomText
                   color={serviceStatusColor}
                   fontFamily={theme.fonts.MEDIUM}
                   fontSize={theme.fontSize.sm}
-                  style={{ marginTop: theme.SH(0), marginBottom: theme.SH(8) }}
+                  style={styles.statusText}
                 >
-                    {service?.remark}
+                  Rejected by provider
                 </CustomText>
-              )}
+                {service?.remark && (
+                  <CustomText
+                    color={serviceStatusColor}
+                    fontFamily={theme.fonts.MEDIUM}
+                    fontSize={theme.fontSize.sm}
+                    style={{
+                      marginTop: theme.SH(0),
+                      marginBottom: theme.SH(8),
+                    }}
+                  >
+                    {service?.remark}
+                  </CustomText>
+                )}
               </>
             )}
             {/* {serviceStatus === 'rescheduledByCustomer' && (
@@ -456,7 +470,7 @@ export default function BookingServiceCard({
               {/* {(serviceStatus === 'accepted' || serviceStatus === 'requested') && ( */}
               <View style={styles.serviceActionContainer}>
                 {serviceStatus === 'rescheduledBySp' && (
-                  <View style={{flexDirection: 'row', gap: SW(8)}}>
+                  <View style={{ flexDirection: 'row', gap: SW(8) }}>
                     <CustomButton
                       title="Reject Reschedule"
                       onPress={() => onRejectService?.(service._id)}
@@ -466,7 +480,10 @@ export default function BookingServiceCard({
                       disable={serviceLoadingStates?.[service._id] === 'reject'}
                       backgroundColor={theme.colors.red || '#FF4D4D'}
                       textColor={theme.colors.white}
-                      buttonStyle={[styles.rescheduleButton,{backgroundColor: theme.colors.red || '#FF4D4D'}]}
+                      buttonStyle={[
+                        styles.rescheduleButton,
+                        { backgroundColor: theme.colors.red || '#FF4D4D' },
+                      ]}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
                     <CustomButton
@@ -481,10 +498,11 @@ export default function BookingServiceCard({
                       buttonStyle={styles.rescheduleButton}
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
-                    
                   </View>
                 )}
-                {(serviceStatus === 'accepted' || serviceStatus === 'rescheduledBySp' || serviceStatus === 'rescheduledByCustomer')&&  (
+                {(serviceStatus === 'accepted' ||
+                  serviceStatus === 'rescheduledBySp' ||
+                  serviceStatus === 'rescheduledByCustomer') && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
                       title="Reschedule"

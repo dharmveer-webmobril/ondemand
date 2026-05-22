@@ -5,7 +5,13 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { CustomText, CustomButton, CustomInput, VectoreIcons } from '@components/common';
+import {
+  CustomText,
+  CustomButton,
+  CustomInput,
+  VectoreIcons,
+  KeyboardModalAvoiding,
+} from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -46,8 +52,8 @@ export default function ReasonInputModal({
       onRequestClose={handleClose}
       statusBarTranslucent={true}
     > 
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+      <KeyboardModalAvoiding style={{ flex: 1 }}>
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           {/* Header */}
@@ -112,6 +118,7 @@ export default function ReasonInputModal({
           </View>
         </View>
       </View>
+      </KeyboardModalAvoiding>
       </SafeAreaView>
     </Modal>
   );

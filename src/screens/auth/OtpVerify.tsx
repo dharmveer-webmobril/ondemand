@@ -16,7 +16,7 @@ import { setCityId, setCountryId, setCredentials } from '@store/slices/authSlice
 import { showToast } from '@components/common/CustomToast';
 import { SCREEN_NAMES } from '@navigation';
 import { setUserCity } from '@store/slices/appSlice';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 
 const OtpVerify = () => {
     const theme = useThemeContext();
@@ -192,14 +192,7 @@ const OtpVerify = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
-            <KeyboardAwareScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ flexGrow: 1 }}
-                enableOnAndroid={false}
-                extraScrollHeight={100}
-                keyboardShouldPersistTaps="handled"
-                enableResetScrollToCoords={false}
-            >
+            <KeyboardFormScroll contentContainerStyle={{ flexGrow: 1 }}>
                 <ImageComp
                     imageSource={imagePaths.otp_verify_img}
                     marginLeft={'auto'}
@@ -260,7 +253,7 @@ const OtpVerify = () => {
                         disable={verifyOtpMutation.isPending || otp.length !== 4}
                     />
                 </AuthBottomContainer>
-            </KeyboardAwareScrollView>
+            </KeyboardFormScroll>
         </Container>
     );
 };

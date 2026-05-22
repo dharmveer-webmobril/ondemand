@@ -507,7 +507,7 @@ export const CheckoutModals = ({
         selectedPaymentMethod={paymentType}
         allowedMethods={
           paymentMode === 'online' || paymentMode === 'wallet_partial'
-            ? ['stripe', 'paypal', 'flutterwave']
+            ? ['stripe', 'flutterwave', 'paypal']
             : undefined
         }
       />

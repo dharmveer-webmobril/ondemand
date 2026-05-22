@@ -9,7 +9,15 @@ import {
   ScrollView,
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
-import { CustomText, CustomButton, VectoreIcons, CustomInput, LoadingComp, CalendarArrow } from '@components/common';
+import {
+  CustomText,
+  CustomButton,
+  VectoreIcons,
+  CustomInput,
+  LoadingComp,
+  CalendarArrow,
+  KeyboardModalAvoiding,
+} from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { generateTimeSlots } from '@utils/timeSlotUtils';
 import { useGetServiceProviderAvailability } from '@services/index';
@@ -194,8 +202,8 @@ export default function RescheduleModal({
       onRequestClose={handleClose}
       statusBarTranslucent={true}
     >
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+      <KeyboardModalAvoiding style={{ flex: 1 }}>
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           {/* Header */}
@@ -395,6 +403,7 @@ export default function RescheduleModal({
           </View>
         </View>
       </View>
+      </KeyboardModalAvoiding>
       </SafeAreaView>
     </Modal>
   );

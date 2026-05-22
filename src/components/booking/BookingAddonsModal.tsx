@@ -282,7 +282,7 @@ export default function BookingAddonsModal({
         onClose={() => setShowPayModal(false)}
         onConfirm={handlePaymentMethodConfirm}
         selectedPaymentMethod="stripe"
-        allowedMethods={['stripe', 'paypal', 'flutterwave']}
+        allowedMethods={['stripe', 'flutterwave', 'paypal']}
       />
     </>
   );

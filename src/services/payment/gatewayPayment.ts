@@ -2,8 +2,8 @@ import type { InitiateBookingPaymentRequest } from '@services/api/queries/appQue
 
 export type GatewayPaymentMethod = 'stripe' | 'paypal' | 'flutterwave';
 
-/** When `false`, Flutterwave stays visible in the payment modal but cannot be selected; set `true` when backend is live. */
-export const FLUTTERWAVE_PAYMENT_ENABLED = false;
+/** Flutterwave web checkout (redirect URL → PaymentWebViewScreen). */
+export const FLUTTERWAVE_PAYMENT_ENABLED = true;
 
 /** PayPal and Flutterwave: server returns `redirectUrl` and the app completes payment in `PaymentWebViewScreen`. */
 export function isWebRedirectGateway(

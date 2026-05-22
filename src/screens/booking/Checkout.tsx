@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { AppHeader, Container, LoadingComp, SweetAlert } from '@components/common';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
 import {
@@ -76,11 +76,11 @@ export default function Checkout() {
     if (isRoutine) {
       return draftMode === 'cash' || draftMode === 'online' ? draftMode : 'online';
     }
-    return draftMode ?? 'cash';
+    return draftMode ?? 'online';
   });
   const [paymentType, setPaymentType] = useState<
     'paypal' | 'stripe' | 'flutterwave' | 'cash'
-  >(draft?.paymentType ?? 'cash');
+  >(draft?.paymentType ?? 'stripe');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [walletPartialAmount, setWalletPartialAmount] = useState(
     draft?.walletPartialAmount ?? '',
@@ -724,14 +724,7 @@ export default function Checkout() {
       />
 
 
-      <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        enableOnAndroid={false}
-        extraScrollHeight={100}
-        // keyboardShouldPersistTaps="handled"
-        enableResetScrollToCoords={false}
-      >
+      <KeyboardFormScroll contentContainerStyle={styles.content}>
         <AppointmentDetailsSection
           bookingData={bookingData}
           totalPrice={totalPrice}
@@ -789,7 +782,7 @@ export default function Checkout() {
           }
           isLoading={isLoading}
         />
-      </KeyboardAwareScrollView>
+      </KeyboardFormScroll>
 
 
       <LoadingComp visible={isLoading} />

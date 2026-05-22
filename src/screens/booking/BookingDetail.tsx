@@ -75,7 +75,13 @@ import {
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigate } from '@utils/NavigationUtils';
 
-const formatDate = (dateString: string): string => {
+export const formatTime = (timeString: string): string => {
+  if (!timeString) return '';
+  const time = new Date(timeString);
+  return time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+};
+
+export const formatDate = (dateString: string): string => {
   if (!dateString || typeof dateString !== 'string') return '';
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return '';
@@ -328,7 +334,11 @@ export default function BookingDetail() {
         selectedAddOns: selectedAddOns,
         rescheduleDate: bookedService?.rescheduleDate || '',
         rescheduleTime: bookedService?.rescheduleTime || '',
+
         rescheduleReason: bookedService?.rescheduleReason || '',
+        bookedServiceDate: bookedService?.date || '',
+        bookedServiceTime: bookedService?.time || '',
+        // bookedServices
         remark: bookedService?.remark || '',
         appliedOffer: appliedOffer,
         price: serviceBasePrice,
@@ -344,6 +354,7 @@ export default function BookingDetail() {
     });
 
     console.log('apiBooking-----addressId', apiBooking?.addressId);
+    console.log('services------apiBooking', services);
 
     return {
       customerDetails:
@@ -383,6 +394,8 @@ export default function BookingDetail() {
       preferences: apiBooking?.preferences || [],
       spBusinessProfile: apiBooking?.spBusinessProfile,
       remark: apiBooking?.remark,
+      createdAtDate: formatDate(apiBooking?.createdAt || ''),
+      createdAtTime: formatTime(apiBooking?.createdAt || ''),
     };
   }, [bookingDetailData, t]);
   // Handle API errors - show error toast but don't block UI if we have cached data
@@ -471,6 +484,12 @@ export default function BookingDetail() {
     setCancelType('booking');
     setServiceToCancel(null);
     setShowCancelConfirm(true);
+  }, []);
+
+  const handleOpenCancelPolicy = useCallback(() => {
+    navigate(SCREEN_NAMES.TERMS_AND_CONDITIONS, {
+      type: 'Cancel Policies',
+    });
   }, []);
 
   const handleCancelServicePress = useCallback((serviceId: string) => {
@@ -1181,7 +1200,7 @@ export default function BookingDetail() {
                 style={styles.cancelPolicyText}
                 color={theme.colors.red}
               >
-                Cancel Policy
+                {t('bookingDetails.cancelPolicyLink')}
               </CustomText>
             </Pressable>
           )}
@@ -1211,20 +1230,19 @@ export default function BookingDetail() {
       {/* Booking Actions */}
       {booking && (
         <View style={styles.actionsContainer}>
-          {booking.bookingStatus === 'requested' && (
-            <>
-              <View style={[styles.actionButton, styles.actionButtonLeft]}>
-                <CustomButton
-                  title={t('bookingDetails.cancelBooking')}
-                  onPress={handleCancelBookingPress}
-                  backgroundColor={theme.colors.red}
-                  textColor={theme.colors.white}
-                  buttonStyle={styles.actionButtonInner}
-                  disable={loaderType === 'cancelBooking'}
-                  isLoading={loaderType === 'cancelBooking'}
-                />
-              </View>
-            </>
+          {(booking.bookingStatus === 'requested' ||
+            booking.bookingStatus === 'accepted') && (
+            <View style={[styles.actionButton, styles.actionButtonLeft]}>
+              <CustomButton
+                title={t('bookingDetails.cancelBooking')}
+                onPress={handleCancelBookingPress}
+                backgroundColor={theme.colors.red}
+                textColor={theme.colors.white}
+                buttonStyle={styles.actionButtonInner}
+                disable={loaderType === 'cancelBooking'}
+                isLoading={loaderType === 'cancelBooking'}
+              />
+            </View>
           )}
         </View>
       )}
@@ -1291,7 +1309,6 @@ export default function BookingDetail() {
         onCancel={() => setShowRejectConfirm(false)}
       />
 
-      {/* Cancel Booking Modal */}
       <CancelBookingModal
         visible={showCancelConfirm}
         onClose={() => {
@@ -1301,11 +1318,11 @@ export default function BookingDetail() {
         }}
         onSubmit={handleCancelConfirm}
         isLoading={loaderType === 'cancelBooking'}
-        title={t('bookingDetails.cancelBooking')}
-        message="Please provide a reason for canceling this booking (required)"
+        variant="booking"
+        showRefundPolicy
+        onPolicyLinkPress={handleOpenCancelPolicy}
       />
 
-      {/* Cancel Service Modal */}
       <CancelBookingModal
         visible={showCancelServiceModal}
         onClose={() => {
@@ -1316,8 +1333,8 @@ export default function BookingDetail() {
         }}
         onSubmit={handleCancelConfirm}
         isLoading={loaderType === 'cancelService'}
-        title={t('bookingDetails.cancelService')}
-        message="Please provide a reason for canceling this service (required)"
+        variant="service"
+        showRefundPolicy={false}
       />
 
       <BookingAddonsModal

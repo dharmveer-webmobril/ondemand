@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { CustomText,  VectoreIcons } from '@components/common';
+import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
 type DateTimeCardProps = {
@@ -21,42 +21,17 @@ export default function DateTimeCard({ date, time }: DateTimeCardProps) {
           fontFamily={theme.fonts.SEMI_BOLD}
           color={theme.colors.text}
         >
-          Date & Time
+          Created At{': '}
+          <CustomText
+            fontSize={theme.fontSize.sm}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.text}
+            style={styles.detailText}
+          >
+            {date} at {time}
+          </CustomText>
         </CustomText>
       </View>
-      <View style={styles.detailRow}>
-        <VectoreIcons
-          name="calendar-outline"
-          icon="Ionicons"
-          size={theme.SF(18)}
-          color={theme.colors.lightText}
-        />
-        <CustomText
-          fontSize={theme.fontSize.sm}
-          fontFamily={theme.fonts.REGULAR}
-          color={theme.colors.text}
-          style={styles.detailText}
-        >
-          {date}
-        </CustomText>
-      </View>
-      <View style={styles.detailRow}>
-        <VectoreIcons
-          name="time-outline"
-          icon="Ionicons"
-          size={theme.SF(18)}
-          color={theme.colors.lightText}
-        />
-        <CustomText
-          fontSize={theme.fontSize.sm}
-          fontFamily={theme.fonts.REGULAR}
-          color={theme.colors.text}
-          style={styles.detailText}
-        >
-          {time}
-        </CustomText>
-      </View>
-     
     </View>
   );
 }
@@ -94,6 +69,6 @@ const createStyles = (theme: ThemeType) =>
       fontSize: theme.fontSize.sm,
     },
     titleContainer: {
-      marginBottom: theme.SH(10),
+      // marginBottom: theme.SH(10),
     },
   });

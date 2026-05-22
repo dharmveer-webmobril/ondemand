@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { HomeHeader, HomeMainList, HomeSearchBar, VectoreIcons } from '@components';
 import { SCREEN_NAMES } from '@navigation/ScreenNames';
+import { TAB_BAR_BASE_HEIGHT } from '@navigation/tabs/CustomTabs';
 import { useDisableGestures, useHomeCurrentAddress } from '@utils/hooks';
 import {
   useGetCategories,
@@ -23,7 +24,7 @@ import {
 import { useAppSelector } from '@store/hooks';
 import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
 import { syncFcmTokenToBackendIfNeeded } from '@services/api/queries/authQueries';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeContext } from '@utils/theme';
 
 export default function Home() {
@@ -31,7 +32,10 @@ export default function Home() {
   useHomeCurrentAddress();
   const navigation = useNavigation<any>();
   const theme = useThemeContext();
-  const insets = useSafeAreaInsets();
+  const fabBottom = useMemo(
+    () => theme.SH(TAB_BAR_BASE_HEIGHT) + theme.SH(16),
+    [theme],
+  );
 
   const { t } = useTranslation();
   const authToken = useAppSelector(state => state.auth.token);
@@ -331,12 +335,12 @@ export default function Home() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('home.quickVoiceTitle')}
+          accessibilityLabel={t('home.aiAssistantTitle')}
           onPress={() => navigation.navigate(SCREEN_NAMES.HOME_QUICK_VOICE)}
           style={({ pressed }) => [
             styles.quickChatFab,
             {
-              bottom: insets.bottom + theme.SH(40),
+              bottom: fabBottom,
               right: theme.SW(16),
               backgroundColor: theme.colors.primary,
             },
@@ -371,8 +375,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 50,
-    elevation: 8,
+    zIndex: 10000,
+    elevation: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,

@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAppDispatch } from '@store/hooks';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 import {
   setCityId,
   setCountryId,
@@ -166,13 +166,9 @@ const Login = () => {
       statusBarColor={theme.colors.white}
       style={{ backgroundColor: theme.colors.white }}
     >
-      <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
+      <KeyboardFormScroll
         contentContainerStyle={styles.scrollViewContainer}
-        enableOnAndroid={false}
-        extraScrollHeight={theme.SH(40)}
-        keyboardShouldPersistTaps="handled"
-        enableResetScrollToCoords={false}
+        bottomOffset={theme.SH(40)}
       >
         <ImageComp
           imageSource={imagePaths.login_img}
@@ -280,7 +276,7 @@ const Login = () => {
             </CustomText>
           </View>
         </AuthBottomContainer>
-      </KeyboardAwareScrollView>
+      </KeyboardFormScroll>
     </Container>
   );
 };

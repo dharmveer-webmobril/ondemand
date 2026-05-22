@@ -1,14 +1,14 @@
-import { LogBox, View } from 'react-native'
-import { useEffect } from 'react'
-import { Provider } from 'react-redux'
-import { PersistGate } from 'redux-persist/integration/react'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { LogBox, View } from 'react-native';
+import { useEffect } from 'react';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   SafeAreaProvider,
   initialWindowMetrics,
-} from 'react-native-safe-area-context'
-import { StripeProvider } from '@stripe/stripe-react-native'
-import RootNavigator from './src/navigation/RootNavigator'
+} from 'react-native-safe-area-context';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import RootNavigator from './src/navigation/RootNavigator';
 import { StorageProvider, ThemeProvider } from '@utils/index';
 import i18next from 'i18next';
 import './src/utils/langauage/i18n';
@@ -18,10 +18,14 @@ import { store, persistor } from './src/store';
 import { queryClient } from './src/services/api/queryClient';
 import { STRIPE_PUBLISHABLE_KEY } from './src/config/stripe';
 import Toast from 'react-native-toast-message';
-import toastConfig from '@components/common/CustomToast'
-import { MenuProvider } from 'react-native-popup-menu'
-import { SocketProvider } from '@services/socket/SocketProvider'
-import { notificationListener, requestUserPermission } from '@services/PushNotification'
+import toastConfig from '@components/common/CustomToast';
+import { MenuProvider } from 'react-native-popup-menu';
+import { SocketProvider } from '@services/socket/SocketProvider';
+import {
+  notificationListener,
+  requestUserPermission,
+} from '@services/PushNotification';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 LogBox.ignoreLogs([
   'Open debugger to view warnings',
@@ -30,10 +34,9 @@ LogBox.ignoreLogs([
 ]);
 
 const App = () => {
-
   useEffect(() => {
-    init()
-  }, [])
+    init();
+  }, []);
   async function init() {
     let language = await StorageProvider.getItem('language');
     i18next.changeLanguage(language || 'en');
@@ -48,15 +51,17 @@ const App = () => {
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
               <SocketProvider>
-                <View style={{ flex: 1 }}>
-                  <ApplicationProvider {...eva} theme={eva.light}>
-                    <MenuProvider>
-                      <ThemeProvider>
-                        <RootNavigator />
-                      </ThemeProvider>
-                    </MenuProvider>
-                  </ApplicationProvider>
-                </View>
+                <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+                  <View style={{ flex: 1 }}>
+                    <ApplicationProvider {...eva} theme={eva.light}>
+                      <MenuProvider>
+                        <ThemeProvider>
+                          <RootNavigator />
+                        </ThemeProvider>
+                      </MenuProvider>
+                    </ApplicationProvider>
+                  </View>
+                </KeyboardProvider>
               </SocketProvider>
               <Toast config={toastConfig} />
             </StripeProvider>
@@ -64,7 +69,7 @@ const App = () => {
         </QueryClientProvider>
       </PersistGate>
     </Provider>
-  )
-}
+  );
+};
 
-export default App
+export default App;

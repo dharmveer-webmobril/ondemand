@@ -44,6 +44,7 @@ import {
   routineStatusMatchesFilter,
   type RoutineStatusFilter,
 } from '@utils/routineBookingHelpers';
+import { formatTime } from './BookingDetail';
 
 const formatDate = (dateString: string): string => {
   if (!dateString) return '';
@@ -211,6 +212,9 @@ export default function BookingList() {
         statusColor: getStatusColor(booking.bookingStatus),
         date: formatDate(booking.date),
         time: booking.time || '',
+        createdAt: booking.createdAt || '',
+        createdAtDate: formatDate(booking.createdAt || ''),
+        createdAtTime: formatTime(booking.createdAt || ''),
         shopName: getProviderDisplayName(
           {
             name:
@@ -401,8 +405,8 @@ export default function BookingList() {
           friendName={item.friendName}
           status={item.status}
           statusColor={item.statusColor}
-          date={item.date}
-          time={item.time}
+          date={item.createdAtDate}
+          time={item.createdAtTime}
           shopName={item.shopName}
           address={item.address}
           price={item.price}

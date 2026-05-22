@@ -17,7 +17,7 @@ import { Colors, Fonts, regex, SF, SH, SW } from '@utils';
 import { useThemeContext } from '@utils/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -270,13 +270,9 @@ const AddOtherPersonDetail: React.FC = () => {
         containerStyle={styles.header}
       />
 
-      <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
+      <KeyboardFormScroll
         contentContainerStyle={styles.scrollViewContent}
-        enableOnAndroid={false}
-        extraScrollHeight={SH(40)}
-        keyboardShouldPersistTaps="handled"
-        enableResetScrollToCoords={false}
+        bottomOffset={SH(40)}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
@@ -402,7 +398,7 @@ const AddOtherPersonDetail: React.FC = () => {
             />
           </View>
         </TouchableWithoutFeedback>
-      </KeyboardAwareScrollView>
+      </KeyboardFormScroll>
 
       <PhoneNumberPicker
         visible={showContactModal}

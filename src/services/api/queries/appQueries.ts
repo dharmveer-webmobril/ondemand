@@ -1698,6 +1698,34 @@ export interface CancelBookingResponse {
   ResponseData?: any;
 }
 
+export interface CancellationRefundPolicy {
+  basis?: string;
+  closeWindowHours: number;
+  shortRefundPercent: number;
+  fullRefundPercent: number;
+}
+
+export interface CancellationRefundPolicyResponse {
+  ResponseCode: number;
+  ResponseMessage: string;
+  succeeded: boolean;
+  ResponseData: CancellationRefundPolicy;
+}
+
+export const useGetCancellationRefundPolicy = (enabled = true) => {
+  return useQuery<CancellationRefundPolicyResponse>({
+    queryKey: ['cancellationRefundPolicy'],
+    queryFn: async () => {
+      const response = await axiosInstance.get<CancellationRefundPolicyResponse>(
+        EndPoints.CANCELLATION_REFUND_POLICY,
+      );
+      return response.data;
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 // Cancel Booking (whole booking or service)
 export const useCancelBooking = () => {
   return useMutation<

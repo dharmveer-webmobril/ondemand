@@ -46,6 +46,7 @@ export default {
     ACCEPT_RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/accept`,
     REJECT_RESCHEDULE_BOOKING_SERVICE: (serviceId: string) => `/customer/booked-services/booked-service/${serviceId}/reject`,
     CANCEL_BOOKING: (bookingId: string) => `/customer/bookings/bookings/${bookingId}/cancel`,
+    CANCELLATION_REFUND_POLICY: '/customer/bookings/cancellation-refund-policy',
     GET_WALLET: '/customer/payments/wallet',
     GET_WALLET_TRANSACTIONS: '/customer/payments/wallet/transactions',
     GET_PAYMENT_TRANSACTIONS: '/customer/payments/transactions',
@@ -76,4 +77,6 @@ export default {
     MEMBER_RATING_REVIEW: '/customer/rating-reviews/member-rating-reviews',
     GET_BOOKED_SERVICE_TRACKING_LINK: (bookedServiceId: string) =>
         `/tracking/booked-service/${bookedServiceId}/link`,
+    AI_ASSISTANT_HISTORY: '/customer/ai-assistant/history',
+    AI_ASSISTANT_CHAT: '/customer/ai-assistant/chat',
 };

@@ -9,7 +9,7 @@ import { useForgotPassword } from '@services/api/queries/authQueries';
 import { showToast } from '@components/common/CustomToast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SCREEN_NAMES } from '@navigation';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 
 const ForgotPass = () => {
     const theme = useThemeContext();
@@ -88,13 +88,9 @@ const ForgotPass = () => {
 
     return (
         <Container safeArea={false} statusBarColor={theme.colors.white} style={{ backgroundColor: theme.colors.white }}>
-            <KeyboardAwareScrollView
-                showsVerticalScrollIndicator={false}
+            <KeyboardFormScroll
                 contentContainerStyle={{ flexGrow: 1 }}
-                enableOnAndroid={false}
-                extraScrollHeight={theme.SH(40)}
-                keyboardShouldPersistTaps="handled"
-                enableResetScrollToCoords={false}
+                bottomOffset={theme.SH(40)}
             >
 
                 <ImageComp
@@ -148,7 +144,7 @@ const ForgotPass = () => {
                         disable={forgotPasswordMutation.isPending}
                     />
                 </AuthBottomContainer>
-            </KeyboardAwareScrollView>
+            </KeyboardFormScroll>
         </Container>
     );
 };

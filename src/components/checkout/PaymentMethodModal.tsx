@@ -23,9 +23,9 @@ type PaymentMethodModalProps = {
 };
 
 const ALL_PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
-  { id: 'paypal', label: 'PayPal' },
-  { id: 'flutterwave', label: 'Flutterwave' },
   { id: 'stripe', label: 'Stripe' },
+  { id: 'flutterwave', label: 'Flutterwave' },
+  { id: 'paypal', label: 'PayPal' },
   { id: 'cash', label: 'Pay Onsite' },
 ];
 
@@ -56,8 +56,15 @@ export default function PaymentMethodModal({
     return ALL_PAYMENT_METHODS;
   }, [allowedMethods]);
 
-  const defaultMethod =
-    paymentMethods.find(m => isPaymentMethodSelectable(m.id))?.id ?? 'cash';
+  const defaultMethod = useMemo(() => {
+    if (
+      paymentMethods.some(m => m.id === 'stripe') &&
+      isPaymentMethodSelectable('stripe')
+    ) {
+      return 'stripe' as PaymentMethod;
+    }
+    return paymentMethods.find(m => isPaymentMethodSelectable(m.id))?.id ?? 'cash';
+  }, [paymentMethods]);
 
   useEffect(() => {
     if (!visible) {

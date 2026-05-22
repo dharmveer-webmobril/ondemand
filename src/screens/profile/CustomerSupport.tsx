@@ -1,6 +1,6 @@
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import React, { useMemo, useState, useEffect } from 'react'
-import { Container, AppHeader, CustomButton, CustomInput } from '@components';
+import { Container, AppHeader, CustomButton, CustomInput, KeyboardFormScroll } from '@components';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText } from '@components/common';
 import { useTranslation } from 'react-i18next';
@@ -119,10 +119,7 @@ export default function CustomerSupport() {
         title={t('customerSupport.header')}
         onLeftPress={() => navigation.goBack()}
       />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <KeyboardFormScroll contentContainerStyle={styles.scrollContent}>
         <View style={styles.formSection}>
           <View style={styles.inputContainer}>
             <CustomText style={styles.label}>
@@ -189,7 +186,7 @@ export default function CustomerSupport() {
           isLoading={supportMutation.isPending}
           disable={supportMutation.isPending}
         />
-      </ScrollView>
+      </KeyboardFormScroll>
 
 
     </Container>

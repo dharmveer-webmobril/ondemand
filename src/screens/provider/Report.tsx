@@ -1,8 +1,8 @@
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Container, AppHeader, CustomInput, CustomButton, CustomText } from '@components/common';
+import { Container, AppHeader, CustomInput, CustomButton, CustomText, KeyboardFormScroll } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CountryModal } from '@components';
@@ -65,10 +65,9 @@ export default function Report() {
         containerStyle={{ marginHorizontal: theme.SW(20) }}
         // containerStyle={{ paddingTop: insets.top }}
       />
-      <ScrollView
+      <KeyboardFormScroll
         style={styles.scrollView}
         contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
           <CustomText style={styles.label}>{t('report.selectReason')}</CustomText>
@@ -103,7 +102,7 @@ export default function Report() {
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.whitetext}
         />
-      </ScrollView>
+      </KeyboardFormScroll>
 
       <CountryModal
         type="city"

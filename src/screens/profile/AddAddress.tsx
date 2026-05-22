@@ -1,7 +1,6 @@
 import {
   View,
   StyleSheet,
-  ScrollView,
   Pressable,
   ActivityIndicator,
 } from 'react-native';
@@ -17,6 +16,7 @@ import {
   CustomInput,
   CustomText,
   VectoreIcons,
+  KeyboardFormScroll,
 } from '@components';
 import { goBack, SH, useLocation } from '@utils/index';
 import { useTranslation } from 'react-i18next';
@@ -610,11 +610,7 @@ export default function AddressAdd() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <KeyboardFormScroll contentContainerStyle={styles.scrollContent}>
           <AppHeader
             title={
               route.params?.mode === 'edit'
@@ -855,7 +851,7 @@ export default function AddressAdd() {
               </View>
             </View>
           </View>
-        </ScrollView>
+        </KeyboardFormScroll>
 
         <View style={styles.buttonContainer}>
           <CustomButton

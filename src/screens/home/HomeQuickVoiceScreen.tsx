@@ -6,13 +6,13 @@ import {
   Pressable,
   ActivityIndicator,
   Platform,
-  KeyboardAvoidingView,
   FlatList,
   ListRenderItem,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useKeyboardState } from 'react-native-keyboard-controller';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { v4 as uuid } from 'uuid';
 import {
   addEventListener,
   destroy,
@@ -33,33 +33,31 @@ import {
   CustomText,
   showToast,
   VectoreIcons,
+  KeyboardChatLayout,
 } from '@components/common';
-import HomeProviderItem from '@components/home/HomeProviderItem';
+import AssistantMessageContent from '@components/home/AssistantMessageContent';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '@store/hooks';
 import {
-  ServiceProvider,
-  useGetServiceProviders,
-} from '@services/api/queries/appQueries';
-import { navigate } from '@utils/NavigationUtils';
-import SCREEN_NAMES from '@navigation/ScreenNames';
-import { formatAddress, getProviderDisplayName } from '@utils/tools';
+  type AiAssistantHistoryMeta,
+  type AiAssistantMessage,
+  clearAiAssistantHistory,
+  fetchAiAssistantHistory,
+  sendAiAssistantMessage,
+} from '@services/api/queries/aiAssistantQueries';
+import { isAxiosError } from 'axios';
 
 const EVT_RESULTS = 'onSpeechResults';
 const EVT_END = 'onSpeechEnd';
 const EVT_ERROR = 'onSpeechError';
 
-type ChatMsg =
-  | { id: string; role: 'user'; text: string }
-  | {
-      id: string;
-      role: 'assistant';
-      text: string;
-      providers?: ServiceProvider[];
-      query?: string;
-      isError?: boolean;
-    };
+const MAX_MESSAGE_LENGTH = 2000;
+
+const QUICK_PROMPT_KEYS = [
+  'home.aiQuickPromptLastBooking',
+  'home.aiQuickPromptProvidersTomorrow',
+  'home.aiQuickPromptBookCleaning',
+] as const;
 
 const voiceLocaleFromAppLang = (lang: string | undefined): string => {
   const code = (lang || 'en').split('-')[0].toLowerCase();
@@ -101,73 +99,56 @@ async function safeStopVoice(): Promise<void> {
   }
 }
 
+function messageKey(m: AiAssistantMessage, idx: number): string {
+  return m._id || `${m.role}-${idx}-${m._local ? 'local' : 'remote'}`;
+}
+
 export default function HomeQuickVoiceScreen() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
-  const listRef = useRef<FlatList<ChatMsg>>(null);
+  const route = useRoute<any>();
+  const listRef = useRef<FlatList<AiAssistantMessage>>(null);
+  const { isVisible: isKeyboardVisible } = useKeyboardState();
 
-  const cityName =
-    useAppSelector(state => {
-      const fromAddr =
-        state.app.currentLocationAddress?.cityName?.trim() || '';
-      const uc = state.app.userCity;
-      const fromSaved =
-        typeof uc === 'object' && uc?.name ? String(uc.name).trim() : '';
-      return fromAddr || fromSaved || '';
-    }) || '';
+  const contextSpId: string | undefined = route.params?.contextSpId;
 
-  const lat = useAppSelector(
-    state => state.app.currentLocationAddress?.lat?.trim() || '',
-  );
-  const lng = useAppSelector(
-    state => state.app.currentLocationAddress?.lng?.trim() || '',
+  const isAuthenticated = useAppSelector(
+    state => state.auth.isAuthenticated,
   );
 
   const welcomeMessage = useMemo(
-    (): ChatMsg => ({
-      id: 'welcome',
+    (): AiAssistantMessage => ({
       role: 'assistant',
-      text: t('home.quickVoiceAssistantWelcome'),
+      content: t('home.aiAssistantWelcome'),
+      _local: true,
     }),
     [t],
   );
 
-  const [thread, setThread] = useState<ChatMsg[]>([]);
+  const [messages, setMessages] = useState<AiAssistantMessage[]>([]);
   const [composerText, setComposerText] = useState('');
   const [listening, setListening] = useState(false);
-  const [searchTrigger, setSearchTrigger] = useState<{ q: string } | null>(
+  const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [historyMeta, setHistoryMeta] = useState<AiAssistantHistoryMeta | null>(
     null,
   );
 
-  const activeQuery = searchTrigger?.q?.trim() ?? '';
-
-  const {
-    data,
-    isFetching,
-    isError,
-  } = useGetServiceProviders({
-    page: 1,
-    limit: 8,
-    search: activeQuery || undefined,
-    cityName: cityName || undefined,
-    lat,
-    lng,
-    sortBy: 'rating',
-    enabled: activeQuery.length > 0,
-  });
+  const quickPrompts = useMemo(
+    () => QUICK_PROMPT_KEYS.map(key => t(key)),
+    [t],
+  );
 
   const locale = useMemo(
     () => voiceLocaleFromAppLang(i18n.language),
     [i18n.language],
   );
 
-  const listData = useMemo(
-    () => [welcomeMessage, ...thread],
-    [welcomeMessage, thread],
-  );
+  const showQuickPrompts =
+    !loading && !historyLoading && messages.length <= 1;
 
   const appendTranscript = useCallback((text: string) => {
     const next = text.trim();
@@ -177,6 +158,49 @@ export default function HomeQuickVoiceScreen() {
       return p ? `${p} ${next}` : next;
     });
   }, []);
+
+  const loadHistory = useCallback(async () => {
+    if (!isAuthenticated) {
+      setMessages([welcomeMessage]);
+      setHistoryLoading(false);
+      return;
+    }
+
+    setHistoryLoading(true);
+    setError(null);
+    try {
+      const res = await fetchAiAssistantHistory();
+      if (res.succeeded) {
+        const data = res.ResponseData || { messages: [] };
+        const list = data.messages || [];
+        setHistoryMeta({
+          totalMessages: data.totalMessages ?? list.length,
+          returnedMessages: data.returnedMessages ?? list.length,
+          hasMore: Boolean(data.hasMore),
+          limit: data.limit,
+        });
+        setMessages(
+          list.length === 0 ? [welcomeMessage] : list,
+        );
+      } else {
+        setHistoryMeta(null);
+        setMessages([welcomeMessage]);
+      }
+    } catch (e: unknown) {
+      setHistoryMeta(null);
+      setMessages([welcomeMessage]);
+      const msg = isAxiosError(e)
+        ? (e.response?.data as { ResponseMessage?: string })?.ResponseMessage
+        : undefined;
+      setError(msg || t('home.aiAssistantHistoryError'));
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [isAuthenticated, t, welcomeMessage]);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
 
   useEffect(() => {
     const subResults = addEventListener(
@@ -201,7 +225,6 @@ export default function HomeQuickVoiceScreen() {
           return;
         if (e?.code === 7) return;
 
-        console.warn('Speech error:', e);
         showToast({
           type: 'error',
           title: t('messages.error'),
@@ -221,89 +244,24 @@ export default function HomeQuickVoiceScreen() {
   }, [appendTranscript, t]);
 
   useEffect(() => {
-    if (!searchTrigger || isFetching) return;
-
-    if (isError) {
-      setThread(prev => [
-        ...prev,
-        {
-          id: uuid(),
-          role: 'assistant',
-          text: t('home.quickVoiceAssistantReplyError'),
-          isError: true,
-        },
-      ]);
-      setSearchTrigger(null);
-      return;
-    }
-
-    const providers = (data?.ResponseData ?? []) as ServiceProvider[];
-    const q = searchTrigger.q;
-    const text =
-      providers.length > 0
-        ? t('home.quickVoiceAssistantReplyFound', {
-            count: providers.length,
-            query: q,
-          })
-        : t('home.quickVoiceAssistantReplyEmpty');
-
-    setThread(prev => [
-      ...prev,
-      {
-        id: uuid(),
-        role: 'assistant',
-        text,
-        providers,
-        query: q,
-      },
-    ]);
-    setSearchTrigger(null);
-  }, [searchTrigger, isFetching, isError, data, t]);
-
-  useEffect(() => {
     requestAnimationFrame(() => {
       listRef.current?.scrollToEnd({ animated: true });
     });
-  }, [thread.length, isFetching]);
+  }, [messages.length, loading, historyLoading]);
 
-  const openProvider = useCallback(
-    (provider: ServiceProvider) => {
-      const bp = provider.businessProfile as any;
-      navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
-        provider: {
-          id: provider._id,
-          name: getProviderDisplayName(provider, t('home.providerFallbackName')),
-          logo: provider.profileImage,
-          address:
-            formatAddress({
-              line1: bp?.line1 ?? '',
-              line2: bp?.line2 ?? '',
-              landmark: bp?.landmark ?? '',
-              pincode: bp?.pincode ?? '',
-              city: bp?.city?.name ?? '',
-              country: bp?.country?.name ?? '',
-            }) ||
-            provider.city?.name ||
-            '',
-          serviceType: provider.cityName || bp?.cityName || '',
-          rating: typeof provider.rating === 'number' ? provider.rating : null,
-          reviewCount: 0,
-        },
-        prevScreenFlag: 'without_data',
-      });
-    },
-    [t],
-  );
+  useEffect(() => {
+    if (!isKeyboardVisible) return;
+    const timer = setTimeout(() => {
+      listRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isKeyboardVisible]);
 
-  const openAllResults = useCallback(
-    (query: string) => {
-      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
-        resetSession: true,
-        initialSearch: query,
-      });
-    },
-    [],
-  );
+  const scrollToLatest = useCallback(() => {
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToEnd({ animated: true });
+    });
+  }, []);
 
   const stopListening = useCallback(async () => {
     await safeStopVoice();
@@ -352,8 +310,7 @@ export default function HomeQuickVoiceScreen() {
     try {
       setListening(true);
       await voiceStartListening();
-    } catch (err: unknown) {
-      console.warn('voiceStartListening failed', err);
+    } catch {
       setListening(false);
       showToast({
         type: 'error',
@@ -371,18 +328,116 @@ export default function HomeQuickVoiceScreen() {
     await startListening();
   }, [listening, startListening, stopListening]);
 
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = String(text || '').trim();
+      if (!trimmed || loading) return;
+
+      if (!isAuthenticated) {
+        setError(t('home.aiAssistantGuestError'));
+        return;
+      }
+
+      if (trimmed.length > MAX_MESSAGE_LENGTH) {
+        setError(t('home.aiAssistantMessageTooLong'));
+        return;
+      }
+
+      setError(null);
+      setComposerText('');
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content: trimmed },
+      ]);
+      setLoading(true);
+
+      try {
+        const payload: { message: string; contextSpId?: string } = {
+          message: trimmed,
+        };
+        if (contextSpId) payload.contextSpId = contextSpId;
+
+        const res = await sendAiAssistantMessage(payload);
+        if (res.succeeded) {
+          const reply =
+            res.ResponseData?.reply ||
+            t('home.aiAssistantReplyFallback');
+          const actions = res.ResponseData?.actions || [];
+          setMessages(prev => [
+            ...prev,
+            { role: 'assistant', content: reply, actions },
+          ]);
+        } else {
+          setError(res.ResponseMessage || t('home.aiAssistantSendError'));
+        }
+      } catch (e: unknown) {
+        const isTimeout =
+          isAxiosError(e) && e.code === 'ECONNABORTED';
+        const serverMsg = isAxiosError(e)
+          ? (e.response?.data as { ResponseMessage?: string })?.ResponseMessage
+          : undefined;
+        const status = isAxiosError(e) ? e.response?.status : undefined;
+
+        setError(
+          status === 403
+            ? t('home.aiAssistantGuestError')
+            : isTimeout
+              ? t('home.aiAssistantTimeout')
+              : serverMsg || t('home.aiAssistantSendError'),
+        );
+
+        setMessages(prev => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'user' && last.content === trimmed) {
+            return prev.slice(0, -1);
+          }
+          return prev;
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [contextSpId, isAuthenticated, loading, t],
+  );
+
   const handleSend = useCallback(() => {
-    const q = composerText.trim();
-    if (!q || isFetching) return;
-    setThread(prev => [...prev, { id: uuid(), role: 'user', text: q }]);
-    setComposerText('');
-    setSearchTrigger({ q });
-  }, [composerText, isFetching]);
+    void sendMessage(composerText);
+  }, [composerText, sendMessage]);
+
+  const handleClearHistory = useCallback(() => {
+    Alert.alert(
+      t('home.aiAssistantClearTitle'),
+      t('home.aiAssistantClearMessage'),
+      [
+        { text: t('home.aiAssistantClearCancel'), style: 'cancel' },
+        {
+          text: t('home.aiAssistantClearConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              try {
+                await clearAiAssistantHistory();
+                setMessages([welcomeMessage]);
+                setHistoryMeta(null);
+                setError(null);
+              } catch (e: unknown) {
+                const msg = isAxiosError(e)
+                  ? (e.response?.data as { ResponseMessage?: string })
+                      ?.ResponseMessage
+                  : undefined;
+                setError(msg || t('home.aiAssistantClearError'));
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [t, welcomeMessage]);
 
   const sendDisabled =
-    !composerText.trim() || isFetching || listening;
+    !composerText.trim() || loading || listening || historyLoading;
 
-  const renderMessage: ListRenderItem<ChatMsg> = useCallback(
+  const renderMessage: ListRenderItem<AiAssistantMessage> = useCallback(
     ({ item }) => {
       const isUser = item.role === 'user';
       return (
@@ -398,188 +453,207 @@ export default function HomeQuickVoiceScreen() {
               isUser ? styles.bubbleUser : styles.bubbleAssistant,
             ]}
           >
-            <CustomText
-              fontSize={theme.fontSize.md}
-              fontFamily={theme.fonts.REGULAR}
-              color={isUser ? theme.colors.white : theme.colors.text}
-              style={styles.bubbleText}
-            >
-              {item.text}
-            </CustomText>
-
-            {item.role === 'assistant' &&
-            item.providers &&
-            item.providers.length > 0 ? (
-              <View style={styles.providerBlock}>
-                {item.providers.map(p => (
-                  <HomeProviderItem
-                    key={p._id}
-                    provider={p}
-                    layout="list"
-                    onPress={() => openProvider(p)}
-                  />
-                ))}
-                {item.query ? (
-                  <Pressable
-                    onPress={() => openAllResults(item.query!)}
-                    style={({ pressed }) => [
-                      styles.seeAllBtn,
-                      pressed && styles.seeAllBtnPressed,
-                    ]}
-                  >
-                    <CustomText
-                      fontSize={theme.fontSize.sm}
-                      fontFamily={theme.fonts.SEMI_BOLD}
-                      color={theme.colors.primary}
-                    >
-                      {t('home.quickVoiceSeeAll')}
-                    </CustomText>
-                    <VectoreIcons
-                      icon="Ionicons"
-                      name="chevron-forward"
-                      size={theme.SF(18)}
-                      color={theme.colors.primary}
-                    />
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null}
+            <AssistantMessageContent
+              content={item.content}
+              isUser={isUser}
+              actions={item.actions}
+              contextSpId={contextSpId}
+            />
           </View>
         </View>
       );
     },
-    [
-      openAllResults,
-      openProvider,
-      styles,
-      t,
-      theme.colors.primary,
-      theme.colors.text,
-      theme.colors.white,
-      theme.fontSize.md,
-      theme.fontSize.sm,
-      theme.fonts.REGULAR,
-      theme.fonts.SEMI_BOLD,
-      theme.SF,
-    ],
+    [styles],
   );
 
   return (
-    <Container safeArea={true} style={styles.container}>
+    <Container safeArea={true} edges={['top']} style={styles.container}>
       <AppHeader
-        title={t('home.quickVoiceTitle')}
+        title={t('home.aiAssistantTitle')}
         onLeftPress={() => navigation.goBack()}
         backgroundColor="transparent"
         tintColor={theme.colors.text}
         containerStyle={{ marginHorizontal: theme.SW(20) }}
+        rightIconName="trash-outline"
+        rightIconFamily="Ionicons"
+        onRightPress={handleClearHistory}
       />
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={
-          Platform.OS === 'ios' ? insets.top + theme.SH(8) : 0
-        }
-      >
-        <FlatList
-          ref={listRef}
-          data={listData}
-          keyExtractor={m => m.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.listContent}
-          ListFooterComponent={
-            isFetching && searchTrigger ? (
-              <View style={styles.searchingRow}>
+      <KeyboardChatLayout
+        style={styles.body}
+        footer={
+          <>
+            {error ? (
+              <View style={styles.errorBanner}>
+                <CustomText
+                  fontSize={theme.fontSize.sm}
+                  fontFamily={theme.fonts.REGULAR}
+                  color="#B91C1C"
+                  style={styles.errorText}
+                >
+                  {error}
+                </CustomText>
+                <Pressable onPress={() => setError(null)} hitSlop={8}>
+                  <VectoreIcons
+                    icon="Ionicons"
+                    name="close-circle"
+                    size={theme.SF(20)}
+                    color={theme.colors.lightText}
+                  />
+                </Pressable>
+              </View>
+            ) : null}
+
+            {!isKeyboardVisible ? (
+              <CustomText
+                fontSize={theme.fontSize.sm}
+                fontFamily={theme.fonts.REGULAR}
+                color={theme.colors.lightText}
+                style={styles.hint}
+              >
+                {t('home.aiAssistantHint')}
+              </CustomText>
+            ) : null}
+
+            {listening ? (
+              <View style={styles.listeningRow}>
                 <ActivityIndicator color={theme.colors.primary} />
                 <CustomText
                   fontSize={theme.fontSize.sm}
                   fontFamily={theme.fonts.MEDIUM}
-                  color={theme.colors.lightText}
-                  style={styles.searchingText}
+                  color={theme.colors.primary}
+                  style={styles.listeningText}
                 >
-                  {t('home.quickVoiceSearching')}
+                  {t('home.quickVoiceListening')}
                 </CustomText>
               </View>
-            ) : null
-          }
-          onContentSizeChange={() =>
-            listRef.current?.scrollToEnd({ animated: true })
-          }
-        />
+            ) : null}
 
-        <CustomText
-          fontSize={theme.fontSize.sm}
-          fontFamily={theme.fonts.REGULAR}
-          color={theme.colors.lightText}
-          style={styles.hint}
-        >
-          {t('home.quickVoiceHint')}
-        </CustomText>
-
-        {listening ? (
-          <View style={styles.listeningRow}>
-            <ActivityIndicator color={theme.colors.primary} />
-            <CustomText
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.MEDIUM}
-              color={theme.colors.primary}
-              style={styles.listeningText}
-            >
-              {t('home.quickVoiceListening')}
-            </CustomText>
+            <View style={styles.composerRow}>
+              <TextInput
+                style={styles.input}
+                value={composerText}
+                onChangeText={setComposerText}
+                placeholder={t('home.aiAssistantPlaceholder')}
+                placeholderTextColor={theme.colors.placeholder}
+                multiline
+                maxLength={MAX_MESSAGE_LENGTH}
+                editable={!listening && !loading && !historyLoading}
+                onFocus={scrollToLatest}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('home.quickVoiceListening')}
+                onPress={toggleMic}
+                style={({ pressed }) => [
+                  styles.iconBtn,
+                  { borderColor: theme.colors.primary },
+                  pressed && styles.iconBtnPressed,
+                  listening && styles.iconBtnActive,
+                ]}
+              >
+                <VectoreIcons
+                  icon="Ionicons"
+                  name={listening ? 'stop-circle' : 'mic'}
+                  size={theme.SF(26)}
+                  color={theme.colors.primary}
+                />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('home.quickVoiceSend')}
+                onPress={handleSend}
+                disabled={sendDisabled}
+                style={({ pressed }) => [
+                  styles.sendBtn,
+                  { backgroundColor: theme.colors.primary },
+                  sendDisabled && styles.sendBtnDisabled,
+                  pressed && !sendDisabled && styles.sendBtnPressed,
+                ]}
+              >
+                <VectoreIcons
+                  icon="Ionicons"
+                  name="send"
+                  size={theme.SF(22)}
+                  color={theme.colors.white}
+                />
+              </Pressable>
+            </View>
+          </>
+        }
+      >
+        {historyLoading ? (
+          <View style={styles.centerLoader}>
+            <ActivityIndicator color={theme.colors.primary} size="large" />
           </View>
-        ) : null}
-
-        <View style={styles.composerRow}>
-          <TextInput
-            style={styles.input}
-            value={composerText}
-            onChangeText={setComposerText}
-            placeholder={t('home.quickVoicePlaceholder')}
-            placeholderTextColor={theme.colors.placeholder}
-            multiline
-            maxLength={500}
-            editable={!listening && !isFetching}
+        ) : (
+          <FlatList
+            ref={listRef}
+            style={styles.flex}
+            data={messages}
+            keyExtractor={(m, idx) => messageKey(m, idx)}
+            renderItem={renderMessage}
+            contentContainerStyle={styles.listContent}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            ListHeaderComponent={
+              historyMeta?.hasMore ? (
+                <CustomText
+                  fontSize={theme.fontSize.xs}
+                  fontFamily={theme.fonts.REGULAR}
+                  color={theme.colors.lightText}
+                  style={styles.historyBanner}
+                >
+                  {t('home.aiAssistantHistoryBanner', {
+                    returned: historyMeta.returnedMessages,
+                    total: historyMeta.totalMessages,
+                  })}
+                </CustomText>
+              ) : null
+            }
+            ListFooterComponent={
+              <>
+                {loading ? (
+                  <View style={styles.thinkingRow}>
+                    <ActivityIndicator color={theme.colors.primary} />
+                    <CustomText
+                      fontSize={theme.fontSize.sm}
+                      fontFamily={theme.fonts.MEDIUM}
+                      color={theme.colors.lightText}
+                      style={styles.thinkingText}
+                    >
+                      {t('home.aiAssistantThinking')}
+                    </CustomText>
+                  </View>
+                ) : null}
+                {showQuickPrompts ? (
+                  <View style={styles.quickPrompts}>
+                    {quickPrompts.map(q => (
+                      <Pressable
+                        key={q}
+                        onPress={() => void sendMessage(q)}
+                        style={({ pressed }) => [
+                          styles.quickChip,
+                          pressed && styles.quickChipPressed,
+                        ]}
+                      >
+                        <CustomText
+                          fontSize={theme.fontSize.xs}
+                          fontFamily={theme.fonts.MEDIUM}
+                          color={theme.colors.primary}
+                        >
+                          {q}
+                        </CustomText>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+              </>
+            }
+            onContentSizeChange={scrollToLatest}
           />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('home.quickVoiceListening')}
-            onPress={toggleMic}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              { borderColor: theme.colors.primary },
-              pressed && styles.iconBtnPressed,
-              listening && styles.iconBtnActive,
-            ]}
-          >
-            <VectoreIcons
-              icon="Ionicons"
-              name={listening ? 'stop-circle' : 'mic'}
-              size={theme.SF(26)}
-              color={theme.colors.primary}
-            />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('home.quickVoiceSend')}
-            onPress={handleSend}
-            disabled={sendDisabled}
-            style={({ pressed }) => [
-              styles.sendBtn,
-              { backgroundColor: theme.colors.primary },
-              sendDisabled && styles.sendBtnDisabled,
-              pressed && !sendDisabled && styles.sendBtnPressed,
-            ]}
-          >
-            <VectoreIcons
-              icon="Ionicons"
-              name="send"
-              size={theme.SF(22)}
-              color={theme.colors.white}
-            />
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+        )}
+      </KeyboardChatLayout>
     </Container>
   );
 }
@@ -591,10 +665,24 @@ const createStyles = (theme: ThemeType) =>
       backgroundColor: theme.colors.white,
     },
     flex: { flex: 1 },
+    body: {
+      flex: 1,
+    },
+    centerLoader: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     listContent: {
       paddingHorizontal: theme.SW(16),
       paddingTop: theme.SH(8),
-      paddingBottom: theme.SH(12),
+      paddingBottom: theme.SH(16),
+      flexGrow: 1,
+    },
+    historyBanner: {
+      textAlign: 'center',
+      marginBottom: theme.SH(12),
+      lineHeight: theme.SH(18),
     },
     msgRow: {
       marginBottom: theme.SH(12),
@@ -620,27 +708,51 @@ const createStyles = (theme: ThemeType) =>
       backgroundColor: theme.colors.secondary || '#F3F4F6',
       borderBottomLeftRadius: theme.SW(4),
     },
-    bubbleText: {
-      lineHeight: theme.SH(22),
-    },
-    providerBlock: {
-      marginTop: theme.SH(12),
-      gap: 0,
-    },
-    seeAllBtn: {
+    thinkingRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.SW(4),
-      paddingVertical: theme.SH(10),
-      marginTop: theme.SH(4),
+      gap: theme.SW(10),
+      paddingVertical: theme.SH(8),
+      paddingLeft: theme.SW(4),
     },
-    seeAllBtnPressed: {
-      opacity: 0.75,
+    thinkingText: {
+      flex: 1,
+    },
+    quickPrompts: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.SW(8),
+      paddingTop: theme.SH(8),
+    },
+    quickChip: {
+      borderWidth: 1,
+      borderColor: theme.colors.primary,
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal: theme.SW(10),
+      paddingVertical: theme.SH(6),
+      backgroundColor: theme.colors.white,
+    },
+    quickChipPressed: {
+      opacity: 0.8,
+    },
+    errorBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW(8),
+      marginHorizontal: theme.SW(16),
+      marginTop: theme.SH(4),
+      marginBottom: theme.SH(4),
+      padding: theme.SW(10),
+      borderRadius: theme.borderRadius.sm,
+      backgroundColor: '#FEE2E2',
+    },
+    errorText: {
+      flex: 1,
+      lineHeight: theme.SH(20),
     },
     hint: {
       paddingHorizontal: theme.SW(20),
-      marginBottom: theme.SH(8),
+      marginBottom: theme.SH(4),
       lineHeight: theme.SH(20),
     },
     listeningRow: {
@@ -648,26 +760,17 @@ const createStyles = (theme: ThemeType) =>
       alignItems: 'center',
       gap: theme.SW(10),
       paddingHorizontal: theme.SW(20),
-      marginBottom: theme.SH(8),
+      marginBottom: theme.SH(4),
     },
     listeningText: {
       marginLeft: theme.SW(4),
-    },
-    searchingRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.SW(10),
-      paddingVertical: theme.SH(8),
-      paddingHorizontal: theme.SW(4),
-    },
-    searchingText: {
-      flex: 1,
     },
     composerRow: {
       flexDirection: 'row',
       alignItems: 'flex-end',
       paddingHorizontal: theme.SW(16),
-      paddingBottom: theme.SH(16),
+      paddingTop: theme.SH(4),
+      paddingBottom: theme.SH(8),
       gap: theme.SW(8),
     },
     input: {

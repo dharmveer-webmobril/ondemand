@@ -6,13 +6,16 @@ import {
   Pressable,
   ScrollView,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, CustomButton, ImageLoader } from '@components/common';
+import {
+  CustomText,
+  CustomButton,
+  ImageLoader,
+  KeyboardModalAvoiding,
+} from '@components/common';
 import StarRating from 'react-native-star-rating-widget';
 import imagePaths from '@assets';
 import { SH } from '@utils/dimensions';
@@ -418,11 +421,8 @@ export default function RateReviewModal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          style={styles.modalRoot}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <KeyboardModalAvoiding style={styles.modalRoot}>
           <Pressable style={styles.overlay} onPress={onClose}>
             <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
               <View style={styles.header}>
@@ -659,7 +659,7 @@ export default function RateReviewModal({
               </View>
             </Pressable>
           </Pressable>
-        </KeyboardAvoidingView>
+        </KeyboardModalAvoiding>
       </SafeAreaView>
     </Modal>
   );

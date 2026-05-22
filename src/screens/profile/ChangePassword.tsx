@@ -10,7 +10,7 @@ import { useFormik } from 'formik';
 import regex from '@utils/regexList';
 import imagePaths from '@assets';
 import { useChangePassword } from '@services/index';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 
 export default function ChangePassword() {
   const theme = useThemeContext();
@@ -79,14 +79,7 @@ export default function ChangePassword() {
         title={t('profile.changePassword')}
         onLeftPress={() => navigation.goBack()}
       />
-   <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollViewContent}
-        enableOnAndroid={false}
-        extraScrollHeight={100}
-        keyboardShouldPersistTaps="handled"
-        enableResetScrollToCoords={false}
-      >
+   <KeyboardFormScroll contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.formSection}>
           <View style={styles.inputContainer}>
             <CustomText style={styles.label}>
@@ -154,7 +147,7 @@ export default function ChangePassword() {
           isLoading={changePasswordMutation.isPending}
           disable={changePasswordMutation.isPending}
         />
-      </KeyboardAwareScrollView>
+      </KeyboardFormScroll>
 
 
     </Container>

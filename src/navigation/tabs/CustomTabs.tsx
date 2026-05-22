@@ -7,6 +7,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TabImages from "./TabImages";
 import i18next from "i18next";
 
+/** Base tab bar content height (before safe-area). Keep in sync with tab bar layout. */
+export const TAB_BAR_BASE_HEIGHT = 75;
+
 export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
     const theme = useThemeContext();
     const bottom = useSafeAreaInsets();
@@ -27,7 +30,12 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
     };
     return (
         <View pointerEvents="box-none">
-            <View style={[styles.tabContainer, { height: SH(75) + bottom.bottom }]}>
+            <View
+              style={[
+                styles.tabContainer,
+                { height: SH(TAB_BAR_BASE_HEIGHT) + bottom.bottom },
+              ]}
+            >
                 <View style={{
                     flexDirection: "row",
                     justifyContent: "space-around",

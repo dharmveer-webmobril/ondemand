@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSignup } from '@services/api/queries/authQueries';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardFormScroll } from '@components/common';
 import regex from '@utils/regexList';
 import { isValidNationalPhoneNumber } from '@utils/phoneValidation';
 import type { SignupAddressSelection } from '@utils/address';
@@ -214,14 +214,7 @@ const Signup = () => {
       statusBarColor={theme.colors.white}
       style={{ backgroundColor: theme.colors.white }}
     >
-      <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
-        enableOnAndroid={false}
-        extraScrollHeight={100}
-        keyboardShouldPersistTaps="handled"
-        enableResetScrollToCoords={false}
-      >
+      <KeyboardFormScroll contentContainerStyle={styles.contentContainer}>
         <ImageComp
           imageSource={imagePaths.signup_img}
           marginLeft={'auto'}
@@ -491,7 +484,7 @@ const Signup = () => {
             </CustomText>
           </View>
         </AuthBottomContainer>
-      </KeyboardAwareScrollView>
+      </KeyboardFormScroll>
     </Container>
   );
 };
