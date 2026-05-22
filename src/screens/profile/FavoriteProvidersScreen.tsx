@@ -23,7 +23,7 @@ import {
   useGetFavoriteServiceProviders,
   type ServiceProvider,
 } from '@services/api/queries/appQueries';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, getProviderDisplayName } from '@utils/tools';
 import { queryClient } from '@services/api';
 import { SH } from '@utils/dimensions';
 
@@ -51,7 +51,10 @@ export default function FavoriteProvidersScreen() {
     navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
       provider: {
         id: provider._id,
-        name: provider.name,
+        name: getProviderDisplayName(
+          provider,
+          t('providerDetails.serviceProviderDefault'),
+        ),
         logo: provider.profileImage,
         address:
           formatAddress({
@@ -62,9 +65,7 @@ export default function FavoriteProvidersScreen() {
             city: provider.businessProfile?.city?.name,
             country: provider.businessProfile?.country?.name,
           }) || provider.city?.name || '',
-        serviceType:
-          provider.businessProfile?.name ||
-          t('providerDetails.serviceProviderDefault'),
+        serviceType: provider.cityName || provider.businessProfile?.cityName || '',
         rating: typeof provider.rating === 'number' ? provider.rating : null,
         reviewCount: 0,
       },

@@ -38,6 +38,8 @@ const HomeCategoryItem = memo(({ name, image,  category }: any) => {
                 pressed && styles.pressedContainer,
             ]}
         >
+            <View style={styles.imageLoaderWrapper}>
+
             <View style={styles.imageLoader}>
                 <ImageLoader
                     source={image}
@@ -45,7 +47,8 @@ const HomeCategoryItem = memo(({ name, image,  category }: any) => {
                     mainImageStyle={styles.mainImage}
                 />
             </View>
-            <CustomText style={styles.text} numberOfLines={2}>
+            </View>
+            <CustomText style={styles.text} numberOfLines={2}> 
                 {name ? name.trim().charAt(0).toUpperCase() + name.trim().slice(1) : ''}
             </CustomText>
         </Pressable>
@@ -135,12 +138,20 @@ const createStyles = (theme: ThemeType) => {
         pressedContainer: {
             opacity: 0.8,
         },
+        imageLoaderWrapper: {
+            borderWidth: 2.5,
+            borderColor: Colors.primary,
+            borderRadius: SF(74),
+            width: SF(74),
+            height: SF(74),
+            overflow: 'hidden',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
         imageLoader: {
             height: SF(65),
             width: SF(65),
             borderRadius: SF(65) / 2,
-            borderWidth: 1.7,
-            borderColor: Colors.primary,
             overflow: 'hidden',
         },
         mainImage: {

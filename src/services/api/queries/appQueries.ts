@@ -83,11 +83,12 @@ export interface BusinessProfile {
     instagram: string | null;
     recommendation: string | null;
   };
-  amenitiesIds: string[];
+  amenitiesIds: Array<string | { _id: string; name: string; status?: string }>;
   status: boolean;
   createdAt: string;
   updatedAt: string;
   name: string;
+  cityName?: string;
 }
 
 export interface ServiceProvider {
@@ -113,6 +114,7 @@ export interface ServiceProvider {
   rating: number | null;
   /** Present when listing providers with lat/lng (distance from user). */
   distanceKm?: number;
+  cityName?: string;
   businessProfile: BusinessProfile;
 }
 
@@ -886,21 +888,28 @@ export const useGetWalletTransactions = (params: WalletTransactionParams) => {
 /** Booking vs add-on payment history (`type=booking` | `type=additional_addon`). */
 export type PaymentTransactionType = 'booking' | 'additional_addon';
 
+/** When `type=booking`, filter by `general` or `routine` scope. */
+export type PaymentTransactionScope = 'general' | 'routine';
+
 export type PaymentTransactionsParams = {
     page?: number;
     limit?: number;
     type?: PaymentTransactionType;
+    transactionScope?: PaymentTransactionScope;
 };
 
 export const useGetPaymentTransactions = (params: PaymentTransactionsParams) => {
-    const { page = 1, limit = 10, type = 'booking' } = params;
+    const { page = 1, limit = 10, type = 'booking', transactionScope } = params;
     return useQuery<WalletTransactionsResponse>({
-        queryKey: ['customerPaymentTransactions', page, limit, type],
+        queryKey: ['customerPaymentTransactions', page, limit, type, transactionScope],
         queryFn: async () => {
             const search = new URLSearchParams();
             search.append('page', String(page));
             search.append('limit', String(limit));
             search.append('type', type);
+            if (type === 'booking' && transactionScope) {
+                search.append('transactionScope', transactionScope);
+            }
             const url = `${EndPoints.GET_PAYMENT_TRANSACTIONS}?${search.toString()}`;
             const response = await axiosInstance.get<WalletTransactionsResponse>(url);
             return response.data;
@@ -1288,6 +1297,47 @@ export const useGetRoutineBookingDetail = (routineBookingId: string) => {
   });
 };
 
+export type DeleteRoutineSessionParams = {
+  routineBookingId: string;
+  sessionId: string;
+};
+
+export const useDeleteRoutineSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse, Error, DeleteRoutineSessionParams>({
+    mutationFn: async ({ routineBookingId, sessionId }) => {
+      const response = await axiosInstance.delete<ApiResponse>(
+        EndPoints.DELETE_ROUTINE_SESSION(routineBookingId, sessionId),
+      );
+      return response.data;
+    },
+    onSuccess: (_data, { routineBookingId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ['routineBookingDetail', routineBookingId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['routineBookings'] });
+    },
+  });
+};
+
+export const useCancelRoutineBooking = () => {
+  const queryClient = useQueryClient();
+  return useMutation<CancelBookingResponse, Error, string>({
+    mutationFn: async (routineBookingId: string) => {
+      const response = await axiosInstance.delete<CancelBookingResponse>(
+        EndPoints.DELETE_ROUTINE_BOOKING(routineBookingId),
+      );
+      return response.data;
+    },
+    onSuccess: (_data, routineBookingId) => {
+      queryClient.invalidateQueries({
+        queryKey: ['routineBookingDetail', routineBookingId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['routineBookings'] });
+    },
+  });
+};
+
 /** Service item from top-rated / top-offered home API */
 export interface FeaturedServiceProvider {
   _id: string;
@@ -1319,6 +1369,7 @@ export interface FeaturedServiceItem {
   discountPercentage?: number;
   consultationPrice?: number | null;
   offerData?: unknown[];
+  routineConfig?: { enabled?: boolean };
 }
 
 export interface FeaturedServicesListApiResponse {

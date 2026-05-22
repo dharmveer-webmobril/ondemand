@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   Keyboard,
   StyleSheet,
   View,
   TouchableOpacity,
-  Pressable,
   TouchableWithoutFeedback,
 } from 'react-native';
 import {
@@ -13,49 +12,54 @@ import {
   CustomButton,
   CustomInput,
   CustomText,
-  CountryCodeSelector,
 } from '@components';
-// import { CountryModal } from '@components';
 import { Colors, Fonts, regex, SF, SH, SW } from '@utils';
+import { useThemeContext } from '@utils/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import {
-  // useGetCountries, 
-  useGetCustomerAddresses
-} from '@services/index';
+import { useGetCustomerAddresses } from '@services/index';
 import { Address } from '@services/api/queries/appQueries';
 import imagePaths from '@assets';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, requestContactsPermission } from '@utils/tools';
 import PhoneNumberPicker from '@components/auth/PhoneNumberPicker';
-import { requestContactsPermission } from "@utils/tools";
+import PhoneCountryPicker from '@components/auth/PhoneCountryPicker';
 import Contacts from 'react-native-contacts';
+import {
+  isValidNationalPhoneNumber,
+  parseContactPhoneNumber,
+} from '@utils/phoneValidation';
+
 interface FormValues {
   fname: string;
-  mobileno: string;
+  nationalNumber: string;
   email: string;
-  countryCode: string;
+  phoneDialCode: string;
+  phoneCountryIso2: string;
   address: string;
 }
 
+type ContactListItem = {
+  _id: string;
+  phoneNumber: string;
+  displayName: string;
+};
+
 const AddOtherPersonDetail: React.FC = () => {
   const { t } = useTranslation();
+  const theme = useThemeContext();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const addressFromPreviousPage = route.params?.address || '';
-  // When true (atHome + other): address mandatory. When false (onPremises/online + other): address optional.
   const addressRequired = route.params?.addressRequired !== false;
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [showCountryModal, setShowCountryModal] = useState<boolean>(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactList, setContactList] = useState<ContactListItem[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
 
-  // Get countries for country code selector
-  // const { data: countriesData } = useGetCountries();
-  // const countries = useMemo(() => countriesData?.ResponseData || [], [countriesData]);
-
-  // Refetch addresses when returning from AddAddress screen
   const { refetch: refetchAddresses } = useGetCustomerAddresses();
 
   const validationSchema = useMemo(
@@ -70,26 +74,34 @@ const AddOtherPersonDetail: React.FC = () => {
           .trim()
           .matches(regex.EMAIL_REGEX_WITH_EMPTY, t('validation.validEmail'))
           .required(t('validation.emptyEmail')),
-        mobileno: Yup.string()
-          .trim()
-          .matches(regex.MOBILE, t('validation.validMobile'))
-          .required(t('validation.emptyMobile')),
+        phoneDialCode: Yup.string().required(),
+        phoneCountryIso2: Yup.string().required(),
+        nationalNumber: Yup.string()
+          .required(t('validation.emptyMobile'))
+          .test('phone-valid', t('validation.validMobile'), function (value) {
+            const iso = this.parent.phoneCountryIso2;
+            if (!iso || value == null || value === '') return false;
+            return isValidNationalPhoneNumber(String(value), String(iso));
+          }),
         address: addressRequired
           ? Yup.string()
-            .trim()
-            .required(t('addAddress.validation.line1Empty') || 'Address is required')
-            .min(5, 'Minimum length 5')
+              .trim()
+              .required(
+                t('addAddress.validation.line1Empty') || 'Address is required',
+              )
+              .min(5, 'Minimum length 5')
           : Yup.string().trim(),
       }),
-    [t, addressRequired]
+    [t, addressRequired],
   );
 
   const formik = useFormik<FormValues>({
     initialValues: {
       fname: '',
-      mobileno: '',
+      nationalNumber: '',
       email: '',
-      countryCode: '+91',
+      phoneDialCode: '+91',
+      phoneCountryIso2: 'in',
       address: addressFromPreviousPage,
     },
     validationSchema,
@@ -102,30 +114,30 @@ const AddOtherPersonDetail: React.FC = () => {
           return;
         }
 
+        const nationalDigits = String(values.nationalNumber || '').replace(
+          /\D/g,
+          '',
+        );
+        const dial = String(values.phoneDialCode || '').replace(/\s/g, '');
+        const phoneCode = dial
+          ? dial.startsWith('+')
+            ? dial
+            : `+${dial.replace(/^\++/, '')}`
+          : '';
+
         const data = {
           name: values.fname,
           email: values.email,
-          phone: values.mobileno,
-          countryCode: values.countryCode,
+          phone: nationalDigits,
+          countryCode: phoneCode,
           address: selectedAddress ?? undefined,
         };
 
-        console.log('Other Person Data:', data);
         const onSelect = route.params?.onSelect;
         if (onSelect) {
           onSelect(data);
         }
         navigation.goBack();
-        // Pass data back to Checkout screen via navigation params
-        // The Checkout screen should listen for this data
-        // navigation.navigate({
-        //   name: SCREEN_NAMES.CHECKOUT,
-        //   params: {
-        //     otherPersonData: data,
-        //     updateOtherPerson: true,
-        //   },
-        //   merge: true,
-        // } as never);
       } catch (error) {
         console.error('Error submitting other person details:', error);
       } finally {
@@ -134,23 +146,25 @@ const AddOtherPersonDetail: React.FC = () => {
     },
   });
 
-  // Format address for display
-
-
-  // Handle address selection when returning from SelectAddress or AddAddress screens
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      // Refetch addresses when screen comes into focus (in case new address was added)
       refetchAddresses();
 
-      // Check if address was selected from SelectAddress screen (via callback)
-      // The onSelect callback in handleSelectAddress will handle it
-      // For AddAddress with prevScreen='other_user', it just goes back without data
-      // User will need to select the address manually after adding it
-      const addressFromRoute = route.params?.selectedAddress || route.params?.address;
+      const addressFromRoute =
+        route.params?.selectedAddress || route.params?.address;
       if (addressFromRoute) {
         setSelectedAddress(addressFromRoute);
-        formik.setFieldValue('address', formatAddress({ line1: addressFromRoute?.line1 ?? '', line2: addressFromRoute?.line2 ?? '', landmark: addressFromRoute?.landmark ?? '', pincode: addressFromRoute?.pincode ?? '', city: addressFromRoute?.city?.name ?? '', country: addressFromRoute?.country?.name ?? '' }));
+        formik.setFieldValue(
+          'address',
+          formatAddress({
+            line1: addressFromRoute?.line1 ?? '',
+            line2: addressFromRoute?.line2 ?? '',
+            landmark: addressFromRoute?.landmark ?? '',
+            pincode: addressFromRoute?.pincode ?? '',
+            city: String(addressFromRoute?.city ?? ''),
+            country: String(addressFromRoute?.country ?? ''),
+          }),
+        );
         setTimeout(() => {
           formik.setFieldTouched('address', true);
         }, 100);
@@ -165,11 +179,17 @@ const AddOtherPersonDetail: React.FC = () => {
     navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS as never, {
       onSelect: (address: Address) => {
         setSelectedAddress(address);
-        formik.setFieldValue('address', formatAddress({
-          line1: address?.line1 ?? '', line2: address?.line2 ?? '', landmark: address?.landmark ?? '', pincode: address?.pincode ?? '',
-          // @ts-ignore
-          city: address?.city?.name ?? '', country: address?.country?.name ?? ''
-        }));
+        formik.setFieldValue(
+          'address',
+          formatAddress({
+            line1: address?.line1 ?? '',
+            line2: address?.line2 ?? '',
+            landmark: address?.landmark ?? '',
+            pincode: address?.pincode ?? '',
+            city: String(address?.city ?? ''),
+            country: String(address?.country ?? ''),
+          }),
+        );
         setTimeout(() => {
           formik.setFieldTouched('address', true);
         }, 100);
@@ -177,40 +197,73 @@ const AddOtherPersonDetail: React.FC = () => {
     } as never);
   };
 
-  // const handleAddNewAddress = () => {
-  //   navigation.navigate(SCREEN_NAMES.ADD_ADDRESS, {
-  //     prevScreen: 'other_user',
-  //   });
-  // };
-  const [contactList, setContactList] = useState<any[]>([]);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
-  const handleContacts = async (type: string = '') => {
+  const loadContacts = useCallback(async (openModal: boolean) => {
     const granted = await requestContactsPermission();
-    if (granted) {
-      try {
-        const contacts = await Contacts.getAll();
-        const modifiedContacts = contacts && contacts?.length > 0 ? contacts?.map((contact: any) => ({
-          _id: contact.phoneNumbers?.[0]?.number || contact.phoneNumbers?.[0]?.value,
-          phoneNumber: contact.phoneNumbers?.[0]?.number || contact.phoneNumbers?.[0]?.value,
-          displayName: contact.displayName || contact.firstName || contact.lastName,
-        })) : [];
-        setContactList(modifiedContacts);
-        if (type !== '1') {
-          setShowCountryModal(true)
-        }
-        console.log('====contacts====', contacts);
-      } catch (error) {
-        console.log('====error====', error);
+    if (!granted) return;
+
+    try {
+      const contacts = await Contacts.getAll();
+      const modifiedContacts: ContactListItem[] =
+        contacts?.length > 0
+          ? contacts.flatMap((contact: Contacts.Contact) => {
+              const displayName =
+                contact.displayName ||
+                [contact.givenName, contact.familyName]
+                  .filter(Boolean)
+                  .join(' ')
+                  .trim() ||
+                'Unknown';
+              const numbers = contact.phoneNumbers ?? [];
+              return numbers
+                .map((pn, index) => {
+                  const phoneNumber = pn.number || '';
+                  if (!phoneNumber.trim()) return null;
+                  return {
+                    _id: `${contact.recordID}-${index}`,
+                    phoneNumber,
+                    displayName,
+                  };
+                })
+                .filter((item): item is ContactListItem => item != null);
+            })
+          : [];
+
+      setContactList(modifiedContacts);
+      if (openModal) {
+        setShowContactModal(true);
       }
+    } catch (error) {
+      console.log('====contacts error====', error);
     }
-  };
-  useEffect(() => {
-    handleContacts('1')
   }, []);
+
+  useEffect(() => {
+    loadContacts(false);
+  }, [loadContacts]);
+
+  const applyContactPhone = useCallback(
+    (item: ContactListItem) => {
+      const parsed = parseContactPhoneNumber(
+        item.phoneNumber,
+        formik.values.phoneCountryIso2,
+      );
+      formik.setFieldValue('phoneDialCode', parsed.dialCode);
+      formik.setFieldValue('phoneCountryIso2', parsed.countryIso2);
+      formik.setFieldValue('nationalNumber', parsed.nationalNumber);
+      if (!formik.values.fname.trim() && item.displayName !== 'Unknown') {
+        formik.setFieldValue('fname', item.displayName);
+      }
+      setSelectedContactId(item._id);
+      setShowContactModal(false);
+      setTimeout(() => {
+        formik.setFieldTouched('nationalNumber', true);
+      }, 100);
+    },
+    [formik],
+  );
 
   return (
     <Container safeArea={true}>
-      {/* <LoadingComp visible={formik.isSubmitting} /> */}
       <AppHeader
         title={t('checkout.otherPersonDetails') || 'Other Person Details'}
         onLeftPress={() => navigation.goBack()}
@@ -227,10 +280,12 @@ const AddOtherPersonDetail: React.FC = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
-            {/* Full Name */}
-            <CustomText style={styles.label}>{t('placeholders.fullname') || 'Full Name'}</CustomText>
+            <CustomText style={[styles.label, styles.labelFirst]}>
+              {t('placeholders.fullname') || 'Full Name'}
+            </CustomText>
             <CustomInput
               placeholder={t('placeholders.fullname') || 'Full Name'}
+              withBackground={Colors.white}
               value={formik.values.fname}
               onChangeText={(val: string) => {
                 formik.setFieldValue('fname', val);
@@ -239,16 +294,22 @@ const AddOtherPersonDetail: React.FC = () => {
                 formik.setFieldTouched('fname', true);
                 formik.setFieldValue('fname', formik.values.fname.trim());
               }}
-              errortext={formik.touched.fname && formik.errors.fname ? formik.errors.fname : ''}
+              errortext={
+                formik.touched.fname && formik.errors.fname
+                  ? formik.errors.fname
+                  : ''
+              }
               keyboardType="default"
               maxLength={50}
               marginTop={SH(5)}
             />
 
-            {/* Email */}
-            <CustomText style={styles.label}>{t('placeholders.emailId') || 'Email'}</CustomText>
+            <CustomText style={styles.label}>
+              {t('placeholders.emailId') || 'Email'}
+            </CustomText>
             <CustomInput
               placeholder={t('placeholders.emailId') || 'Email'}
+              withBackground={Colors.white}
               value={formik.values.email}
               onChangeText={(val: string) => {
                 formik.setFieldValue('email', val);
@@ -257,63 +318,72 @@ const AddOtherPersonDetail: React.FC = () => {
                 formik.setFieldTouched('email', true);
                 formik.setFieldValue('email', formik.values.email.trim());
               }}
-              errortext={formik.touched.email && formik.errors.email ? formik.errors.email : ''}
+              errortext={
+                formik.touched.email && formik.errors.email
+                  ? formik.errors.email
+                  : ''
+              }
               keyboardType="email-address"
               autoCapitalize="none"
               marginTop={SH(5)}
             />
 
-            {/* Mobile Number */}
-            <CustomText style={styles.label}>{t('placeholders.mobileno') || 'Mobile Number'}</CustomText>
-            <View style={styles.rowContainer}>
-              <Pressable
-                onPress={() => setShowCountryModal(true)}
-                style={styles.countryCodeButton}
-                disabled={true}
-              >
-                <CountryCodeSelector
-                  countryCode={formik.values.countryCode}
-                  onPress={() => {
-                    // setShowCountryModal(true)
-                  }}
-                  borderColor={Colors.textInputBorder}
-                />
-              </Pressable>
-              <View style={styles.phoneInput}>
-                <CustomInput
-                  placeholder={t('placeholders.mobileno') || 'Mobile Number'}
-                  value={formik.values.mobileno}
-                  onChangeText={(val: string) => {
-                    formik.setFieldValue('mobileno', val);
-                  }}
-                  onBlur={() => formik.setFieldTouched('mobileno', true)}
-                  // errortext={formik.touched.mobileno && formik.errors.mobileno ? formik.errors.mobileno : ''}
-                  keyboardType="phone-pad"
-                  maxLength={15}
-                  rightIcon={imagePaths.down_icon}
-                  // @ts-ignore
-                  rightIconStyle={{width: SF(10), height: SF(10),margin:5}}
-                  onRightIconPress={() => handleContacts('2')}
-                />
-              </View>
-            </View>
-            {formik.touched.mobileno && formik.errors.mobileno && (
-              <CustomText style={styles.errorText}>{formik.errors.mobileno}</CustomText>
-            )}
+            <CustomText style={styles.label}>
+              {t('placeholders.mobileno') || 'Mobile Number'}
+            </CustomText>
+            <PhoneCountryPicker
+              marginTop={SH(5)}
+              inputTheme="default"
+              dialCode={formik.values.phoneDialCode}
+              nationalNumber={formik.values.nationalNumber}
+              onSelectionChange={next => {
+                formik.setFieldValue('phoneDialCode', next.dialCode);
+                formik.setFieldValue('phoneCountryIso2', next.countryIso2);
+              }}
+              onNationalNumberChange={digits =>
+                formik.setFieldValue('nationalNumber', digits)
+              }
+              onNationalBlur={() => {
+                formik.setFieldTouched('nationalNumber', true);
+              }}
+              phonePlaceholder={t('placeholders.mobileno') || 'Mobile Number'}
+              errorText={
+                formik.touched.nationalNumber && formik.errors.nationalNumber
+                  ? (formik.errors.nationalNumber as string)
+                  : ''
+              }
+              contactsIcon={imagePaths.down_icon}
+              contactsIconStyle={{
+                width: theme.SF(10),
+                height: theme.SF(10),
+                margin: 5,
+              }}
+              onContactsPress={() => loadContacts(true)}
+            />
 
-            {/* Address Selection (optional when addressRequired is false) */}
             <CustomText style={styles.label}>
               {addressRequired
-                ? (t('placeholders.selectAddress') || 'Select Address')
-                : (t('placeholders.selectAddressOptional') || 'Select Address (optional)')}
+                ? t('placeholders.selectAddress') || 'Select Address'
+                : t('placeholders.selectAddressOptional') ||
+                  'Select Address (optional)'}
             </CustomText>
             <TouchableOpacity onPress={handleSelectAddress} activeOpacity={0.7}>
               <CustomInput
-                placeholder={addressRequired ? (t('placeholders.selectAddress') || 'Select Address') : (t('placeholders.selectAddressOptional') || 'Select Address (optional)')}
+                placeholder={
+                  addressRequired
+                    ? t('placeholders.selectAddress') || 'Select Address'
+                    : t('placeholders.selectAddressOptional') ||
+                      'Select Address (optional)'
+                }
+                withBackground={Colors.white}
                 value={formik.values.address}
-                onChangeText={() => { }} // Read-only
+                onChangeText={() => {}}
                 onBlur={() => formik.setFieldTouched('address', true)}
-                errortext={formik.touched.address && formik.errors.address ? formik.errors.address : ''}
+                errortext={
+                  formik.touched.address && formik.errors.address
+                    ? formik.errors.address
+                    : ''
+                }
                 keyboardType="default"
                 isEditable={false}
                 marginTop={SH(5)}
@@ -322,19 +392,6 @@ const AddOtherPersonDetail: React.FC = () => {
               />
             </TouchableOpacity>
 
-            {/* {!selectedAddress && (
-              <CustomButton
-                title={t('selectAddress.addNewAddress') || 'Add New Address'}
-                onPress={handleAddNewAddress}
-                buttonStyle={styles.addAddressButton}
-                textColor={Colors.primary}
-                backgroundColor={Colors.white}
-                isBordered={true}
-                marginTop={SH(10)}
-              />
-            )} */}
-
-            {/* Submit Button */}
             <CustomButton
               buttonStyle={styles.submitButton}
               textColor={Colors.textWhite}
@@ -347,24 +404,13 @@ const AddOtherPersonDetail: React.FC = () => {
         </TouchableWithoutFeedback>
       </KeyboardAwareScrollView>
 
-      {/* Country Code Modal */}
       <PhoneNumberPicker
-        visible={showCountryModal}
-        onClose={() => setShowCountryModal(false)}
-        onSelect={(item: any) => {
-          setSelectedContact(item);
-          formik.setFieldValue('mobileno', item.phoneNumber);
-          setTimeout(() => {
-            formik.setFieldTouched('mobileno', true);
-          }, 100);
-          setShowCountryModal(false);
-          console.log('====country====', item);
-        }}
+        visible={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        onSelect={applyContactPhone}
         data={contactList}
-        selectedContact={selectedContact?._id}
+        selectedContact={selectedContactId}
       />
-
-
     </Container>
   );
 };
@@ -391,29 +437,10 @@ const styles = StyleSheet.create({
     marginTop: SH(15),
     color: Colors.textAppColor,
   },
-  rowContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SW(10),
+  labelFirst: {
     marginTop: SH(5),
-  },
-  countryCodeButton: {
-    // CountryCodeSelector handles its own styling
-  },
-  phoneInput: {
-    flex: 1,
-  },
-  addAddressButton: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
   },
   submitButton: {
     backgroundColor: Colors.primary,
-  },
-  errorText: {
-    fontSize: SF(12),
-    fontFamily: Fonts.REGULAR,
-    color: Colors.red,
-    marginTop: SH(5),
   },
 });

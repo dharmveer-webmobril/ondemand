@@ -25,6 +25,7 @@ import {
   type FeaturedListType,
 } from '@services/api/queries/appQueries';
 import { navigate } from '@utils/NavigationUtils';
+import { getProviderDisplayName } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import FeaturedServiceCard from '@components/home/FeaturedServiceCard';
 import { SH } from '@utils/dimensions';
@@ -104,7 +105,10 @@ export default function FeaturedServicesList() {
     navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
       provider: {
         id: service.provider?._id || service.sp_id,
-        name: service.provider?.name,
+        name: getProviderDisplayName(
+          service.provider,
+          t('home.providerFallbackName'),
+        ),
         logo: service.provider?.profileImage,
         address: '',
         serviceType: service.name,

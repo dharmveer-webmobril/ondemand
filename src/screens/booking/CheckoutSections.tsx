@@ -24,6 +24,8 @@ const PAYMENT_MODE_KEYS: PaymentModeKey[] = [
   'wallet_partial',
 ];
 
+const ROUTINE_PAYMENT_MODE_KEYS: PaymentModeKey[] = ['cash', 'online'];
+
 type SharedProps = {
   styles: any;
   t: any;
@@ -52,6 +54,7 @@ type AddressSectionProps = SharedProps & {
 type PaymentSectionProps = {
   styles: any;
   t: any;
+  isRoutine?: boolean;
   paymentMode: PaymentModeKey;
   setPaymentMode: (mode: PaymentModeKey) => void;
   setWalletPartialAmount: (value: string) => void;
@@ -292,6 +295,7 @@ export const AddressSection = ({
 export const PaymentSection = ({
   styles,
   t,
+  isRoutine = false,
   paymentMode,
   setPaymentMode,
   setWalletPartialAmount,
@@ -303,6 +307,8 @@ export const PaymentSection = ({
   insufficientWalletBalance,
   invalidPartialWalletAmount,
 }: PaymentSectionProps) => {
+  const paymentModeKeys = isRoutine ? ROUTINE_PAYMENT_MODE_KEYS : PAYMENT_MODE_KEYS;
+
   const getPaymentModeLabel = (key: PaymentModeKey) => {
     switch (key) {
       case 'cash':
@@ -324,7 +330,7 @@ export const PaymentSection = ({
         {t('checkout.paymentModes.paymentTitle')}
       </CustomText>
       <View style={styles.paymentModeRow}>
-        {PAYMENT_MODE_KEYS.map((key) => {
+        {paymentModeKeys.map((key) => {
           const isSelected = paymentMode === key;
 
           return (
@@ -354,7 +360,7 @@ export const PaymentSection = ({
         })}
       </View>
 
-      {paymentMode === 'wallet' && (
+      {!isRoutine && paymentMode === 'wallet' && (
         <>
           <View style={styles.walletCard}>
             <View style={styles.walletRow}>
@@ -388,7 +394,7 @@ export const PaymentSection = ({
         </>
       )}
 
-      {paymentMode === 'wallet_partial' && (
+      {!isRoutine && paymentMode === 'wallet_partial' && (
         <>
           <View style={styles.walletCard}>
             <CustomText style={styles.walletInputLabel}>

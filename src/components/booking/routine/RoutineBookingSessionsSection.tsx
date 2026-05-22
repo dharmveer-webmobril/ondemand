@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BoundedVerticalScroll, CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import {
+  canDeleteRoutineSession,
   canViewSessionBookingDetails,
   formatSessionStatusLabel,
 } from '@utils/routineBookingHelpers';
@@ -21,12 +22,16 @@ type RoutineBookingSessionsSectionProps = {
   sessions: RoutineSessionItem[];
   routineStatus: string;
   onViewSessionDetails: (session: RoutineSessionItem) => void;
+  onDeleteSession?: (session: RoutineSessionItem) => void;
+  deletingSessionId?: string | null;
 };
 
 export default function RoutineBookingSessionsSection({
   sessions,
   routineStatus,
   onViewSessionDetails,
+  onDeleteSession,
+  deletingSessionId = null,
 }: RoutineBookingSessionsSectionProps) {
   const { t } = useTranslation();
   const theme = useThemeContext();
@@ -46,6 +51,9 @@ export default function RoutineBookingSessionsSection({
             routineStatus,
             session,
           );
+          const showDelete = canDeleteRoutineSession(session, sessions.length);
+          const isDeleting = deletingSessionId === session._id;
+
           return (
             <View
               key={session._id}
@@ -64,24 +72,49 @@ export default function RoutineBookingSessionsSection({
                   </CustomText>
                 </View>
               </View>
-              {showViewDetails ? (
-                <Pressable
-                  style={styles.viewDetailsBtn}
-                  onPress={() => onViewSessionDetails(session)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('routineBooking.viewSessionDetails')}
-                >
-                  <CustomText style={styles.viewDetailsText}>
-                    {t('routineBooking.viewSessionDetails')}
-                  </CustomText>
-                  <VectoreIcons
-                    name="chevron-forward"
-                    icon="Ionicons"
-                    size={theme.SF(16)}
-                    color={theme.colors.primary}
-                  />
-                </Pressable>
-              ) : null}
+              <View style={styles.actions}>
+                {showDelete && onDeleteSession ? (
+                  <Pressable
+                    style={styles.deleteBtn}
+                    onPress={() => onDeleteSession(session)}
+                    disabled={isDeleting}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('routineBooking.deleteSession')}
+                  >
+                    {isDeleting ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={theme.colors.red || '#F44336'}
+                      />
+                    ) : (
+                      <VectoreIcons
+                        name="trash-outline"
+                        icon="Ionicons"
+                        size={theme.SF(20)}
+                        color={theme.colors.red || '#F44336'}
+                      />
+                    )}
+                  </Pressable>
+                ) : null}
+                {showViewDetails ? (
+                  <Pressable
+                    style={styles.viewDetailsBtn}
+                    onPress={() => onViewSessionDetails(session)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('routineBooking.viewSessionDetails')}
+                  >
+                    <CustomText style={styles.viewDetailsText}>
+                      {t('routineBooking.viewSessionDetails')}
+                    </CustomText>
+                    <VectoreIcons
+                      name="chevron-forward"
+                      icon="Ionicons"
+                      size={theme.SF(16)}
+                      color={theme.colors.primary}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
             </View>
           );
         })}
@@ -132,12 +165,22 @@ const createStyles = (theme: ThemeType) =>
       color: theme.colors.text,
       textTransform: 'lowercase',
     },
+    actions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW(4),
+    },
+    deleteBtn: {
+      padding: theme.SW(6),
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     viewDetailsBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: theme.SW(2),
       paddingVertical: theme.SH(6),
-      paddingLeft: theme.SW(8),
+      paddingLeft: theme.SW(4),
     },
     viewDetailsText: {
       fontSize: theme.fontSize.sm,

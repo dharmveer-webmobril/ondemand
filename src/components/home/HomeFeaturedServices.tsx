@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 import { navigate } from '@utils/NavigationUtils';
+import { getProviderDisplayName } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import FeaturedServiceCard from './FeaturedServiceCard';
 import HomeFeaturedServicesSkeleton from './HomeFeaturedServicesSkeleton';
@@ -61,7 +62,10 @@ export default function HomeFeaturedServices({
     navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
       provider: {
         id: service.provider?._id || service.sp_id,
-        name: service.provider?.name,
+        name: getProviderDisplayName(
+          service.provider,
+          t('home.providerFallbackName'),
+        ),
         logo: service.provider?.profileImage,
         address: '',
         serviceType: service.name,
@@ -89,7 +93,7 @@ export default function HomeFeaturedServices({
     <View style={styles.locationEmptyBox}>
       <CustomText
         color={theme.colors.text}
-        fontSize={theme.fontSize.sm}
+        fontSize={theme.fontSize.lg}
         fontFamily={theme.fonts.SEMI_BOLD}
         textAlign="center"
       >
@@ -112,7 +116,7 @@ export default function HomeFeaturedServices({
       <View style={[styles.headerRow, styles.sectionHeader]}>
         <CustomText
           color={theme.colors.text}
-          fontSize={theme.fontSize.md}
+          fontSize={theme.fontSize.lg}
           fontFamily={theme.fonts.BOLD}
         >
           {title}

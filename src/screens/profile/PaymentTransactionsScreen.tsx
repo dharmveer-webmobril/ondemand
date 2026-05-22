@@ -15,10 +15,38 @@ import {
   useGetPaymentTransactions,
   type WalletTransaction,
   type PaymentTransactionType,
+  type PaymentTransactionScope,
 } from '@services/api/queries/appQueries';
 import { SH } from '@utils/dimensions';
 
 const PAGE_SIZE = 10;
+
+type TransactionFilterKey = 'general' | 'routine' | 'additional_addon';
+
+const TRANSACTION_FILTERS: Array<{
+  key: TransactionFilterKey;
+  labelKey: string;
+  type: PaymentTransactionType;
+  transactionScope?: PaymentTransactionScope;
+}> = [
+  {
+    key: 'general',
+    labelKey: 'transactions.filterGeneralBooking',
+    type: 'booking',
+    transactionScope: 'general',
+  },
+  {
+    key: 'routine',
+    labelKey: 'transactions.filterRoutineBooking',
+    type: 'booking',
+    transactionScope: 'routine',
+  },
+  {
+    key: 'additional_addon',
+    labelKey: 'transactions.filterAdditionalAddons',
+    type: 'additional_addon',
+  },
+];
 
 function formatDate(dateString: string): string {
   if (!dateString) return '—';
@@ -76,14 +104,17 @@ export default function PaymentTransactionsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
 
-  const [activeType, setActiveType] = useState<PaymentTransactionType>('booking');
+  const [transactionFilter, setTransactionFilter] =
+    useState<TransactionFilterKey>('general');
   const [page, setPage] = useState(1);
   const [list, setList] = useState<WalletTransaction[]>([]);
 
-  useEffect(() => {
-    setPage(1);
-    setList([]);
-  }, [activeType]);
+  const activeFilter = useMemo(
+    () =>
+      TRANSACTION_FILTERS.find(f => f.key === transactionFilter) ??
+      TRANSACTION_FILTERS[0],
+    [transactionFilter],
+  );
 
   const {
     data,
@@ -92,7 +123,12 @@ export default function PaymentTransactionsScreen() {
     refetch,
     isRefetching,
     isFetching,
-  } = useGetPaymentTransactions({ page, limit: PAGE_SIZE, type: activeType });
+  } = useGetPaymentTransactions({
+    page,
+    limit: PAGE_SIZE,
+    type: activeFilter.type,
+    transactionScope: activeFilter.transactionScope,
+  });
 
   const pageRows = extractRows(data);
   const pages = totalPages(data);
@@ -112,6 +148,12 @@ export default function PaymentTransactionsScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, data]);
+
+  const handleFilterChange = useCallback((key: TransactionFilterKey) => {
+    setTransactionFilter(key);
+    setPage(1);
+    setList([]);
+  }, []);
 
   const onRefresh = useCallback(() => {
     setPage(1);
@@ -150,7 +192,6 @@ export default function PaymentTransactionsScreen() {
                   credit ? styles.amountCredit : styles.amountDebit,
                 ]}
               >
-                {/* {credit ? '+' : '−'} */}
                 {formatAmount(amt, cur)}
               </CustomText>
             </View>
@@ -183,35 +224,38 @@ export default function PaymentTransactionsScreen() {
 
   const ListHeader = useMemo(
     () => (
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tab, activeType === 'booking' && styles.tabActive]}
-          onPress={() => setActiveType('booking')}
-          activeOpacity={0.75}
-        >
-          <CustomText
-            style={[styles.tabText, activeType === 'booking' && styles.tabTextActive]}
-          >
-            {t('transactions.tabBooking')}
-          </CustomText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeType === 'additional_addon' && styles.tabActive]}
-          onPress={() => setActiveType('additional_addon')}
-          activeOpacity={0.75}
-        >
-          <CustomText
-            style={[
-              styles.tabText,
-              activeType === 'additional_addon' && styles.tabTextActive,
-            ]}
-          >
-            {t('transactions.tabAdditionalAddons')}
-          </CustomText>
-        </TouchableOpacity>
+      <View style={styles.filterWrap}>
+        <FlatList
+          horizontal
+          data={TRANSACTION_FILTERS}
+          keyExtractor={item => item.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item }) => {
+            const active = transactionFilter === item.key;
+            return (
+              <TouchableOpacity
+                style={[styles.filterChip, active && styles.filterChipActive]}
+                onPress={() => handleFilterChange(item.key)}
+                activeOpacity={0.75}
+              >
+                <CustomText
+                  style={
+                    active
+                      ? [styles.filterChipText, styles.filterChipTextActive]
+                      : styles.filterChipText
+                  }
+                  numberOfLines={1}
+                >
+                  {t(item.labelKey)}
+                </CustomText>
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
     ),
-    [activeType, styles, t],
+    [handleFilterChange, transactionFilter, styles, t],
   );
 
   return (
@@ -294,33 +338,35 @@ const createStyles = (theme: any) =>
       paddingBottom: SH(100),
       flexGrow: 1,
     },
-    tabBar: {
-      flexDirection: 'row',
+    filterWrap: {
       marginTop: theme.SH?.(8) ?? 8,
       marginBottom: theme.SH?.(16) ?? 16,
+    },
+    filterList: {
+      gap: theme.SW?.(8) ?? 8,
+      paddingBottom: theme.SH?.(4) ?? 4,
+    },
+    filterChip: {
+      paddingHorizontal: theme.SW?.(14) ?? 14,
+      paddingVertical: theme.SH?.(8) ?? 8,
+      borderRadius: theme.borderRadius?.xl ?? 20,
       backgroundColor: theme.colors.secondary ?? '#fff',
-      borderRadius: theme.borderRadius?.md ?? 12,
-      padding: theme.SW?.(4) ?? 4,
+      marginRight: theme.SW?.(8) ?? 8,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.border || '#e5e7eb',
     },
-    tab: {
-      flex: 1,
-      paddingVertical: theme.SH?.(12) ?? 12,
-      alignItems: 'center',
-      borderRadius: theme.borderRadius?.sm ?? 10,
-    },
-    tabActive: {
+    filterChipActive: {
       backgroundColor: theme.colors.primary ?? '#135D96',
+      borderColor: theme.colors.primary ?? '#135D96',
     },
-    tabText: {
-      fontSize: theme.fontSize?.sm ?? 14,
-      fontFamily: theme.fonts?.SEMI_BOLD,
+    filterChipText: {
+      fontSize: theme.fontSize?.xs ?? 12,
       color: theme.colors.text,
-      textAlign: 'center',
+      fontFamily: theme.fonts?.MEDIUM,
     },
-    tabTextActive: {
+    filterChipTextActive: {
       color: '#fff',
+      fontFamily: theme.fonts?.SEMI_BOLD,
     },
     card: {
       marginBottom: theme.SH?.(12) ?? 12,

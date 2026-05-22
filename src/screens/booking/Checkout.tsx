@@ -71,9 +71,13 @@ export default function Checkout() {
   const [otherPersonDetails, setOtherPersonDetails] = useState<OtherPersonDetails>(
     draft?.otherPersonDetails ?? null,
   );
-  const [paymentMode, setPaymentMode] = useState<PaymentModeKey>(
-    draft?.paymentMode ?? 'cash',
-  );
+  const [paymentMode, setPaymentMode] = useState<PaymentModeKey>(() => {
+    const draftMode = draft?.paymentMode;
+    if (isRoutine) {
+      return draftMode === 'cash' || draftMode === 'online' ? draftMode : 'online';
+    }
+    return draftMode ?? 'cash';
+  });
   const [paymentType, setPaymentType] = useState<
     'paypal' | 'stripe' | 'flutterwave' | 'cash'
   >(draft?.paymentType ?? 'cash');
@@ -228,6 +232,35 @@ export default function Checkout() {
     });
   };
 
+  const navigateToRoutineDetail = useCallback(
+    (routineBookingId: string) => {
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: SCREEN_NAMES.HOME },
+          {
+            name: SCREEN_NAMES.ROUTINE_BOOKING_DETAIL,
+            params: { routineBookingId: String(routineBookingId) },
+          },
+        ],
+      });
+    },
+    [navigation],
+  );
+
+  const resolveRoutineBookingId = useCallback(
+    (confirmRes: any, fallbackPayload?: any) => {
+      const fromConfirm = getRoutineBookingIdFromCreateResponse(confirmRes);
+      if (fromConfirm) return fromConfirm;
+      const rb = fallbackPayload?.routineBooking ?? confirmRes?.ResponseData?.routineBooking;
+      if (typeof rb === 'string' && rb.trim()) return rb.trim();
+      if (rb?._id != null) return String(rb._id);
+      if (rb?.id != null) return String(rb.id);
+      return null;
+    },
+    [],
+  );
+
   const invalidateCheckoutQueries = () => {
     queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
     queryClient.invalidateQueries({ queryKey: ['customerWallet'] });
@@ -246,11 +279,16 @@ export default function Checkout() {
     setPaymentSuccessConfirmRes(null);
     invalidateCheckoutQueries();
 
-    const routineBooking =
-      data?.confirmRes?.ResponseData?.routineBooking ??
-      data?.fallbackPayload?.routineBooking;
-    if (routineBooking || isRoutine) {
-      navigateToBookingList(data?.fallbackPayload ?? {});
+    const routineBookingId = resolveRoutineBookingId(
+      data?.confirmRes,
+      data?.fallbackPayload,
+    );
+    if (routineBookingId || isRoutine) {
+      if (routineBookingId) {
+        navigateToRoutineDetail(routineBookingId);
+      } else {
+        navigateToBookingList(data?.fallbackPayload ?? {});
+      }
       return;
     }
 
@@ -271,7 +309,12 @@ export default function Checkout() {
     } else if (data?.fallbackPayload) {
       navigateToBookingList(data.fallbackPayload);
     }
-  }, [navigation, isRoutine]);
+  }, [
+    navigation,
+    isRoutine,
+    navigateToRoutineDetail,
+    resolveRoutineBookingId,
+  ]);
 
   // Handle return from PayPal WebView (success/cancel/failure)
   useFocusEffect(
@@ -287,6 +330,13 @@ export default function Checkout() {
           confirmRes?.ResponseData?.routineBooking
         ) {
           openCheckoutPaymentSuccessModal(confirmRes, payload);
+        } else if (isRoutine) {
+          const routineBookingId = resolveRoutineBookingId(confirmRes, payload);
+          if (routineBookingId) {
+            navigateToRoutineDetail(routineBookingId);
+          } else {
+            navigateToBookingList(payload);
+          }
         } else {
           handleSuccessToast(message || t('checkout.bookingCreatedSuccess'));
           setTimeout(() => navigateToBookingList(payload), 300);
@@ -311,8 +361,16 @@ export default function Checkout() {
         });
       }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentConfirmResponse, route.params?.paymentError, showCheckoutError, openCheckoutPaymentSuccessModal, t]),
+    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentConfirmResponse, route.params?.paymentError, showCheckoutError, openCheckoutPaymentSuccessModal, isRoutine, navigateToRoutineDetail, resolveRoutineBookingId, t]),
   );
+
+  useEffect(() => {
+    if (!isRoutine) return;
+    if (paymentMode !== 'cash' && paymentMode !== 'online') {
+      setPaymentMode('online');
+      setWalletPartialAmount('');
+    }
+  }, [isRoutine, paymentMode]);
 
   const runPaymentAfterCreate = async (
     entityId: string,
@@ -602,6 +660,17 @@ export default function Checkout() {
       return;
     }
 
+    if (isRoutine) {
+      if (paymentMode === 'cash') {
+        submitBooking('cash', 0);
+        return;
+      }
+      if (paymentMode === 'online') {
+        setShowPaymentModal(true);
+      }
+      return;
+    }
+
     if (paymentMode === 'cash') {
       submitBooking('cash', 0);
       return;
@@ -693,6 +762,7 @@ export default function Checkout() {
         <PaymentSection
           styles={styles}
           t={t}
+          isRoutine={isRoutine}
           paymentMode={paymentMode}
           setPaymentMode={setPaymentMode}
           setWalletPartialAmount={setWalletPartialAmount}
@@ -712,9 +782,10 @@ export default function Checkout() {
           disabled={
             !isFormValid ||
             isLoading ||
-            invalidPartialWalletAmount ||
-            insufficientWalletBalance ||
-            (paymentMode === 'wallet_partial' && walletPartialNum <= 0)
+            (!isRoutine &&
+              (invalidPartialWalletAmount ||
+                insufficientWalletBalance ||
+                (paymentMode === 'wallet_partial' && walletPartialNum <= 0)))
           }
           isLoading={isLoading}
         />

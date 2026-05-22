@@ -118,7 +118,8 @@ export default function HomeMainList({
       <View style={[styles.headerContainer, styles.sectionHeader]}>
         <CustomText
           color={theme.colors.text}
-          fontSize={theme.fontSize.sm}
+          // fontSize={theme.fontSize.sm}
+          fontSize={theme.fontSize.lg}
           fontFamily={theme.fonts.BOLD}
         >
           {t('home.categories')}
@@ -146,7 +147,8 @@ export default function HomeMainList({
       <View style={[styles.headerContainer, styles.sectionHeader]}>
         <CustomText
           color={theme.colors.text}
-          fontSize={theme.fontSize.sm}
+          // fontSize={theme.fontSize.sm}
+          fontSize={theme.fontSize.lg}
           fontFamily={theme.fonts.BOLD}
         >
           {t('home.nearestProvider')}
@@ -174,7 +176,8 @@ export default function HomeMainList({
       <View style={[styles.headerContainer, styles.sectionHeader]}>
         <CustomText
           color={theme.colors.text}
-          fontSize={theme.fontSize.sm}
+          // fontSize={theme.fontSize.sm}
+          fontSize={theme.fontSize.lg}
           fontFamily={theme.fonts.BOLD}
         >
           {t('home.topRatedProviders')}

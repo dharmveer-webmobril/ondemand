@@ -16,6 +16,7 @@ import type {
   FeaturedServiceItem,
   FeaturedListType,
 } from '@services/api/queries/appQueries';
+import ServiceNameWithRoutineBadge from '@components/provider/ServiceNameWithRoutineBadge';
 
 type FeaturedServiceCardProps = {
   service: FeaturedServiceItem;
@@ -133,21 +134,30 @@ export default function FeaturedServiceCard({
           </View>
         ) : null}
         <View style={styles.titleWrap}>
-          <CustomText
+          <ServiceNameWithRoutineBadge
+            name={service.name?.trim() || ''}
+            service={service}
             numberOfLines={2}
-            color="#FFFFFF"
-            fontFamily={theme.fonts.SEMI_BOLD}
-            fontSize={variant === 'carousel' ? theme.fontSize.md : theme.fontSize.sm}
-            style={styles.title}
-          >
-            {service.name?.trim() || ''}
-          </CustomText>
+            nameStyle={[
+              styles.title,
+              {
+                color: '#FFFFFF',
+                fontFamily: theme.fonts.SEMI_BOLD,
+                fontSize:
+                  variant === 'carousel'
+                    ? theme.fontSize.md
+                    : theme.fontSize.sm,
+              },
+            ]}
+            badgeStyle={styles.routineBadgeOnImage}
+            containerStyle={styles.titleNameBlock}
+          />
         </View>
       </View>
       {showOfferMeta &&
       (preferenceLabels.length > 0 || priceTypeLabel) ? (
         <View style={styles.metaFooter}>
-          {preferenceLabels.length > 0 ? (
+          {showOfferMeta && preferenceLabels.length > 0 ? (
             <CustomText
               numberOfLines={2}
               color={theme.colors.gray || '#666'}
@@ -158,7 +168,7 @@ export default function FeaturedServiceCard({
               {preferenceLabels.join(' · ')}
             </CustomText>
           ) : null}
-          {priceTypeLabel ? (
+          {showOfferMeta && priceTypeLabel ? (
             <CustomText
               numberOfLines={1}
               color={theme.colors.lightText || theme.colors.gray || '#888'}
@@ -219,6 +229,13 @@ const createStyles = (theme: ThemeType, variant: 'carousel' | 'grid') => {
       textShadowColor: 'rgba(0,0,0,0.45)',
       textShadowOffset: { width: 0, height: 1 },
       textShadowRadius: 3,
+    },
+    titleNameBlock: {
+      width: '100%',
+    },
+    routineBadgeOnImage: {
+      marginTop: SH(6),
+      backgroundColor: 'rgba(255,255,255,0.95)',
     },
     discountBadge: {
       position: 'absolute',

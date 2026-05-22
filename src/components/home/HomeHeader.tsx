@@ -199,7 +199,7 @@ const createStyles = (theme: ThemeType) =>
       justifyContent: 'center',
     },
     currentLocationText: {
-      fontSize: theme.SF(12),
+      fontSize: theme.SF(20),
       color: theme.colors.whitetext,
       fontFamily: theme.fonts.SEMI_BOLD,
     },

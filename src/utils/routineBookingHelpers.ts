@@ -1,5 +1,7 @@
 /** Routine booking & session status helpers (customer app). */
 
+import { ROUTINE_MIN_SESSIONS } from '@utils/routineVolumeDiscount';
+
 export type RoutineStatusFilter =
   | ''
   | 'pending'
@@ -109,6 +111,29 @@ export function formatSessionStatusLabel(
   return translated === i18nKey
     ? key.replace(/_/g, ' ')
     : translated;
+}
+
+export function isSessionDeletable(
+  sessionStatus: string | undefined | null,
+): boolean {
+  return normalizeSessionStatus(sessionStatus) === 'pending';
+}
+
+/** Pending sessions can be removed only while more than `ROUTINE_MIN_SESSIONS` remain. */
+export function canDeleteRoutineSession(
+  session: { sessionStatus?: string | null },
+  totalSessions: number,
+): boolean {
+  return (
+    isSessionDeletable(session.sessionStatus) &&
+    totalSessions > ROUTINE_MIN_SESSIONS
+  );
+}
+
+/** Customer may cancel the whole package while awaiting provider confirmation. */
+export function canCancelRoutinePackage(status?: string | null): boolean {
+  const raw = String(status || '').toLowerCase().trim();
+  return raw === 'pending' || raw === 'pending_pro_confirmation';
 }
 
 export function centsToDisplay(

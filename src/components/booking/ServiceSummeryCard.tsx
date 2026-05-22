@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, Checkbox, VectoreIcons, CustomButton } from '@components/common';
 import imagePaths from '@assets';
+import ServiceNameWithRoutineBadge from '@components/provider/ServiceNameWithRoutineBadge';
+import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
 
 type Service = {
     _id: string;
@@ -12,6 +14,7 @@ type Service = {
     serviceAddOns?: any[];
     selectedAddOns?: any[];
     images?: string[];
+    routineConfig?: ServiceRoutineConfig | null;
     activeOffers?: any[];
     selectedOfferId?: string; // Track selected offer per service
     appliedOffer?: any; // Applied offer object (used in checkout)
@@ -110,7 +113,12 @@ export default function ServiceSummeryCard({
                                 />
                             </View>
                             <View style={styles.serviceDetails}>
-                                <CustomText style={styles.serviceName}>{service?.name}</CustomText>
+                                <ServiceNameWithRoutineBadge
+                                    name={service?.name ?? ''}
+                                    service={service}
+                                    nameStyle={styles.serviceName}
+                                    containerStyle={styles.serviceNameBlock}
+                                />
                                 <View style={styles.priceRow}>
                                     {selectedOffers[service._id] || service.selectedOfferId ? (
                                         <View>
@@ -362,12 +370,17 @@ const createStyles = (theme: ThemeType) => {
         serviceDetails: {
             marginLeft: SW(12),
             flex: 1,
+            minWidth: 0,
+            paddingRight: SW(8),
+        },
+        serviceNameBlock: {
+            marginBottom: SH(4),
         },
         serviceName: {
             fontSize: SF(14),
             fontFamily: Fonts.MEDIUM,
             color: Colors.text,
-            marginBottom: SH(2),
+            lineHeight: SF(19),
         },
         priceRow: {
             flexDirection: 'row',

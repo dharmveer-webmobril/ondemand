@@ -6,12 +6,29 @@ import {
   RefreshControl,
   Platform,
   Linking,
+  Modal,
 } from 'react-native';
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+
+const DEFAULT_MAP_DELTA = 0.012;
+const MIN_MAP_DELTA = 0.0008;
+const MAX_MAP_DELTA = 0.45;
+
+const regionForCoords = (
+  lat: number,
+  lng: number,
+  delta: number = DEFAULT_MAP_DELTA,
+): Region => ({
+  latitude: lat,
+  longitude: lng,
+  latitudeDelta: delta,
+  longitudeDelta: delta,
+});
 
 type ProviderDetailsProps = {
   aboutUs?: string;
@@ -51,10 +68,38 @@ export default function ProviderDetails({
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
+  const fullMapRef = useRef<MapView>(null);
+  const [fullMapVisible, setFullMapVisible] = useState(false);
+  const [mapZoomDelta, setMapZoomDelta] = useState(DEFAULT_MAP_DELTA);
 
   const lat = latitude != null ? Number(latitude) : NaN;
   const lng = longitude != null ? Number(longitude) : NaN;
   const hasMapCoords = Number.isFinite(lat) && Number.isFinite(lng);
+
+  const openFullMap = useCallback(() => {
+    setMapZoomDelta(DEFAULT_MAP_DELTA);
+    setFullMapVisible(true);
+  }, []);
+
+  const closeFullMap = useCallback(() => {
+    setFullMapVisible(false);
+  }, []);
+
+  const adjustMapZoom = useCallback(
+    (zoomIn: boolean) => {
+      if (!hasMapCoords) return;
+      setMapZoomDelta(prev => {
+        const factor = zoomIn ? 0.5 : 2;
+        const next = Math.max(
+          MIN_MAP_DELTA,
+          Math.min(MAX_MAP_DELTA, prev * factor),
+        );
+        fullMapRef.current?.animateToRegion(regionForCoords(lat, lng, next), 200);
+        return next;
+      });
+    },
+    [hasMapCoords, lat, lng],
+  );
 
   const openInMaps = () => {
     if (!hasMapCoords) return;
@@ -70,6 +115,14 @@ export default function ProviderDetails({
     });
   };
 
+  const openExternalUrl = (rawUrl?: string) => {
+    const trimmed = rawUrl?.trim();
+    if (!trimmed) return;
+    const url =
+      /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    Linking.openURL(url).catch(() => {});
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -83,14 +136,10 @@ export default function ProviderDetails({
           <MapView
             provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
             style={styles.map}
-            initialRegion={{
-              latitude: lat,
-              longitude: lng,
-              latitudeDelta: 0.012,
-              longitudeDelta: 0.012,
-            }}
+            initialRegion={regionForCoords(lat, lng)}
             scrollEnabled={false}
-            zoomTapEnabled
+            zoomEnabled={false}
+            zoomTapEnabled={false}
             rotateEnabled={false}
             pitchEnabled={false}
             toolbarEnabled={false}
@@ -100,6 +149,22 @@ export default function ProviderDetails({
               tracksViewChanges={false}
             />
           </MapView>
+          <Pressable
+            onPress={openFullMap}
+            style={({ pressed }) => [
+              styles.mapExpandButton,
+              pressed && styles.mapExpandButtonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t('providerDetails.expandMap')}
+          >
+            <VectoreIcons
+              name="expand-outline"
+              icon="Ionicons"
+              size={theme.SF(20)}
+              color={theme.colors.text}
+            />
+          </Pressable>
           <Pressable
             onPress={openInMaps}
             style={({ pressed }) => [
@@ -125,6 +190,109 @@ export default function ProviderDetails({
           </Pressable>
         </View>
       ) : null}
+
+      <Modal
+        visible={fullMapVisible && hasMapCoords}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={closeFullMap}
+      >
+        <View style={styles.fullMapContainer}>
+          <MapView
+            key={fullMapVisible ? 'full-map-open' : 'full-map-closed'}
+            ref={fullMapRef}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            style={styles.fullMap}
+            initialRegion={regionForCoords(lat, lng, DEFAULT_MAP_DELTA)}
+            scrollEnabled
+            zoomEnabled
+            zoomTapEnabled
+            rotateEnabled={false}
+            pitchEnabled={false}
+            showsUserLocation={false}
+            showsMyLocationButton={false}
+          >
+            <Marker
+              coordinate={{ latitude: lat, longitude: lng }}
+              tracksViewChanges={false}
+            />
+          </MapView>
+
+          <SafeAreaView style={styles.fullMapOverlay} edges={['top', 'bottom']}>
+            <View style={styles.fullMapHeader}>
+              <Pressable
+                onPress={closeFullMap}
+                style={({ pressed }) => [
+                  styles.fullMapHeaderButton,
+                  pressed && styles.mapExpandButtonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <VectoreIcons
+                  name="close"
+                  icon="Ionicons"
+                  size={theme.SF(24)}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+            </View>
+
+            <View style={styles.zoomControls}>
+              <Pressable
+                onPress={() => adjustMapZoom(true)}
+                style={({ pressed }) => [
+                  styles.zoomButton,
+                  pressed && styles.zoomButtonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('providerDetails.zoomIn')}
+              >
+                <VectoreIcons
+                  name="add"
+                  icon="Ionicons"
+                  size={theme.SF(22)}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => adjustMapZoom(false)}
+                style={({ pressed }) => [
+                  styles.zoomButton,
+                  pressed && styles.zoomButtonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('providerDetails.zoomOut')}
+              >
+                <VectoreIcons
+                  name="remove"
+                  icon="Ionicons"
+                  size={theme.SF(22)}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={openInMaps}
+              style={({ pressed }) => [
+                styles.fullMapOpenRow,
+                pressed && styles.mapOpenRowPressed,
+              ]}
+            >
+              <VectoreIcons
+                name="map-outline"
+                icon="Ionicons"
+                size={theme.SF(18)}
+                color={theme.colors.primary}
+              />
+              <CustomText style={styles.mapOpenText}>
+                {t('providerDetails.openInMaps')}
+              </CustomText>
+            </Pressable>
+          </SafeAreaView>
+        </View>
+      </Modal>
 
       {/* About Us */}
       <View style={styles.section}>
@@ -159,7 +327,10 @@ export default function ProviderDetails({
         <View style={styles.section}>
           <View style={styles.socialContainer}>
             {facebookUrl && (
-              <Pressable style={styles.socialButton}>
+              <Pressable
+                style={styles.socialButton}
+                onPress={() => openExternalUrl(facebookUrl)}
+              >
                 <VectoreIcons
                   name="logo-facebook"
                   icon="Ionicons"
@@ -169,7 +340,10 @@ export default function ProviderDetails({
               </Pressable>
             )}
             {instagramUrl && (
-              <Pressable style={styles.socialButton}>
+              <Pressable
+                style={styles.socialButton}
+                onPress={() => openExternalUrl(instagramUrl)}
+              >
                 <VectoreIcons
                   name="logo-instagram"
                   icon="Ionicons"
@@ -179,7 +353,10 @@ export default function ProviderDetails({
               </Pressable>
             )}
             {websiteUrl && (
-              <Pressable style={styles.socialButton}>
+              <Pressable
+                style={styles.socialButton}
+                onPress={() => openExternalUrl(websiteUrl)}
+              >
                 <VectoreIcons
                   name="globe-outline"
                   icon="Ionicons"
@@ -285,6 +462,95 @@ const createStyles = (theme: ThemeType) => {
     map: {
       width: '100%',
       height: SH(200),
+    },
+    mapExpandButton: {
+      position: 'absolute',
+      top: SH(10),
+      right: SW(10),
+      width: SF(36),
+      height: SF(36),
+      borderRadius: SF(8),
+      backgroundColor: Colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+      elevation: 3,
+    },
+    mapExpandButtonPressed: {
+      opacity: 0.85,
+    },
+    fullMapContainer: {
+      flex: 1,
+      backgroundColor: Colors.white,
+    },
+    fullMap: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    fullMapOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'space-between',
+      pointerEvents: 'box-none',
+    },
+    fullMapHeader: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: SW(16),
+      paddingTop: SH(8),
+    },
+    fullMapHeaderButton: {
+      width: SF(40),
+      height: SF(40),
+      borderRadius: SF(20),
+      backgroundColor: Colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+      elevation: 3,
+    },
+    zoomControls: {
+      position: 'absolute',
+      right: SW(16),
+      top: '40%',
+      gap: SH(8),
+    },
+    zoomButton: {
+      width: SF(44),
+      height: SF(44),
+      borderRadius: SF(8),
+      backgroundColor: Colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+      elevation: 3,
+    },
+    zoomButtonPressed: {
+      opacity: 0.85,
+    },
+    fullMapOpenRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SW(8),
+      marginHorizontal: SW(16),
+      marginBottom: SH(12),
+      paddingVertical: SH(12),
+      paddingHorizontal: SW(16),
+      borderRadius: SF(10),
+      backgroundColor: Colors.white,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+      elevation: 3,
     },
     mapOpenRow: {
       flexDirection: 'row',

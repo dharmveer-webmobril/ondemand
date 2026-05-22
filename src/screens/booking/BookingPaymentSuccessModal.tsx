@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getProviderDisplayName } from '@utils/tools';
 
 /** Matches common “success” UI green (see booking-confirmed mockups). */
 const SUCCESS_GREEN = '#58B78D';
@@ -52,13 +53,16 @@ export default function BookingPaymentSuccessModal({
   const transaction = data?.transaction;
   const paymentFlowKind = data?.paymentMethod;
 
-  const providerName =
-    booking?.spName ??
-    booking?.sp?.name ??
-    (typeof booking?.spId === 'object' && booking?.spId?.name
-      ? booking.spId.name
-      : '') ??
-    '';
+  const providerName = getProviderDisplayName(
+    {
+      name:
+        booking?.spName ??
+        booking?.sp?.name ??
+        (typeof booking?.spId === 'object' ? booking?.spId?.name : undefined),
+      spBusinessProfile: booking?.spBusinessProfile,
+    },
+    '',
+  );
 
   const routineTotalCents = routineBooking?.pricing?.totalCents;
   const amountDisplay = transaction

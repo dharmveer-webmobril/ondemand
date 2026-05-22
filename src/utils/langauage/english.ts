@@ -251,6 +251,9 @@ export const english = {
     "title": "Transactions",
     "tabBooking": "Booking",
     "tabAdditionalAddons": "Additional add-ons",
+    "filterGeneralBooking": "General booking",
+    "filterRoutineBooking": "Routine booking",
+    "filterAdditionalAddons": "Additional addons",
     "empty": "No transactions yet.",
     "loadError": "Could not load transactions. Please try again.",
     "refund": "Refund"
@@ -713,6 +716,7 @@ export const english = {
     "hideSessionSchedule": "Tap to collapse",
     "scrollSessions": "Scroll for more",
     "removeSession": "Remove session",
+    "routineAvailableBadge": "Routine",
     "routineNotAvailable": "Routine not available",
     "routineNotAvailableHint": "This service does not support routine packages.",
     "routineOnlyServicesHint": "Only services with routine booking can be added to a routine package.",
@@ -771,7 +775,7 @@ export const english = {
   },
   "routineBooking": {
     "scope": {
-      "general": "General bookings",
+      "general": "Bookings",
       "routine": "Routine packages"
     },
     "filter": {
@@ -818,7 +822,19 @@ export const english = {
     "paymentStatus": "Payment status",
     "servicesSection": "Services",
     "sessionsSection": "Sessions ({{count}})",
-    "viewSessionDetails": "View details"
+    "viewSessionDetails": "View details",
+    "deleteSession": "Delete session",
+    "deleteSessionConfirmTitle": "Delete session?",
+    "deleteSessionConfirmMessage": "This session will be removed from your routine package. You must keep at least 2 sessions.",
+    "deleteSessionSuccess": "Session removed",
+    "deleteSessionFailed": "Could not remove session",
+    "minSessionsRequired": "A routine package must have at least 2 sessions.",
+    "cancelPackage": "Cancel package",
+    "cancelPackageTitle": "Cancel routine package?",
+    "cancelPackageMessage": "This package is still awaiting provider confirmation. If you cancel now, the provider will not receive this request. Any payment will be refunded or released according to our cancellation policy.",
+    "cancelPackageReasonHint": "Please tell us why you are cancelling (required).",
+    "cancelPackageSuccess": "Routine package cancelled",
+    "cancelPackageFailed": "Could not cancel routine package"
   },
   "myBookingScreen": {
     "headerTitle": "My Appointment",
@@ -938,6 +954,9 @@ export const english = {
     "serviceProviderDefault": "Service Provider",
     "share": "Share",
     "openInMaps": "Open in Maps",
+    "expandMap": "View full map",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
     "reviews": {
       "viewBy": "View by",
       "viewByProvider": "Provider",
@@ -982,6 +1001,7 @@ export const english = {
     "serviceProviderDefault": "Service Provider"
   },
   "common": {
+    "close": "Close",
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",

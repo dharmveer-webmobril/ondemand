@@ -34,6 +34,10 @@ export default {
     GET_ROUTINE_BOOKINGS: '/customer/bookings/routine',
     GET_ROUTINE_BOOKING_DETAIL: (routineBookingId: string) =>
         `/customer/bookings/routine/${routineBookingId}`,
+    DELETE_ROUTINE_SESSION: (routineBookingId: string, sessionId: string) =>
+        `/customer/bookings/routine/${routineBookingId}/sessions/${sessionId}`,
+    DELETE_ROUTINE_BOOKING: (routineBookingId: string) =>
+        `/customer/bookings/routine/${routineBookingId}`,
     GET_TOP_RATED_SERVICES: '/customer/bookings/top-rated-services',
     GET_TOP_OFFERED_SERVICES: '/customer/bookings/top-offered-services',
     GET_BOOKING_DETAIL: '/customer/bookings/bookings',

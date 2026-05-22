@@ -26,7 +26,7 @@ import {
   useAddFavoriteServiceProvider,
   useRemoveFavoriteServiceProvider,
 } from '@services/index';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, getProviderDisplayName } from '@utils/tools';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import localStorage from '@utils/StorageProvider';
 
@@ -34,6 +34,7 @@ type TabType = 'services' | 'reviews' | 'portfolio' | 'details';
 
 export default function ProviderDetailsScreen() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const [activeTab, setActiveTab] = useState<TabType>('services');
@@ -85,12 +86,38 @@ export default function ProviderDetailsScreen() {
   const provider = providerData?.ResponseData || {};
   const services = servicesData?.ResponseData?.services || [];
   const businessProfile = provider?.businessProfile || {};
+  const providerDisplayName = useMemo(
+    () =>
+      getProviderDisplayName(
+        provider,
+        t('providerDetails.providerDefaultName'),
+      ),
+    [
+      provider?._id,
+      provider?.name,
+      provider?.businessProfile?.name,
+      t,
+    ],
+  );
+
+  const amenityNames = useMemo(() => {
+    const raw = businessProfile?.amenitiesIds;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((item: string | { name?: string }) => {
+        if (typeof item === 'string') return item.trim() || null;
+        if (item && typeof item === 'object' && item.name) return item.name.trim();
+        return null;
+      })
+      .filter((name): name is string => Boolean(name));
+  }, [businessProfile?.amenitiesIds]);
+
+  const socialLinks = businessProfile?.websiteAndSocialLinks;
 
   console.log('businessProfile----------businessProfile', businessProfile);
   const isLoading = isLoadingProvider || isLoadingServices;
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
-  const { t } = useTranslation();
   const showTopSkeleton = isLoadingProvider && !provider?._id;
 
   const pendingService = useMemo(
@@ -306,6 +333,7 @@ export default function ProviderDetailsScreen() {
   };
 
   const renderContent = () => {
+    console.log('renderContent--------renderContent', isError, providerData?.ResponseData);
     if (isError && !providerData?.ResponseData) {
       return (
         <ProviderErrorState errorMessage={errorMessage} onRetry={handleRetry} />
@@ -364,16 +392,10 @@ export default function ProviderDetailsScreen() {
             }
             phoneNumber={provider.contact || ''}
             onCall={handleCall}
-            facebookUrl={
-              businessProfile.websiteAndSocialLinks?.facebook || undefined
-            }
-            instagramUrl={
-              businessProfile.websiteAndSocialLinks?.instagram || undefined
-            }
-            websiteUrl={
-              businessProfile.websiteAndSocialLinks?.website || undefined
-            }
-            amenities={[]} // TODO: Map amenitiesIds to actual amenities
+            facebookUrl={socialLinks?.facebook?.trim() || undefined}
+            instagramUrl={socialLinks?.instagram?.trim() || undefined}
+            websiteUrl={socialLinks?.website?.trim() || undefined}
+            amenities={amenityNames}
             onServiceFeePress={handleServiceFeePress}
             onPaymentPolicyPress={handlePaymentPolicyPress}
             onReportPress={handleReportPress}
@@ -471,12 +493,12 @@ export default function ProviderDetailsScreen() {
       ) : (
         <>
           <ProviderHeader
-            name={provider.name || t('providerDetails.providerDefaultName')}
+            name={providerDisplayName}
             logo={provider.profileImage}
           />
           <ProviderSubHeader
             logo={provider.profileImage}
-            name={provider.name || t('providerDetails.providerDefaultName')}
+            name={providerDisplayName}
             address={
               formatAddress({
                 line1: provider.businessProfile?.line1,
@@ -490,8 +512,7 @@ export default function ProviderDetailsScreen() {
               t('providerDetails.addressNotAvailable')
             }
             serviceType={
-              businessProfile.name ||
-              t('providerDetails.serviceProviderDefault')
+              provider.cityName || businessProfile.cityName || undefined
             }
             rating={provider.rating || undefined}
             reviewCount={0} // TODO: Get from API if available

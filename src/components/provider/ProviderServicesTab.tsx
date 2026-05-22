@@ -20,6 +20,8 @@ type Service = {
   time?: number;
   images?: string[];
   activeOffers?: Offer[];
+  preferences?: string[];
+  routineConfig?: { enabled?: boolean };
 };
 
 /** Get the offer with the highest discount value from activeOffers */
@@ -143,6 +145,7 @@ export default function ProviderServicesTab({
             onBook={() => onBookService(item._id)}
             isShowBookButton={isShowBookButton}
             bestOffer={bestOffer}
+            routineConfig={item?.routineConfig}
           />
         );
       }}

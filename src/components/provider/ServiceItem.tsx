@@ -7,6 +7,8 @@ import {
   ImageLoader,
 } from '@components/common';
 import imagePaths from '@assets';
+import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
+import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
 
 type BestOffer = {
   title: string;
@@ -24,6 +26,7 @@ type ServiceItemProps = {
   image?: ImageSourcePropType;
   bestOffer?: BestOffer | null;
   showPreferences?: string[];
+  routineConfig?: ServiceRoutineConfig | null;
 };
 
 export default function ServiceItem({
@@ -36,6 +39,7 @@ export default function ServiceItem({
   isShowBookButton = true,
   image = imagePaths.no_image,
   bestOffer = null,
+  routineConfig,
 }: ServiceItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -63,7 +67,6 @@ export default function ServiceItem({
         ? 'Online'
         : preference;
     });
-    console.log('showPreferences--------showPreferences', preferences);
 
   return (
     <Pressable
@@ -79,7 +82,12 @@ export default function ServiceItem({
             />
           </View>
           <View style={styles.infoContainer}>
-            <CustomText style={styles.serviceName}>{name}</CustomText>
+            <ServiceNameWithRoutineBadge
+              name={name}
+              routineConfig={routineConfig}
+              nameStyle={styles.serviceName}
+              containerStyle={styles.nameBlock}
+            />
             {/* {hasOffer && (
               <View style={styles.offerBadge}>
                 <CustomText style={styles.offerBadgeText}>
@@ -137,15 +145,16 @@ const createStyles = (theme: ThemeType) => {
     },
     content: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'space-between',
       paddingHorizontal: SW(15),
       paddingVertical: SH(16),
     },
     leftSection: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       flex: 1,
+      minWidth: 0,
     },
     iconContainer: {
       width: SF(40),
@@ -158,12 +167,17 @@ const createStyles = (theme: ThemeType) => {
     },
     infoContainer: {
       flex: 1,
+      minWidth: 0,
+      marginRight: SW(8),
+    },
+    nameBlock: {
+      marginBottom: SH(4),
     },
     serviceName: {
       fontSize: SF(15),
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
-      marginBottom: SH(4),
+      lineHeight: SF(20),
     },
     offerBadge: {
       alignSelf: 'flex-start',
@@ -205,6 +219,8 @@ const createStyles = (theme: ThemeType) => {
       paddingHorizontal: SW(0),
       height: SH(30),
       width: SW(90),
+      flexShrink: 0,
+      marginTop: SH(2),
     },
     bookButtonText: {
       fontSize: SF(14),

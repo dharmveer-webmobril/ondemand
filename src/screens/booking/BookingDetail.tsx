@@ -66,7 +66,12 @@ import {
 import { buildMemberTrackingUrl } from '@utils/trackingUrl';
 import { useAdditionalAddonGatewayPayment, isWebRedirectGateway } from '@services/payment';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
-import { getStatusLabel, getStatusColor, formatAddress } from '@utils/tools';
+import {
+  getStatusLabel,
+  getStatusColor,
+  formatAddress,
+  getProviderDisplayName,
+} from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigate } from '@utils/NavigationUtils';
 
@@ -352,8 +357,16 @@ export default function BookingDetail() {
       paymentStatus: apiBooking?.paymentStatus,
       paymentType: apiBooking?.paymentType,
       originalStatus: apiBooking?.bookingStatus,
-      providerName:
-        apiBooking?.spId?.name || t('providerDetails.providerDefaultName'),
+      providerName: getProviderDisplayName(
+        {
+          name:
+            typeof apiBooking?.spId === 'object'
+              ? apiBooking?.spId?.name
+              : undefined,
+          spBusinessProfile: apiBooking?.spBusinessProfile,
+        },
+        t('providerDetails.providerDefaultName'),
+      ),
       providerPhone: apiBooking?.spId?.contact || '',
       providerImage: apiBooking?.spId?.profileImage,
       serviceAddress: apiBooking?.addressId || null,
@@ -1091,8 +1104,13 @@ export default function BookingDetail() {
             const providerForView = booking?.providerData
               ? {
                   _id: booking?.providerData?._id,
-                  name:
-                    booking?.providerData?.name || booking?.providerName,
+                  name: getProviderDisplayName(
+                    {
+                      name: booking?.providerData?.name,
+                      spBusinessProfile: booking?.spBusinessProfile,
+                    },
+                    booking?.providerName,
+                  ),
                   profileImage: booking?.providerData?.profileImage,
                 }
               : null;
@@ -1325,7 +1343,13 @@ export default function BookingDetail() {
           booking?.providerData
             ? {
                 _id: booking?.providerData?._id,
-                name: booking?.providerData?.name || booking?.providerName,
+                name: getProviderDisplayName(
+                  {
+                    name: booking?.providerData?.name,
+                    spBusinessProfile: booking?.spBusinessProfile,
+                  },
+                  booking?.providerName,
+                ),
                 profileImage: booking?.providerData?.profileImage,
               }
             : null

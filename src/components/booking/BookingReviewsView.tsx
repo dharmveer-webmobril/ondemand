@@ -8,6 +8,7 @@ import ReviewChipsStrip, {
   type ReviewChipItem,
 } from '@components/booking/ReviewChipsStrip';
 import type { CustomerReviewInfo } from '@utils/bookingReviewHelpers';
+import { getProviderDisplayName } from '@utils/tools';
 
 type ServiceLike = {
   _id?: string;
@@ -325,7 +326,10 @@ export default function BookingReviewsView({
                 />
               </View>
               <CustomText style={styles.formTitle} numberOfLines={2}>
-                {provider?.name || t('bookingList.serviceProviderDefault')}
+                {getProviderDisplayName(
+                  provider,
+                  t('bookingList.serviceProviderDefault'),
+                )}
               </CustomText>
             </View>
             {spSlice?.submitted ? (

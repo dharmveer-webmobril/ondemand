@@ -336,7 +336,7 @@ export default function Home() {
           style={({ pressed }) => [
             styles.quickChatFab,
             {
-              bottom: insets.bottom + theme.SH(75) + theme.SH(12),
+              bottom: insets.bottom + theme.SH(40),
               right: theme.SW(16),
               backgroundColor: theme.colors.primary,
             },

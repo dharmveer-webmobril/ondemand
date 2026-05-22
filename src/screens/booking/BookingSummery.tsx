@@ -10,6 +10,7 @@ import SCREEN_NAMES from '@navigation/ScreenNames';
 import RoutineSessionsList, {
   toRoutineSessionListItems,
 } from '@components/routine/RoutineSessionsList';
+import { getProviderDisplayName } from '@utils/tools';
 
 type SelectedOffer = {
   serviceId: string;
@@ -183,7 +184,7 @@ export default function BookingSummery() {
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <CustomText style={styles.summaryName}>
-                {providerData?.businessProfile?.name}
+                {getProviderDisplayName(providerData)}
               </CustomText>
               {providerData?.businessProfile?.formattedAddress && (
                 <CustomText style={styles.summaryAddress}>

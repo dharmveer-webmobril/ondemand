@@ -20,7 +20,8 @@ type ProviderHeaderProps = {
   isFavoriteLoading?: boolean;
 };
 
-export default function ProviderHeader({
+export default function ProviderSubHeader({
+  name,
   address,
   serviceType,
   reviewCount,
@@ -50,12 +51,17 @@ export default function ProviderHeader({
     <View style={styles.container}>
       {/* Info Section */}
       <View style={styles.infoContainer}>
+        {name ? (
+          <CustomText style={styles.name} numberOfLines={2}>
+            {name}
+          </CustomText>
+        ) : null}
         <CustomText style={styles.address} numberOfLines={2}>
           {address}
         </CustomText>
-        {serviceType && (
+        {serviceType ? (
           <CustomText style={styles.serviceType}>{serviceType}</CustomText>
-        )}
+        ) : null}
         {reviewCount !== undefined && (
           <CustomText style={styles.reviewCount}>
             {reviewCount} Reviews

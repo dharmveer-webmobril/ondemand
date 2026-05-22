@@ -7,7 +7,7 @@ import { CustomText, CustomButton } from '@components/common';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import HomeProviderSkeleton from './HomeProviderSkeleton';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, getProviderDisplayName } from '@utils/tools';
 
 type HomeProviderProps = {
   onViewAll?: () => void;
@@ -33,10 +33,10 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
     navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
       provider: {
         id: provider._id,
-        name: provider.name,
+        name: getProviderDisplayName(provider, t('home.providerFallbackName')),
         logo: provider.profileImage,
         address: formatAddress({ line1: provider.businessProfile?.line1, line2: provider.businessProfile?.line2, landmark: provider.businessProfile?.landmark, pincode: provider.businessProfile?.pincode, city: provider.businessProfile?.city?.name, country: provider.businessProfile?.country?.name }) || provider.city?.name || '',
-        serviceType: provider.businessProfile?.name || t('home.providerFallbackName'),
+        serviceType: provider.cityName || provider.businessProfile?.cityName || '',
         rating: typeof provider.rating === 'number' ? provider.rating : null,
         reviewCount: 0, // Add review count from API if available
       },

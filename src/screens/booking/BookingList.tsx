@@ -28,7 +28,7 @@ import {
 } from '@services/api/queries/appQueries';
 import axiosInstance from '@services/api/axiosInstance';
 import EndPoints from '@services/api/EndPoints';
-import { getStatusColor } from '@utils/tools';
+import { getStatusColor, getProviderDisplayName } from '@utils/tools';
 import imagePaths from '@assets';
 import BookingListFilters, {
   BookingStatusOption,
@@ -211,7 +211,14 @@ export default function BookingList() {
         statusColor: getStatusColor(booking.bookingStatus),
         date: formatDate(booking.date),
         time: booking.time || '',
-        shopName: booking.spId?.name || t('bookingList.serviceProviderDefault'),
+        shopName: getProviderDisplayName(
+          {
+            name:
+              typeof booking.spId === 'object' ? booking.spId?.name : undefined,
+            spBusinessProfile: booking.spBusinessProfile,
+          },
+          t('bookingList.serviceProviderDefault'),
+        ),
         address: booking?.addressId?.formattedAddress || '',
         price: `$${(
           booking.discountedAmount ??

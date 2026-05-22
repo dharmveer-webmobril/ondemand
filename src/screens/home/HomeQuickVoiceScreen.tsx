@@ -44,7 +44,7 @@ import {
 } from '@services/api/queries/appQueries';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, getProviderDisplayName } from '@utils/tools';
 
 const EVT_RESULTS = 'onSpeechResults';
 const EVT_END = 'onSpeechEnd';
@@ -272,7 +272,7 @@ export default function HomeQuickVoiceScreen() {
       navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
         provider: {
           id: provider._id,
-          name: provider.name,
+          name: getProviderDisplayName(provider, t('home.providerFallbackName')),
           logo: provider.profileImage,
           address:
             formatAddress({
@@ -285,7 +285,7 @@ export default function HomeQuickVoiceScreen() {
             }) ||
             provider.city?.name ||
             '',
-          serviceType: bp?.name || t('home.providerFallbackName'),
+          serviceType: provider.cityName || bp?.cityName || '',
           rating: typeof provider.rating === 'number' ? provider.rating : null,
           reviewCount: 0,
         },

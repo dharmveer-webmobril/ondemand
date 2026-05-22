@@ -27,6 +27,7 @@ import {
 } from '@services/api/queries/appQueries';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getProviderDisplayName } from '@utils/tools';
 
 export type RateReviewTab = 'service' | 'sp' | 'member';
 
@@ -542,8 +543,10 @@ export default function RateReviewModal({
                         />
                       </View>
                       <CustomText style={styles.formTitle} numberOfLines={2}>
-                        {provider?.name ||
-                          t('bookingList.serviceProviderDefault')}
+                        {getProviderDisplayName(
+                          provider,
+                          t('bookingList.serviceProviderDefault'),
+                        )}
                       </CustomText>
                     </View>
                     <View style={styles.starsWrap}>

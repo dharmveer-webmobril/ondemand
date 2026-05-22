@@ -4,7 +4,11 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import { ServiceProvider } from '@services/api/queries/appQueries';
-import { formatAddress, formatDistanceKmAway } from '@utils/tools';
+import {
+  formatAddress,
+  formatDistanceKmAway,
+  getProviderDisplayName,
+} from '@utils/tools';
 
 type HomeProviderItemProps = {
   provider: ServiceProvider;
@@ -79,7 +83,7 @@ export default function HomeProviderItem({
 
       <View style={styles.bottomSection}>
         <CustomText style={styles.providerName} numberOfLines={2}>
-          {provider.name}
+          {getProviderDisplayName(provider)}
         </CustomText>
 
         <View style={styles.metaRow}>

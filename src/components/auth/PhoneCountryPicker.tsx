@@ -6,6 +6,8 @@ import {
   Platform,
   TextStyle,
   ViewStyle,
+  ImageSourcePropType,
+  ImageStyle,
 } from 'react-native';
 import {
   CountryPicker,
@@ -29,9 +31,12 @@ export interface PhoneCountryPickerProps {
   errorText?: string;
   marginTop?: number;
   onNationalBlur?: () => void;
+  onContactsPress?: () => void;
+  contactsIcon?: ImageSourcePropType;
+  contactsIconStyle?: ImageStyle;
   /**
    * `white` (default) – white text/border, intended for colored auth backgrounds.
-   * `default` – dark text on a light/white surface (e.g. ProfileSetup).
+   * `default` – bordered form row (Checkout, AddOtherPersonDetail, ProfileSetup).
    */
   inputTheme?: 'white' | 'default';
 }
@@ -45,6 +50,9 @@ export default function PhoneCountryPicker({
   errorText,
   marginTop = 0,
   onNationalBlur,
+  onContactsPress,
+  contactsIcon,
+  contactsIconStyle,
   inputTheme = 'white',
 }: PhoneCountryPickerProps) {
   const theme = useThemeContext();
@@ -54,8 +62,11 @@ export default function PhoneCountryPicker({
   const isLight = inputTheme === 'default';
   const accentColor = isLight ? theme.colors.text : theme.colors.white;
   const borderColor = isLight
-    ? theme.colors.secondary || '#E0E0E0'
+    ? theme.colors.textInputBorder || theme.colors.secondary || '#E0E0E0'
     : theme.colors.white;
+  const dialBackground = isLight
+    ? theme.colors.background || theme.colors.secondary || '#F5F5F5'
+    : 'transparent';
 
   const closePicker = useCallback(() => setPickerOpen(false), []);
 
@@ -117,8 +128,8 @@ export default function PhoneCountryPicker({
           onPress={() => setPickerOpen(true)}
           style={[
             styles.dialTrigger,
-            { borderColor },
-            isLight && { backgroundColor: theme.colors.white },
+            isLight && styles.dialTriggerForm,
+            { borderColor, backgroundColor: dialBackground },
             Platform.OS === 'ios' &&
               (Platform as { OS: string; isPad?: boolean }).isPad &&
               styles.dialTriggerPad,
@@ -150,6 +161,9 @@ export default function PhoneCountryPicker({
             keyboardType="number-pad"
             marginTop={0}
             maxLength={15}
+            rightIcon={contactsIcon}
+            onRightIconPress={onContactsPress}
+            rightIconStyle={contactsIconStyle}
           />
         </View>
       </View>
@@ -182,19 +196,28 @@ const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     row: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'stretch',
       gap: theme.SW(10),
     },
     dialTrigger: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      minWidth: theme.SW(88),
-      paddingHorizontal: theme.SW(10),
-      paddingVertical: theme.SH(10),
-      borderRadius: theme.borderRadius.md,
+      minWidth: theme.SW(72),
+      paddingHorizontal: theme.SW(8),
+      // paddingVertical: theme.SH(10),
+      borderRadius: theme.SF(10),
       borderWidth: 1,
       gap: theme.SW(4),
+      flexShrink: 0,
+      backgroundColor: theme.colors.white,
+    },
+    dialTriggerForm: {
+      minWidth: 0,
+      maxWidth: theme.SW(80),
+      // minHeight: theme.SH(48),
+      // paddingVertical: theme.SH(12),
+      paddingHorizontal: theme.SW(6),
     },
     dialTriggerPad: {
       marginLeft: theme.SW(50),

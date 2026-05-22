@@ -10,6 +10,7 @@ import {
 } from '@utils/serviceRoutineConfig';
 import type { BookingType } from './BookAppointmentBookingTypeSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
 
 type Service = {
   _id: string;
@@ -153,15 +154,17 @@ export default function ServiceSelectionModal({
             )}
           </View>
           <View style={styles.serviceInfo}>
-            <CustomText
-              style={[
+            <ServiceNameWithRoutineBadge
+              name={item.name}
+              service={item}
+              numberOfLines={2}
+              nameStyle={[
                 styles.serviceName,
                 isSelected && !disabled && styles.selectedServiceName,
                 disabled && styles.serviceNameDisabled,
               ]}
-            >
-              {item.name}
-            </CustomText>
+              containerStyle={styles.serviceNameBlock}
+            />
             <CustomText
               style={[
                 styles.servicePrice,
@@ -348,12 +351,16 @@ const createStyles = (theme: ThemeType) => {
     },
     serviceInfo: {
       flex: 1,
+      minWidth: 0,
+    },
+    serviceNameBlock: {
+      marginBottom: SH(4),
     },
     serviceName: {
       fontSize: SF(16),
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
-      marginBottom: SH(4),
+      lineHeight: SF(22),
     },
     selectedServiceName: {
       fontFamily: Fonts.SEMI_BOLD,

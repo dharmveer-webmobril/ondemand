@@ -25,7 +25,7 @@ import imagePaths from '@assets';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import useDebounce from '@utils/hooks/useDebounce';
 import { useAppSelector } from '@store/hooks';
-import { formatAddress } from '@utils/tools';
+import { formatAddress, getProviderDisplayName } from '@utils/tools';
 
 type DeliveryMode = 'at_home' | 'online' | 'on_premises';
 
@@ -282,7 +282,7 @@ export default function CategoryProviders() {
       (navigation as any).navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
         provider: {
           id: provider._id,
-          name: provider.name,
+          name: getProviderDisplayName(provider, 'Service Provider'),
           logo: provider.businessProfile?.bannerImage
             ? { uri: provider.businessProfile?.bannerImage }
             : imagePaths.no_image,
@@ -295,7 +295,7 @@ export default function CategoryProviders() {
               city: provider.businessProfile?.city?.name,
               country: provider.businessProfile?.country?.name,
             }) || provider.city?.name || '',
-          serviceType: provider.businessProfile?.name || 'Service Provider',
+          serviceType: provider.cityName || provider.businessProfile?.cityName || '',
           rating: provider.rating,
           reviewCount: 0,
         },
@@ -444,7 +444,7 @@ export default function CategoryProviders() {
           renderItem={({ item }) => (
             <ServiceProviderListItem
               id={item._id}
-              name={item.name}
+              name={getProviderDisplayName(item, t('bookingList.serviceProviderDefault'))}
               logo={
                 item.businessProfile?.bannerImage
                   ? { uri: item.businessProfile?.bannerImage }
@@ -463,7 +463,7 @@ export default function CategoryProviders() {
               }
               rating={typeof item.rating === 'number' ? item.rating : 0}
               reviewCount={0}
-              serviceType={item.businessProfile?.name}
+              serviceType={item.cityName || item.businessProfile?.cityName || undefined}
               isVerified={item.isVerified}
               isOpen={item.status === '1'}
               onPress={() => handleProviderPress(item)}

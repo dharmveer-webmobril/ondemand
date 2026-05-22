@@ -3,6 +3,8 @@ import  { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
+import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
+import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
 
 type Service = {
   _id: string;
@@ -12,6 +14,7 @@ type Service = {
   serviceAddOns?: any[];
   selectedAddOns?: any[];
   images?: string[];
+  routineConfig?: ServiceRoutineConfig | null;
 };
 
 type ServiceCartProps = {
@@ -71,7 +74,12 @@ export default function ServiceCart({
                 />
               </View>
               <View style={styles.serviceDetails}>
-                <CustomText style={styles.serviceName}>{service?.name}</CustomText>
+                <ServiceNameWithRoutineBadge
+                  name={service?.name ?? ''}
+                  service={service}
+                  nameStyle={styles.serviceName}
+                  containerStyle={styles.serviceNameBlock}
+                />
                 <CustomText style={styles.servicePrice}>
                   ${displayPrice.toFixed(2)} • {displayDuration}m
                 </CustomText>
@@ -164,12 +172,17 @@ const createStyles = (theme: ThemeType) => {
     serviceDetails: {
       marginLeft: SW(12),
       flex: 1,
+      minWidth: 0,
+      paddingRight: SW(28),
+    },
+    serviceNameBlock: {
+      marginBottom: SH(4),
     },
     serviceName: {
       fontSize: SF(14),
       fontFamily: Fonts.MEDIUM,
       color: Colors.text,
-      marginBottom: SH(2),
+      lineHeight: SF(19),
     },
     servicePrice: {
       fontSize: SF(12),
