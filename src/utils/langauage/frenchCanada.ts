@@ -241,7 +241,8 @@ export const frenchCanada = {
     "enterEmailID": "Entrez votre courriel",
     "save": "Enregistrer",
     "bookmarkedProviders": "Fournisseurs enregistrés",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "defaultAddress": "Par défaut"
   },
   "transactions": {
     "title": "Transactions",
@@ -452,7 +453,21 @@ export const frenchCanada = {
       "walletPartial": "Portefeuille (Partiel)",
       "paymentTitle": "Paiement"
     },
-    "noAddressSelected": "Aucune adresse sélectionnée"
+    "noAddressSelected": "Aucune adresse sélectionnée",
+    "appointmentDetails": "Détails du rendez-vous",
+    "serviceForSection": "Service pour",
+    "dateLabel": "Date :",
+    "timeLabel": "Heure :",
+    "totalLabel": "Total :",
+    "routinePackageLine": "Forfait récurrent · {{count}} séances",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% de rabais) −{{amount}} $",
+    "selectServiceFor": "Sélectionner le service pour",
+    "paymentGateways": {
+      "stripe": "Stripe",
+      "flutterwave": "Flutterwave",
+      "paypal": "PayPal",
+      "payOnsite": "Payer sur place"
+    },
   },
   "imagePickerModal": {
     "title": "Sélectionner une image",
@@ -480,7 +495,8 @@ export const frenchCanada = {
     "retry": "Réessayer",
     "noResults": "Aucun résultat pour {{searchTerm}}.",
     "goodMsg": "Continuez vos recherches, vous trouverez ce qu'il vous faut!",
-    "empty": "Aucune catégorie disponible."
+    "empty": "Aucune catégorie disponible.",
+    "selectDeliveryMode": "Choisir le mode de livraison"
   },
   "homeCategory": {
     "error": "Erreur de chargement des catégories.",
@@ -660,7 +676,9 @@ export const frenchCanada = {
       "completed": "Terminées",
       "cancelledByYou": "Annulées par vous",
       "cancelledByProvider": "Annulées par le prestataire",
-      "rejected": "Rejetées"
+      "rejected": "Rejetées",
+      "rescheduledByCustomer": "Reportée par le client",
+      "rescheduledBySp": "Reportée par le fournisseur"
     },
     "status": {
       "completed": "TERMINÉ",
@@ -738,6 +756,28 @@ export const frenchCanada = {
     "cancelPolicyLink": "Politique d'annulation",
     "cancellationReasonLabel": "Raison d'annulation *",
     "confirmCancellation": "Confirmer l'annulation",
+    "bookedFor": "Réservé pour",
+    "serviceCard": {
+      "cancelledByProvider": "Annulé par le fournisseur",
+      "cancelledByCustomer": "Annulé par le client",
+      "rejectedByProvider": "Rejeté par le fournisseur",
+      "rescheduledByYouWait": "Reporté par vous, en attente d'approbation du fournisseur",
+      "rescheduledBySp": "Reporté par le fournisseur de services :",
+      "assignedMember": "Membre assigné",
+      "priceService": "Service :",
+      "priceAddons": "Suppléments :",
+      "priceSubtotal": "Sous-total :",
+      "priceDiscount": "Rabais :",
+      "priceTotal": "Total :",
+      "rejectReschedule": "Refuser le report",
+      "acceptReschedule": "Accepter le report",
+      "reschedule": "Reporter",
+      "trackMember": "Suivre le membre",
+      "changeMember": "Changer de membre",
+      "assignMember": "Assigner un membre",
+      "addMoreAddons": "Ajouter des suppléments",
+      "selectedServices": "Services sélectionnés"
+    },
     "rescheduleBookingTitle": "Reporter la réservation",
     "selectDate": "Choisir une date",
     "selectTime": "Choisir une heure",
@@ -766,7 +806,17 @@ export const frenchCanada = {
     "addressNotAvailable": "Adresse non disponible",
     "providerDefaultName": "Prestataire",
     "serviceProviderDefault": "Prestataire de services",
-    "share": "Partager"
+    "share": "Partager",
+    "aboutUs": "À propos",
+    "amenities": "Commodités",
+    "report": "Signaler",
+    "members": "Membres",
+    "book": "Réserver",
+    "call": "Appeler",
+    "selectServices": "Choisir les services",
+    "selectAddons": "Choisir les suppléments",
+    "selectedServices": "Services sélectionnés",
+    "addAddons": "Ajouter des suppléments"
   },
   "paymentPolicy": {
     "title": "Politique de paiement et d'annulation"
@@ -789,17 +839,24 @@ export const frenchCanada = {
   },
   "bookingList": {
     "addressNotAvailable": "Adresse non disponible",
-    "serviceProviderDefault": "Prestataire de services"
+    "serviceProviderDefault": "Prestataire de services",
+    "clearDate": "Effacer",
+    "filterDate": "Date",
+    "monthsShort": ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juill.", "août", "sept.", "oct.", "nov.", "déc."],
+    "monthsLong": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
   },
   "common": {
     "error": "Erreur",
     "success": "Succès",
     "cancel": "Annuler",
+    "ok": "OK",
     "submit": "Soumettre",
     "assign": "Assigner",
     "save": "Enregistrer",
     "confirm": "Confirmer",
     "retry": "Réessayer",
+    "viewAll": "Voir tout",
+    "selectContact": "Sélectionner un contact",
     "phoneNotSupported": "Les appels ne sont pas supportés sur cet appareil",
     "unableToCall": "Impossible de passer l'appel",
     "loading": "Chargement...",

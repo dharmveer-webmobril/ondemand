@@ -79,7 +79,9 @@ export default function PhoneNumberPicker({
             onPress={e => e.stopPropagation()}
           >
             <View style={styles.content}>
-              <CustomText style={styles.title}>Select Contact</CustomText>
+              <CustomText style={styles.title}>
+                {t('common.selectContact')}
+              </CustomText>
 
               <CustomInput
                 placeholder={t('placeholders.search')}

@@ -296,7 +296,9 @@ export default function ProviderDetails({
 
       {/* About Us */}
       <View style={styles.section}>
-        <CustomText style={styles.sectionTitle}>About Us</CustomText>
+        <CustomText style={styles.sectionTitle}>
+          {t('providerDetails.aboutUs')}
+        </CustomText>
         <CustomText style={styles.aboutText}>{aboutUs}</CustomText>
       </View>
 
@@ -310,7 +312,7 @@ export default function ProviderDetails({
             <CustomText style={styles.phoneNumber}>{phoneNumber}</CustomText>
             {onCall && (
               <CustomButton
-                title="Call"
+                title={t('providerDetails.call')}
                 onPress={onCall}
                 buttonStyle={styles.callButton}
                 backgroundColor={theme.colors.primary}
@@ -372,7 +374,9 @@ export default function ProviderDetails({
       {/* Amenities */}
       {amenities.length > 0 && (
         <View style={styles.section}>
-          <CustomText style={styles.sectionTitle}>Amenities</CustomText>
+          <CustomText style={styles.sectionTitle}>
+            {t('providerDetails.amenities')}
+          </CustomText>
           <View style={styles.amenitiesContainer}>
             {amenities.map((amenity, index) => (
               <View key={index} style={styles.amenityItem}>
@@ -428,7 +432,9 @@ export default function ProviderDetails({
             style={styles.linkItem}
             onPress={onReportPress}
           >
-            <CustomText style={styles.linkText}>Report</CustomText>
+            <CustomText style={styles.linkText}>
+              {t('providerDetails.report')}
+            </CustomText>
             <VectoreIcons
               name="chevron-forward"
               icon="Ionicons"

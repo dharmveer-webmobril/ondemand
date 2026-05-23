@@ -1,5 +1,6 @@
 import { View, StyleSheet, Pressable } from 'react-native';
-import  { useMemo } from 'react';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
@@ -31,6 +32,7 @@ export default function ServiceCart({
   onAddService,
 }: ServiceCartProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const calculateServiceTotal = (service: Service) => {
@@ -55,7 +57,9 @@ export default function ServiceCart({
 
   return (
     <View style={styles.section}>
-      <CustomText style={styles.sectionTitle}>Selected Services</CustomText>
+      <CustomText style={styles.sectionTitle}>
+        {t('providerDetails.selectedServices')}
+      </CustomText>
       {safeServices.map((service, index) => {
         if (service == null) return null;
         const serviceTotalPrice = calculateServiceTotal(service);
@@ -116,7 +120,9 @@ export default function ServiceCart({
                   onPress={() => onAddAddOns(service)}
                   style={styles.addAddOnButton}
                 >
-                  <CustomText style={styles.addAddOnText}>Add Add-ons</CustomText>
+                  <CustomText style={styles.addAddOnText}>
+                    {t('providerDetails.addAddons')}
+                  </CustomText>
                 </Pressable>
               )}
             </View>

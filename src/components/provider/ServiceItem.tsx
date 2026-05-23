@@ -1,5 +1,6 @@
 import { View, StyleSheet, Pressable, ImageSourcePropType } from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import {
   CustomText,
@@ -42,6 +43,7 @@ export default function ServiceItem({
   routineConfig,
 }: ServiceItemProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const hasOffer = bestOffer != null && Number(bestOffer?.discountValue) > 0;
@@ -121,7 +123,7 @@ export default function ServiceItem({
         </View>
         {isShowBookButton && (
           <CustomButton
-            title="Book"
+            title={t('providerDetails.book')}
             onPress={onBook}
             buttonStyle={styles.bookButton}
             buttonTextStyle={styles.bookButtonText}

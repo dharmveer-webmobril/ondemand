@@ -729,6 +729,7 @@ export default function Checkout() {
           bookingData={bookingData}
           totalPrice={totalPrice}
           styles={styles}
+          t={t}
         />
         <SelectedServicesSection
           selectedServices={selectedServices}

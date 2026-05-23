@@ -4,6 +4,7 @@ import VectorIcon from './VectoreIcons';
 import CustomText from './CustomText';
 import CustomButton from './CustomButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface SweetaelertModalProps {
   visible: boolean;
@@ -29,6 +30,7 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
   const isConfirmBox =
     isConfirmType === 'confirm' || isConfirmType === 'delete';
   const theme = useThemeContext();
+  const { t } = useTranslation();
 
   const { SF, colors: Colors } = theme;
   // Choose icon and color based on type
@@ -83,7 +85,7 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
               <View style={styles.buttonminview}>
                 <View style={styles.setokbutton}>
                   <CustomButton
-                    title={'Ok'}
+                    title={t('common.ok')}
                     isBordered
                     isLoading={isOkButtonLoading}
                     onPress={() => {
@@ -94,7 +96,7 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
                 {isConfirmBox && (
                   <View style={styles.setokbutton}>
                     <CustomButton
-                      title={'Cancel'}
+                      title={t('common.cancel')}
                       isBordered
                       onPress={() => {
                         onCancel && onCancel();

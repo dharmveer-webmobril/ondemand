@@ -108,7 +108,7 @@ export default function BookingServiceCard({
                   fontSize={theme.fontSize.sm}
                   style={{ marginBottom: theme.SH(3), marginTop: theme.SH(8) }}
                 >
-                  Cancelled by provider
+                  {t('bookingDetails.serviceCard.cancelledByProvider')}
                 </CustomText>
                 {service?.remark && (
                   <CustomText
@@ -133,7 +133,7 @@ export default function BookingServiceCard({
                   fontSize={theme.fontSize.sm}
                   style={{ marginBottom: theme.SH(3), marginTop: theme.SH(8) }}
                 >
-                  Cancelled by customer
+                  {t('bookingDetails.serviceCard.cancelledByCustomer')}
                 </CustomText>
                 {service?.remark && (
                   <CustomText
@@ -158,7 +158,7 @@ export default function BookingServiceCard({
                   fontSize={theme.fontSize.sm}
                   style={styles.statusText}
                 >
-                  Rejected by provider
+                  {t('bookingDetails.serviceCard.rejectedByProvider')}
                 </CustomText>
                 {service?.remark && (
                   <CustomText
@@ -190,7 +190,7 @@ export default function BookingServiceCard({
                   fontSize={theme.fontSize.sm}
                   style={{ marginTop: theme.SH(8), marginBottom: theme.SH(4) }}
                 >
-                  Rescheduled by you, Please wait for provider approval{' '}
+                  {t('bookingDetails.serviceCard.rescheduledByYouWait')}{' '}
                   <CustomText
                     style={{
                       marginTop: theme.SH(8),
@@ -224,7 +224,7 @@ export default function BookingServiceCard({
                   fontSize={theme.fontSize.sm}
                   style={{ marginTop: theme.SH(8), marginBottom: theme.SH(4) }}
                 >
-                  Rescheduled by service provider :{' '}
+                  {t('bookingDetails.serviceCard.rescheduledBySp')}{' '}
                   <CustomText
                     style={{
                       marginTop: theme.SH(8),
@@ -355,7 +355,9 @@ export default function BookingServiceCard({
             <View style={styles.priceSummaryContainer}>
               {service.price !== undefined && (
                 <View style={styles.priceRow}>
-                  <CustomText style={styles.priceLabel}>Service:</CustomText>
+                  <CustomText style={styles.priceLabel}>
+                    {t('bookingDetails.serviceCard.priceService')}
+                  </CustomText>
                   <CustomText style={styles.priceValue}>
                     $
                     {(Number.isFinite(service?.price)
@@ -367,7 +369,9 @@ export default function BookingServiceCard({
               )}
               {service.addOnsTotal !== undefined && service.addOnsTotal > 0 && (
                 <View style={styles.priceRow}>
-                  <CustomText style={styles.priceLabel}>Add-ons:</CustomText>
+                  <CustomText style={styles.priceLabel}>
+                    {t('bookingDetails.serviceCard.priceAddons')}
+                  </CustomText>
                   <CustomText style={styles.priceValue}>
                     $
                     {(Number.isFinite(service?.addOnsTotal)
@@ -379,7 +383,9 @@ export default function BookingServiceCard({
               )}
               {service.totalAmount !== undefined && (
                 <View style={styles.priceRow}>
-                  <CustomText style={styles.priceLabel}>Subtotal:</CustomText>
+                  <CustomText style={styles.priceLabel}>
+                    {t('bookingDetails.serviceCard.priceSubtotal')}
+                  </CustomText>
                   <CustomText style={styles.priceValue}>
                     $
                     {(Number.isFinite(service?.totalAmount)
@@ -392,7 +398,9 @@ export default function BookingServiceCard({
               {service.discountAmount !== undefined &&
                 service.discountAmount > 0 && (
                   <View style={styles.priceRow}>
-                    <CustomText style={styles.priceLabel}>Discount:</CustomText>
+                    <CustomText style={styles.priceLabel}>
+                      {t('bookingDetails.serviceCard.priceDiscount')}
+                    </CustomText>
                     <CustomText
                       style={[styles.priceValue, styles.discountText]}
                     >
@@ -406,7 +414,9 @@ export default function BookingServiceCard({
                 )}
               {service.discountedAmount !== undefined && (
                 <View style={[styles.priceRow, styles.totalPriceRow]}>
-                  <CustomText style={styles.totalPriceLabel}>Total:</CustomText>
+                  <CustomText style={styles.totalPriceLabel}>
+                    {t('bookingDetails.serviceCard.priceTotal')}
+                  </CustomText>
                   <CustomText style={styles.totalPriceValue}>
                     $
                     {(Number.isFinite(service?.discountedAmount)
@@ -429,7 +439,7 @@ export default function BookingServiceCard({
                     fontSize={theme.fontSize.sm}
                     style={styles.assignedMemberText}
                   >
-                    Assigned Member
+                    {t('bookingDetails.serviceCard.assignedMember')}
                   </CustomText>
                   <View style={styles.memberInfo}>
                     <View style={styles.memberRow}>
@@ -472,7 +482,7 @@ export default function BookingServiceCard({
                 {serviceStatus === 'rescheduledBySp' && (
                   <View style={{ flexDirection: 'row', gap: SW(8) }}>
                     <CustomButton
-                      title="Reject Reschedule"
+                      title={t('bookingDetails.serviceCard.rejectReschedule')}
                       onPress={() => onRejectService?.(service._id)}
                       isLoading={
                         serviceLoadingStates?.[service._id] === 'reject'
@@ -487,7 +497,7 @@ export default function BookingServiceCard({
                       buttonTextStyle={styles.rescheduleButtonText}
                     />
                     <CustomButton
-                      title="Accept Reschedule"
+                      title={t('bookingDetails.serviceCard.acceptReschedule')}
                       onPress={() => onAcceptService?.(service._id)}
                       isLoading={
                         serviceLoadingStates?.[service._id] === 'accept'
@@ -505,7 +515,7 @@ export default function BookingServiceCard({
                   serviceStatus === 'rescheduledByCustomer') && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
-                      title="Reschedule"
+                      title={t('bookingDetails.serviceCard.reschedule')}
                       onPress={() => onReschedule?.(service)}
                       backgroundColor={theme.colors.primary}
                       textColor={theme.colors.white}
@@ -534,7 +544,7 @@ export default function BookingServiceCard({
                     ]}
                   >
                     <CustomButton
-                      title="Track Member"
+                      title={t('bookingDetails.serviceCard.trackMember')}
                       onPress={() => onTrackMember(service)}
                       isLoading={trackMemberLoadingId === service._id}
                       disable={trackMemberLoadingId === service._id}

@@ -125,7 +125,9 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
             pressed && { opacity: 0.7 },
           ]}
         >
-          <CustomText style={styles.viewAllText}>View All</CustomText>
+          <CustomText style={styles.viewAllText}>
+            {t('home.categoryViewAll')}
+          </CustomText>
         </Pressable>
       )}
     </>

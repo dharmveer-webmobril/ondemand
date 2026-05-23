@@ -47,7 +47,9 @@ function BookingListFiltersComponent({
             Date: {formatDateDisplay(selectedDate)}
           </CustomText>
           <Pressable onPress={onClearDate} style={styles.clearDateButton}>
-            <CustomText style={styles.clearDateText}>Clear</CustomText>
+            <CustomText style={styles.clearDateText}>
+              {t('bookingList.clearDate')}
+            </CustomText>
           </Pressable>
         </View>
       )}
@@ -112,7 +114,9 @@ function BookingListFiltersComponent({
               size={theme.SF(18)}
               color={theme.colors.primary}
             />
-            <CustomText style={styles.calendarButtonText}>Date</CustomText>
+            <CustomText style={styles.calendarButtonText}>
+              {t('bookingList.filterDate')}
+            </CustomText>
           </TouchableOpacity>
         </View>
       </View>

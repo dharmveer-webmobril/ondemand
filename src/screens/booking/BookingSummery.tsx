@@ -243,7 +243,9 @@ export default function BookingSummery() {
 
       <View style={styles.checkoutContainer}>
         <View style={styles.totalContainer}>
-          <CustomText style={styles.totalLabel}>Total</CustomText>
+          <CustomText style={styles.totalLabel}>
+            {t('bookingDetail.addOns.total')}
+          </CustomText>
           <View style={styles.totalDetails}>
             <CustomText style={styles.totalPrice}>
               ${(Number.isFinite(totalPrice) ? totalPrice : 0).toFixed(2)}

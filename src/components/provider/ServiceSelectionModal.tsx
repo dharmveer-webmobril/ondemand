@@ -207,7 +207,9 @@ export default function ServiceSelectionModal({
           >
             <View style={styles.content}>
               <View style={styles.header}>
-                <CustomText style={styles.title}>Select Services</CustomText>
+                <CustomText style={styles.title}>
+                  {t('providerDetails.selectServices')}
+                </CustomText>
                 <Pressable onPress={onClose} style={styles.closeButton}>
                   <VectoreIcons
                     name="close"

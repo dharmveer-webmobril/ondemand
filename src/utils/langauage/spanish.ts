@@ -242,7 +242,8 @@ export const spanish = {
     "save": "Guardar",
     "bookmarkedProviders": "Proveedores guardados",
     "walletTransactions": "Billetera y transacciones",
-    "transactions": "Transacciones"
+    "transactions": "Transacciones",
+    "defaultAddress": "Predeterminada"
   },
   "transactions": {
     "title": "Transacciones",
@@ -454,6 +455,22 @@ export const spanish = {
       "paymentTitle": "Pago"
     },
     "noAddressSelected": "Ninguna dirección seleccionada",
+    "appointmentDetails": "Detalles de la cita",
+    "serviceForSection": "Servicio para",
+    "dateLabel": "Fecha:",
+    "timeLabel": "Hora:",
+    "totalLabel": "Total:",
+    "routinePackageLine": "Paquete de rutina · {{count}} sesiones",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% dto.) −${{amount}}",
+    "selectServiceFor": "Seleccionar servicio para",
+    "paymentGateways": {
+      "stripe": "Stripe",
+      "flutterwave": "Flutterwave",
+      "paypal": "PayPal",
+      "payOnsite": "Pagar en el sitio"
+    },
+    "selectPaymentMethod": "Seleccionar método de pago",
+    "payWithCard": "Pagar con tarjeta",
     "paymentSuccessModal": {
       "title": "Pago confirmado",
       "confirmedHeading": "¡Reserva confirmada!",
@@ -496,7 +513,8 @@ export const spanish = {
     "retry": "Reintentar",
     "noResults": "No hay resultados para {{searchTerm}}. ¡Prueba con algo diferente!",
     "goodMsg": "¡Sigue explorando, encontrarás algo genial!",
-    "empty": "No hay categorías disponibles."
+    "empty": "No hay categorías disponibles.",
+    "selectDeliveryMode": "Seleccionar modo de entrega"
   },
   "homeCategory": {
     "error": "Error al cargar las categorías. Toca para reintentar.",
@@ -693,7 +711,9 @@ export const spanish = {
       "completed": "Completadas",
       "cancelledByYou": "Canceladas por ti",
       "cancelledByProvider": "Canceladas por el proveedor",
-      "rejected": "Rechazadas"
+      "rejected": "Rechazadas",
+      "rescheduledByCustomer": "Reprogramada por el cliente",
+      "rescheduledBySp": "Reprogramada por el proveedor"
     },
     "status": {
       "completed": "COMPLETADO",
@@ -771,6 +791,28 @@ export const spanish = {
     "cancelPolicyLink": "Política de cancelación",
     "cancellationReasonLabel": "Motivo de cancelación *",
     "confirmCancellation": "Confirmar cancelación",
+    "bookedFor": "Reservado para",
+    "serviceCard": {
+      "cancelledByProvider": "Cancelado por el proveedor",
+      "cancelledByCustomer": "Cancelado por el cliente",
+      "rejectedByProvider": "Rechazado por el proveedor",
+      "rescheduledByYouWait": "Reprogramado por ti, espera la aprobación del proveedor",
+      "rescheduledBySp": "Reprogramado por el proveedor de servicios:",
+      "assignedMember": "Miembro asignado",
+      "priceService": "Servicio:",
+      "priceAddons": "Complementos:",
+      "priceSubtotal": "Subtotal:",
+      "priceDiscount": "Descuento:",
+      "priceTotal": "Total:",
+      "rejectReschedule": "Rechazar reprogramación",
+      "acceptReschedule": "Aceptar reprogramación",
+      "reschedule": "Reprogramar",
+      "trackMember": "Rastrear miembro",
+      "changeMember": "Cambiar miembro",
+      "assignMember": "Asignar miembro",
+      "addMoreAddons": "Agregar más complementos",
+      "selectedServices": "Servicios seleccionados"
+    },
     "rescheduleBookingTitle": "Reprogramar reserva",
     "selectDate": "Seleccionar fecha",
     "selectTime": "Seleccionar hora",
@@ -799,7 +841,17 @@ export const spanish = {
     "addressNotAvailable": "Dirección no disponible",
     "providerDefaultName": "Proveedor",
     "serviceProviderDefault": "Proveedor de servicios",
-    "share": "Compartir"
+    "share": "Compartir",
+    "aboutUs": "Sobre nosotros",
+    "amenities": "Comodidades",
+    "report": "Reportar",
+    "members": "Miembros",
+    "book": "Reservar",
+    "call": "Llamar",
+    "selectServices": "Seleccionar servicios",
+    "selectAddons": "Seleccionar complementos",
+    "selectedServices": "Servicios seleccionados",
+    "addAddons": "Agregar complementos"
   },
   "paymentPolicy": {
     "title": "Política de pago y cancelación"
@@ -822,17 +874,24 @@ export const spanish = {
   },
   "bookingList": {
     "addressNotAvailable": "Dirección no disponible",
-    "serviceProviderDefault": "Proveedor de servicios"
+    "serviceProviderDefault": "Proveedor de servicios",
+    "clearDate": "Borrar",
+    "filterDate": "Fecha",
+    "monthsShort": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+    "monthsLong": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
   },
   "common": {
     "error": "Error",
     "success": "Éxito",
     "cancel": "Cancelar",
+    "ok": "OK",
     "submit": "Enviar",
     "assign": "Asignar",
     "save": "Guardar",
     "confirm": "Confirmar",
     "retry": "Reintentar",
+    "viewAll": "Ver todo",
+    "selectContact": "Seleccionar contacto",
     "phoneNotSupported": "Las llamadas telefónicas no son compatibles con este dispositivo",
     "unableToCall": "No se puede realizar la llamada",
     "loading": "Cargando...",

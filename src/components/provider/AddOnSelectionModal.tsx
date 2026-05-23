@@ -149,7 +149,9 @@ export default function AddOnSelectionModal({
           >
             <View style={styles.content}>
               <View style={styles.header}>
-                <CustomText style={styles.title}>Select Add-ons</CustomText>
+                <CustomText style={styles.title}>
+                  {t('providerDetails.selectAddons')}
+                </CustomText>
                 <Pressable onPress={onClose} style={styles.closeButton}>
                   <VectoreIcons
                     name="close"

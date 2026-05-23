@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { CustomText, CustomButton, VectoreIcons, ImageLoader } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -33,6 +34,7 @@ export default function ServiceMemberCard({
   onViewLocation,
 }: ServiceMemberCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
@@ -143,7 +145,7 @@ export default function ServiceMemberCard({
               </View>
             </View>
             <CustomButton
-              title="Change Member"
+              title={t('bookingDetails.serviceCard.changeMember')}
               onPress={onChangeMember}
               backgroundColor={theme.colors.primary_light}
               textColor={theme.colors.white}
@@ -153,7 +155,7 @@ export default function ServiceMemberCard({
           </>
         ) : (
           <CustomButton
-            title="Assign Member"
+            title={t('bookingDetails.serviceCard.assignMember')}
             onPress={onAssignMember}
             backgroundColor={theme.colors.primary}
             textColor={theme.colors.white}

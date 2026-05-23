@@ -998,7 +998,7 @@ export default function BookingDetail() {
           <BookingForCard
             value={booking?.bookedFor}
             type="bookedFor"
-            title={'Booked For'}
+            title={t('bookingDetails.bookedFor')}
           />
           {/* Payment Status Card */}
           <PaymentStatusCard

@@ -2,6 +2,7 @@ import { View, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-nati
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText } from '@components/common';
+import { useTranslation } from 'react-i18next';
 import {
   useGetServiceProviderMembers,
   type SPMember,
@@ -53,6 +54,7 @@ function MemberCard({
 }
 
 export default function ProviderMembersList({ spId }: ProviderMembersListProps) {
+  const { t } = useTranslation();
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -98,7 +100,9 @@ export default function ProviderMembersList({ spId }: ProviderMembersListProps) 
   if (isLoading && page === 1) {
     return (
       <View style={styles.section}>
-        <CustomText style={styles.sectionTitle}>Members</CustomText>
+        <CustomText style={styles.sectionTitle}>
+          {t('providerDetails.members')}
+        </CustomText>
         <View style={styles.loaderWrap}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
         </View>
@@ -110,7 +114,9 @@ export default function ProviderMembersList({ spId }: ProviderMembersListProps) 
 
   return (
     <View style={styles.section}>
-      <CustomText style={styles.sectionTitle}>Members</CustomText>
+      <CustomText style={styles.sectionTitle}>
+        {t('providerDetails.members')}
+      </CustomText>
       <FlatList
         data={list}
         keyExtractor={(item) => item._id}

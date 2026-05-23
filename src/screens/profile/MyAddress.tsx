@@ -104,7 +104,9 @@ export default function MyAddress() {
           <CustomText style={styles.addressText}>{formattedAddress}</CustomText>
           <CustomText style={styles.addressPhone}>{item.contact}</CustomText>
           {item.isDefault && (
-            <CustomText style={styles.defaultBadge}>Default</CustomText>
+            <CustomText style={styles.defaultBadge}>
+              {t('profile.defaultAddress')}
+            </CustomText>
           )}
         </View>
         <Pressable style={styles.optionsButton}>

@@ -1,5 +1,6 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader, Checkbox, VectoreIcons, CustomButton } from '@components/common';
 import imagePaths from '@assets';
@@ -52,6 +53,7 @@ export default function ServiceSummeryCard({
     showPromotionalOffers = true,
 }: ServiceSummeryCardProps) {
     const theme = useThemeContext();
+    const { t } = useTranslation();
     const styles = useMemo(() => createStyles(theme), [theme]);
 
     // Track selected offers per service: { serviceId: offerId }
@@ -94,7 +96,11 @@ export default function ServiceSummeryCard({
 
     return (
         <View style={styles.section}>
-            {pageName !== 'booking-detail' && <CustomText style={styles.sectionTitle}>Selected  Services</CustomText>}
+            {pageName !== 'booking-detail' && (
+              <CustomText style={styles.sectionTitle}>
+                {t('bookingDetails.serviceCard.selectedServices')}
+              </CustomText>
+            )}
             {safeServices.map((service, index) => {
                 if (service == null) return null;
                 const serviceTotalPrice = calculateServiceTotal(service);
@@ -296,7 +302,7 @@ export default function ServiceSummeryCard({
                                         </View>
                                         {onAssignMember && (
                                             <CustomButton
-                                                title="Change Member"
+                                                title={t('bookingDetails.serviceCard.changeMember')}
                                                 onPress={() => onAssignMember(service)}
                                                 backgroundColor={theme.colors.primary_light}
                                                 textColor={theme.colors.white}
@@ -308,7 +314,7 @@ export default function ServiceSummeryCard({
                                 ) : (
                                     onAssignMember && (
                                         <CustomButton
-                                            title="Assign Member"
+                                            title={t('bookingDetails.serviceCard.assignMember')}
                                             onPress={() => onAssignMember(service)}
                                             backgroundColor={theme.colors.primary}
                                             textColor={theme.colors.white}
@@ -324,7 +330,7 @@ export default function ServiceSummeryCard({
                         {pageName === 'booking-detail' && onAddAddOns && (
                             <View style={styles.addOnsActionContainer}>
                                 <CustomButton
-                                    title="Add More AddOns"
+                                    title={t('bookingDetails.serviceCard.addMoreAddons')}
                                     onPress={() => onAddAddOns(service)}
                                     backgroundColor={theme.colors.primary_light}
                                     textColor={theme.colors.primary}

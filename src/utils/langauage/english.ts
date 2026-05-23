@@ -245,7 +245,8 @@ export const english = {
     "save": "Save",
     "bookmarkedProviders": "Saved providers",
     "walletTransactions": "Wallet & transactions",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "defaultAddress": "Default"
   },
   "transactions": {
     "title": "Transactions",
@@ -478,6 +479,22 @@ export const english = {
       "paymentTitle": "Payment"
     },
     "noAddressSelected": "No address selected",
+    "appointmentDetails": "Appointment Details",
+    "serviceForSection": "Service For",
+    "dateLabel": "Date:",
+    "timeLabel": "Time:",
+    "totalLabel": "Total:",
+    "routinePackageLine": "Routine package · {{count}} sessions",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% off) −${{amount}}",
+    "selectServiceFor": "Select Service For",
+    "paymentGateways": {
+      "stripe": "Stripe",
+      "flutterwave": "Flutterwave",
+      "paypal": "PayPal",
+      "payOnsite": "Pay Onsite"
+    },
+    "selectPaymentMethod": "Select payment method",
+    "payWithCard": "Pay with card",
     "paymentSuccessModal": {
       "title": "Payment confirmed",
       "confirmedHeading": "Booking Confirmed!",
@@ -537,7 +554,8 @@ export const english = {
     "retry": "Retry",
     "noResults": "No results found for {{searchTerm}}. Try something different!",
     "goodMsg": "Keep exploring, you'll find something great!",
-    "empty": "No categories available."
+    "empty": "No categories available.",
+    "selectDeliveryMode": "Select Delivery Mode"
   },
   "homeCategory": {
     "error": "Failed to load categories. Tap to retry.",
@@ -871,7 +889,9 @@ export const english = {
       "completed": "Completed",
       "cancelledByYou": "Cancelled by You",
       "cancelledByProvider": "Cancelled by Provider",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "rescheduledByCustomer": "Rescheduled by Customer",
+      "rescheduledBySp": "Rescheduled by Provider"
     },
     "status": {
       "completed": "COMPLETED",
@@ -950,6 +970,28 @@ export const english = {
     "cancelPolicyLink": "Cancel Policy",
     "cancellationReasonLabel": "Cancellation Reason *",
     "confirmCancellation": "Confirm Cancellation",
+    "bookedFor": "Booked For",
+    "serviceCard": {
+      "cancelledByProvider": "Cancelled by provider",
+      "cancelledByCustomer": "Cancelled by customer",
+      "rejectedByProvider": "Rejected by provider",
+      "rescheduledByYouWait": "Rescheduled by you, Please wait for provider approval",
+      "rescheduledBySp": "Rescheduled by service provider:",
+      "assignedMember": "Assigned Member",
+      "priceService": "Service:",
+      "priceAddons": "Add-ons:",
+      "priceSubtotal": "Subtotal:",
+      "priceDiscount": "Discount:",
+      "priceTotal": "Total:",
+      "rejectReschedule": "Reject Reschedule",
+      "acceptReschedule": "Accept Reschedule",
+      "reschedule": "Reschedule",
+      "trackMember": "Track Member",
+      "changeMember": "Change Member",
+      "assignMember": "Assign Member",
+      "addMoreAddons": "Add More AddOns",
+      "selectedServices": "Selected Services"
+    },
     "rescheduleBookingTitle": "Reschedule Booking",
     "selectDate": "Select Date",
     "selectTime": "Select Time",
@@ -973,6 +1015,7 @@ export const english = {
   },
   "providerDetails": {
     "failedToLoadProvider": "Failed to load provider details",
+    "errorLoadingTitle": "Error Loading Provider",
     "serviceNotAvailableMode": "Service is not available for this delivery mode",
     "noDescriptionAvailable": "No description available",
     "addressNotAvailable": "Address not available",
@@ -1001,7 +1044,17 @@ export const english = {
       "noTeam": "No team members available.",
       "failedToLoad": "Failed to load reviews.",
       "starsLabel": "{{count}}★"
-    }
+    },
+    "aboutUs": "About Us",
+    "amenities": "Amenities",
+    "report": "Report",
+    "members": "Members",
+    "book": "Book",
+    "call": "Call",
+    "selectServices": "Select Services",
+    "selectAddons": "Select Add-ons",
+    "selectedServices": "Selected Services",
+    "addAddons": "Add Add-ons"
   },
   "paymentPolicy": {
     "title": "Payment & Cancellation Policy"
@@ -1024,18 +1077,25 @@ export const english = {
   },
   "bookingList": {
     "addressNotAvailable": "Address not available",
-    "serviceProviderDefault": "Service Provider"
+    "serviceProviderDefault": "Service Provider",
+    "clearDate": "Clear",
+    "filterDate": "Date",
+    "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "monthsLong": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   },
   "common": {
     "close": "Close",
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
+    "ok": "OK",
     "submit": "Submit",
     "assign": "Assign",
     "save": "Save",
     "confirm": "Confirm",
     "retry": "Retry",
+    "viewAll": "View All",
+    "selectContact": "Select Contact",
     "phoneNotSupported": "Phone calls are not supported on this device",
     "unableToCall": "Unable to make phone call",
     "loading": "Loading...",

@@ -6,12 +6,20 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 
 const DELIVERY_MODE_META: Record<
   string,
-  { label: string; icon: string; iconType: 'Ionicons' }
+  { labelKey: string; icon: string; iconType: 'Ionicons' }
 > = {
-  online: { label: 'Online', icon: 'laptop-outline', iconType: 'Ionicons' },
-  atHome: { label: 'At Home', icon: 'home-outline', iconType: 'Ionicons' },
+  online: {
+    labelKey: 'home.servicePreference.online',
+    icon: 'laptop-outline',
+    iconType: 'Ionicons',
+  },
+  atHome: {
+    labelKey: 'home.servicePreference.atHome',
+    icon: 'home-outline',
+    iconType: 'Ionicons',
+  },
   onPremises: {
-    label: 'On Premises',
+    labelKey: 'home.servicePreference.onPremises',
     icon: 'storefront-outline',
     iconType: 'Ionicons',
   },
@@ -27,7 +35,7 @@ export default function BookAppointmentPreferenceRow({ deliveryMode }: Props) {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const meta = DELIVERY_MODE_META[deliveryMode] ?? {
-    label: deliveryMode || '—',
+    labelKey: '',
     icon: 'location-outline',
     iconType: 'Ionicons' as const,
   };
@@ -46,7 +54,7 @@ export default function BookAppointmentPreferenceRow({ deliveryMode }: Props) {
             color={theme.colors.primary}
           />
           <CustomText style={styles.pillText} numberOfLines={1}>
-            {meta.label}
+            {meta.labelKey ? t(meta.labelKey) : deliveryMode || '—'}
           </CustomText>
         </View>
       </View>

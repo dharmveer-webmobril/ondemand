@@ -10,6 +10,7 @@ import {
 } from '@components/common';
 import { FLUTTERWAVE_PAYMENT_ENABLED } from '@services/payment/gatewayPayment';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 export type PaymentMethod = 'paypal' | 'stripe' | 'flutterwave' | 'cash';
 
@@ -21,13 +22,6 @@ type PaymentMethodModalProps = {
   /** When provided, only these options are shown (e.g. ['paypal', 'stripe'] for online only) */
   allowedMethods?: PaymentMethod[];
 };
-
-const ALL_PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
-  { id: 'stripe', label: 'Stripe' },
-  { id: 'flutterwave', label: 'Flutterwave' },
-  { id: 'paypal', label: 'PayPal' },
-  { id: 'cash', label: 'Pay Onsite' },
-];
 
 function isPaymentMethodSelectable(methodId: PaymentMethod): boolean {
   if (methodId === 'flutterwave' && !FLUTTERWAVE_PAYMENT_ENABLED) {
@@ -44,17 +38,31 @@ export default function PaymentMethodModal({
   allowedMethods,
 }: PaymentMethodModalProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(
     selectedPaymentMethod,
   );
 
+  const allPaymentMethods = useMemo(
+    () => [
+      { id: 'stripe' as PaymentMethod, label: t('checkout.paymentGateways.stripe') },
+      {
+        id: 'flutterwave' as PaymentMethod,
+        label: t('checkout.paymentGateways.flutterwave'),
+      },
+      { id: 'paypal' as PaymentMethod, label: t('checkout.paymentGateways.paypal') },
+      { id: 'cash' as PaymentMethod, label: t('checkout.paymentGateways.payOnsite') },
+    ],
+    [t],
+  );
+
   const paymentMethods = useMemo(() => {
     if (allowedMethods && allowedMethods.length > 0) {
-      return ALL_PAYMENT_METHODS.filter(m => allowedMethods.includes(m.id));
+      return allPaymentMethods.filter(m => allowedMethods.includes(m.id));
     }
-    return ALL_PAYMENT_METHODS;
-  }, [allowedMethods]);
+    return allPaymentMethods;
+  }, [allowedMethods, allPaymentMethods]);
 
   const defaultMethod = useMemo(() => {
     if (
@@ -142,8 +150,8 @@ export default function PaymentMethodModal({
               <CustomText style={styles.title}>
                 {(allowedMethods?.length ?? 0) >= 2 &&
                 !allowedMethods?.includes('cash')
-                  ? 'Pay with card'
-                  : 'Select payment method'}
+                  ? t('checkout.payWithCard')
+                  : t('checkout.selectPaymentMethod')}
               </CustomText>
               <Pressable onPress={onClose} style={styles.closeButton}>
                 <VectoreIcons
@@ -197,7 +205,7 @@ export default function PaymentMethodModal({
             </View>
 
             <CustomButton
-              title="Confirm"
+              title={t('common.confirm')}
               onPress={handleConfirm}
               buttonStyle={styles.confirmButton}
               backgroundColor={theme.colors.primary}

@@ -33,6 +33,7 @@ type SharedProps = {
 
 type AppointmentDetailsSectionProps = {
   styles: any;
+  t: (key: string, options?: Record<string, unknown>) => string;
   bookingData: any;
   totalPrice: number;
 };
@@ -109,6 +110,7 @@ const renderAddressText = (address: Address) => {
 
 export const AppointmentDetailsSection = ({
   styles,
+  t,
   bookingData,
   totalPrice,
 }: AppointmentDetailsSectionProps) => {
@@ -118,13 +120,16 @@ export const AppointmentDetailsSection = ({
 
   return (
     <View style={styles.section}>
-      <CustomText style={styles.sectionTitle}>Appointment Details</CustomText>
+      <CustomText style={styles.sectionTitle}>
+        {t('checkout.appointmentDetails')}
+      </CustomText>
       <View style={styles.summaryCard}>
         {isRoutine ? (
           <>
             <CustomText style={styles.routinePackageLabel}>
-              Routine package · {bookingData?.sessionCount ?? sessions.length}{' '}
-              sessions
+              {t('checkout.routinePackageLine', {
+                count: bookingData?.sessionCount ?? sessions.length,
+              })}
             </CustomText>
             {sessions.length > 0 ? (
               <RoutineSessionsList
@@ -135,25 +140,34 @@ export const AppointmentDetailsSection = ({
             ) : null}
             {volumeDiscount ? (
               <CustomText style={styles.volumeDiscountLine}>
-                {volumeDiscount.tier} ({volumeDiscount.percent}% off) −$
-                {Number(volumeDiscount.amount || 0).toFixed(2)}
+                {t('checkout.volumeDiscountLine', {
+                  tier: volumeDiscount.tier,
+                  percent: volumeDiscount.percent,
+                  amount: Number(volumeDiscount.amount || 0).toFixed(2),
+                })}
               </CustomText>
             ) : null}
           </>
         ) : (
           <>
             <View style={styles.summaryRow}>
-              <CustomText style={styles.summaryLabel}>Date:</CustomText>
+              <CustomText style={styles.summaryLabel}>
+                {t('checkout.dateLabel')}
+              </CustomText>
               <CustomText style={styles.summaryValue}>{bookingData?.date}</CustomText>
             </View>
             <View style={styles.summaryRow}>
-              <CustomText style={styles.summaryLabel}>Time:</CustomText>
+              <CustomText style={styles.summaryLabel}>
+                {t('checkout.timeLabel')}
+              </CustomText>
               <CustomText style={styles.summaryValue}>{bookingData?.timeSlot}</CustomText>
             </View>
           </>
         )}
         <View style={styles.summaryRow}>
-          <CustomText style={styles.summaryLabel}>Total:</CustomText>
+          <CustomText style={styles.summaryLabel}>
+            {t('checkout.totalLabel')}
+          </CustomText>
           <CustomText style={styles.summaryValue}>${totalPrice.toFixed(2)}</CustomText>
         </View>
       </View>
@@ -193,7 +207,9 @@ export const ServiceForSection = ({
 }: ServiceForSectionProps) => {
   return (
     <View style={styles.section}>
-      <CustomText style={styles.sectionTitle}>Service For</CustomText>
+      <CustomText style={styles.sectionTitle}>
+        {t('checkout.serviceForSection')}
+      </CustomText>
       <Pressable style={styles.serviceForCard} onPress={onPress}>
         <View style={styles.serviceForContent}>
           <VectoreIcons

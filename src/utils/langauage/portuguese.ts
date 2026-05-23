@@ -241,7 +241,8 @@ export const portuguese = {
     "enterEmailID": "Digite seu e-mail",
     "save": "Salvar",
     "bookmarkedProviders": "Prestadores salvos",
-    "transactions": "Transações"
+    "transactions": "Transações",
+    "defaultAddress": "Padrão"
   },
   "transactions": {
     "title": "Transações",
@@ -452,7 +453,21 @@ export const portuguese = {
       "walletPartial": "Carteira (Parcial)",
       "paymentTitle": "Pagamento"
     },
-    "noAddressSelected": "Nenhum endereço selecionado"
+    "noAddressSelected": "Nenhum endereço selecionado",
+    "appointmentDetails": "Detalhes do agendamento",
+    "serviceForSection": "Serviço para",
+    "dateLabel": "Data:",
+    "timeLabel": "Hora:",
+    "totalLabel": "Total:",
+    "routinePackageLine": "Pacote rotina · {{count}} sessões",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% off) −${{amount}}",
+    "selectServiceFor": "Selecionar serviço para",
+    "paymentGateways": {
+      "stripe": "Stripe",
+      "flutterwave": "Flutterwave",
+      "paypal": "PayPal",
+      "payOnsite": "Pagar no local"
+    },
   },
   "imagePickerModal": {
     "title": "Selecionar Imagem",
@@ -480,7 +495,8 @@ export const portuguese = {
     "retry": "Tentar novamente",
     "noResults": "Nenhum resultado para {{searchTerm}}.",
     "goodMsg": "Continue explorando!",
-    "empty": "Nenhuma categoria disponível."
+    "empty": "Nenhuma categoria disponível.",
+    "selectDeliveryMode": "Selecionar modo de entrega"
   },
   "homeCategory": {
     "error": "Erro ao carregar categorias.",
@@ -660,7 +676,9 @@ export const portuguese = {
       "completed": "Concluídos",
       "cancelledByYou": "Cancelados por você",
       "cancelledByProvider": "Cancelados pelo prestador",
-      "rejected": "Rejeitados"
+      "rejected": "Rejeitados",
+      "rescheduledByCustomer": "Reagendada pelo cliente",
+      "rescheduledBySp": "Reagendada pelo prestador"
     },
     "status": {
       "completed": "CONCLUÍDO",
@@ -738,6 +756,28 @@ export const portuguese = {
     "cancelPolicyLink": "Política de cancelamento",
     "cancellationReasonLabel": "Motivo do cancelamento *",
     "confirmCancellation": "Confirmar cancelamento",
+    "bookedFor": "Reservado para",
+    "serviceCard": {
+      "cancelledByProvider": "Cancelado pelo prestador",
+      "cancelledByCustomer": "Cancelado pelo cliente",
+      "rejectedByProvider": "Rejeitado pelo prestador",
+      "rescheduledByYouWait": "Reagendado por você, aguarde aprovação do prestador",
+      "rescheduledBySp": "Reagendado pelo prestador de serviço:",
+      "assignedMember": "Membro atribuído",
+      "priceService": "Serviço:",
+      "priceAddons": "Complementos:",
+      "priceSubtotal": "Subtotal:",
+      "priceDiscount": "Desconto:",
+      "priceTotal": "Total:",
+      "rejectReschedule": "Rejeitar reagendamento",
+      "acceptReschedule": "Aceitar reagendamento",
+      "reschedule": "Reagendar",
+      "trackMember": "Rastrear membro",
+      "changeMember": "Alterar membro",
+      "assignMember": "Atribuir membro",
+      "addMoreAddons": "Adicionar mais complementos",
+      "selectedServices": "Serviços selecionados"
+    },
     "rescheduleBookingTitle": "Reagendar Reserva",
     "selectDate": "Data",
     "selectTime": "Hora",
@@ -766,7 +806,17 @@ export const portuguese = {
     "addressNotAvailable": "Endereço indisponível",
     "providerDefaultName": "Prestador",
     "serviceProviderDefault": "Prestador de Serviços",
-    "share": "Compartilhar"
+    "share": "Compartilhar",
+    "aboutUs": "Sobre nós",
+    "amenities": "Comodidades",
+    "report": "Denunciar",
+    "members": "Membros",
+    "book": "Reservar",
+    "call": "Ligar",
+    "selectServices": "Selecionar serviços",
+    "selectAddons": "Selecionar complementos",
+    "selectedServices": "Serviços selecionados",
+    "addAddons": "Adicionar complementos"
   },
   "paymentPolicy": {
     "title": "Política de Pagamento e Cancelamento"
@@ -789,17 +839,24 @@ export const portuguese = {
   },
   "bookingList": {
     "addressNotAvailable": "Endereço indisponível",
-    "serviceProviderDefault": "Prestador de Serviços"
+    "serviceProviderDefault": "Prestador de Serviços",
+    "clearDate": "Limpar",
+    "filterDate": "Data",
+    "monthsShort": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+    "monthsLong": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
   },
   "common": {
     "error": "Erro",
     "success": "Sucesso",
     "cancel": "Cancelar",
+    "ok": "OK",
     "submit": "Enviar",
     "assign": "Atribuir",
     "save": "Salvar",
     "confirm": "Confirmar",
     "retry": "Tentar novamente",
+    "viewAll": "Ver tudo",
+    "selectContact": "Selecionar contato",
     "phoneNotSupported": "Chamadas não suportadas neste dispositivo",
     "unableToCall": "Não foi possível realizar a chamada",
     "loading": "Carregando...",

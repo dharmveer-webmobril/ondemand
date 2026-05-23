@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 
@@ -15,6 +16,7 @@ export default function ProviderErrorState({
   fullScreen = false,
 }: ProviderErrorStateProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
@@ -26,7 +28,7 @@ export default function ProviderErrorState({
         textAlign="center"
         style={{ marginBottom: theme.SH(8) }}
       >
-        {fullScreen ? 'Error Loading Provider' : errorMessage}
+        {fullScreen ? t('providerDetails.errorLoadingTitle') : errorMessage}
       </CustomText>
       {fullScreen && (
         <CustomText
@@ -40,7 +42,7 @@ export default function ProviderErrorState({
         </CustomText>
       )}
       <CustomButton
-        title="Retry"
+        title={t('common.retry')}
         onPress={onRetry}
         backgroundColor={theme.colors.primary}
         textColor={theme.colors.white}

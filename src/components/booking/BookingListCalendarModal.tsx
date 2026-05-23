@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useThemeContext } from '@utils/theme';
+import { useTranslation } from 'react-i18next';
 import { CustomText, VectoreIcons } from '@components/common';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,6 +28,7 @@ function BookingListCalendarModalComponent({
   onDateSelect,
 }: Props) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const renderCalendarArrow = useCallback(
@@ -51,7 +53,9 @@ function BookingListCalendarModalComponent({
         <Pressable style={styles.modalOverlay} onPress={onClose}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <CustomText style={styles.modalTitle}>Select Date</CustomText>
+              <CustomText style={styles.modalTitle}>
+                {t('bookingDetails.selectDate')}
+              </CustomText>
               <TouchableOpacity
                 onPress={onClose}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}

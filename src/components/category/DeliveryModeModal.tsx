@@ -1,15 +1,8 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import SelectOptionModal, { OptionItem } from '@components/common/SelectOptionModal';
 
 type DeliveryMode = 'atHome' | 'online' | 'onPremises' | null;
-
-const deliveryModeOptions: OptionItem[] = [
-  { id: 'atHome', label: 'At Home', icon: 'home', iconType: 'MaterialIcons' },
-  { id: 'online', label: 'Online', icon: 'laptop', iconType: 'MaterialIcons' },
-  { id: 'onPremises', label: 'On Premises', icon: 'storefront', iconType: 'MaterialIcons' },
-];
-
-const KNOWN_MODE_IDS = new Set(deliveryModeOptions.map((o) => o.id));
 
 type DeliveryModeModalProps = {
   visible: boolean;
@@ -30,26 +23,56 @@ export default function DeliveryModeModal({
   selectedMode = null,
   availableModes,
 }: DeliveryModeModalProps) {
+  const { t } = useTranslation();
+
+  const deliveryModeOptions: OptionItem[] = useMemo(
+    () => [
+      {
+        id: 'atHome',
+        label: t('home.servicePreference.atHome'),
+        icon: 'home',
+        iconType: 'MaterialIcons',
+      },
+      {
+        id: 'online',
+        label: t('home.servicePreference.online'),
+        icon: 'laptop',
+        iconType: 'MaterialIcons',
+      },
+      {
+        id: 'onPremises',
+        label: t('home.servicePreference.onPremises'),
+        icon: 'storefront',
+        iconType: 'MaterialIcons',
+      },
+    ],
+    [t],
+  );
+
+  const knownModeIds = useMemo(
+    () => new Set(deliveryModeOptions.map(o => o.id)),
+    [deliveryModeOptions],
+  );
+
   const options = useMemo(() => {
     if (availableModes === undefined) {
       return deliveryModeOptions;
     }
     const allowed = new Set(
-      availableModes.filter((id) => KNOWN_MODE_IDS.has(id)),
+      availableModes.filter(id => knownModeIds.has(id)),
     );
-    return deliveryModeOptions.filter((o) => allowed.has(o.id));
-  }, [availableModes]);
+    return deliveryModeOptions.filter(o => allowed.has(o.id));
+  }, [availableModes, deliveryModeOptions, knownModeIds]);
 
   return (
     <SelectOptionModal
       visible={visible}
       onClose={onClose}
-      onConfirm={(selectedId) => onConfirm(selectedId as DeliveryMode)}
-      title="Select Delivery Mode"
+      onConfirm={selectedId => onConfirm(selectedId as DeliveryMode)}
+      title={t('category.selectDeliveryMode')}
       options={options}
       selectedValue={selectedMode}
       selectionType="radio"
     />
   );
 }
-

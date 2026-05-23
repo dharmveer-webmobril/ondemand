@@ -154,7 +154,9 @@ export default function AddressSelectionModal({
           >
             <View style={styles.content}>
               <View style={styles.header}>
-                <CustomText style={styles.title}>Select Address</CustomText>
+                <CustomText style={styles.title}>
+                  {t('selectAddress.title')}
+                </CustomText>
                 <Pressable onPress={onClose} style={styles.closeButton}>
                   <VectoreIcons
                     name="close"

@@ -241,7 +241,8 @@ export const hindi = {
     "enterEmailID": "अपना ईमेल ID दर्ज करें",
     "save": "सहेजें",
     "bookmarkedProviders": "सहेजे गए प्रदाता",
-    "transactions": "लेन-देन"
+    "transactions": "लेन-देन",
+    "defaultAddress": "डिफ़ॉल्ट"
   },
   "transactions": {
     "title": "लेन-देन",
@@ -452,7 +453,21 @@ export const hindi = {
       "walletPartial": "वॉलेट (आंशिक)",
       "paymentTitle": "भुगतान"
     },
-    "noAddressSelected": "कोई पता नहीं चुना गया"
+    "noAddressSelected": "कोई पता नहीं चुना गया",
+    "appointmentDetails": "अपॉइंटमेंट विवरण",
+    "serviceForSection": "सेवा किसके लिए",
+    "dateLabel": "तारीख:",
+    "timeLabel": "समय:",
+    "totalLabel": "कुल:",
+    "routinePackageLine": "रूटीन पैकेज · {{count}} सत्र",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% छूट) −${{amount}}",
+    "selectServiceFor": "सेवा किसके लिए चुनें",
+    "paymentGateways": {
+      "stripe": "Stripe",
+      "flutterwave": "Flutterwave",
+      "paypal": "PayPal",
+      "payOnsite": "साइट पर भुगतान"
+    },
   },
   "imagePickerModal": {
     "title": "छवि चुनें",
@@ -480,7 +495,8 @@ export const hindi = {
     "retry": "पुन: प्रयास करें",
     "noResults": "{{searchTerm}} के लिए कोई परिणाम नहीं मिला। कुछ और आज़माएं!",
     "goodMsg": "खोजते रहें, आपको कुछ बढ़िया मिलेगा!",
-    "empty": "कोई श्रेणी उपलब्ध नहीं है।"
+    "empty": "कोई श्रेणी उपलब्ध नहीं है।",
+    "selectDeliveryMode": "डिलीवरी मोड चुनें"
   },
   "homeCategory": {
     "error": "श्रेणियाँ लोड करने में विफल। पुन: प्रयास करने के लिए टैप करें।",
@@ -660,7 +676,9 @@ export const hindi = {
       "completed": "पूरा हुआ",
       "cancelledByYou": "आपके द्वारा रद्द",
       "cancelledByProvider": "प्रदाता द्वारा रद्द",
-      "rejected": "अस्वीकृत"
+      "rejected": "अस्वीकृत",
+      "rescheduledByCustomer": "ग्राहक द्वारा पुनर्निर्धारित",
+      "rescheduledBySp": "प्रदाता द्वारा पुनर्निर्धारित"
     },
     "status": {
       "completed": "पूरा हुआ",
@@ -738,6 +756,28 @@ export const hindi = {
     "cancelPolicyLink": "रद्दीकरण नीति",
     "cancellationReasonLabel": "रद्द करने का कारण *",
     "confirmCancellation": "रद्दीकरण की पुष्टि करें",
+    "bookedFor": "बुकिंग किसके लिए",
+    "serviceCard": {
+      "cancelledByProvider": "प्रदाता द्वारा रद्द",
+      "cancelledByCustomer": "ग्राहक द्वारा रद्द",
+      "rejectedByProvider": "प्रदाता द्वारा अस्वीकृत",
+      "rescheduledByYouWait": "आपके द्वारा पुनर्निर्धारित, प्रदाता की स्वीकृति की प्रतीक्षा करें",
+      "rescheduledBySp": "सेवा प्रदाता द्वारा पुनर्निर्धारित:",
+      "assignedMember": "नियुक्त सदस्य",
+      "priceService": "सेवा:",
+      "priceAddons": "ऐड-ऑन:",
+      "priceSubtotal": "उप-योग:",
+      "priceDiscount": "छूट:",
+      "priceTotal": "कुल:",
+      "rejectReschedule": "पुनर्निर्धारण अस्वीकारें",
+      "acceptReschedule": "पुनर्निर्धारण स्वीकारें",
+      "reschedule": "पुनर्निर्धारित करें",
+      "trackMember": "सदस्य ट्रैक करें",
+      "changeMember": "सदस्य बदलें",
+      "assignMember": "सदस्य नियुक्त करें",
+      "addMoreAddons": "और ऐड-ऑन जोड़ें",
+      "selectedServices": "चयनित सेवाएं"
+    },
     "rescheduleBookingTitle": "बुकिंग पुनर्निर्धारित करें",
     "selectDate": "तारीख चुनें",
     "selectTime": "समय चुनें",
@@ -766,7 +806,17 @@ export const hindi = {
     "addressNotAvailable": "पता उपलब्ध नहीं है",
     "providerDefaultName": "प्रदाता",
     "serviceProviderDefault": "सेवा प्रदाता",
-    "share": "शेयर करें"
+    "share": "शेयर करें",
+    "aboutUs": "हमारे बारे में",
+    "amenities": "सुविधाएं",
+    "report": "रिपोर्ट",
+    "members": "सदस्य",
+    "book": "बुक करें",
+    "call": "कॉल",
+    "selectServices": "सेवाएं चुनें",
+    "selectAddons": "ऐड-ऑन चुनें",
+    "selectedServices": "चयनित सेवाएं",
+    "addAddons": "ऐड-ऑन जोड़ें"
   },
   "paymentPolicy": {
     "title": "भुगतान और रद्दीकरण नीति"
@@ -789,17 +839,24 @@ export const hindi = {
   },
   "bookingList": {
     "addressNotAvailable": "पता उपलब्ध नहीं है",
-    "serviceProviderDefault": "सेवा प्रदाता"
+    "serviceProviderDefault": "सेवा प्रदाता",
+    "clearDate": "साफ़ करें",
+    "filterDate": "तारीख",
+    "monthsShort": ["जन", "फर", "मार्च", "अप्रै", "मई", "जून", "जुल", "अग", "सित", "अक्ट", "नव", "दिस"],
+    "monthsLong": ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"]
   },
   "common": {
     "error": "त्रुटि",
     "success": "सफलता",
     "cancel": "रद्द करें",
+    "ok": "ठीक है",
     "submit": "सबमिट करें",
     "assign": "असाइन करें",
     "save": "सहेजें",
     "confirm": "पुष्टि करें",
     "retry": "पुन: प्रयास करें",
+    "viewAll": "सभी देखें",
+    "selectContact": "संपर्क चुनें",
     "phoneNotSupported": "इस डिवाइस पर फोन कॉल समर्थित नहीं है",
     "unableToCall": "फोन कॉल करने में असमर्थ",
     "loading": "लोड हो रहा है...",

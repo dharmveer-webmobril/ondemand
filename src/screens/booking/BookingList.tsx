@@ -46,27 +46,6 @@ import {
 } from '@utils/routineBookingHelpers';
 import { formatTime } from './BookingDetail';
 
-const formatDate = (dateString: string): string => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
-};
-
 const bookingStatusOptions: BookingStatusOption[] = [
   { value: '', labelKey: 'myBookingScreen.filter.allBookings' },
   { value: 'requested', labelKey: 'myBookingScreen.filter.requested' },
@@ -82,34 +61,15 @@ const bookingStatusOptions: BookingStatusOption[] = [
     labelKey: 'myBookingScreen.filter.cancelledByProvider',
   },
   { value: 'rejected', labelKey: 'myBookingScreen.filter.rejected' },
-  { value: 'rescheduledByCustomer', label: 'Rescheduled by Customer' },
-  { value: 'rescheduledBySp', label: 'Rescheduled by SP' },
+  {
+    value: 'rescheduledByCustomer',
+    labelKey: 'myBookingScreen.filter.rescheduledByCustomer',
+  },
+  {
+    value: 'rescheduledBySp',
+    labelKey: 'myBookingScreen.filter.rescheduledBySp',
+  },
 ];
-
-const formatDateDisplay = (dateStr: string): string => {
-  try {
-    const date = new Date(`${dateStr}T12:00:00`);
-    if (Number.isNaN(date.getTime())) return dateStr;
-    const day = date.getDate();
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return `${day} ${months[date.getMonth()]} ${date.getFullYear()}`;
-  } catch {
-    return dateStr;
-  }
-};
 
 const getFirstDayOfMonth = (dateStr: string): string => {
   const date = dateStr ? new Date(`${dateStr}T12:00:00`) : new Date();
@@ -124,6 +84,39 @@ export default function BookingList() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const monthsLong = t('bookingList.monthsLong', {
+    returnObjects: true,
+  }) as string[];
+  const monthsShort = t('bookingList.monthsShort', {
+    returnObjects: true,
+  }) as string[];
+
+  const formatDate = useCallback(
+    (dateString: string): string => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const months = Array.isArray(monthsLong) ? monthsLong : [];
+      const day = date.getDate().toString().padStart(2, '0');
+      const monthName = months[date.getMonth()] ?? '';
+      return `${day}-${monthName}-${date.getFullYear()}`;
+    },
+    [monthsLong],
+  );
+
+  const formatDateDisplay = useCallback(
+    (dateStr: string): string => {
+      try {
+        const date = new Date(`${dateStr}T12:00:00`);
+        if (Number.isNaN(date.getTime())) return dateStr;
+        const months = Array.isArray(monthsShort) ? monthsShort : [];
+        return `${date.getDate()} ${months[date.getMonth()] ?? ''} ${date.getFullYear()}`;
+      } catch {
+        return dateStr;
+      }
+    },
+    [monthsShort],
+  );
 
   const [bookingScope, setBookingScope] = useState<BookingListScope>('general');
 
@@ -234,7 +227,7 @@ export default function BookingList() {
           : imagePaths.no_image,
         originalBooking: booking,
       })),
-    [allBookings, t],
+    [allBookings, t, formatDate],
   );
 
   const filteredGeneral = useMemo(() => {
