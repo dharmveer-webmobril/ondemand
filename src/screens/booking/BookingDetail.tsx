@@ -67,37 +67,43 @@ import { buildMemberTrackingUrl } from '@utils/trackingUrl';
 import { useAdditionalAddonGatewayPayment, isWebRedirectGateway } from '@services/payment';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import {
-  getStatusLabel,
+  getTranslatedBookingStatus,
   getStatusColor,
   formatAddress,
   getProviderDisplayName,
+  formatBookingDisplayDate,
 } from '@utils/tools';
+import { mapI18nLanguageToIntlLocale } from '@utils/langauage/i18n';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigate } from '@utils/NavigationUtils';
 
-export const formatTime = (timeString: string): string => {
+export const formatTime = (
+  timeString: string,
+  locale?: string,
+): string => {
   if (!timeString) return '';
   const time = new Date(timeString);
-  return time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  if (Number.isNaN(time.getTime())) return '';
+  const intlLocale = locale ? mapI18nLanguageToIntlLocale(locale) : 'en';
+  return time.toLocaleTimeString(intlLocale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
-export const formatDate = (dateString: string): string => {
+export const formatDate = (
+  dateString: string,
+  monthsLong?: string[],
+): string => {
+  if (monthsLong?.length) {
+    return formatBookingDisplayDate(dateString, monthsLong);
+  }
   if (!dateString || typeof dateString !== 'string') return '';
   const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return dateString;
   const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
   ];
   return `${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
 };
@@ -123,7 +129,13 @@ let lastSuccessfulBookingDetailMongoId: string | null = null;
 
 export default function BookingDetail() {
   const theme = useThemeContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const monthsLong = useMemo(
+    () =>
+      (t('bookingList.monthsLong', { returnObjects: true }) as string[]) ||
+      [],
+    [t, i18n.language],
+  );
   const insets = useSafeAreaInsets();
   const route = useRoute<any>();
   const navigation = useNavigation();
@@ -381,7 +393,7 @@ export default function BookingDetail() {
       providerPhone: apiBooking?.spId?.contact || '',
       providerImage: apiBooking?.spId?.profileImage,
       serviceAddress: apiBooking?.addressId || null,
-      bookingDate: formatDate(apiBooking?.date),
+      bookingDate: formatDate(apiBooking?.date, monthsLong),
       timeSlot: apiBooking?.time || '',
       services: services,
       totalPrice: apiBooking?.discountedAmount || apiBooking?.totalAmount || 0,
@@ -394,10 +406,10 @@ export default function BookingDetail() {
       preferences: apiBooking?.preferences || [],
       spBusinessProfile: apiBooking?.spBusinessProfile,
       remark: apiBooking?.remark,
-      createdAtDate: formatDate(apiBooking?.createdAt || ''),
-      createdAtTime: formatTime(apiBooking?.createdAt || ''),
+      createdAtDate: formatDate(apiBooking?.createdAt || '', monthsLong),
+      createdAtTime: formatTime(apiBooking?.createdAt || '', i18n.language),
     };
-  }, [bookingDetailData, t]);
+  }, [bookingDetailData, t, monthsLong, i18n.language]);
   // Handle API errors - show error toast but don't block UI if we have cached data
   useEffect(() => {
     if (isErrorBooking && bookingError && !bookingDetailData?.ResponseData) {
@@ -704,9 +716,7 @@ export default function BookingDetail() {
         const res = await acceptRescheduleService(bookedServiceId);
         if (res?.succeeded) {
           handleSuccessToast(
-            res?.ResponseMessage ||
-              t('bookingDetail.rescheduleAccepted') ||
-              'Reschedule accepted',
+            res?.ResponseMessage || t('bookingDetail.rescheduleAccepted'),
           );
           queryClient.invalidateQueries({
             queryKey: ['bookingDetail', bookingId],
@@ -732,7 +742,9 @@ export default function BookingDetail() {
       try {
         const res = await rejectRescheduleService(bookedServiceId);
         if (res?.succeeded) {
-          handleSuccessToast('Reschedule rejected successfully');
+          handleSuccessToast(
+            res?.ResponseMessage || t('bookingDetail.rescheduleRejected'),
+          );
         }
       } catch (err) {
         handleApiError(err);
@@ -982,7 +994,7 @@ export default function BookingDetail() {
           {/* Booking Header */}
           <BookingHeader
             bookingId={booking?.bookingId || ''}
-            status={getStatusLabel(booking?.bookingStatus) || ''}
+            status={getTranslatedBookingStatus(booking?.bookingStatus, t) || ''}
             statusColor={getStatusColor(booking?.bookingStatus || '')}
           />
           {/* Provider Details Card */}
@@ -1039,7 +1051,7 @@ export default function BookingDetail() {
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.text}
               >
-                Services
+                {t('bookingDetails.servicesTitle')}
               </CustomText>
             </View>
             <BookingServiceCard
@@ -1081,7 +1093,7 @@ export default function BookingDetail() {
                     color={theme.colors.lightText}
                     style={styles.originalPriceText}
                   >
-                    Original: $
+                    {t('bookingDetails.originalPriceLabel')}: $
                     {(Number.isFinite(booking?.originalPrice)
                       ? booking.originalPrice
                       : 0
@@ -1093,7 +1105,7 @@ export default function BookingDetail() {
                   fontFamily={theme.fonts.SEMI_BOLD}
                   color={theme.colors.text}
                 >
-                  Total
+                  {t('bookingDetails.totalLabel')}
                 </CustomText>
               </View>
               <CustomText
@@ -1214,7 +1226,7 @@ export default function BookingDetail() {
                 fontFamily={theme.fonts.MEDIUM}
                 color={theme.colors.red}
               >
-                Booking Cancelled Reason :{' '}
+                {t('bookingDetails.bookingCancelledReasonTitle')}:{' '}
                 <CustomText
                   fontSize={theme.fontSize.md}
                   fontFamily={theme.fonts.REGULAR}

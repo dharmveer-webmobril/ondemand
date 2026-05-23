@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
@@ -11,6 +12,7 @@ type DateTimeCardProps = {
 
 export default function DateTimeCard({ date, time }: DateTimeCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
@@ -21,14 +23,15 @@ export default function DateTimeCard({ date, time }: DateTimeCardProps) {
           fontFamily={theme.fonts.SEMI_BOLD}
           color={theme.colors.text}
         >
-          Created At{': '}
+          {t('bookingDetails.createdAtTitle')}
+          {': '}
           <CustomText
             fontSize={theme.fontSize.sm}
             fontFamily={theme.fonts.REGULAR}
             color={theme.colors.text}
             style={styles.detailText}
           >
-            {date} at {time}
+            {date} {t('bookingDetails.createdAtAt')} {time}
           </CustomText>
         </CustomText>
       </View>

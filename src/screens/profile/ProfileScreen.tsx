@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet } from 'react-native'
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
 import { Container, AppHeader, ProfileHeader, ProfileMenuItem, LogoutModal } from '@components';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +38,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = useMemo(() => [
     // { id: '1', label: t('profile.profileSetup'), icon: { name: 'person-outline', icon: 'Ionicons' } },
     { id: '2', label: t('profile.changePassword'), icon: { name: 'lock-closed-outline', icon: 'Ionicons' } },
     { id: '3', label: t('profile.myAddress'), icon: { name: 'location-outline', icon: 'Ionicons' } },
@@ -50,7 +50,7 @@ export default function ProfileScreen() {
     },
     {
       id: 'wallet',
-      label: t('profile.walletTransactions'),
+      label: t('wallet.title'),
       icon: { name: 'wallet-outline', icon: 'Ionicons' },
     },
     // { id: '5', label: t('profile.ratingsReviews'), icon: { name: 'star-outline', icon: 'Ionicons' } },
@@ -59,7 +59,7 @@ export default function ProfileScreen() {
     { id: '8', label: t('profile.notificationsAlerts'), icon: { name: 'notifications-outline', icon: 'Ionicons' } },
     { id: '9', label: t('profile.customerSupport'), icon: { name: 'headset-outline', icon: 'Ionicons' } },
     { id: '10', label: t('profile.logout'), showArrow: false, icon: { name: 'log-out-outline', icon: 'Ionicons' } },
-  ];
+  ], [t]);
 
   const handleMenuItemPress = (item: MenuItem) => {
     if (item.id === '1') {

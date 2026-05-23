@@ -44,7 +44,9 @@ function BookingListFiltersComponent({
       {selectedDate && (
         <View style={styles.dateFilterRow}>
           <CustomText style={styles.dateFilterLabel}>
-            Date: {formatDateDisplay(selectedDate)}
+            {t('bookingList.dateFilterValue', {
+              date: formatDateDisplay(selectedDate),
+            })}
           </CustomText>
           <Pressable onPress={onClearDate} style={styles.clearDateButton}>
             <CustomText style={styles.clearDateText}>

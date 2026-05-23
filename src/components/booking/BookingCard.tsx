@@ -4,7 +4,7 @@ import { CustomText, CustomButton, ImageLoader } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import imagePaths from '@assets';
-import { getStatusLabel } from '@utils/tools';
+import { getTranslatedBookingStatus } from '@utils/tools';
 
 type BookingCardProps = {
   bookingId?: string;
@@ -16,6 +16,10 @@ type BookingCardProps = {
   shopName: string;
   address: string;
   price: string;
+  /** Comma-separated or single service names from bookedServices */
+  serviceNamesText?: string;
+  /** Translated delivery/service preferences */
+  preferencesText?: string;
   image?: any;
   onBookAgain?: () => void;
   bookAgainLoading?: boolean;
@@ -33,6 +37,8 @@ export default function BookingCard({
   shopName,
   address,
   price,
+  serviceNamesText,
+  preferencesText,
   image,
   onBookAgain,
   bookAgainLoading = false,
@@ -45,7 +51,7 @@ export default function BookingCard({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const badgeColor = statusColor || theme.colors.text;
-  const statusLabel = getStatusLabel(status);
+  const statusLabel = getTranslatedBookingStatus(status, t);
 
   return (
     <Pressable
@@ -104,6 +110,28 @@ export default function BookingCard({
         >
           {bookingId}
         </CustomText>
+        {serviceNamesText ? (
+          <CustomText
+            fontSize={theme.fontSize.xxs}
+            fontFamily={theme.fonts.MEDIUM}
+            color={theme.colors.text}
+            numberOfLines={4}
+            style={styles.detailLine}
+          >
+            {t('bookingList.servicesLabel')}: {serviceNamesText}
+          </CustomText>
+        ) : null}
+        {preferencesText ? (
+          <CustomText
+            fontSize={theme.fontSize.xxs}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.lightText || '#999999'}
+            numberOfLines={2}
+            style={styles.detailLine}
+          >
+            {t('bookingList.preferencesLabel')}: {preferencesText}
+          </CustomText>
+        ) : null}
         {/* Date */}
         <CustomText
           fontSize={theme.fontSize.xxs}

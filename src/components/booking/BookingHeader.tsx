@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
@@ -11,6 +12,7 @@ type BookingHeaderProps = {
 
 export default function BookingHeader({ bookingId, status, statusColor }: BookingHeaderProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme, statusColor), [theme, statusColor]);
 
   return (
@@ -22,7 +24,7 @@ export default function BookingHeader({ bookingId, status, statusColor }: Bookin
             fontFamily={theme.fonts.REGULAR}
             color={theme.colors.lightText}
           >
-            Booking ID
+            {t('bookingDetails.bookingIdLabel')}
           </CustomText>
           <CustomText
             fontSize={theme.fontSize.md}

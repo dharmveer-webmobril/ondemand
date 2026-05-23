@@ -9,6 +9,7 @@ import {
 } from '@components/common';
 import imagePaths from '@assets';
 import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
+import { formatPreferenceLabel } from '@utils/tools';
 import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
 
 type BestOffer = {
@@ -60,15 +61,9 @@ export default function ServiceItem({
 
   const preferences =
     showPreferences &&
-    showPreferences?.map((preference: string) => {
-      return preference === 'atHome'
-        ? 'At Home'
-        : preference === 'onPremises'
-        ? 'On Premises'
-        : preference === 'online'
-        ? 'Online'
-        : preference;
-    });
+    showPreferences.map((preference: string) =>
+      formatPreferenceLabel(preference, t),
+    );
 
   return (
     <Pressable

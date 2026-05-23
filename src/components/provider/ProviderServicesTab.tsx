@@ -1,5 +1,6 @@
 import { FlatList, StyleSheet, RefreshControl, View } from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ServiceItem from './ServiceItem';
 import ProviderEmptyState from './ProviderEmptyState';
@@ -25,7 +26,10 @@ type Service = {
 };
 
 /** Get the offer with the highest discount value from activeOffers */
-function getBestOffer(activeOffers: Offer[] | undefined | null): { title: string; discountValue: number } | null {
+function getBestOffer(
+  activeOffers: Offer[] | undefined | null,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): { title: string; discountValue: number } | null {
   if (!Array.isArray(activeOffers) || activeOffers.length === 0) return null;
   let best: { title: string; discountValue: number } | null = null;
   for (const offer of activeOffers) {
@@ -33,7 +37,7 @@ function getBestOffer(activeOffers: Offer[] | undefined | null): { title: string
     const value = Number(offer?.discountValue) || 0;
     if (value > 0 && (best == null || value > best.discountValue)) {
       best = {
-        title: offer?.title ?? 'Offer',
+        title: offer?.title ?? t('providerDetails.offerFallback'),
         discountValue: Math.min(100, Math.max(0, value)),
       };
     }
@@ -63,6 +67,7 @@ export default function ProviderServicesTab({
   formatDuration,
 }: ProviderServicesTabProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const skeletonData = useMemo(() => Array.from({ length: 6 }, (_, i) => `skeleton-${i}`), []);
 
@@ -113,13 +118,17 @@ export default function ProviderServicesTab({
   }
 
   if (services.length === 0) {
-    return <ProviderEmptyState message="No services available" />;
+    return (
+      <ProviderEmptyState
+        message={t('providerDetails.reviews.noServices')}
+      />
+    );
   }
 
   // Sort so services with highest discount offer appear first
   const sortedServices :any= [...services].sort((a, b) => {
-    const bestA = getBestOffer(a?.activeOffers);
-    const bestB = getBestOffer(b?.activeOffers);
+    const bestA = getBestOffer(a?.activeOffers, t);
+    const bestB = getBestOffer(b?.activeOffers, t);
     const valueA = bestA?.discountValue ?? 0;
     const valueB = bestB?.discountValue ?? 0;
     return valueB - valueA;
@@ -132,7 +141,7 @@ export default function ProviderServicesTab({
       keyExtractor={(item) => item?._id ?? ''}
       renderItem={({ item }) => {
         if (item == null) return null;
-        const bestOffer = getBestOffer(item?.activeOffers);
+        const bestOffer = getBestOffer(item?.activeOffers, t);
         return (
           <ServiceItem
             showPreferences={item?.preferences}

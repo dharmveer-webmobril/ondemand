@@ -18,6 +18,7 @@ import {
 } from '@services/payment/gatewayPayment';
 import { AppHeader, Container } from '@components/common';
 import { useThemeContext } from '@utils/theme';
+import { useTranslation } from 'react-i18next';
 
 type RouteParams = {
   paymentUrl: string;
@@ -39,6 +40,7 @@ type RouteParams = {
 
 export default function PaymentWebViewScreen() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { mutateAsync: confirmBookingPayment, isPending: isConfirmingBooking } =
@@ -65,8 +67,8 @@ export default function PaymentWebViewScreen() {
 
   const webViewTitle =
     webCheckoutGateway === 'flutterwave'
-      ? 'Pay with Flutterwave'
-      : 'Pay with PayPal';
+      ? t('checkout.payWithFlutterwave')
+      : t('checkout.payWithPayPal');
 
   const closeWithResult = useCallback(
     (
@@ -164,7 +166,7 @@ export default function PaymentWebViewScreen() {
               (error as any)?.response?.data?.ResponseMessage ??
               (error as any)?.response?.data?.message ??
               (error as any)?.message ??
-              'Payment confirmation failed',
+              t('checkout.paymentConfirmationFailed'),
           });
         }
         return;
@@ -179,7 +181,9 @@ export default function PaymentWebViewScreen() {
         if (looksLikeUserCancelled) {
           closeWithResult('cancel');
         } else {
-          closeWithResult('failure', { paymentError: 'Payment failed' });
+          closeWithResult('failure', {
+            paymentError: t('checkout.paymentFailed'),
+          });
         }
         console.log('payment webview failure------ 92');
       }
@@ -193,6 +197,7 @@ export default function PaymentWebViewScreen() {
       paymentFlow,
       transactionId,
       walletTransactionId,
+      t,
     ],
   );
 

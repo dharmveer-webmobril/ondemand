@@ -5,6 +5,7 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
+  TextInput,
 } from 'react-native';
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -35,6 +36,8 @@ type CategoryProvidersRouteParams = {
   openFilters?: boolean;
   /** Seed search bar when opening from assistant / deep link */
   initialSearch?: string;
+  /** Focus provider search input after navigation (e.g. from Home search tap) */
+  focusSearch?: boolean;
 };
 
 export default function CategoryProviders() {
@@ -66,6 +69,7 @@ export default function CategoryProviders() {
   const [hasReceivedData, setHasReceivedData] = useState(false);
   /** When opening from Home’s filter button (`openFilters`), category chips stay hidden. */
   const [showCategoryTabs, setShowCategoryTabs] = useState(true);
+  const searchInputRef = useRef<TextInput>(null);
 
   const { data: categoriesData } = useGetCategories();
   const categories = useMemo(() => {
@@ -109,7 +113,13 @@ export default function CategoryProviders() {
           resetSession: undefined,
           openFilters: undefined,
           initialSearch: undefined,
+          focusSearch: undefined,
         });
+        if (p.focusSearch) {
+          requestAnimationFrame(() => {
+            setTimeout(() => searchInputRef.current?.focus(), 150);
+          });
+        }
         if (p.openFilters) {
           requestAnimationFrame(() => setFilterModalVisible(true));
         }
@@ -353,7 +363,7 @@ export default function CategoryProviders() {
     setHasReceivedData(false);
     setFilterModalVisible(false);
   }, []);
-
+console.log('filteredProviders-----CategoryProviders', filteredProviders);
   return (
     <Container safeArea={true} style={styles.container}>
       <View style={styles.searchContainer}>
@@ -367,6 +377,7 @@ export default function CategoryProviders() {
         </Pressable>
         <View style={styles.searchInputWrapper}>
           <CustomInput
+            ref={searchInputRef}
             placeholder={t('category.searchPlaceholderProviders')}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -462,7 +473,7 @@ export default function CategoryProviders() {
                 }) || item.city?.name || ''
               }
               rating={typeof item.rating === 'number' ? item.rating : 0}
-              reviewCount={0}
+              reviewCount={typeof item.ratingValue === 'number' ? item.ratingValue : 0}
               serviceType={item.cityName || item.businessProfile?.cityName || undefined}
               isVerified={item.isVerified}
               isOpen={item.status === '1'}

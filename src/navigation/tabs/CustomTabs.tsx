@@ -4,30 +4,33 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SH, ThemeType, useThemeContext } from "@utils";
 import { CustomText } from "@components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import TabImages from "./TabImages";
-import i18next from "i18next";
 
 /** Base tab bar content height (before safe-area). Keep in sync with tab bar layout. */
 export const TAB_BAR_BASE_HEIGHT = 75;
+
+const TAB_LABEL_KEYS: Record<string, string> = {
+  Home: "tabs.home",
+  Profile: "tabs.profile",
+  InboxScreen: "tabs.message",
+  BookingList: "tabs.myBookings",
+};
 
 export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
     const theme = useThemeContext();
     const bottom = useSafeAreaInsets();
     const styles = useMemo(() => createStyles(theme), [theme]);
-    const getName = (name: string) => {
-        switch (name) {
-            case "Home":
-                return i18next.t('tabs.home');
-            case "Profile":
-                return i18next.t('tabs.profile');
-            case "InboxScreen":
-                return i18next.t('tabs.message');
-            case "BookingList":
-                return i18next.t('tabs.myBookings');
-            default:
-                return '';
+    const { t, i18n } = useTranslation();
+
+    const tabLabels = useMemo(() => {
+        const labels: Record<string, string> = {};
+        for (const [route, key] of Object.entries(TAB_LABEL_KEYS)) {
+            labels[route] = t(key);
         }
-    };
+        return labels;
+    }, [t, i18n.language]);
+
     return (
         <View pointerEvents="box-none">
             <View
@@ -44,6 +47,7 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
                 }}>
                     {state.routes.map((route, index) => {
                         const isFocused = state.index === index;
+                        const label = tabLabels[route.name] ?? '';
                         return (
                             <TouchableOpacity
                                 key={route.key}
@@ -72,7 +76,7 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
                                     variant="h6"
                                     color={isFocused ? theme.colors.primary : "#B3B3B3"}
                                 >
-                                    {getName(route.name)}
+                                    {label}
                                 </CustomText>
                             </TouchableOpacity>
                         );
@@ -104,7 +108,6 @@ const createStyles = (theme: ThemeType) => {
         tabItem: {
             justifyContent: "center",
             alignItems: "center",
-            // paddingVertical: 10,
             paddingHorizontal: 20,
         },
 

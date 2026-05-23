@@ -249,6 +249,9 @@ export const spanish = {
     "title": "Transacciones",
     "tabBooking": "Reserva",
     "tabAdditionalAddons": "Complementos adicionales",
+    "filterGeneralBooking": "Reserva general",
+    "filterRoutineBooking": "Reserva de rutina",
+    "filterAdditionalAddons": "Complementos adicionales",
     "empty": "Aún no hay transacciones.",
     "loadError": "No se pudieron cargar las transacciones. Intenta de nuevo.",
     "refund": "Reembolso"
@@ -264,7 +267,12 @@ export const spanish = {
   },
   "wallet": {
     "title": "Billetera",
+    "availableBalance": "Saldo disponible",
+    "requestWithdrawal": "Solicitar retiro",
     "totalBalance": "Saldo total",
+    "tabSettlementRequests": "Solicitudes de liquidación",
+    "walletTransactionsTitle": "Transacciones de billetera",
+    "settlementRequestsTitle": "Solicitudes de liquidación",
     "transactions": "Transacciones",
     "noTransactions": "Aún no hay transacciones",
     "filterAll": "Todo",
@@ -471,6 +479,15 @@ export const spanish = {
     },
     "selectPaymentMethod": "Seleccionar método de pago",
     "payWithCard": "Pagar con tarjeta",
+    "payWithPayPal": "Pagar con PayPal",
+    "payWithFlutterwave": "Pagar con Flutterwave",
+    "paymentConfirmationFailed": "Error al confirmar el pago",
+    "paymentFailed": "Pago fallido",
+    "offerLine": "{{title}} ({{percent}}% de descuento)",
+    "offerSavePreview": "Ahorra ${{save}} • Precio: ${{price}}",
+    "appliedOfferApplied": "{{title}} ({{percent}}% de descuento) – Aplicado",
+    "youSavedAmount": "Ahorraste ${{amount}}",
+    "percentOff": "{{percent}}% de descuento",
     "paymentSuccessModal": {
       "title": "Pago confirmado",
       "confirmedHeading": "¡Reserva confirmada!",
@@ -487,6 +504,10 @@ export const spanish = {
       "gateway": "Pago"
     }
   },
+  "auth": {
+    "phoneCountrySearch": "Buscar país",
+    "phoneCountryNotFound": "No se encontró ningún país"
+  },
   "imagePickerModal": {
     "title": "Seleccionar imagen",
     "capture_image": "📷 Tomar foto",
@@ -502,6 +523,26 @@ export const spanish = {
   "category": {
     "title": "Categoría",
     "search": "Buscar",
+    "searchPlaceholderProviders": "Buscar proveedor o nombre del negocio…",
+    "filtersTitle": "Filtros y opciones",
+    "filterCategory": "Categoría",
+    "filterMinRating": "Calificación mínima",
+    "filterRatingAny": "Cualquiera",
+    "filterRating4": "4+ estrellas",
+    "filterRating3": "3+ estrellas",
+    "filterRating2": "2+ estrellas",
+    "filterRating1": "1+ estrellas",
+    "filterSortBy": "Ordenar por",
+    "sortHighestRated": "Mejor valorados",
+    "sortNearest": "Más cercanos",
+    "sortName": "Nombre (A–Z)",
+    "sortRecommended": "Recomendados",
+    "filterMaxDistance": "Distancia máx. (km)",
+    "filterMaxDistancePh": "ej. 3",
+    "filterDistanceHint": "Usa la ubicación del perfil o dirección guardada",
+    "applyFilters": "Aplicar",
+    "resetAllFilters": "Restablecer filtros",
+    "noProvidersMatchFilters": "Ningún proveedor coincide. Amplía la búsqueda o restablece los filtros.",
     "failedToLoadProviders": "Error al cargar los proveedores",
     "reload": "Recargar",
     "noProvidersFound": "No se encontraron proveedores para tu búsqueda",
@@ -529,6 +570,8 @@ export const spanish = {
     "nearbyServices": "Proveedores cerca de ti",
     "categories": "Categorías",
     "nearestProvider": "Proveedor más cercano",
+    "topRatedProviders": "Proveedores mejor valorados",
+    "serviceProviders": "Proveedores de servicios",
     "featuredServicesAds": "Servicios destacados (Anuncios)",
     "topRatedServices": "Servicios mejor valorados",
     "topOfferedServices": "Mejores ofertas",
@@ -689,6 +732,37 @@ export const spanish = {
       "refreshing": "Refrescando detalles de pago..."
     }
   },
+  "routineBooking": {
+    "scope": {
+      "general": "Reservas",
+      "routine": "Paquetes de rutina"
+    },
+    "filter": {
+      "all": "Todo",
+      "awaitingProvider": "Esperando proveedor",
+      "active": "Activo",
+      "completed": "Completado",
+      "rejected": "Rechazado",
+      "expired": "Expirado",
+      "cancelled": "Cancelado"
+    },
+    "status": {
+      "pending": "Esperando proveedor",
+      "awaitingProvider": "Esperando proveedor",
+      "accepted": "Aceptado",
+      "active": "Activo",
+      "completed": "Completado",
+      "cancelled": "Cancelado",
+      "rejected": "Rechazado",
+      "expired": "Expirado"
+    },
+    "sessionsCount": "{{count}} sesiones",
+    "detailTitle": "Paquete de rutina",
+    "subtotal": "Subtotal",
+    "volumeDiscount": "Descuento por volumen",
+    "total": "Total",
+    "cancelPackage": "Cancelar paquete"
+  },
   "myBookingScreen": {
     "headerTitle": "Mi cita",
     "bookingId": "ID de reserva",
@@ -792,7 +866,36 @@ export const spanish = {
     "cancellationReasonLabel": "Motivo de cancelación *",
     "confirmCancellation": "Confirmar cancelación",
     "bookedFor": "Reservado para",
+    "bookingIdLabel": "ID de reserva",
+    "providerDetailsTitle": "Detalles del proveedor",
+    "paymentStatusTitle": "Estado del pago",
+    "paymentTypeTitle": "Tipo de pago",
+    "servicesTitle": "Servicios",
+    "createdAtTitle": "Creado el",
+    "createdAtAt": "a las",
+    "serviceAddressTitle": "Dirección del servicio",
+    "otherPersonDetailsTitle": "Servicio para (otra persona)",
+    "bookedForSelf": "Yo mismo",
+    "bookedForOther": "Otra persona",
+    "preferencesTitle": "Preferencia",
+    "originalPriceLabel": "Original",
+    "totalLabel": "Total",
+    "bookingCancelledReasonTitle": "Motivo de cancelación de la reserva",
+    "statusLabels": {
+      "requested": "Solicitado",
+      "accepted": "Aceptado",
+      "rejected": "Rechazado",
+      "rescheduledByCustomer": "Reprogramado",
+      "rescheduledBySp": "Reprogramado",
+      "cancelledByCustomer": "Cancelado",
+      "cancelledBySp": "Cancelado",
+      "onTheWay": "En camino",
+      "reached": "Llegó",
+      "ongoing": "En curso",
+      "completed": "Completado"
+    },
     "serviceCard": {
+      "cancellationReason": "Motivo de cancelación",
       "cancelledByProvider": "Cancelado por el proveedor",
       "cancelledByCustomer": "Cancelado por el cliente",
       "rejectedByProvider": "Rechazado por el proveedor",
@@ -851,7 +954,12 @@ export const spanish = {
     "selectServices": "Seleccionar servicios",
     "selectAddons": "Seleccionar complementos",
     "selectedServices": "Servicios seleccionados",
-    "addAddons": "Agregar complementos"
+    "addAddons": "Agregar complementos",
+    "listReviewsCount": "{{rating}} ({{count}} reseñas)",
+    "offerFallback": "Oferta",
+    "noPortfolio": "No hay imágenes de portafolio disponibles.",
+    "providerIdRequired": "Se requiere el ID del proveedor",
+    "chatStartFailed": "No se pudo iniciar la conversación"
   },
   "paymentPolicy": {
     "title": "Política de pago y cancelación"
@@ -866,7 +974,13 @@ export const spanish = {
     "upcoming": "Próximos",
     "completed": "Completados",
     "pending": "Pendientes",
-    "inProgress": "En progreso"
+    "inProgress": "En progreso",
+    "home": {
+      "todaysJobs": "Trabajos de hoy",
+      "markAvailable": "Marcar disponible",
+      "allJobs": "Todos los trabajos",
+      "viewAll": "Ver todo"
+    }
   },
   "inbox": {
     "title": "Chat",
@@ -875,8 +989,11 @@ export const spanish = {
   "bookingList": {
     "addressNotAvailable": "Dirección no disponible",
     "serviceProviderDefault": "Proveedor de servicios",
+    "servicesLabel": "Servicios",
+    "preferencesLabel": "Preferencia",
     "clearDate": "Borrar",
     "filterDate": "Fecha",
+    "dateFilterValue": "Fecha: {{date}}",
     "monthsShort": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
     "monthsLong": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
   },
@@ -898,6 +1015,8 @@ export const spanish = {
     "noData": "No hay datos disponibles"
   },
   "bookingDetail": {
+    "rescheduleAccepted": "Reprogramación aceptada",
+    "rescheduleRejected": "Reprogramación rechazada correctamente",
     "phoneNotSupported": "Las llamadas telefónicas no son compatibles con este dispositivo",
     "unableToCall": "No se puede realizar la llamada"
   },

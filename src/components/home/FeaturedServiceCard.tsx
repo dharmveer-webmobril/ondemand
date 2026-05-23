@@ -160,7 +160,7 @@ export default function FeaturedServiceCard({
           {showOfferMeta && preferenceLabels.length > 0 ? (
             <CustomText
               numberOfLines={2}
-              color={theme.colors.gray || '#666'}
+              color={theme.colors.lightText || '#666565'}
               fontFamily={theme.fonts.REGULAR}
               fontSize={theme.fontSize.xs}
               style={styles.metaLine}

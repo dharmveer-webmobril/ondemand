@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -56,6 +57,7 @@ export default function PhoneCountryPicker({
   inputTheme = 'white',
 }: PhoneCountryPickerProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -181,9 +183,9 @@ export default function PhoneCountryPicker({
       <CountryPicker
         show={pickerOpen}
         lang="en"
-        inputPlaceholder="Search country"
+        inputPlaceholder={t('auth.phoneCountrySearch')}
         inputPlaceholderTextColor={theme.colors.placeholder}
-        searchMessage="No country found"
+        searchMessage={t('auth.phoneCountryNotFound')}
         onRequestClose={closePicker}
         pickerButtonOnPress={handlePickCountry}
         style={pickerStyles}

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
@@ -13,7 +14,16 @@ export default function PaymentStatusCard({
   paymentType,
 }: PaymentStatusCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const paymentTypeLabel = (raw: string) => {
+    if (raw === 'wallet_partial') return t('checkout.paymentModes.walletPartial');
+    if (raw === 'wallet') return t('checkout.paymentModes.walletFull');
+    if (raw === 'online') return t('checkout.paymentModes.online');
+    if (raw === 'cash' || raw === 'onsite') return t('checkout.paymentModes.cash');
+    return raw;
+  };
 
   return (
     <View style={styles.container}>
@@ -23,20 +33,19 @@ export default function PaymentStatusCard({
           fontFamily={theme.fonts.SEMI_BOLD}
           color={theme.colors.text}
         >
-          Payment Status
+          {t('bookingDetails.paymentStatusTitle')}
         </CustomText>
         <View style={styles.detailRow}>
-          <>
-            {/*  ̰ */}
-            <CustomText
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.REGULAR}
-              color={theme.colors.text}
-              style={styles.detailText}
-            >
-              {paymentStatus === 'completed' ? 'Completed' : 'Pending'}
-            </CustomText>
-          </>
+          <CustomText
+            fontSize={theme.fontSize.sm}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.text}
+            style={styles.detailText}
+          >
+            {paymentStatus === 'completed'
+              ? t('wallet.filterCompleted')
+              : t('wallet.filterPending')}
+          </CustomText>
         </View>
       </View>
       <View style={styles.card}>
@@ -45,20 +54,17 @@ export default function PaymentStatusCard({
           fontFamily={theme.fonts.SEMI_BOLD}
           color={theme.colors.text}
         >
-          Payment Type
+          {t('bookingDetails.paymentTypeTitle')}
         </CustomText>
         <View style={styles.detailRow}>
-          <>
-            {/*  ̰ */}
-            <CustomText
-              fontSize={theme.fontSize.sm}
-              fontFamily={theme.fonts.REGULAR}
-              color={theme.colors.text}
-              style={styles.detailText}
-            >
-              {paymentType === 'wallet_partial' ? 'Partial Wallet' : paymentType === 'wallet' ? 'Full Wallet' : paymentType === 'online' ? 'Online' : 'Cash'}
-            </CustomText>
-          </>
+          <CustomText
+            fontSize={theme.fontSize.sm}
+            fontFamily={theme.fonts.REGULAR}
+            color={theme.colors.text}
+            style={styles.detailText}
+          >
+            {paymentTypeLabel(paymentType)}
+          </CustomText>
         </View>
       </View>
     </View>

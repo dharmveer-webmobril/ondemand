@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import PortfolioGrid from './PortfolioGrid';
 import ProviderEmptyState from './ProviderEmptyState';
@@ -21,10 +22,13 @@ export default function ProviderPortfolioTab({
   onImagePress,
 }: ProviderPortfolioTabProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   if (images.length === 0) {
-    return <ProviderEmptyState message="No portfolio images available" />;
+    return (
+      <ProviderEmptyState message={t('providerDetails.noPortfolio')} />
+    );
   }
 
   return (

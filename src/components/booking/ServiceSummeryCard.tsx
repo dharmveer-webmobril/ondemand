@@ -205,11 +205,17 @@ export default function ServiceSummeryCard({
                                                 />
                                                 <View style={styles.offerInfo}>
                                                     <CustomText style={styles.offerTitle}>
-                                                        {offer.title} ({offer.discountValue}% Off)
+                                                        {t('checkout.offerLine', {
+                                                            title: offer.title,
+                                                            percent: offer.discountValue,
+                                                        })}
                                                     </CustomText>
                                                     {isSelected && (
                                                         <CustomText style={styles.discountAmount}>
-                                                            Save ${discountAmount.toFixed(2)} • Price: ${discountedPrice.toFixed(2)}
+                                                            {t('checkout.offerSavePreview', {
+                                                                save: discountAmount.toFixed(2),
+                                                                price: discountedPrice.toFixed(2),
+                                                            })}
                                                         </CustomText>
                                                     )}
                                                 </View>
@@ -231,11 +237,16 @@ export default function ServiceSummeryCard({
                                     />
                                     <View style={styles.appliedOfferInfo}>
                                         <CustomText style={styles.appliedOfferTitle}>
-                                            {service.appliedOffer.title} ({service.appliedOffer.discountValue}% Off) - Applied
+                                            {t('checkout.appliedOfferApplied', {
+                                                title: service.appliedOffer.title,
+                                                percent: service.appliedOffer.discountValue,
+                                            })}
                                         </CustomText>
                                         {service.discountAmount && (
                                             <CustomText style={styles.appliedDiscountAmount}>
-                                                You saved ${service.discountAmount.toFixed(2)}
+                                                {t('checkout.youSavedAmount', {
+                                                    amount: service.discountAmount.toFixed(2),
+                                                })}
                                             </CustomText>
                                         )}
                                     </View>

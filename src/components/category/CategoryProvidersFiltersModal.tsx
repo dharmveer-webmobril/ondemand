@@ -55,7 +55,7 @@ export default function CategoryProvidersFiltersModal({
 }: CategoryProvidersFiltersModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const slideX = useRef(new Animated.Value(SCREEN_W)).current;
 
@@ -79,7 +79,7 @@ export default function CategoryProvidersFiltersModal({
       }
     }
     return rows;
-  }, [categories, t]);
+  }, [categories, t, i18n.language]);
 
   const minRatingItems = useMemo(
     () => [
@@ -89,7 +89,7 @@ export default function CategoryProvidersFiltersModal({
       { label: t('category.filterRating2'), value: '2' },
       { label: t('category.filterRating1'), value: '1' },
     ],
-    [t],
+    [t, i18n.language],
   );
 
   const sortItems = useMemo(
@@ -99,7 +99,7 @@ export default function CategoryProvidersFiltersModal({
       { label: t('category.sortName'), value: 'name' },
       { label: t('category.sortRecommended'), value: 'recommended' },
     ],
-    [t],
+    [t, i18n.language],
   );
 
   return (
@@ -143,7 +143,7 @@ export default function CategoryProvidersFiltersModal({
             showsVerticalScrollIndicator={false}
           >
             <CustomText style={styles.fieldLabel}>
-              {t('category.title')}
+              {t('category.filterCategory')}
             </CustomText>
             <Dropdown
               style={styles.dropdown}
@@ -191,9 +191,17 @@ export default function CategoryProvidersFiltersModal({
               onChange={item => onSortByChange(item.value)}
             />
 
-            <CustomText style={styles.fieldLabel}>
-              {t('category.filterMaxDistance')}
-            </CustomText>
+            <View style={styles.fieldLabelRow}>
+              <VectoreIcons
+                name="navigate-outline"
+                icon="Ionicons"
+                size={theme.SF(16)}
+                color={theme.colors.lightText || '#888'}
+              />
+              <CustomText style={styles.fieldLabel}>
+                {t('category.filterMaxDistance')}
+              </CustomText>
+            </View>
             <TextInput
               style={styles.distanceInput}
               value={maxDistanceValue}
@@ -286,11 +294,16 @@ const createStyles = (theme: ThemeType) => {
       paddingTop: SH(16),
       paddingBottom: SH(24),
     },
+    fieldLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SW(6),
+      marginBottom: SH(6),
+    },
     fieldLabel: {
       fontSize: SF(13),
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
-      marginBottom: SH(6),
     },
     dropdown: {
       height: SH(48),

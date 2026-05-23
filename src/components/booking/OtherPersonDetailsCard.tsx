@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
@@ -17,6 +18,7 @@ export default function OtherPersonDetailsCard({
   onCall,
 }: OtherPersonDetailsCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
@@ -27,7 +29,7 @@ export default function OtherPersonDetailsCard({
         color={theme.colors.text}
         marginBottom={theme.SH(12)}
       >
-        Service For (Other Person)
+        {t('bookingDetails.otherPersonDetailsTitle')}
       </CustomText>
       <View style={styles.detailRow}>
         <VectoreIcons

@@ -1,12 +1,11 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
+import { CustomText, DistanceLabel, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import { ServiceProvider } from '@services/api/queries/appQueries';
 import {
   formatAddress,
-  formatDistanceKmAway,
   getProviderDisplayName,
 } from '@utils/tools';
 
@@ -45,8 +44,6 @@ export default function HomeProviderItem({
 
   const rating =
     typeof provider?.rating === 'number' ? provider.rating : null;
-
-  const distanceLabel = formatDistanceKmAway(provider.distanceKm);
 
   const coverSource = provider.businessProfile?.bannerImage
     ? { uri: provider.businessProfile.bannerImage }
@@ -122,19 +119,11 @@ export default function HomeProviderItem({
             </View>
           )}
         </View>
-        {distanceLabel ? (
-          <View style={styles.distanceRow}>
-            <VectoreIcons
-              name="navigate-outline"
-              icon="Ionicons"
-              size={theme.SF(14)}
-              color={theme.colors.lightText || '#888'}
-            />
-            <CustomText style={styles.distanceText} numberOfLines={1}>
-              {distanceLabel}
-            </CustomText>
-          </View>
-        ) : null}
+        <DistanceLabel
+          distanceKm={provider.distanceKm}
+          style={styles.distanceRow}
+          textStyle={styles.distanceText}
+        />
       </View>
     </Pressable>
   );

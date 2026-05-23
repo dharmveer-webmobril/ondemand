@@ -495,6 +495,15 @@ export const english = {
     },
     "selectPaymentMethod": "Select payment method",
     "payWithCard": "Pay with card",
+    "payWithPayPal": "Pay with PayPal",
+    "payWithFlutterwave": "Pay with Flutterwave",
+    "paymentConfirmationFailed": "Payment confirmation failed",
+    "paymentFailed": "Payment failed",
+    "offerLine": "{{title}} ({{percent}}% off)",
+    "offerSavePreview": "Save ${{save}} • Price: ${{price}}",
+    "appliedOfferApplied": "{{title}} ({{percent}}% off) – Applied",
+    "youSavedAmount": "You saved ${{amount}}",
+    "percentOff": "{{percent}}% off",
     "paymentSuccessModal": {
       "title": "Payment confirmed",
       "confirmedHeading": "Booking Confirmed!",
@@ -515,7 +524,19 @@ export const english = {
     "title": "Select Image",
     "capture_image": "📷 Capture Image",
     "upload_from_gallery": "🖼️ Upload from Gallery",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "cameraPermissionTitle": "Camera Permission",
+    "cameraPermissionMessage": "App needs access to your camera",
+    "askMeLater": "Ask Me Later",
+    "ok": "OK",
+    "permissionDenied": "Permission Denied",
+    "cameraPermissionRequired": "Camera permission is required to capture images.",
+    "cameraError": "Failed to capture image. Please try again.",
+    "galleryError": "Failed to select image. Please try again."
+  },
+  "auth": {
+    "phoneCountrySearch": "Search country",
+    "phoneCountryNotFound": "No country found"
   },
   "privacyPolicy": {
     "header_privacy_policy": "Privacy Policy",
@@ -528,6 +549,7 @@ export const english = {
     "search": "Search",
     "searchPlaceholderProviders": "Search provider or business name…",
     "filtersTitle": "Filters & refinements",
+    "filterCategory": "Category",
     "filterMinRating": "Minimum rating",
     "filterRatingAny": "Any",
     "filterRating4": "4+ stars",
@@ -537,6 +559,8 @@ export const english = {
     "filterSortBy": "Sort by",
     "sortHighestRated": "Highest rated",
     "sortNearest": "Nearest",
+    "sortName": "Name (A–Z)",
+    "sortRecommended": "Recommended",
     "filterMaxDistance": "Max distance (km)",
     "filterMaxDistancePh": "e.g. 3",
     "filterDistanceHint": "Uses profile / saved address location",
@@ -971,7 +995,36 @@ export const english = {
     "cancellationReasonLabel": "Cancellation Reason *",
     "confirmCancellation": "Confirm Cancellation",
     "bookedFor": "Booked For",
+    "bookingIdLabel": "Booking ID",
+    "providerDetailsTitle": "Provider Details",
+    "paymentStatusTitle": "Payment Status",
+    "paymentTypeTitle": "Payment Type",
+    "servicesTitle": "Services",
+    "createdAtTitle": "Created At",
+    "createdAtAt": "at",
+    "serviceAddressTitle": "Service Address",
+    "otherPersonDetailsTitle": "Service For (Other Person)",
+    "bookedForSelf": "Self",
+    "bookedForOther": "Other Person",
+    "preferencesTitle": "Preference",
+    "originalPriceLabel": "Original",
+    "totalLabel": "Total",
+    "bookingCancelledReasonTitle": "Booking cancelled reason",
+    "statusLabels": {
+      "requested": "Requested",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "rescheduledByCustomer": "Rescheduled",
+      "rescheduledBySp": "Rescheduled",
+      "cancelledByCustomer": "Cancelled",
+      "cancelledBySp": "Cancelled",
+      "onTheWay": "On the way",
+      "reached": "Reached",
+      "ongoing": "Ongoing",
+      "completed": "Completed"
+    },
     "serviceCard": {
+      "cancellationReason": "Cancellation reason",
       "cancelledByProvider": "Cancelled by provider",
       "cancelledByCustomer": "Cancelled by customer",
       "rejectedByProvider": "Rejected by provider",
@@ -1049,6 +1102,12 @@ export const english = {
     "amenities": "Amenities",
     "report": "Report",
     "members": "Members",
+    "listReviewsCount": "{{rating}} ({{count}} reviews)",
+    "offerFallback": "Offer",
+    "noPortfolio": "No portfolio images available.",
+    "offerPercentOff": "{{title}} – {{percent}}% off",
+    "providerIdRequired": "Provider ID is required",
+    "chatStartFailed": "Failed to start conversation",
     "book": "Book",
     "call": "Call",
     "selectServices": "Select Services",
@@ -1069,7 +1128,15 @@ export const english = {
     "upcoming": "Upcoming",
     "completed": "Completed",
     "pending": "Pending",
-    "inProgress": "In Progress"
+    "inProgress": "In Progress",
+    "home": {
+      "todaysJobs": "Today's Jobs",
+      "markAvailable": "Mark Available",
+      "allJobs": "All Jobs",
+      "viewAll": "View All",
+      "startJob": "Start Job",
+      "viewDetails": "View Details"
+    }
   },
   "inbox": {
     "title": "Chat",
@@ -1078,8 +1145,12 @@ export const english = {
   "bookingList": {
     "addressNotAvailable": "Address not available",
     "serviceProviderDefault": "Service Provider",
+    "servicesLabel": "Services",
+    "preferencesLabel": "Preference",
+    "filterDateLabel": "Date",
     "clearDate": "Clear",
     "filterDate": "Date",
+    "dateFilterValue": "Date: {{date}}",
     "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     "monthsLong": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   },
@@ -1102,6 +1173,8 @@ export const english = {
     "noData": "No data available"
   },
   "bookingDetail": {
+    "rescheduleAccepted": "Reschedule accepted",
+    "rescheduleRejected": "Reschedule rejected successfully",
     "phoneNotSupported": "Phone calls are not supported on this device",
     "unableToCall": "Unable to make phone call",
     "addOns": {

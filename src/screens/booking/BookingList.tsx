@@ -28,7 +28,12 @@ import {
 } from '@services/api/queries/appQueries';
 import axiosInstance from '@services/api/axiosInstance';
 import EndPoints from '@services/api/EndPoints';
-import { getStatusColor, getProviderDisplayName } from '@utils/tools';
+import {
+  getStatusColor,
+  getProviderDisplayName,
+  getBookingServiceNames,
+  formatBookingPreferencesForDisplay,
+} from '@utils/tools';
 import imagePaths from '@assets';
 import BookingListFilters, {
   BookingStatusOption,
@@ -225,6 +230,11 @@ export default function BookingList() {
         image: booking?.spBusinessProfile?.bannerImage
           ? { uri: booking.spBusinessProfile.bannerImage }
           : imagePaths.no_image,
+        serviceNamesText: getBookingServiceNames(booking).join(', '),
+        preferencesText: formatBookingPreferencesForDisplay(
+          booking.preferences,
+          t,
+        ),
         originalBooking: booking,
       })),
     [allBookings, t, formatDate],
@@ -401,6 +411,8 @@ export default function BookingList() {
           date={item.createdAtDate}
           time={item.createdAtTime}
           shopName={item.shopName}
+          serviceNamesText={item.serviceNamesText}
+          preferencesText={item.preferencesText}
           address={item.address}
           price={item.price}
           image={item.image}
@@ -424,7 +436,7 @@ export default function BookingList() {
         />
       );
     },
-    [handleBookAgain, bookAgainLoadingId],
+    [handleBookAgain, bookAgainLoadingId, t],
   );
 
   const renderRoutineItem = useCallback(

@@ -1,10 +1,10 @@
-import React from 'react';
-import { FlatList, Image, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, goBack,  SF, SH, SW, StorageProvider, getLanguageData } from '@utils';
+import React, { useMemo } from 'react';
+import { FlatList, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Colors, Fonts, goBack, SF, SH, SW, StorageProvider, LANGUAGE_OPTIONS_CONFIG } from '@utils';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import { AppHeader, Container, CustomText } from '@components';
+import { AppHeader, Container, CustomText, VectoreIcons } from '@components';
 type LanguageSettingsProps = {
     modalVisible: boolean;
     clodeModal: () => void;
@@ -12,10 +12,17 @@ type LanguageSettingsProps = {
     data: any
 };
 const LanguageSettings: React.FC<LanguageSettingsProps> = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigation = useNavigation<any>();
 
-    const languageOptions = getLanguageData();
+    const languageOptions = useMemo(
+        () =>
+            LANGUAGE_OPTIONS_CONFIG.map(item => ({
+                ...item,
+                name: t(item.labelKey),
+            })),
+        [t, i18n.language],
+    );
 
 
     const btnChangeLang = async (lan: string) => {
@@ -49,21 +56,42 @@ const LanguageSettings: React.FC<LanguageSettingsProps> = () => {
                         paddingBottom: SH(20),
                     }}
                     renderItem={({ item }) => {
+                        const isSelected = i18n.language === item.type;
                         return (
-                            <>
-                                <TouchableOpacity onPress={() => {
-                                    btnChangeLang(item.type)
-                                }} style={styles.itemContainerDeactive}>
-                                    <Image
-                                        source={item.image}
-                                        style={{ width: SW(35), height: SH(25) }}
+                            <TouchableOpacity
+                                onPress={() => btnChangeLang(item.type)}
+                                style={[
+                                    styles.itemContainerDeactive,
+                                    isSelected && styles.itemContainerActive,
+                                ]}
+                                activeOpacity={0.7}
+                            >
+                                <Image
+                                    source={item.image}
+                                    style={styles.flagImage}
+                                    resizeMode="cover"
+                                />
+                                <CustomText
+                                    style={[
+                                        styles.textCountryDeac,
+                                        isSelected && styles.textCountryActive,
+                                    ]}
+                                >
+                                    {item.name}
+                                </CustomText>
+                                {isSelected ? (
+                                    <VectoreIcons
+                                        name="checkmark-circle"
+                                        icon="Ionicons"
+                                        size={SF(22)}
+                                        color={Colors.primary}
+                                        style={styles.checkIcon}
                                     />
-                                    <CustomText  style={styles.textCountryDeac}>{item.name}</CustomText>
-                                </TouchableOpacity>
-                            </>
+                                ) : null}
+                            </TouchableOpacity>
                         );
                     }}
-                    keyExtractor={item => item.name}
+                    keyExtractor={item => item.type}
                 />
             </View>
         </Container>
@@ -94,10 +122,27 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderColor: `${Colors.textAppColor}50`,
     },
+    itemContainerActive: {
+        backgroundColor: `${Colors.primary}12`,
+    },
+    flagImage: {
+        width: SW(35),
+        height: SH(25),
+        borderRadius: SF(4),
+        overflow: 'hidden',
+    },
     textCountryDeac: {
+        flex: 1,
         fontFamily: Fonts.REGULAR,
         fontSize: SF(16),
         marginLeft: SW(10),
+    },
+    textCountryActive: {
+        fontFamily: Fonts.SEMI_BOLD,
+        color: Colors.primary,
+    },
+    checkIcon: {
+        marginLeft: SW(8),
     },
 });
 

@@ -248,6 +248,9 @@ export const hindi = {
     "title": "लेन-देन",
     "tabBooking": "बुकिंग",
     "tabAdditionalAddons": "अतिरिक्त ऐड-ऑन",
+    "filterGeneralBooking": "सामान्य बुकिंग",
+    "filterRoutineBooking": "रूटीन बुकिंग",
+    "filterAdditionalAddons": "अतिरिक्त ऐड-ऑन",
     "empty": "अभी कोई लेन-देन नहीं।",
     "loadError": "लेन-देन लोड नहीं हो सके। पुनः प्रयास करें।",
     "refund": "रिफंड"
@@ -263,7 +266,18 @@ export const hindi = {
   },
   "wallet": {
     "title": "वॉलेट",
+    "availableBalance": "उपलब्ध शेष",
+    "requestWithdrawal": "निकासी का अनुरोध",
     "totalBalance": "कुल शेष",
+    "statsTotalCredited": "कुल जमा",
+    "statsWithdrawable": "निकासी योग्य",
+    "statsTotalUsed": "कुल उपयोग",
+    "statsTotalWithdrawn": "कुल निकासी",
+    "statsPendingSettlement": "लंबित निपटान",
+    "walletTransactionsTitle": "वॉलेट लेन-देन",
+    "settlementRequestsTitle": "निपटान अनुरोध",
+    "noSettlementRequests": "अभी कोई निपटान अनुरोध नहीं।",
+    "tabSettlementRequests": "निपटान अनुरोध",
     "transactions": "लेन-देन",
     "noTransactions": "अभी तक कोई लेन-देन नहीं",
     "filterAll": "सभी",
@@ -468,6 +482,21 @@ export const hindi = {
       "paypal": "PayPal",
       "payOnsite": "साइट पर भुगतान"
     },
+    "selectPaymentMethod": "भुगतान विधि चुनें",
+    "payWithCard": "कार्ड से भुगतान करें",
+    "payWithPayPal": "PayPal से भुगतान करें",
+    "payWithFlutterwave": "Flutterwave से भुगतान करें",
+    "paymentConfirmationFailed": "भुगतान पुष्टि विफल",
+    "paymentFailed": "भुगतान विफल",
+    "offerLine": "{{title}} ({{percent}}% छूट)",
+    "offerSavePreview": "${{save}} बचाएं • कीमत: ${{price}}",
+    "appliedOfferApplied": "{{title}} ({{percent}}% छूट) – लागू",
+    "youSavedAmount": "आपने ${{amount}} बचाए",
+    "percentOff": "{{percent}}% छूट",
+  },
+  "auth": {
+    "phoneCountrySearch": "देश खोजें",
+    "phoneCountryNotFound": "कोई देश नहीं मिला"
   },
   "imagePickerModal": {
     "title": "छवि चुनें",
@@ -484,6 +513,26 @@ export const hindi = {
   "category": {
     "title": "श्रेणी",
     "search": "खोजें",
+    "searchPlaceholderProviders": "प्रदाता या व्यवसाय का नाम खोजें…",
+    "filtersTitle": "फ़िल्टर और विकल्प",
+    "filterCategory": "श्रेणी",
+    "filterMinRating": "न्यूनतम रेटिंग",
+    "filterRatingAny": "कोई भी",
+    "filterRating4": "4+ स्टार",
+    "filterRating3": "3+ स्टार",
+    "filterRating2": "2+ स्टार",
+    "filterRating1": "1+ स्टार",
+    "filterSortBy": "क्रमबद्ध करें",
+    "sortHighestRated": "सर्वोच्च रेटेड",
+    "sortNearest": "निकटतम",
+    "sortName": "नाम (A–Z)",
+    "sortRecommended": "अनुशंसित",
+    "filterMaxDistance": "अधिकतम दूरी (किमी)",
+    "filterMaxDistancePh": "जैसे 3",
+    "filterDistanceHint": "प्रोफ़ाइल / सहेजे पते के स्थान का उपयोग",
+    "applyFilters": "लागू करें",
+    "resetAllFilters": "सभी फ़िल्टर रीसेट करें",
+    "noProvidersMatchFilters": "कोई प्रदाता मेल नहीं खाता। खोज बढ़ाएँ या फ़िल्टर रीसेट करें।",
     "failedToLoadProviders": "प्रदाताओं को लोड करने में विफल",
     "reload": "पुन: लोड करें",
     "noProvidersFound": "आपकी खोज से मेल खाने वाला कोई प्रदाता नहीं मिला",
@@ -511,6 +560,25 @@ export const hindi = {
     "nearbyServices": "आपके पास सेवा प्रदाता",
     "categories": "श्रेणियाँ",
     "nearestProvider": "निकटतम प्रदाता",
+    "topRatedProviders": "शीर्ष रेटेड सेवा प्रदाता",
+    "serviceProviders": "सेवा प्रदाता",
+    "featuredServicesAds": "विशेष सेवाएं (विज्ञापन)",
+    "topRatedServices": "शीर्ष रेटेड सेवाएं",
+    "topOfferedServices": "शीर्ष ऑफर",
+    "offerDiscount": "{{percent}}% छूट",
+    "servicePreference": {
+      "atHome": "घर पर",
+      "online": "ऑनलाइन",
+      "onPremises": "परिसर पर"
+    },
+    "priceType": {
+      "fixed": "निश्चित मूल्य",
+      "hourly": "प्रति घंटा",
+      "consultation": "परामर्श"
+    },
+    "failedToLoadFeatured": "विशेष सेवाएं लोड नहीं हो सकीं। रिफ्रेश करें।",
+    "noFeaturedServices": "अभी दिखाने के लिए कोई सेवा नहीं।",
+    "selectCityForServices": "विशेष सेवाएं देखने के लिए शहर चुनें।",
     "search": "खोजें",
     "quickVoiceTitle": "AI सहायक",
     "quickVoiceListening": "सुन रहा है…",
@@ -542,6 +610,22 @@ export const hindi = {
     "failedToLoadProviders": "प्रदाता लोड करने में विफल",
     "noBannersAvailable": "कोई बैनर उपलब्ध नहीं है",
     "noProvidersAvailable": "कोई प्रदाता उपलब्ध नहीं है",
+    "headerCurrentLocation": "वर्तमान स्थान",
+    "selectCity": "शहर चुनें",
+    "chooseLocation": "स्थान चुनें",
+    "useCurrentLocation": "वर्तमान स्थान",
+    "locationActive": "सक्रिय",
+    "addNewAddress": "+ नया पता जोड़ें",
+    "savedAddresses": "सहेजे पते",
+    "tapToDetect": "स्थान रिफ्रेश करने के लिए टैप करें",
+    "locationToastTitle": "स्थान",
+    "locationUnavailable": "सेटिंग्स में लोकेशन चालू करें, या सहेजा पता चुनें।",
+    "addressApplyError": "यह पता उपयोग नहीं हो सका। पुनः प्रयास करें।",
+    "noSavedAddressesYet": "अभी कोई सहेजा पता नहीं",
+    "loadingAddresses": "पते लोड हो रहे हैं…",
+    "providerFallbackName": "सेवा प्रदाता",
+    "noDataForLocationTitle": "इस स्थान के लिए कोई डेटा नहीं",
+    "noDataForLocationHint": "पास की सेवाएं खोजने के लिए ऊपर से स्थान बदलें।",
     "services": {
       "title": "सेवा प्रदाता",
       "notFound": "पास में कोई सेवा उपलब्ध नहीं है।",
@@ -654,6 +738,37 @@ export const hindi = {
       "refreshing": "भुगतान विवरण रिफ्रेश हो रहा है..."
     }
   },
+  "routineBooking": {
+    "scope": {
+      "general": "बुकिंग",
+      "routine": "रूटीन पैकेज"
+    },
+    "filter": {
+      "all": "सभी",
+      "awaitingProvider": "प्रदाता की प्रतीक्षा",
+      "active": "सक्रिय",
+      "completed": "पूर्ण",
+      "rejected": "अस्वीकृत",
+      "expired": "समाप्त",
+      "cancelled": "रद्द"
+    },
+    "status": {
+      "pending": "प्रदाता की प्रतीक्षा",
+      "awaitingProvider": "प्रदाता की प्रतीक्षा",
+      "accepted": "स्वीकृत",
+      "active": "सक्रिय",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द",
+      "rejected": "अस्वीकृत",
+      "expired": "समाप्त"
+    },
+    "sessionsCount": "{{count}} सत्र",
+    "detailTitle": "रूटीन पैकेज",
+    "subtotal": "उप-योग",
+    "volumeDiscount": "मात्रा छूट",
+    "total": "कुल",
+    "cancelPackage": "पैकेज रद्द करें"
+  },
   "myBookingScreen": {
     "headerTitle": "मेरा अपॉइंटमेंट",
     "bookingId": "बुकिंग ID",
@@ -757,7 +872,36 @@ export const hindi = {
     "cancellationReasonLabel": "रद्द करने का कारण *",
     "confirmCancellation": "रद्दीकरण की पुष्टि करें",
     "bookedFor": "बुकिंग किसके लिए",
+    "bookingIdLabel": "बुकिंग ID",
+    "providerDetailsTitle": "प्रदाता विवरण",
+    "paymentStatusTitle": "भुगतान स्थिति",
+    "paymentTypeTitle": "भुगतान प्रकार",
+    "servicesTitle": "सेवाएं",
+    "createdAtTitle": "बनाया गया",
+    "createdAtAt": "को",
+    "serviceAddressTitle": "सेवा का पता",
+    "otherPersonDetailsTitle": "सेवा किसके लिए (अन्य व्यक्ति)",
+    "bookedForSelf": "स्वयं",
+    "bookedForOther": "अन्य व्यक्ति",
+    "preferencesTitle": "विकल्प",
+    "originalPriceLabel": "मूल",
+    "totalLabel": "कुल",
+    "bookingCancelledReasonTitle": "बुकिंग रद्द करने का कारण",
+    "statusLabels": {
+      "requested": "अनुरोधित",
+      "accepted": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "rescheduledByCustomer": "पुनर्निर्धारित",
+      "rescheduledBySp": "पुनर्निर्धारित",
+      "cancelledByCustomer": "रद्द",
+      "cancelledBySp": "रद्द",
+      "onTheWay": "रास्ते में",
+      "reached": "पहुंच गए",
+      "ongoing": "जारी",
+      "completed": "पूर्ण"
+    },
     "serviceCard": {
+      "cancellationReason": "रद्द करने का कारण",
       "cancelledByProvider": "प्रदाता द्वारा रद्द",
       "cancelledByCustomer": "ग्राहक द्वारा रद्द",
       "rejectedByProvider": "प्रदाता द्वारा अस्वीकृत",
@@ -816,7 +960,10 @@ export const hindi = {
     "selectServices": "सेवाएं चुनें",
     "selectAddons": "ऐड-ऑन चुनें",
     "selectedServices": "चयनित सेवाएं",
-    "addAddons": "ऐड-ऑन जोड़ें"
+    "addAddons": "ऐड-ऑन जोड़ें",
+    "listReviewsCount": "{{rating}} ({{count}} समीक्षाएं)",
+    "offerFallback": "ऑफ़र",
+    "noPortfolio": "कोई पोर्टफोलियो छवि उपलब्ध नहीं है।"
   },
   "paymentPolicy": {
     "title": "भुगतान और रद्दीकरण नीति"
@@ -831,7 +978,13 @@ export const hindi = {
     "upcoming": "आने वाला",
     "completed": "पूरा हुआ",
     "pending": "लंबित",
-    "inProgress": "प्रगति पर"
+    "inProgress": "प्रगति पर",
+    "home": {
+      "todaysJobs": "आज की नौकरियां",
+      "markAvailable": "उपलब्ध चिह्नित करें",
+      "allJobs": "सभी नौकरियां",
+      "viewAll": "सभी देखें"
+    }
   },
   "inbox": {
     "title": "चैट",
@@ -840,8 +993,12 @@ export const hindi = {
   "bookingList": {
     "addressNotAvailable": "पता उपलब्ध नहीं है",
     "serviceProviderDefault": "सेवा प्रदाता",
+    "servicesLabel": "सेवाएं",
+    "preferencesLabel": "विकल्प",
+    "filterDateLabel": "तारीख",
     "clearDate": "साफ़ करें",
     "filterDate": "तारीख",
+    "dateFilterValue": "तारीख: {{date}}",
     "monthsShort": ["जन", "फर", "मार्च", "अप्रै", "मई", "जून", "जुल", "अग", "सित", "अक्ट", "नव", "दिस"],
     "monthsLong": ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"]
   },
@@ -863,6 +1020,8 @@ export const hindi = {
     "noData": "कोई डेटा उपलब्ध नहीं है"
   },
   "bookingDetail": {
+    "rescheduleAccepted": "रीशेड्यूल स्वीकार किया गया",
+    "rescheduleRejected": "रीशेड्यूल सफलतापूर्वक अस्वीकार किया गया",
     "phoneNotSupported": "इस डिवाइस पर फोन कॉल समर्थित नहीं है",
     "unableToCall": "फोन कॉल करने में असमर्थ"
   },

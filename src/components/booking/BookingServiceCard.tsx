@@ -110,7 +110,7 @@ export default function BookingServiceCard({
                 >
                   {t('bookingDetails.serviceCard.cancelledByProvider')}
                 </CustomText>
-                {service?.remark && (
+                {service?.remark ? (
                   <CustomText
                     color={Colors.textAppColor}
                     fontFamily={theme.fonts.REGULAR}
@@ -120,9 +120,10 @@ export default function BookingServiceCard({
                       marginBottom: theme.SH(8),
                     }}
                   >
-                    {service?.remark}
+                    {t('bookingDetails.serviceCard.cancellationReason')}:{' '}
+                    {service.remark}
                   </CustomText>
-                )}
+                ) : null}
               </>
             )}
             {serviceStatus === 'cancelledByCustomer' && (
@@ -135,7 +136,7 @@ export default function BookingServiceCard({
                 >
                   {t('bookingDetails.serviceCard.cancelledByCustomer')}
                 </CustomText>
-                {service?.remark && (
+                {service?.remark ? (
                   <CustomText
                     color={serviceStatusColor}
                     fontFamily={theme.fonts.MEDIUM}
@@ -145,9 +146,10 @@ export default function BookingServiceCard({
                       marginBottom: theme.SH(8),
                     }}
                   >
-                    {service?.remark}
+                    {t('bookingDetails.serviceCard.cancellationReason')}:{' '}
+                    {service.remark}
                   </CustomText>
-                )}
+                ) : null}
               </>
             )}
             {serviceStatus === 'rejected' && (
@@ -160,7 +162,7 @@ export default function BookingServiceCard({
                 >
                   {t('bookingDetails.serviceCard.rejectedByProvider')}
                 </CustomText>
-                {service?.remark && (
+                {service?.remark ? (
                   <CustomText
                     color={serviceStatusColor}
                     fontFamily={theme.fonts.MEDIUM}
@@ -170,9 +172,10 @@ export default function BookingServiceCard({
                       marginBottom: theme.SH(8),
                     }}
                   >
-                    {service?.remark}
+                    {t('bookingDetails.serviceCard.cancellationReason')}:{' '}
+                    {service.remark}
                   </CustomText>
-                )}
+                ) : null}
               </>
             )}
             {/* {serviceStatus === 'rescheduledByCustomer' && (
@@ -300,8 +303,10 @@ export default function BookingServiceCard({
                 <View style={styles.appliedOfferContent}>
                   <View style={styles.appliedOfferInfo}>
                     <CustomText style={styles.appliedOfferTitle}>
-                      {appliedOffer?.title ?? ''} (
-                      {appliedOffer?.discountValue ?? 0}% Off)
+                      {t('checkout.offerLine', {
+                        title: appliedOffer?.title ?? '',
+                        percent: appliedOffer?.discountValue ?? 0,
+                      })}
                     </CustomText>
                     {/* {(Number(service?.discountAmount) || 0) > 0 && (
                                             <CustomText style={styles.appliedDiscountAmount}>
@@ -340,7 +345,9 @@ export default function BookingServiceCard({
                         >
                           <CustomText style={styles.addOnTagText}>
                             {addOn?.name ?? ''}: ${displayOriginal}
-                            {discountPct ? ` (${discountPct}% Off)` : ''}
+                            {discountPct
+                              ? ` (${t('checkout.percentOff', { percent: discountPct })})`
+                              : ''}
                             {/* {hasDiscount ? ` → $${displayCut} (${discountPct}% off)` : ''} */}
                           </CustomText>
                         </View>
@@ -562,7 +569,7 @@ export default function BookingServiceCard({
                   serviceStatus === 'accepted') && (
                   <View style={styles.serviceActionButtonWrap}>
                     <CustomButton
-                      title="Cancel Service"
+                      title={t('bookingDetails.cancelService')}
                       onPress={() => onCancelService?.(service._id)}
                       backgroundColor={theme.colors.red}
                       textColor={theme.colors.white}

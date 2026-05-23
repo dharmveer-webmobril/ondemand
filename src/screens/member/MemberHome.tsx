@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -28,6 +29,7 @@ type Job = {
 
 export default function MemberHome() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const [isAvailable, setIsAvailable] = useState(true);
   const [notificationCount] = useState(2);
 
@@ -188,7 +190,7 @@ export default function MemberHome() {
               fontFamily={theme.fonts.REGULAR}
               color={theme.colors.lightText}
             >
-              Today's Jobs
+              {t('member.home.todaysJobs')}
             </CustomText>
           </View>
 
@@ -214,7 +216,7 @@ export default function MemberHome() {
               fontFamily={theme.fonts.REGULAR}
               color={theme.colors.lightText}
             >
-              Pending
+              {t('member.pending')}
             </CustomText>
           </View>
 
@@ -240,7 +242,7 @@ export default function MemberHome() {
               fontFamily={theme.fonts.REGULAR}
               color={theme.colors.lightText}
             >
-              Completed
+              {t('member.completed')}
             </CustomText>
           </View>
         </View>
@@ -262,7 +264,7 @@ export default function MemberHome() {
               color={theme.colors.text}
               style={styles.quickActionText}
             >
-              Mark Available
+              {t('member.home.markAvailable')}
             </CustomText>
           </Pressable>
 
@@ -281,7 +283,7 @@ export default function MemberHome() {
               color={theme.colors.text}
               style={styles.quickActionText}
             >
-              Calendar
+              {t('member.calendar')}
             </CustomText>
           </Pressable>
         </View>
@@ -294,7 +296,7 @@ export default function MemberHome() {
               fontFamily={theme.fonts.BOLD}
               color={theme.colors.text}
             >
-              All Jobs
+              {t('member.home.allJobs')}
             </CustomText>
             <Pressable>
               <CustomText
@@ -302,7 +304,7 @@ export default function MemberHome() {
                 fontFamily={theme.fonts.MEDIUM}
                 color={theme.colors.primary}
               >
-                View All
+                {t('member.home.viewAll')}
               </CustomText>
             </Pressable>
           </View>
@@ -330,7 +332,13 @@ export default function MemberHome() {
                       fontFamily={theme.fonts.SEMI_BOLD}
                       color={theme.colors.white}
                     >
-                      {job.status}
+                      {job.status === 'Upcoming'
+                        ? t('member.upcoming')
+                        : job.status === 'Pending'
+                          ? t('member.pending')
+                          : job.status === 'Completed'
+                            ? t('member.completed')
+                            : job.status}
                     </CustomText>
                   </View>
                 </View>

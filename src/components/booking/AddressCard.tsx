@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
@@ -13,6 +14,7 @@ export default function AddressCard({
   onViewLocation,
 }: AddressCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   if (!address) return null;
@@ -26,7 +28,7 @@ export default function AddressCard({
           color={theme.colors.text}
           marginBottom={theme.SH(12)}
         >
-          Service Address
+          {t('bookingDetails.serviceAddressTitle')}
         </CustomText>
         <Pressable onPress={onViewLocation}>
           <VectoreIcons

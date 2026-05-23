@@ -2,9 +2,9 @@ import { View, StyleSheet, Pressable, Image, ScrollView, ImageSourcePropType } f
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import StarRating from 'react-native-star-rating-widget';
-import { CustomText, ImageLoader, Spacing } from '@components/common';
+import { useTranslation } from 'react-i18next';
+import { CustomText, DistanceLabel, ImageLoader, Spacing } from '@components/common';
 import imagePaths from '@assets';
-import { formatDistanceKmAway } from '@utils/tools';
 
 type ServiceProviderListItemProps = {
   id: string;
@@ -37,8 +37,8 @@ export default function ServiceProviderListItem({
   // providerId,
 }: ServiceProviderListItemProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const distanceLabel = formatDistanceKmAway(distanceKm);
 
   return (
     <Pressable
@@ -111,9 +111,11 @@ export default function ServiceProviderListItem({
               {address}
             </CustomText>
           </View>
-          {distanceLabel ? (
-            <CustomText style={styles.distanceText}>{distanceLabel}</CustomText>
-          ) : null}
+          <DistanceLabel
+            distanceKm={distanceKm}
+            style={styles.distanceRow}
+            textStyle={styles.distanceText}
+          />
           <View style={styles.ratingContainer}>
             <StarRating
               starStyle={styles.starStyle}
@@ -124,7 +126,11 @@ export default function ServiceProviderListItem({
               readOnly
             />
             <CustomText style={styles.ratingText}>
-              {typeof rating === 'number' ? rating.toFixed(1) : '0.0'} ({reviewCount} Reviews)
+              {t('providerDetails.listReviewsCount', {
+                rating:
+                  typeof rating === 'number' ? rating.toFixed(1) : '0.0',
+                count: reviewCount,
+              })}
             </CustomText>
           </View>
         </View>
@@ -215,11 +221,13 @@ const createStyles = (theme: ThemeType) => {
       color: Colors.textAppColor || Colors.text,
       lineHeight: SF(16),
     },
+    distanceRow: {
+      // marginLeft: SW(22),
+    },
     distanceText: {
       fontSize: SF(11),
       fontFamily: Fonts.MEDIUM,
       color: Colors.lightText || '#888',
-      marginLeft: SW(22),
     },
     ratingContainer: {
       flexDirection: 'row',

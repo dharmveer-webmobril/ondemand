@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { CustomText, ImageLoader, showToast, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
@@ -25,6 +26,7 @@ export default function ProviderDetailsCard({
   onCall,
 }: ProviderDetailsCardProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation();
   const [isLoadingChat, setIsLoadingChat] = useState(false);
@@ -34,7 +36,7 @@ export default function ProviderDetailsCard({
     if (!providerId) {
       showToast({
         type: 'error',
-        message: 'Provider ID is required',
+        message: t('providerDetails.providerIdRequired'),
       });
       return;
     }
@@ -55,13 +57,16 @@ export default function ProviderDetailsCard({
       } else {
         showToast({
           type: 'error',
-          message: response?.ResponseMessage || 'Failed to start conversation',
+          message:
+            response?.ResponseMessage || t('providerDetails.chatStartFailed'),
         });
       }
     } catch (error: any) {
       showToast({
         type: 'error',
-        message: error?.response?.data?.ResponseMessage || 'Failed to start conversation',
+        message:
+          error?.response?.data?.ResponseMessage ||
+          t('providerDetails.chatStartFailed'),
       });
     } finally {
       setIsLoadingChat(false);
@@ -76,7 +81,7 @@ export default function ProviderDetailsCard({
           fontFamily={theme.fonts.SEMI_BOLD}
           color={theme.colors.text}
         >
-          Provider Details
+          {t('bookingDetails.providerDetailsTitle')}
         </CustomText>
       </View>
       <View style={styles.providerHeaderRow}>

@@ -248,6 +248,9 @@ export const portuguese = {
     "title": "Transações",
     "tabBooking": "Reserva",
     "tabAdditionalAddons": "Complementos adicionais",
+    "filterGeneralBooking": "Reserva geral",
+    "filterRoutineBooking": "Reserva rotina",
+    "filterAdditionalAddons": "Complementos adicionais",
     "empty": "Ainda não há transações.",
     "loadError": "Não foi possível carregar as transações. Tente novamente.",
     "refund": "Reembolso"
@@ -263,7 +266,12 @@ export const portuguese = {
   },
   "wallet": {
     "title": "Carteira",
+    "availableBalance": "Saldo disponível",
+    "requestWithdrawal": "Solicitar saque",
     "totalBalance": "Saldo Total",
+    "tabSettlementRequests": "Pedidos de liquidação",
+    "walletTransactionsTitle": "Transações da carteira",
+    "settlementRequestsTitle": "Pedidos de liquidação",
     "transactions": "Transações",
     "noTransactions": "Nenhuma transação ainda",
     "filterAll": "Tudo",
@@ -468,6 +476,21 @@ export const portuguese = {
       "paypal": "PayPal",
       "payOnsite": "Pagar no local"
     },
+    "selectPaymentMethod": "Selecionar método de pagamento",
+    "payWithCard": "Pagar com cartão",
+    "payWithPayPal": "Pagar com PayPal",
+    "payWithFlutterwave": "Pagar com Flutterwave",
+    "paymentConfirmationFailed": "Falha na confirmação do pagamento",
+    "paymentFailed": "Pagamento falhou",
+    "offerLine": "{{title}} ({{percent}}% de desconto)",
+    "offerSavePreview": "Economize ${{save}} • Preço: ${{price}}",
+    "appliedOfferApplied": "{{title}} ({{percent}}% de desconto) – Aplicado",
+    "youSavedAmount": "Você economizou ${{amount}}",
+    "percentOff": "{{percent}}% de desconto",
+  },
+  "auth": {
+    "phoneCountrySearch": "Pesquisar país",
+    "phoneCountryNotFound": "Nenhum país encontrado"
   },
   "imagePickerModal": {
     "title": "Selecionar Imagem",
@@ -484,6 +507,26 @@ export const portuguese = {
   "category": {
     "title": "Categoria",
     "search": "Buscar",
+    "searchPlaceholderProviders": "Buscar prestador ou nome do negócio…",
+    "filtersTitle": "Filtros e opções",
+    "filterCategory": "Categoria",
+    "filterMinRating": "Avaliação mínima",
+    "filterRatingAny": "Qualquer",
+    "filterRating4": "4+ estrelas",
+    "filterRating3": "3+ estrelas",
+    "filterRating2": "2+ estrelas",
+    "filterRating1": "1+ estrelas",
+    "filterSortBy": "Ordenar por",
+    "sortHighestRated": "Melhor avaliados",
+    "sortNearest": "Mais próximos",
+    "sortName": "Nome (A–Z)",
+    "sortRecommended": "Recomendados",
+    "filterMaxDistance": "Distância máx. (km)",
+    "filterMaxDistancePh": "ex. 3",
+    "filterDistanceHint": "Usa a localização do perfil ou endereço salvo",
+    "applyFilters": "Aplicar",
+    "resetAllFilters": "Redefinir filtros",
+    "noProvidersMatchFilters": "Nenhum prestador corresponde. Amplie a busca ou redefina os filtros.",
     "failedToLoadProviders": "Falha ao carregar prestadores",
     "reload": "Recarregar",
     "noProvidersFound": "Nenhum prestador encontrado para sua busca",
@@ -511,6 +554,15 @@ export const portuguese = {
     "nearbyServices": "Prestadores Perto de Você",
     "categories": "Categorias",
     "nearestProvider": "Prestador Mais Próximo",
+    "topRatedProviders": "Prestadores mais bem avaliados",
+    "serviceProviders": "Prestadores de serviços",
+    "featuredServicesAds": "Serviços em destaque (Anúncios)",
+    "topRatedServices": "Serviços mais bem avaliados",
+    "topOfferedServices": "Melhores ofertas",
+    "offerDiscount": "{{percent}}% off",
+    "failedToLoadFeatured": "Falha ao carregar serviços em destaque.",
+    "noFeaturedServices": "Ainda não há serviços para mostrar.",
+    "selectCityForServices": "Selecione uma cidade para ver serviços em destaque.",
     "search": "Buscar",
     "quickVoiceTitle": "Assistente IA",
     "quickVoiceListening": "Ouvindo…",
@@ -654,6 +706,37 @@ export const portuguese = {
       "refreshing": "Atualizando detalhes..."
     }
   },
+  "routineBooking": {
+    "scope": {
+      "general": "Reservas",
+      "routine": "Pacotes rotina"
+    },
+    "filter": {
+      "all": "Tudo",
+      "awaitingProvider": "Aguardando prestador",
+      "active": "Ativo",
+      "completed": "Concluído",
+      "rejected": "Rejeitado",
+      "expired": "Expirado",
+      "cancelled": "Cancelado"
+    },
+    "status": {
+      "pending": "Aguardando prestador",
+      "awaitingProvider": "Aguardando prestador",
+      "accepted": "Aceito",
+      "active": "Ativo",
+      "completed": "Concluído",
+      "cancelled": "Cancelado",
+      "rejected": "Rejeitado",
+      "expired": "Expirado"
+    },
+    "sessionsCount": "{{count}} sessões",
+    "detailTitle": "Pacote rotina",
+    "subtotal": "Subtotal",
+    "volumeDiscount": "Desconto por volume",
+    "total": "Total",
+    "cancelPackage": "Cancelar pacote"
+  },
   "myBookingScreen": {
     "headerTitle": "Meus Agendamentos",
     "bookingId": "Reserva ID",
@@ -757,7 +840,36 @@ export const portuguese = {
     "cancellationReasonLabel": "Motivo do cancelamento *",
     "confirmCancellation": "Confirmar cancelamento",
     "bookedFor": "Reservado para",
+    "bookingIdLabel": "ID da reserva",
+    "providerDetailsTitle": "Detalhes do prestador",
+    "paymentStatusTitle": "Status do pagamento",
+    "paymentTypeTitle": "Tipo de pagamento",
+    "servicesTitle": "Serviços",
+    "createdAtTitle": "Criado em",
+    "createdAtAt": "às",
+    "serviceAddressTitle": "Endereço do serviço",
+    "otherPersonDetailsTitle": "Serviço para (outra pessoa)",
+    "bookedForSelf": "Eu",
+    "bookedForOther": "Outra pessoa",
+    "preferencesTitle": "Preferência",
+    "originalPriceLabel": "Original",
+    "totalLabel": "Total",
+    "bookingCancelledReasonTitle": "Motivo do cancelamento da reserva",
+    "statusLabels": {
+      "requested": "Solicitado",
+      "accepted": "Aceito",
+      "rejected": "Rejeitado",
+      "rescheduledByCustomer": "Reagendado",
+      "rescheduledBySp": "Reagendado",
+      "cancelledByCustomer": "Cancelado",
+      "cancelledBySp": "Cancelado",
+      "onTheWay": "A caminho",
+      "reached": "Chegou",
+      "ongoing": "Em andamento",
+      "completed": "Concluído"
+    },
     "serviceCard": {
+      "cancellationReason": "Motivo do cancelamento",
       "cancelledByProvider": "Cancelado pelo prestador",
       "cancelledByCustomer": "Cancelado pelo cliente",
       "rejectedByProvider": "Rejeitado pelo prestador",
@@ -816,7 +928,12 @@ export const portuguese = {
     "selectServices": "Selecionar serviços",
     "selectAddons": "Selecionar complementos",
     "selectedServices": "Serviços selecionados",
-    "addAddons": "Adicionar complementos"
+    "addAddons": "Adicionar complementos",
+    "listReviewsCount": "{{rating}} ({{count}} avaliações)",
+    "offerFallback": "Oferta",
+    "noPortfolio": "Nenhuma imagem de portfólio disponível.",
+    "providerIdRequired": "ID do prestador é obrigatório",
+    "chatStartFailed": "Falha ao iniciar a conversa"
   },
   "paymentPolicy": {
     "title": "Política de Pagamento e Cancelamento"
@@ -831,7 +948,13 @@ export const portuguese = {
     "upcoming": "Próximos",
     "completed": "Concluídos",
     "pending": "Pendentes",
-    "inProgress": "Em Andamento"
+    "inProgress": "Em Andamento",
+    "home": {
+      "todaysJobs": "Trabalhos de hoje",
+      "markAvailable": "Marcar disponível",
+      "allJobs": "Todos os trabalhos",
+      "viewAll": "Ver tudo"
+    }
   },
   "inbox": {
     "title": "Conversas",
@@ -840,8 +963,11 @@ export const portuguese = {
   "bookingList": {
     "addressNotAvailable": "Endereço indisponível",
     "serviceProviderDefault": "Prestador de Serviços",
+    "servicesLabel": "Serviços",
+    "preferencesLabel": "Preferência",
     "clearDate": "Limpar",
     "filterDate": "Data",
+    "dateFilterValue": "Data: {{date}}",
     "monthsShort": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
     "monthsLong": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
   },
@@ -863,6 +989,8 @@ export const portuguese = {
     "noData": "Nenhum dado disponível"
   },
   "bookingDetail": {
+    "rescheduleAccepted": "Reagendamento aceito",
+    "rescheduleRejected": "Reagendamento rejeitado com sucesso",
     "phoneNotSupported": "Chamadas não suportadas neste dispositivo",
     "unableToCall": "Não foi possível realizar a chamada"
   },

@@ -267,11 +267,12 @@ export default function Home() {
     refetchTopOffered,
   ]);
 
-  // Handle search
-  const handleSearch = useCallback((text: string) => {
-    // TODO: Implement search functionality
-    console.log('Search:', text);
-  }, []);
+  const handleSearchPress = useCallback(() => {
+    navigation.navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
+      resetSession: true,
+      focusSearch: true,
+    });
+  }, [navigation]);
 
   const handleFilterPress = useCallback(() => {
     navigation.navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
@@ -298,7 +299,7 @@ export default function Home() {
         />
 
         <HomeSearchBar
-          onSearch={handleSearch}
+          onSearchPress={handleSearchPress}
           onFilterPress={handleFilterPress}
           placeholder={t('home.search')}
         />

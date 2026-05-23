@@ -23,7 +23,7 @@ export default function DeliveryModeModal({
   selectedMode = null,
   availableModes,
 }: DeliveryModeModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const deliveryModeOptions: OptionItem[] = useMemo(
     () => [
@@ -46,7 +46,7 @@ export default function DeliveryModeModal({
         iconType: 'MaterialIcons',
       },
     ],
-    [t],
+    [t, i18n.language],
   );
 
   const knownModeIds = useMemo(

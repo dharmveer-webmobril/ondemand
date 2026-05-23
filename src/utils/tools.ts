@@ -110,6 +110,20 @@ const getStatusLabel = (status: string): string => {
   return statusMap[status] || status || 'Requested';
 };
 
+/** Booking status label for UI (uses i18n when `t` is provided). */
+export function getTranslatedBookingStatus(
+  status: string | undefined | null,
+  t?: (key: string) => string,
+): string {
+  if (!status) return '';
+  if (t) {
+    const key = `bookingDetails.statusLabels.${status}`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+  }
+  return getStatusLabel(status);
+}
+
 const getStatusColor = (status: any) => {
   switch (status) {
     case 'requested':
@@ -274,6 +288,63 @@ export const convertUTCToLocalTime = (utcTime: string): string => {
   return `${localHours}:${localMinutes}`;
 };
 
+/** Service names from a booking list/detail payload (`bookedServices`). */
+export function getBookingServiceNames(booking: any): string[] {
+  const rows = booking?.bookedServices;
+  if (!Array.isArray(rows)) return [];
+  const names: string[] = [];
+  for (const row of rows) {
+    const sid = row?.serviceId;
+    const name =
+      typeof sid === 'object' && sid?.name
+        ? String(sid.name).trim()
+        : typeof row?.serviceName === 'string'
+          ? row.serviceName.trim()
+          : typeof row?.name === 'string'
+            ? row.name.trim()
+            : '';
+    if (name) names.push(name);
+  }
+  return names;
+}
+
+/** Single service preference label (atHome, online, onPremises). */
+export function formatPreferenceLabel(
+  pref: string,
+  t: (key: string) => string,
+): string {
+  const trimmed = String(pref).trim();
+  if (!trimmed) return '';
+  const key = `home.servicePreference.${trimmed}`;
+  const translated = t(key);
+  return translated === key ? trimmed : translated;
+}
+
+/** Translates booking `preferences` (atHome, online, onPremises) for display. */
+export function formatBookingPreferencesForDisplay(
+  preferences: unknown,
+  t: (key: string) => string,
+): string {
+  if (!Array.isArray(preferences) || preferences.length === 0) return '';
+  const unique = [
+    ...new Set(preferences.map(p => String(p).trim()).filter(Boolean)),
+  ];
+  return unique.map(pref => formatPreferenceLabel(pref, t)).join(', ');
+}
+
+/** Booking detail date e.g. 23-May-2026 using localized month names. */
+export function formatBookingDisplayDate(
+  dateString: string,
+  monthsLong: string[],
+): string {
+  if (!dateString || typeof dateString !== 'string') return '';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString;
+  const months = Array.isArray(monthsLong) ? monthsLong : [];
+  const monthName = months[date.getMonth()] ?? '';
+  return `${date.getDate()}-${monthName}-${date.getFullYear()}`;
+}
+
 /** Formats API `distanceKm` for UI (e.g. "0.15 km away", "6.9 km away"). */
 export function formatDistanceKmAway(
   km: number | undefined | null,
@@ -327,6 +398,7 @@ export {
   mapBookingStatusToDisplay,
   mapBookingStatusToList,
   getStatusLabel,
+  getTranslatedBookingStatus,
   isCancelledOrRejected,
   getStatusColor,
   formatAddress,

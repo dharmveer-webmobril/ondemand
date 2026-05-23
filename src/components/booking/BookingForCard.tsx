@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 
@@ -16,6 +17,15 @@ export default function BookingForCard({
 }: BookingForCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { t } = useTranslation();
+
+  const paymentTypeLabel = (raw: string) => {
+    if (raw === 'wallet_partial') return t('checkout.paymentModes.walletPartial');
+    if (raw === 'wallet') return t('checkout.paymentModes.walletFull');
+    if (raw === 'online') return t('checkout.paymentModes.online');
+    if (raw === 'cash' || raw === 'onsite') return t('checkout.paymentModes.cash');
+    return raw;
+  };
 
   return (
     <View style={styles.card}>
@@ -41,7 +51,9 @@ export default function BookingForCard({
               color={theme.colors.text}
               style={styles.detailText}
             >
-              {value === 'self' ? 'Self' : 'Other Person'}
+              {value === 'self'
+                ? t('bookingDetails.bookedForSelf')
+                : t('bookingDetails.bookedForOther')}
             </CustomText>
           </>
         )}
@@ -54,7 +66,9 @@ export default function BookingForCard({
               color={theme.colors.text}
               style={styles.detailText}
             >
-              {value === 'completed' ? 'Completed' : 'Pending'}
+              {value === 'completed'
+                ? t('wallet.filterCompleted')
+                : t('wallet.filterPending')}
             </CustomText>
           </>
         )}
@@ -66,7 +80,7 @@ export default function BookingForCard({
               color={theme.colors.text}
               style={styles.detailText}
             >
-              {value === 'wallet_partial' ? 'Partial Wallet' : value === 'wallet' ? 'Full Wallet' : value === 'online' ? 'Online' : 'Cash'}
+              {paymentTypeLabel(value)}
             </CustomText>
           </>
         )}
