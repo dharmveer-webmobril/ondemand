@@ -3,8 +3,9 @@ import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { Shimmer } from '@components/common';
 
-const COVER_HEIGHT = 128;
-const AVATAR_SIZE = 56;
+const COVER_HEIGHT = 104;
+const AVATAR_SIZE = 48;
+const CARD_WIDTH = 220;
 
 const ProviderSkeletonItem = () => {
   const theme = useThemeContext();
@@ -32,35 +33,35 @@ const ProviderSkeletonItem = () => {
 
       <View style={[styles.bottomSection, { paddingTop: overlap + theme.SH(6) }]}>
         <Shimmer
-          width={theme.SW(180)}
-          height={theme.SF(16)}
+          width={theme.SW(150)}
+          height={theme.SF(14)}
           borderRadius={4}
           style={styles.nameShimmer}
         />
         <View style={styles.metaRow}>
           <View style={styles.addressBlock}>
             <Shimmer
-              width={theme.SF(16)}
-              height={theme.SF(16)}
+              width={theme.SF(14)}
+              height={theme.SF(14)}
               borderRadius={4}
             />
             <View style={styles.addressLines}>
               <Shimmer
                 width="100%"
-                height={theme.SF(12)}
+                height={theme.SF(11)}
                 borderRadius={4}
               />
               <Shimmer
                 width="70%"
-                height={theme.SF(12)}
+                height={theme.SF(11)}
                 borderRadius={4}
                 style={styles.addressLine2}
               />
             </View>
           </View>
           <Shimmer
-            width={theme.SW(36)}
-            height={theme.SF(14)}
+            width={theme.SW(32)}
+            height={theme.SF(12)}
             borderRadius={4}
           />
         </View>
@@ -103,10 +104,10 @@ const createStyles = (theme: ThemeType) => {
       paddingTop: SH(4),
     },
     cardContainer: {
-      width: SW(260),
-      marginRight: SW(14),
+      width: SW(CARD_WIDTH),
+      marginRight: SW(12),
       backgroundColor: Colors.white,
-      borderRadius: SF(16),
+      borderRadius: SF(14),
       overflow: 'visible',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 3 },
@@ -119,17 +120,17 @@ const createStyles = (theme: ThemeType) => {
     },
     coverImageClip: {
       height: COVER_HEIGHT,
-      borderTopLeftRadius: SF(16),
-      borderTopRightRadius: SF(16),
+      borderTopLeftRadius: SF(14),
+      borderTopRightRadius: SF(14),
       overflow: 'hidden',
     },
     avatarWrap: {
       position: 'absolute',
-      right: SW(12),
+      right: SW(10),
       width: AVATAR_SIZE,
       height: AVATAR_SIZE,
       borderRadius: AVATAR_SIZE / 2,
-      borderWidth: 3,
+      borderWidth: 2,
       borderColor: Colors.white,
       overflow: 'hidden',
       backgroundColor: Colors.white,
@@ -137,11 +138,11 @@ const createStyles = (theme: ThemeType) => {
       elevation: 6,
     },
     bottomSection: {
-      paddingHorizontal: SW(12),
-      paddingBottom: SH(12),
+      paddingHorizontal: SW(10),
+      paddingBottom: SH(10),
     },
     nameShimmer: {
-      marginBottom: SH(8),
+      marginBottom: SH(6),
     },
     metaRow: {
       flexDirection: 'row',

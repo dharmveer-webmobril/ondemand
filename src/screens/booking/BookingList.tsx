@@ -436,7 +436,7 @@ export default function BookingList() {
         />
       );
     },
-    [handleBookAgain, bookAgainLoadingId, t],
+    [handleBookAgain, bookAgainLoadingId],
   );
 
   const renderRoutineItem = useCallback(

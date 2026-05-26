@@ -16,7 +16,7 @@ import {
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useGetCustomerAddresses,
   useDeleteCustomerAddress,
@@ -35,6 +35,8 @@ export default function MyAddress() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation<any>();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const bottomButtonOffset = Math.max(insets.bottom, theme.SH(12));
 
   // Fetch addresses from API
   const { data: addressesData, isLoading, refetch } = useGetCustomerAddresses();
@@ -151,7 +153,7 @@ export default function MyAddress() {
         />
       )}
 
-      <View style={styles.buttonContainer}>
+      <View style={[styles.buttonContainer, { bottom: bottomButtonOffset }]}>
         <CustomButton
           title={t('myAddress.addNewAddress')}
           onPress={handleAddNewAddress}
@@ -253,7 +255,7 @@ const createStyles = (theme: ThemeType) =>
       left: 0,
       right: 0,
       paddingHorizontal: theme.SW(20),
-      paddingBottom: Platform.OS === 'ios' ? theme.SH(20) : theme.SH(30),
+      paddingBottom: theme.SH(12),
       paddingTop: theme.SH(16),
       backgroundColor: theme.colors.background || '#F7F7F7',
       borderTopWidth: 1,

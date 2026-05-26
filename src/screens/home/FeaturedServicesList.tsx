@@ -25,7 +25,6 @@ import {
   type FeaturedListType,
 } from '@services/api/queries/appQueries';
 import { navigate } from '@utils/NavigationUtils';
-import { getProviderDisplayName } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import FeaturedServiceCard from '@components/home/FeaturedServiceCard';
 import { SH } from '@utils/dimensions';
@@ -94,7 +93,7 @@ export default function FeaturedServicesList() {
   const hasMore = useMemo(() => {
     const batch = extractFeaturedServicesArray(data);
     return batch.length >= PAGE_LIMIT;
-  }, [data, listType]);
+  }, [data]);
 
   const screenTitle =
     listType === 'topRated'
@@ -102,23 +101,9 @@ export default function FeaturedServicesList() {
       : t('home.topOfferedServices');
 
   const handlePressService = useCallback((service: FeaturedServiceItem) => {
-    navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
-      provider: {
-        id: service.provider?._id || service.sp_id,
-        name: getProviderDisplayName(
-          service.provider,
-          t('home.providerFallbackName'),
-        ),
-        logo: service.provider?.profileImage,
-        address: '',
-        serviceType: service.name,
-        rating:
-          typeof service.averageRating === 'number'
-            ? service.averageRating
-            : null,
-        reviewCount: service.ratingCount ?? 0,
-      },
-      prevScreenFlag: 'without_data',
+    navigate(SCREEN_NAMES.SERVICE_DETAIL, {
+      service,
+      provider: service.provider,
     });
   }, []);
 
@@ -130,7 +115,7 @@ export default function FeaturedServicesList() {
         listType === 'topRated' ? 'topRatedServices' : 'topOfferedServices',
       ],
     });
-  }, [cityName, listType]);
+  }, [listType]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || isFetching || isLoading) return;

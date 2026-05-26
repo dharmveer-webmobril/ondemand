@@ -6,6 +6,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
+  Pressable,
   Alert,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -16,6 +17,7 @@ import {
   useGetNotifications,
   useDeleteNotification,
   useMarkAllNotificationsRead,
+  useClearAllNotifications,
   refreshNotificationsUnreadCount,
   type NotificationItem,
 } from '@services/api/queries/notificationQueries';
@@ -54,13 +56,17 @@ export default function NotificationsScreen() {
     limit: PAGE_SIZE,
   });
   const deleteMutation = useDeleteNotification();
+  const clearAllMutation = useClearAllNotifications();
   const { mutate: markAllNotificationsRead } = useMarkAllNotificationsRead();
 
   const pagination = data?.pagination;
   const totalPages = pagination?.totalPages ?? 0;
   const hasMore = page < totalPages;
   const loadingMore = isFetching && page > 1;
-  const pageItems = data?.ResponseData?.notifications ?? [];
+  const pageItems = useMemo(
+    () => data?.ResponseData?.notifications ?? [],
+    [data],
+  );
 
   useEffect(() => {
     if (page === 1) {
@@ -73,7 +79,7 @@ export default function NotificationsScreen() {
         return newItems.length ? [...prev, ...newItems] : prev;
       });
     }
-  }, [page, data]);
+  }, [page, pageItems]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -97,9 +103,9 @@ export default function NotificationsScreen() {
         t('notifications.deleteConfirm'),
         '',
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Delete',
+            text: t('common.delete'),
             style: 'destructive',
             onPress: async () => {
               setDeletingId(item._id);
@@ -121,6 +127,31 @@ export default function NotificationsScreen() {
     },
     [deleteMutation, t]
   );
+
+  const handleClearAll = useCallback(() => {
+    if (list.length === 0 || clearAllMutation.isPending) return;
+
+    Alert.alert(t('notifications.clearAllConfirm'), '', [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('notifications.clearAll'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await clearAllMutation.mutateAsync();
+            setList([]);
+            setPage(1);
+            showToast({
+              type: 'success',
+              message: t('notifications.clearAllSuccess'),
+            });
+          } catch (err) {
+            handleApiError(err);
+          }
+        },
+      },
+    ]);
+  }, [clearAllMutation, list.length, t]);
 
   const renderItem = useCallback(
     ({ item }: { item: NotificationItem }) => {
@@ -181,7 +212,7 @@ export default function NotificationsScreen() {
           onLeftPress={() => navigation.goBack()}
           backgroundColor={theme.colors.background}
           tintColor={theme.colors.text}
-          containerStyle={{ paddingHorizontal: 20 }}
+          containerStyle={styles.headerContainer}
         />
         <View style={styles.emptyWrap}>
           <CustomText style={styles.emptyText}>{t('notifications.loadError')}</CustomText>
@@ -192,13 +223,43 @@ export default function NotificationsScreen() {
 
   return (
     <Container safeArea style={styles.container}>
-      <AppHeader
-        title={t('notifications.title')}
-        onLeftPress={() => navigation.goBack()}
-        backgroundColor={theme.colors.background}
-        tintColor={theme.colors.text}
-        containerStyle={{ paddingHorizontal: 20 }}
-      />
+      <View style={styles.notificationHeader}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={({ pressed }) => [
+            styles.headerBackButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <VectoreIcons
+            icon="FontAwesome"
+            name="angle-left"
+            size={theme.SF(32)}
+            color={theme.colors.text}
+          />
+        </Pressable>
+        <View pointerEvents="none" style={styles.headerTitleWrapper}>
+          <CustomText style={styles.headerTitle} numberOfLines={1}>
+            {t('notifications.title')}
+          </CustomText>
+        </View>
+        <View style={styles.headerRightSide}>
+          {list.length > 0 && (
+            <Pressable
+              onPress={handleClearAll}
+              disabled={clearAllMutation.isPending}
+              style={({ pressed }) => [
+                styles.clearAllButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <CustomText style={styles.clearAllText} numberOfLines={1}>
+                {t('notifications.clearAll')}
+              </CustomText>
+            </Pressable>
+          )}
+        </View>
+      </View>
       {isLoading && list.length === 0 ? (
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -231,6 +292,54 @@ const createStyles = (theme: any) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+    },
+    headerContainer: {
+      paddingHorizontal: 20,
+    },
+    notificationHeader: {
+      height: 56,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      backgroundColor: theme.colors.background,
+    },
+    headerBackButton: {
+      width: 44,
+      height: 44,
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+      zIndex: 2,
+    },
+    headerTitleWrapper: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 120,
+    },
+    headerTitle: {
+      fontFamily: theme.fonts.SEMI_BOLD,
+      fontSize: theme.SF(16),
+      color: theme.colors.text,
+      letterSpacing: 0.2,
+    },
+    headerRightSide: {
+      minWidth: 110,
+      alignItems: 'flex-end',
+      zIndex: 2,
+    },
+    clearAllButton: {
+      minHeight: 44,
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+    },
+    clearAllText: {
+      fontFamily: theme.fonts.SEMI_BOLD,
+      fontSize: theme.SF(14),
+      color: theme.colors.text,
+    },
+    pressed: {
+      opacity: 0.7,
     },
     listContent: {
       paddingHorizontal: 20,

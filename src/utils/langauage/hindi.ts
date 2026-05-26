@@ -334,7 +334,14 @@ export const hindi = {
     "loadMore": "अधिक लोड करें",
     "deleteConfirm": "इस नोटिफिकेशन को हटाएं?",
     "deleteSuccess": "नोटिफिकेशन हटा दिया गया",
-    "loadError": "नोटिफिकेशन लोड करने में असमर्थ।"
+    "deleteFailed": "नोटिफिकेशन हटाने में विफल",
+    "loadError": "नोटिफिकेशन लोड करने में असमर्थ।",
+    "supportSection": "सहायता अनुभाग",
+    "emailNotifications": "ईमेल नोटिफिकेशन",
+    "clearAll": "सभी साफ़ करें",
+    "clearAllConfirm": "सभी नोटिफिकेशन साफ़ करें?",
+    "clearAllSuccess": "सभी नोटिफिकेशन साफ़ कर दिए गए",
+    "clearAllError": "नोटिफिकेशन साफ़ नहीं किए जा सके"
   },
   "changePasswordDetails": {
     "currentPassword": "वर्तमान पासवर्ड",
@@ -1006,6 +1013,7 @@ export const hindi = {
     "error": "त्रुटि",
     "success": "सफलता",
     "cancel": "रद्द करें",
+    "delete": "हटाएं",
     "ok": "ठीक है",
     "submit": "सबमिट करें",
     "assign": "असाइन करें",
@@ -1024,6 +1032,26 @@ export const hindi = {
     "rescheduleRejected": "रीशेड्यूल सफलतापूर्वक अस्वीकार किया गया",
     "phoneNotSupported": "इस डिवाइस पर फोन कॉल समर्थित नहीं है",
     "unableToCall": "फोन कॉल करने में असमर्थ"
+  },
+  "serviceDetail": {
+    "title": "सेवा विवरण",
+    "notFound": "सेवा नहीं मिली",
+    "provider": "प्रदाता",
+    "category": "श्रेणी",
+    "description": "विवरण",
+    "noDescription": "कोई विवरण नहीं",
+    "pricing": "मूल्य निर्धारण",
+    "details": "विवरण",
+    "price": "मूल्य",
+    "consultation": "परामर्श",
+    "discount": "छूट",
+    "duration": "अवधि",
+    "preferences": "प्राथमिकताएँ",
+    "fixed": "निश्चित",
+    "hourly": "प्रति घंटा",
+    "none": "—",
+    "addOns": "ऐड-ऑन",
+    "bookService": "सेवा बुक करें"
   },
   "report": {
     "title": "रिपोर्ट करें",

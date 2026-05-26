@@ -83,12 +83,7 @@ export function navigateFromAssistantUrl(url: string): boolean {
 
   if (!parsed.spId) return false;
 
-  const deliveryMode = parsed.preference || 'online';
-  navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
-    providerId: parsed.spId,
-    serviceId: parsed.serviceId,
-    bookingDetails: { deliveryMode },
-  });
+  navigateToAssistantProvider(parsed.spId);
   return true;
 }
 

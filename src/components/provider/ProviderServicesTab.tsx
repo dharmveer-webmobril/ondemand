@@ -52,6 +52,7 @@ type ProviderServicesTabProps = {
   refreshing?: boolean;
   onRefresh?: () => void;
   onBookService: (serviceId: string) => void;
+  onPressService?: (service: Service) => void;
   isShowBookButton?: boolean;
   formatDuration?: (minutes: number | undefined) => string;
 };
@@ -63,6 +64,7 @@ export default function ProviderServicesTab({
   refreshing = false,
   onRefresh,
   onBookService,
+  onPressService,
   isShowBookButton = true,
   formatDuration,
 }: ProviderServicesTabProps) {
@@ -150,7 +152,7 @@ export default function ProviderServicesTab({
             image={item.images?.[0] ? { uri: item.images[0] } : imagePaths.no_image}
             price={Number(item?.price) || 0}
             duration={formatDuration ? formatDuration(item?.time) : undefined}
-            icon="cut"
+            onPress={() => onPressService?.(item)}
             onBook={() => onBookService(item._id)}
             isShowBookButton={isShowBookButton}
             bestOffer={bestOffer}

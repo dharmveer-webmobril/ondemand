@@ -9,7 +9,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAppSelector } from '@store/hooks';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AppHeader,
   CustomButton,
@@ -43,7 +43,7 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyALC5b7touq90VVqX9U96jVMPHjJ5_We8s';
 Geocoder.init(GOOGLE_MAPS_API_KEY);
 
 /** International postal / ZIP: 2–16 chars, letters, digits, spaces, hyphens (covers IN, US, UK, CA, DE, BR, etc.). */
-const POSTAL_CODE_REGEX = /^[A-Za-z0-9](?:[A-Za-z0-9\s\-]{0,14}[A-Za-z0-9])?$/;
+const POSTAL_CODE_REGEX = /^[A-Za-z0-9](?:[A-Za-z0-9\s-]{0,14}[A-Za-z0-9])?$/;
 
 /** Stable empty ref — inline `[]` breaks GooglePlacesAutocomplete useMemo/useEffect deps every render. */
 const NO_PREDEFINED_PLACES: never[] = [];
@@ -205,6 +205,11 @@ export default function AddressAdd() {
   const { userDetails } = useAppSelector(state => state.auth);
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const bottomButtonPadding = Math.max(
+    theme.SH(24),
+    insets.bottom + theme.SH(12),
+  );
   const { t } = useTranslation();
   const placesRef = useRef<GooglePlacesAutocompleteRef>(null);
   const locationFlowPendingRef = useRef(false);
@@ -609,7 +614,7 @@ export default function AddressAdd() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <KeyboardFormScroll contentContainerStyle={styles.scrollContent}>
           <AppHeader
             title={
@@ -627,7 +632,9 @@ export default function AddressAdd() {
           ) : null}
 
           <Pressable
-            onPress={() => void handleUseCurrentLocation()}
+            onPress={() => {
+              handleUseCurrentLocation();
+            }}
             disabled={loading || fillingFromLocation}
             style={[
               styles.locationRow,
@@ -853,7 +860,12 @@ export default function AddressAdd() {
           </View>
         </KeyboardFormScroll>
 
-        <View style={styles.buttonContainer}>
+        <View
+          style={[
+            styles.buttonContainer,
+            { paddingBottom: bottomButtonPadding },
+          ]}
+        >
           <CustomButton
             title={t('addAddress.saveButton')}
             backgroundColor={theme.colors.primary}

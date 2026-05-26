@@ -463,7 +463,7 @@ export default function HomeQuickVoiceScreen() {
         </View>
       );
     },
-    [styles],
+    [contextSpId, styles],
   );
 
   return (

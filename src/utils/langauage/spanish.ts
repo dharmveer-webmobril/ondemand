@@ -329,7 +329,14 @@ export const spanish = {
     "loadMore": "Cargar más",
     "deleteConfirm": "¿Eliminar esta notificación?",
     "deleteSuccess": "Notificación eliminada",
-    "loadError": "No se pudieron cargar las notificaciones."
+    "deleteFailed": "Error al eliminar la notificación",
+    "loadError": "No se pudieron cargar las notificaciones.",
+    "supportSection": "Sección de soporte",
+    "emailNotifications": "Notificaciones por correo",
+    "clearAll": "Borrar todo",
+    "clearAllConfirm": "¿Borrar todas las notificaciones?",
+    "clearAllSuccess": "Todas las notificaciones fueron borradas",
+    "clearAllError": "No se pudieron borrar las notificaciones"
   },
   "changePasswordDetails": {
     "currentPassword": "Contraseña actual",
@@ -1001,6 +1008,7 @@ export const spanish = {
     "error": "Error",
     "success": "Éxito",
     "cancel": "Cancelar",
+    "delete": "Eliminar",
     "ok": "OK",
     "submit": "Enviar",
     "assign": "Asignar",
@@ -1019,6 +1027,26 @@ export const spanish = {
     "rescheduleRejected": "Reprogramación rechazada correctamente",
     "phoneNotSupported": "Las llamadas telefónicas no son compatibles con este dispositivo",
     "unableToCall": "No se puede realizar la llamada"
+  },
+  "serviceDetail": {
+    "title": "Detalles del servicio",
+    "notFound": "Servicio no encontrado",
+    "provider": "Proveedor",
+    "category": "Categoría",
+    "description": "Descripción",
+    "noDescription": "Sin descripción",
+    "pricing": "Precios",
+    "details": "Detalles",
+    "price": "Precio",
+    "consultation": "Consulta",
+    "discount": "Descuento",
+    "duration": "Duración",
+    "preferences": "Preferencias",
+    "fixed": "Fijo",
+    "hourly": "Por hora",
+    "none": "—",
+    "addOns": "Complementos",
+    "bookService": "Reservar servicio"
   },
   "report": {
     "title": "Reportar",

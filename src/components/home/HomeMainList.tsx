@@ -90,7 +90,7 @@ export default function HomeMainList({
   }, []);
 
 
-  // console.log('------providersData------->', providersData);
+  console.log('------topOfferedServices------->', topOfferedServices);
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}

@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 import { navigate } from '@utils/NavigationUtils';
-import { getProviderDisplayName } from '@utils/tools';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import FeaturedServiceCard from './FeaturedServiceCard';
 import HomeFeaturedServicesSkeleton from './HomeFeaturedServicesSkeleton';
@@ -59,23 +58,9 @@ export default function HomeFeaturedServices({
   }, [listType]);
 
   const handlePressService = useCallback((service: FeaturedServiceItem) => {
-    navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
-      provider: {
-        id: service.provider?._id || service.sp_id,
-        name: getProviderDisplayName(
-          service.provider,
-          t('home.providerFallbackName'),
-        ),
-        logo: service.provider?.profileImage,
-        address: '',
-        serviceType: service.name,
-        rating:
-          typeof service.averageRating === 'number'
-            ? service.averageRating
-            : null,
-        reviewCount: service.ratingCount ?? 0,
-      },
-      prevScreenFlag: 'without_data',
+    navigate(SCREEN_NAMES.SERVICE_DETAIL, {
+      service,
+      provider: service.provider,
     });
   }, []);
 

@@ -345,7 +345,14 @@ export const english = {
     "loadMore": "Load more",
     "deleteConfirm": "Delete this notification?",
     "deleteSuccess": "Notification deleted",
-    "loadError": "Unable to load notifications."
+    "deleteFailed": "Failed to delete notification",
+    "loadError": "Unable to load notifications.",
+    "supportSection": "Support Section",
+    "emailNotifications": "Email Notifications",
+    "clearAll": "Clear all",
+    "clearAllConfirm": "Clear all notifications?",
+    "clearAllSuccess": "All notifications cleared",
+    "clearAllError": "Could not clear notifications"
   },
   "changePasswordDetails": {
     "currentPassword": "Current Password",
@@ -1159,6 +1166,7 @@ export const english = {
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
+    "delete": "Delete",
     "ok": "OK",
     "submit": "Submit",
     "assign": "Assign",
@@ -1241,6 +1249,26 @@ export const english = {
       "submittedOn": "Submitted on {{date}}",
       "allSubmitted": "You've already shared your reviews. Tap Rate Now to edit."
     }
+  },
+  "serviceDetail": {
+    "title": "Service Details",
+    "notFound": "Service not found",
+    "provider": "Provider",
+    "category": "Category",
+    "description": "Description",
+    "noDescription": "No description",
+    "pricing": "Pricing",
+    "details": "Details",
+    "price": "Price",
+    "consultation": "Consultation",
+    "discount": "Discount",
+    "duration": "Duration",
+    "preferences": "Preferences",
+    "fixed": "Fixed",
+    "hourly": "Hourly",
+    "none": "—",
+    "addOns": "Add-ons",
+    "bookService": "Book Service"
   },
   "report": {
     "title": "Report",

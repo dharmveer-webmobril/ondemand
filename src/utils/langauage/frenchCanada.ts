@@ -287,7 +287,6 @@ export const frenchCanada = {
     "loadError": "Impossible de charger les transactions.",
     "totalCredited": "Total crédité",
     "totalUsed": "Total utilisé",
-    "tabTransactions": "Transactions",
     "tabWithdraw": "Retrait",
     "withdrawRequest": "Demande de retrait",
     "amount": "Montant",
@@ -329,7 +328,14 @@ export const frenchCanada = {
     "loadMore": "Charger plus",
     "deleteConfirm": "Supprimer cette notification?",
     "deleteSuccess": "Notification supprimée",
-    "loadError": "Impossible de charger les notifications."
+    "deleteFailed": "Échec de la suppression de la notification",
+    "loadError": "Impossible de charger les notifications.",
+    "supportSection": "Section d'assistance",
+    "emailNotifications": "Notifications par courriel",
+    "clearAll": "Tout effacer",
+    "clearAllConfirm": "Effacer toutes les notifications?",
+    "clearAllSuccess": "Toutes les notifications ont été effacées",
+    "clearAllError": "Impossible d'effacer les notifications"
   },
   "changePasswordDetails": {
     "currentPassword": "Mot de passe actuel",
@@ -976,6 +982,7 @@ export const frenchCanada = {
     "error": "Erreur",
     "success": "Succès",
     "cancel": "Annuler",
+    "delete": "Supprimer",
     "ok": "OK",
     "submit": "Soumettre",
     "assign": "Assigner",
@@ -994,6 +1001,26 @@ export const frenchCanada = {
     "rescheduleRejected": "Report refusé avec succès",
     "phoneNotSupported": "Les appels ne sont pas supportés sur cet appareil",
     "unableToCall": "Impossible de passer l'appel"
+  },
+  "serviceDetail": {
+    "title": "Détails du service",
+    "notFound": "Service introuvable",
+    "provider": "Prestataire",
+    "category": "Catégorie",
+    "description": "Description",
+    "noDescription": "Aucune description",
+    "pricing": "Tarification",
+    "details": "Détails",
+    "price": "Prix",
+    "consultation": "Consultation",
+    "discount": "Rabais",
+    "duration": "Durée",
+    "preferences": "Préférences",
+    "fixed": "Forfait",
+    "hourly": "À l'heure",
+    "none": "—",
+    "addOns": "Options",
+    "bookService": "Réserver le service"
   },
   "report": {
     "title": "Signaler",

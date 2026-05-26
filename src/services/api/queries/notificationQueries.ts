@@ -57,6 +57,75 @@ type NotificationApiResponse = {
   succeeded: boolean;
 };
 
+export interface CustomerNotificationSettingsResponse {
+  ResponseCode?: number;
+  ResponseMessage?: string;
+  succeeded?: boolean;
+  ResponseData?: {
+    enabled?: boolean;
+    pushEnabled?: boolean;
+    notificationEnabled?: boolean;
+    emailEnabled?: boolean;
+    pushSettings?: Record<string, unknown>;
+    emailSettings?: Record<string, unknown>;
+    notification?: Record<string, unknown>;
+    data?: Record<string, unknown>;
+  };
+  enabled?: boolean;
+  pushEnabled?: boolean;
+  notificationEnabled?: boolean;
+  emailEnabled?: boolean;
+}
+
+const firstDefined = (candidates: unknown[], keys: string[]) => {
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object') continue;
+    for (const key of keys) {
+      const value = (candidate as Record<string, unknown>)[key];
+      if (value !== undefined) return value;
+    }
+  }
+  return undefined;
+};
+
+export function extractCustomerNotificationEnabled(
+  data: CustomerNotificationSettingsResponse | undefined,
+): boolean {
+  const responseData = data?.ResponseData as any;
+  const value = firstDefined(
+    [
+      responseData,
+      responseData?.pushSettings,
+      responseData?.notification,
+      responseData?.data,
+      data,
+    ],
+    ['enabled', 'pushEnabled', 'notificationEnabled'],
+  );
+  return Boolean(value ?? false);
+}
+
+export function extractCustomerEmailEnabled(
+  data: CustomerNotificationSettingsResponse | undefined,
+): boolean {
+  const responseData = data?.ResponseData as any;
+  const value = firstDefined(
+    [
+      responseData,
+      responseData?.emailSettings,
+      responseData?.email,
+      responseData?.data,
+      data,
+    ],
+    ['emailEnabled', 'enabled'],
+  );
+  return Boolean(value ?? false);
+}
+
+export const CUSTOMER_NOTIFICATION_SETTINGS_QUERY_KEY = [
+  'customerNotificationSettings',
+] as const;
+
 /** Mark all customer notifications read — no request body. */
 export const markAllNotificationsRead = async (): Promise<NotificationApiResponse> => {
   const response = await axiosInstance.put<NotificationApiResponse>(
@@ -88,6 +157,39 @@ export const useGetNotifications = (params: NotificationsParams) => {
       const url = `${EndPoints.GET_NOTIFICATIONS}?${search.toString()}`;
       const response = await axiosInstance.get<NotificationsListResponse>(url);
       return response.data;
+    },
+  });
+};
+
+export const useGetCustomerNotificationSettings = () => {
+  return useQuery<CustomerNotificationSettingsResponse>({
+    queryKey: [...CUSTOMER_NOTIFICATION_SETTINGS_QUERY_KEY],
+    queryFn: async () => {
+      const response = await axiosInstance.get<CustomerNotificationSettingsResponse>(
+        EndPoints.CUSTOMER_NOTIFICATION_SETTINGS,
+      );
+      return response.data;
+    },
+  });
+};
+
+export const useUpdateCustomerNotificationSettings = () => {
+  return useMutation<
+    CustomerNotificationSettingsResponse,
+    Error,
+    { enabled: boolean }
+  >({
+    mutationFn: async ({ enabled }) => {
+      const response = await axiosInstance.put<CustomerNotificationSettingsResponse>(
+        EndPoints.CUSTOMER_NOTIFICATION_SETTINGS,
+        { enabled },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...CUSTOMER_NOTIFICATION_SETTINGS_QUERY_KEY],
+      });
     },
   });
 };
@@ -131,6 +233,25 @@ export const useDeleteNotification = () => {
         EndPoints.DELETE_NOTIFICATION(notificationId),
       );
       return response.data;
+    },
+  });
+};
+
+export const useClearAllNotifications = () => {
+  return useMutation<NotificationApiResponse, Error, void>({
+    mutationFn: async () => {
+      const response = await axiosInstance.delete<NotificationApiResponse>(
+        EndPoints.CLEAR_NOTIFICATIONS,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.setQueryData([...NOTIFICATIONS_UNREAD_COUNT_QUERY_KEY], {
+        succeeded: true,
+        ResponseData: { unreadCount: 0, count: 0 },
+      });
+      queryClient.invalidateQueries({ queryKey: ['customerNotifications'] });
+      refreshNotificationsUnreadCount();
     },
   });
 };

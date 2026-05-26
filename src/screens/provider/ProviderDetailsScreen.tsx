@@ -83,21 +83,22 @@ export default function ProviderDetailsScreen() {
   const removeFavorite = useRemoveFavoriteServiceProvider();
 
   // Extract provider data from API response
-  const provider = providerData?.ResponseData || {};
-  const services = servicesData?.ResponseData?.services || [];
+  const provider = useMemo(
+    () => providerData?.ResponseData || {},
+    [providerData],
+  );
+  const services = useMemo(
+    () => servicesData?.ResponseData?.services || [],
+    [servicesData],
+  );
   const businessProfile = provider?.businessProfile || {};
   const providerDisplayName = useMemo(
     () =>
       getProviderDisplayName(
-        provider,
+      provider,
         t('providerDetails.providerDefaultName'),
       ),
-    [
-      provider?._id,
-      provider?.name,
-      provider?.businessProfile?.name,
-      t,
-    ],
+    [provider, t],
   );
 
   const amenityNames = useMemo(() => {
@@ -332,6 +333,16 @@ export default function ProviderDetailsScreen() {
     return `${minutes}m`;
   };
 
+  const handlePressService = useCallback(
+    (service: any) => {
+      navigate(SCREEN_NAMES.SERVICE_DETAIL, {
+        service,
+        provider,
+      });
+    },
+    [provider],
+  );
+
   const renderContent = () => {
     console.log('renderContent--------renderContent', isError, providerData?.ResponseData);
     if (isError && !providerData?.ResponseData) {
@@ -350,6 +361,7 @@ export default function ProviderDetailsScreen() {
             refreshing={refreshing}
             onRefresh={handleRefresh}
             onBookService={handleBookService}
+            onPressService={handlePressService}
             // isShowBookButton={!isShowBookButton}
             formatDuration={formatDuration}
           />

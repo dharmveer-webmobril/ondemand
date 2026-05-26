@@ -16,8 +16,11 @@ type HomeProviderItemProps = {
   layout?: 'carousel' | 'list';
 };
 
-const AVATAR_SIZE = 56;
-const COVER_HEIGHT = 128;
+const CAROUSEL_AVATAR_SIZE = 48;
+const CAROUSEL_COVER_HEIGHT = 104;
+const CAROUSEL_CARD_WIDTH = 220;
+const LIST_AVATAR_SIZE = 56;
+const LIST_COVER_HEIGHT = 128;
 
 export default function HomeProviderItem({
   provider,
@@ -29,6 +32,7 @@ export default function HomeProviderItem({
     () => createStyles(theme, layout),
     [theme, layout],
   );
+  const iconSize = theme.SF(layout === 'carousel' ? 14 : 16);
 
   const address =
     formatAddress({
@@ -88,7 +92,7 @@ export default function HomeProviderItem({
             <VectoreIcons
               name="location-outline"
               icon="Ionicons"
-              size={theme.SF(16)}
+              size={iconSize}
               color={theme.colors.lightText || '#888'}
             />
             <CustomText style={styles.addressText} numberOfLines={2}>
@@ -100,7 +104,7 @@ export default function HomeProviderItem({
               <VectoreIcons
                 name="star"
                 icon="Ionicons"
-                size={theme.SF(16)}
+                size={iconSize}
                 color="#FAAC00"
               />
               <CustomText style={styles.ratingText}>
@@ -112,7 +116,7 @@ export default function HomeProviderItem({
               <VectoreIcons
                 name="star-outline"
                 icon="Ionicons"
-                size={theme.SF(16)}
+                size={iconSize}
                 color={theme.colors.lightText || '#CCC'}
               />
               <CustomText style={styles.ratingMuted}>—</CustomText>
@@ -131,15 +135,18 @@ export default function HomeProviderItem({
 
 const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
-  const overlap = AVATAR_SIZE / 2;
+  const isCarousel = layout === 'carousel';
+  const avatarSize = isCarousel ? CAROUSEL_AVATAR_SIZE : LIST_AVATAR_SIZE;
+  const coverHeight = isCarousel ? CAROUSEL_COVER_HEIGHT : LIST_COVER_HEIGHT;
+  const overlap = avatarSize / 2;
 
   return StyleSheet.create({
     container: {
-      width: layout === 'list' ? '100%' : SW(260),
-      marginRight: layout === 'list' ? 0 : SW(14),
+      width: layout === 'list' ? '100%' : SW(CAROUSEL_CARD_WIDTH),
+      marginRight: layout === 'list' ? 0 : SW(12),
       marginBottom: layout === 'list' ? SH(14) : 0,
       backgroundColor: Colors.white,
-      borderRadius: SF(16),
+      borderRadius: SF(isCarousel ? 14 : 16),
       overflow: 'visible',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 3 },
@@ -155,23 +162,23 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
       position: 'relative',
     },
     coverImageClip: {
-      height: COVER_HEIGHT,
-      borderTopLeftRadius: SF(16),
-      borderTopRightRadius: SF(16),
+      height: coverHeight,
+      borderTopLeftRadius: SF(isCarousel ? 14 : 16),
+      borderTopRightRadius: SF(isCarousel ? 14 : 16),
       overflow: 'hidden',
     },
     coverImage: {
       width: '100%',
-      height: COVER_HEIGHT,
+      height: coverHeight,
     },
     avatarWrap: {
       position: 'absolute',
       bottom: -overlap,
-      right: SW(12),
-      width: AVATAR_SIZE,
-      height: AVATAR_SIZE,
-      borderRadius: AVATAR_SIZE / 2,
-      borderWidth: 3,
+      right: SW(isCarousel ? 10 : 12),
+      width: avatarSize,
+      height: avatarSize,
+      borderRadius: avatarSize / 2,
+      borderWidth: isCarousel ? 2 : 3,
       borderColor: Colors.white,
       backgroundColor: Colors.white,
       overflow: 'hidden',
@@ -185,18 +192,18 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
     avatarImage: {
       width: '100%',
       height: '100%',
-      borderRadius: AVATAR_SIZE / 2,
+      borderRadius: avatarSize / 2,
     },
     bottomSection: {
-      paddingHorizontal: SW(12),
-      paddingTop: SH(6),
-      paddingBottom: SH(12),
+      paddingHorizontal: SW(isCarousel ? 10 : 12),
+      paddingTop: SH(isCarousel ? 5 : 6),
+      paddingBottom: SH(isCarousel ? 10 : 12),
     },
     providerName: {
-      fontSize: SF(16),
+      fontSize: SF(isCarousel ? 14 : 16),
       fontFamily: Fonts.BOLD,
       color: Colors.text,
-      marginBottom: SH(8),
+      marginBottom: SH(isCarousel ? 6 : 8),
       paddingRight: SW(4),
     },
     metaRow: {
@@ -214,10 +221,10 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
     },
     addressText: {
       flex: 1,
-      fontSize: SF(12),
+      fontSize: SF(isCarousel ? 11 : 12),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText || '#666',
-      lineHeight: SF(17),
+      lineHeight: SF(isCarousel ? 15 : 17),
     },
     ratingBlock: {
       flexDirection: 'row',
@@ -227,12 +234,12 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
       paddingTop: SH(1),
     },
     ratingText: {
-      fontSize: SF(13),
+      fontSize: SF(isCarousel ? 12 : 13),
       fontFamily: Fonts.SEMI_BOLD,
       color: Colors.text,
     },
     ratingMuted: {
-      fontSize: SF(13),
+      fontSize: SF(isCarousel ? 12 : 13),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText || '#999',
     },
@@ -243,7 +250,7 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
       marginTop: SH(6),
     },
     distanceText: {
-      fontSize: SF(12),
+      fontSize: SF(isCarousel ? 11 : 12),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText || '#666',
     },

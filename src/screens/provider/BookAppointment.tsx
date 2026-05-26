@@ -35,7 +35,6 @@ import SCREEN_NAMES from '@navigation/ScreenNames';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ROUTINE_MIN_SESSIONS,
-  ROUTINE_MAX_SESSIONS,
   ROUTINE_MAX_DAYS_AHEAD,
   type RoutineSession,
   getVolumeDiscountForSessionCount,
@@ -70,6 +69,43 @@ const formatDateToString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+const getEntityId = (value: any): string => {
+  if (typeof value === 'string') return value;
+  return value?._id || value?.id || '';
+};
+
+const reconcileSelectedServicesWithCatalog = (
+  selected: any[],
+  catalog: any[],
+) => {
+  if (!Array.isArray(selected) || !Array.isArray(catalog)) return [];
+
+  const catalogById = new Map(
+    catalog
+      .map((service: any) => [getEntityId(service), service])
+      .filter(([id]) => !!id),
+  );
+
+  return selected
+    .map((selectedService: any) => {
+      const catalogService = catalogById.get(getEntityId(selectedService));
+      if (!catalogService) return null;
+
+      const selectedAddOnIds = new Set(
+        (selectedService?.selectedAddOns || []).map(getEntityId).filter(Boolean),
+      );
+      const selectedAddOns = (catalogService?.serviceAddOns || []).filter(
+        (addOn: any) => selectedAddOnIds.has(getEntityId(addOn)),
+      );
+
+      return {
+        ...catalogService,
+        selectedAddOns,
+      };
+    })
+    .filter(Boolean);
+};
+
 export default function BookAppointment() {
   const theme = useThemeContext();
   const { t } = useTranslation();
@@ -82,21 +118,12 @@ export default function BookAppointment() {
   const {
     data: servicesData,
     isLoading: isLoadingServices,
-    refetch: refetchServices,
   } = useGetServiceProviderServices(providerId, bookingDetails?.deliveryMode);
 
   const services = useMemo(() => {
     const catalog: any[] = servicesData?.ResponseData?.services || [];
-    const initialSelected: any[] = Array.isArray(selectedServices)
-      ? selectedServices
-      : [];
-    if (!initialSelected.length) return catalog;
-    const catalogIds = new Set(catalog.map((s: any) => s?._id).filter(Boolean));
-    const extras = initialSelected.filter(
-      (s: any) => s?._id && !catalogIds.has(s._id),
-    );
-    return [...catalog, ...extras];
-  }, [servicesData, selectedServices]);
+    return catalog;
+  }, [servicesData]);
 
   const today = useMemo(() => {
     const date = new Date();
@@ -120,7 +147,7 @@ export default function BookAppointment() {
   const [routineSessions, setRoutineSessions] = useState<RoutineSession[]>([]);
 
   const [currentSelectedServices, setCurrentSelectedServices] = useState<any[]>(
-    selectedServices || [],
+    [],
   );
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showSwitchToRoutineAlert, setShowSwitchToRoutineAlert] = useState(false);
@@ -157,6 +184,17 @@ export default function BookAppointment() {
   const maxRoutineSessions = routineLimits.maxSessions;
 
   const deliveryMode = bookingDetails?.deliveryMode ?? '';
+
+  useEffect(() => {
+    if (isLoadingServices) return;
+
+    const initialSelected: any[] = Array.isArray(selectedServices)
+      ? selectedServices
+      : [];
+    setCurrentSelectedServices(
+      reconcileSelectedServicesWithCatalog(initialSelected, services),
+    );
+  }, [isLoadingServices, selectedServices, services]);
 
   const restrictServicePickerToRoutine = useMemo(
     () =>

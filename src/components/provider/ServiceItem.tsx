@@ -22,7 +22,7 @@ type ServiceItemProps = {
   name: string;
   price: number;
   duration?: string;
-  icon?: string;
+  onPress?: () => void;
   onBook?: () => void;
   isShowBookButton?: boolean;
   image?: ImageSourcePropType;
@@ -36,7 +36,7 @@ export default function ServiceItem({
   name,
   price,
   duration,
-  icon = 'cut',
+  onPress,
   onBook,
   isShowBookButton = true,
   image = imagePaths.no_image,
@@ -67,6 +67,7 @@ export default function ServiceItem({
 
   return (
     <Pressable
+      onPress={onPress}
       style={({ pressed }) => [styles.container, pressed && { opacity: 0.8 }]}
     >
       <View style={styles.content}>
@@ -93,17 +94,16 @@ export default function ServiceItem({
               </View>
             )} */}
             <View style={styles.priceContainer}>
-              {/* {hasOffer 
-              ? (
+              {hasOffer ? (
                 <>
                   <CustomText style={styles.originalPrice}>${(Number.isFinite(price) ? price : 0).toFixed(2)}</CustomText>
                   <CustomText style={styles.price}>${displayPrice.toFixed(2)}</CustomText>
                 </>
-              ) : ( */}
-              <CustomText style={styles.price}>
-                ${(Number.isFinite(price) ? price : 0).toFixed(2)}
-              </CustomText>
-              {/* )} */}
+              ) : (
+                <CustomText style={styles.price}>
+                  ${(Number.isFinite(price) ? price : 0).toFixed(2)}
+                </CustomText>
+              )}
               {duration && (
                 <CustomText style={styles.duration}>{duration}</CustomText>
               )}
