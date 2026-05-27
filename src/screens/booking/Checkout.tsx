@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { AppHeader, Container, LoadingComp, SweetAlert } from '@components/common';
+import { AppHeader, Container, LoadingComp, SweetAlert, showToast } from '@components/common';
 import { KeyboardFormScroll } from '@components/common';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
@@ -35,9 +35,12 @@ import {
   getRoutineBookingIdFromCreateResponse,
   isRoutineCheckout,
   getRemainingAfterWallet,
+  getAtHomeCountryRestriction,
   getWalletPartialAmount,
   hasInvalidPartialWalletAmount,
   hasInsufficientWalletBalance,
+  addressMatchesAtHomeCountry,
+  phoneCountryMatchesAtHomeCountry,
   isCheckoutFormValid,
   isWalletFullyCovered,
   shouldUseGatewayPayment,
@@ -52,12 +55,23 @@ export default function Checkout() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
 
-  const bookingData = route.params?.bookingData || {};
+  const bookingData = useMemo(
+    () => route.params?.bookingData || {},
+    [route.params?.bookingData],
+  );
   const isRoutine = isRoutineCheckout(bookingData);
   const deliveryMode = bookingData.deliveryMode;
   const selectedServices = bookingData.selectedServices || [];
   const needsAddress = deliveryMode === 'atHome';
   const otherPersonAddressRequired = deliveryMode === 'atHome';
+  const atHomeCountryRestriction = useMemo(
+    () => (needsAddress ? getAtHomeCountryRestriction(bookingData) : null),
+    [bookingData, needsAddress],
+  );
+  const atHomeCountryName =
+    atHomeCountryRestriction?.name ||
+    atHomeCountryRestriction?.iso2?.toUpperCase() ||
+    '';
 
   const draft = route.params?.checkoutDraft;
 
@@ -173,7 +187,7 @@ export default function Checkout() {
 
   const isLoading =
     isCreatingBooking || isCreatingRoutine || isGatewayPaymentPending;
-  const isFormValid = isCheckoutFormValid({
+  const baseFormValid = isCheckoutFormValid({
     deliveryMode,
     needsAddress,
     serviceFor,
@@ -181,8 +195,53 @@ export default function Checkout() {
     otherPersonDetails,
     otherPersonAddressRequired,
   });
+  const selectedAddressCountryValid =
+    !needsAddress ||
+    serviceFor !== 'self' ||
+    addressMatchesAtHomeCountry(selectedAddress, atHomeCountryRestriction);
+  const otherAddressCountryValid =
+    !needsAddress ||
+    serviceFor !== 'other' ||
+    addressMatchesAtHomeCountry(
+      otherPersonDetails?.address,
+      atHomeCountryRestriction,
+    );
+  const otherPhoneCountryValid =
+    !needsAddress ||
+    serviceFor !== 'other' ||
+    phoneCountryMatchesAtHomeCountry(
+      otherPersonDetails?.phoneCountryIso2,
+      otherPersonDetails?.countryCode,
+      atHomeCountryRestriction,
+    );
+  const isFormValid =
+    baseFormValid &&
+    selectedAddressCountryValid &&
+    otherAddressCountryValid &&
+    otherPhoneCountryValid;
+
+  const showAtHomeCountryRestrictionToast = useCallback(() => {
+    showToast({
+      type: 'info',
+      message: t('checkout.atHomeCountryRestriction', {
+        country: atHomeCountryName || t('checkout.sameCountry'),
+      }),
+    });
+  }, [atHomeCountryName, t]);
 
   const handleOtherPersonSelect = (value: any) => {
+    if (
+      needsAddress &&
+      (!addressMatchesAtHomeCountry(value?.address, atHomeCountryRestriction) ||
+        !phoneCountryMatchesAtHomeCountry(
+          value?.phoneCountryIso2,
+          value?.countryCode,
+          atHomeCountryRestriction,
+        ))
+    ) {
+      showAtHomeCountryRestrictionToast();
+      return;
+    }
     setOtherPersonDetails(value);
     setSelectedAddress(value?.address ?? null);
   };
@@ -190,6 +249,9 @@ export default function Checkout() {
   const openOtherPersonDetailsScreen = () => {
     navigation.navigate(SCREEN_NAMES.ADD_OTHER_PERSON_DETAIL, {
       addressRequired: otherPersonAddressRequired,
+      allowedCountryName: atHomeCountryRestriction?.name,
+      allowedCountryIso2: atHomeCountryRestriction?.iso2,
+      allowedPhoneCode: atHomeCountryRestriction?.phoneCode,
       onSelect: handleOtherPersonSelect,
     });
   };
@@ -216,7 +278,15 @@ export default function Checkout() {
     if (serviceFor === 'self') {
       if (needsAddress) {
         navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS, {
-          onSelect: (value: any) => setSelectedAddress(value),
+          allowedCountryName: atHomeCountryRestriction?.name,
+          allowedCountryIso2: atHomeCountryRestriction?.iso2,
+          onSelect: (value: any) => {
+            if (!addressMatchesAtHomeCountry(value, atHomeCountryRestriction)) {
+              showAtHomeCountryRestrictionToast();
+              return;
+            }
+            setSelectedAddress(value);
+          },
         });
       }
       return;
@@ -225,12 +295,12 @@ export default function Checkout() {
     openOtherPersonDetailsScreen();
   };
 
-  const navigateToBookingList = (payload: any) => {
+  const navigateToBookingList = useCallback((payload: any) => {
     navigation.navigate(SCREEN_NAMES.HOME, {
       screen: SCREEN_NAMES.BOOKING_LIST,
       params: { bookingData: payload },
     });
-  };
+  }, [navigation]);
 
   const navigateToRoutineDetail = useCallback(
     (routineBookingId: string) => {
@@ -313,6 +383,7 @@ export default function Checkout() {
     navigation,
     isRoutine,
     navigateToRoutineDetail,
+    navigateToBookingList,
     resolveRoutineBookingId,
   ]);
 
@@ -612,7 +683,7 @@ export default function Checkout() {
       });
 
       createRoutineBooking(routinePayload, {
-        onSuccess: async (response) => {
+        onSuccess: async (response: any) => {
           await handleRoutineBookingCreated(
             response,
             routinePayload,
@@ -620,7 +691,7 @@ export default function Checkout() {
             walletAmountUsed,
           );
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error('Routine booking creation error:', error);
           showCheckoutError(error);
         },
@@ -640,7 +711,7 @@ export default function Checkout() {
     });
 
     createBooking(payload, {
-      onSuccess: async (response) => {
+      onSuccess: async (response: any) => {
         await handleBookingCreated(
           response,
           payload,
@@ -648,7 +719,7 @@ export default function Checkout() {
           walletAmountUsed,
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         console.error('Booking creation error:', error);
         showCheckoutError(error);
       },
@@ -657,6 +728,14 @@ export default function Checkout() {
 
   const handleConfirmBooking = () => {
     if (!isFormValid) {
+      if (
+        needsAddress &&
+        (!selectedAddressCountryValid ||
+          !otherAddressCountryValid ||
+          !otherPhoneCountryValid)
+      ) {
+        showAtHomeCountryRestrictionToast();
+      }
       return;
     }
 

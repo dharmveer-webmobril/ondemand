@@ -493,6 +493,25 @@ export const useGetServiceProviderServices = (
   });
 };
 
+export const useGetCustomerServiceDetail = (
+  spId: string | null,
+  serviceId: string | null,
+) => {
+  return useQuery<any>({
+    queryKey: ['customerServiceDetail', spId, serviceId],
+    queryFn: async () => {
+      if (!spId || !serviceId) {
+        throw new Error('Service provider and service IDs are required');
+      }
+      const response = await axiosInstance.get<any>(
+        EndPoints.GET_CUSTOMER_SERVICE_DETAIL(spId, serviceId),
+      );
+      return response.data;
+    },
+    enabled: !!spId && !!serviceId,
+  });
+};
+
 // Service Provider Members
 export interface SPMemberService {
   _id: string;

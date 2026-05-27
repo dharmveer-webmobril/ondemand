@@ -25,6 +25,7 @@ import imagePaths from '@assets';
 import { formatPreferenceLabel, getProviderDisplayName } from '@utils/tools';
 import DeliveryModeModal from '@components/category/DeliveryModeModal';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { useGetCustomerServiceDetail } from '@services/index';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const IMAGE_HEIGHT = 220;
@@ -52,6 +53,43 @@ const getCategoryName = (category: unknown): string => {
   return '-';
 };
 
+const getImageSource = (uri: string | null | undefined) =>
+  uri ? { uri } : imagePaths.no_image;
+
+const formatDiscount = (offer: any): string => {
+  const value = Number(offer?.discountValue) || 0;
+  if (!value) return '-';
+  return offer?.discountType === 'percentage'
+    ? `${Math.round(value)}%`
+    : formatAmount(value);
+};
+
+const getDiscountedAmount = (
+  amount: number | string | null | undefined,
+  discountPercentage: number | string | null | undefined,
+): string => {
+  const price = Number(amount) || 0;
+  const discount = Math.min(100, Math.max(0, Number(discountPercentage) || 0));
+  return formatAmount(price - (price * discount) / 100);
+};
+
+const getEntityId = (value: any): string | null => {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (value?._id != null) return String(value._id);
+  if (value?.id != null) return String(value.id);
+  return null;
+};
+
+const formatBusinessAddress = (businessProfile: any): string => {
+  return (
+    businessProfile?.formattedAddress ||
+    [businessProfile?.line1, businessProfile?.line2, businessProfile?.landmark]
+      .filter(Boolean)
+      .join(', ') ||
+    '-'
+  );
+};
+
 export default function ServiceDetail() {
   const theme = useThemeContext();
   const { t } = useTranslation();
@@ -60,8 +98,31 @@ export default function ServiceDetail() {
   const navigation = useNavigation<any>();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const service = route.params?.service ?? null;
-  const provider = route.params?.provider ?? service?.provider ?? null;
+  const routeService = route.params?.service ?? null;
+  const routeProvider =
+    route.params?.provider ??
+    routeService?.provider ??
+    routeService?.serviceProvider ??
+    null;
+  const routeProviderId =
+    route.params?.providerId ??
+    getEntityId(routeProvider) ??
+    getEntityId(routeService?.serviceProvider) ??
+    getEntityId(routeService?.provider) ??
+    getEntityId(routeService?.sp_id);
+  const routeServiceId =
+    route.params?.serviceId ?? getEntityId(routeService);
+  const {
+    data: serviceDetailData,
+    isLoading: isLoadingDetail,
+    isFetching: isFetchingDetail,
+  } = useGetCustomerServiceDetail(routeProviderId, routeServiceId);
+  const responseData = serviceDetailData?.ResponseData;
+  const service = responseData?.service ?? routeService;
+  const provider =
+    responseData?.serviceProvider ??
+    service?.serviceProvider ??
+    routeProvider;
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showDeliveryModeModal, setShowDeliveryModeModal] = useState(false);
 
@@ -97,7 +158,11 @@ export default function ServiceDetail() {
     [service?.preferences],
   );
 
-  const providerId = provider?._id || provider?.id || service?.sp_id;
+  const providerId =
+    getEntityId(provider) ||
+    getEntityId(service?.serviceProvider) ||
+    getEntityId(service?.sp_id) ||
+    routeProviderId;
 
   const onCarouselScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -141,7 +206,7 @@ export default function ServiceDetail() {
     [availableModes, navigation, provider, providerId, service, t],
   );
 
-  if (!service) {
+  if (!service && !isLoadingDetail) {
     return (
       <Container
         safeArea={false}
@@ -171,13 +236,48 @@ export default function ServiceDetail() {
     );
   }
 
+  if (!service && isLoadingDetail) {
+    return (
+      <Container
+        safeArea={false}
+        statusBarColor={theme.colors.white}
+        style={styles.container}
+      >
+        <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+          <AppHeader
+            title={t('serviceDetail.title')}
+            onLeftPress={() => navigation.goBack()}
+            backgroundColor={theme.colors.white}
+            tintColor={theme.colors.text}
+          />
+        </View>
+        <LoadingComp visible />
+      </Container>
+    );
+  }
+
   const priceType =
     service.priceType === 'hourly'
       ? t('serviceDetail.hourly')
       : t('serviceDetail.fixed');
-  const categoryName = getCategoryName(service.category_id || service.category);
+  const categoryName = getCategoryName(service.category || service.category_id);
   const discount = Number(service.discountPercentage || service.highestDiscount) || 0;
-  const addOns = Array.isArray(service.serviceAddOns) ? service.serviceAddOns : [];
+  const businessProfile = provider?.businessProfile ?? service?.serviceProvider?.businessProfile;
+  const addOns = Array.isArray(responseData?.addons)
+    ? responseData.addons
+    : Array.isArray(service.serviceAddOns)
+      ? service.serviceAddOns
+      : [];
+  const activeOffers = Array.isArray(responseData?.activeOffers)
+    ? responseData.activeOffers
+    : Array.isArray(service.activeOffers)
+      ? service.activeOffers
+      : [];
+  const providerBusinessName =
+    businessProfile?.name || providerName || t('providerDetails.providerDefaultName');
+  const providerImage =
+    businessProfile?.bannerImage || provider?.profileImage || null;
+  const providerAddress = formatBusinessAddress(businessProfile);
 
   return (
     <Container
@@ -219,7 +319,7 @@ export default function ServiceDetail() {
           />
           {imageList.length > 1 ? (
             <View style={styles.dotContainer}>
-              {imageList.map((_, index) => (
+              {imageList.map((_: unknown, index: number) => (
                 <View
                   key={`dot-${index}`}
                   style={[
@@ -241,8 +341,13 @@ export default function ServiceDetail() {
           >
             {service.name || '-'}
           </CustomText>
-          <DetailRow label={t('serviceDetail.provider')} value={providerName} theme={theme} />
           <DetailRow label={t('serviceDetail.category')} value={categoryName} theme={theme} />
+          <DetailRow label={t('serviceDetail.duration')} value={formatDuration(service.time)} theme={theme} />
+          <DetailRow
+            label={t('serviceDetail.preferences')}
+            value={preferenceLabels}
+            theme={theme}
+          />
         </View>
 
         <View style={styles.card}>
@@ -279,21 +384,28 @@ export default function ServiceDetail() {
           ) : null}
         </View>
 
-        <View style={styles.card}>
-          <CustomText style={styles.sectionTitle}>
-            {t('serviceDetail.details')}
-          </CustomText>
-          <DetailRow
-            label={t('serviceDetail.duration')}
-            value={formatDuration(service.time)}
-            theme={theme}
-          />
-          <DetailRow
-            label={t('serviceDetail.preferences')}
-            value={preferenceLabels}
-            theme={theme}
-          />
-        </View>
+        {provider ? (
+          <View style={styles.card}>
+            <CustomText style={styles.sectionTitle}>
+              {t('serviceDetail.serviceProvider')}
+            </CustomText>
+            <View style={styles.providerSummary}>
+              <ImageLoader
+                source={getImageSource(providerImage)}
+                mainImageStyle={styles.providerImage}
+                resizeMode="cover"
+              />
+              <View style={styles.providerInfo}>
+                <CustomText style={styles.providerName}>
+                  {providerBusinessName}
+                </CustomText>
+                <CustomText style={styles.providerAddress}>
+                  {providerAddress}
+                </CustomText>
+              </View>
+            </View>
+          </View>
+        ) : null}
 
         {addOns.length > 0 ? (
           <View style={styles.card}>
@@ -301,12 +413,44 @@ export default function ServiceDetail() {
               {t('serviceDetail.addOns')}
             </CustomText>
             {addOns.map((addOn: any) => (
-              <DetailRow
-                key={addOn?._id || addOn?.name}
-                label={addOn?.name || '-'}
-                value={`${formatAmount(addOn?.price)} · ${formatDuration(addOn?.duration)}`}
-                theme={theme}
-              />
+              <View key={addOn?._id || addOn?.name} style={styles.subCard}>
+                <DetailRow label={t('serviceDetail.name')} value={addOn?.name || '-'} theme={theme} />
+                <DetailRow label={t('serviceDetail.price')} value={formatAmount(addOn?.price)} theme={theme} />
+                <DetailRow
+                  label={t('serviceDetail.offerAmount')}
+                  value={getDiscountedAmount(addOn?.price, addOn?.discountPercentage)}
+                  theme={theme}
+                />
+                <DetailRow label={t('serviceDetail.duration')} value={formatDuration(addOn?.duration)} theme={theme} />
+                {Number(addOn?.discountPercentage) > 0 ? (
+                  <DetailRow
+                    label={t('serviceDetail.discount')}
+                    value={`${Math.round(Number(addOn.discountPercentage))}%`}
+                    theme={theme}
+                  />
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {activeOffers.length > 0 ? (
+          <View style={styles.card}>
+            <CustomText style={styles.sectionTitle}>
+              {t('serviceDetail.activeOffers')}
+            </CustomText>
+            {activeOffers.map((offer: any) => (
+              <View key={offer?._id || offer?.title} style={styles.subCard}>
+                {offer?.image ? (
+                  <ImageLoader
+                    source={getImageSource(offer.image)}
+                    mainImageStyle={styles.offerImage}
+                    resizeMode="cover"
+                  />
+                ) : null}
+                <DetailRow label={t('serviceDetail.titleLabel')} value={offer?.title || '-'} theme={theme} />
+                <DetailRow label={t('serviceDetail.discount')} value={formatDiscount(offer)} theme={theme} />
+              </View>
             ))}
           </View>
         ) : null}
@@ -335,6 +479,7 @@ export default function ServiceDetail() {
         onConfirm={handleDeliveryModeConfirm}
         availableModes={availableModes}
       />
+      <LoadingComp visible={isFetchingDetail && !!service} />
     </Container>
   );
 }
@@ -375,7 +520,7 @@ const detailRowStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(0,0,0,0.06)',
@@ -476,6 +621,60 @@ const createStyles = (theme: ThemeType) =>
       fontFamily: theme.fonts.REGULAR,
       color: theme.colors.lightText || theme.colors.text,
       lineHeight: theme.SH(22),
+    },
+    subCard: {
+      backgroundColor: theme.colors.background || '#F8FAFC',
+      borderRadius: theme.borderRadius.md,
+      padding: theme.SW(12),
+      marginBottom: theme.SH(10),
+    },
+    providerSummary: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW(12),
+    },
+    providerImage: {
+      width: theme.SW(72),
+      height: theme.SW(72),
+      borderRadius: theme.SF(12),
+    },
+    providerInfo: {
+      flex: 1,
+    },
+    providerName: {
+      fontSize: theme.fontSize.md,
+      fontFamily: theme.fonts.SEMI_BOLD,
+      color: theme.colors.text,
+      marginBottom: theme.SH(4),
+    },
+    providerAddress: {
+      fontSize: theme.fontSize.sm,
+      fontFamily: theme.fonts.REGULAR,
+      color: theme.colors.lightText || theme.colors.text,
+      lineHeight: theme.SH(19),
+    },
+    offerImage: {
+      width: '100%',
+      height: theme.SH(120),
+      borderRadius: theme.SF(10),
+      marginBottom: theme.SH(10),
+    },
+    chipWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.SW(8),
+      marginTop: theme.SH(10),
+    },
+    chip: {
+      backgroundColor: theme.colors.secondary || '#EEF6F9',
+      borderRadius: theme.SF(14),
+      paddingHorizontal: theme.SW(10),
+      paddingVertical: theme.SH(5),
+    },
+    chipText: {
+      fontSize: theme.fontSize.xs,
+      fontFamily: theme.fonts.MEDIUM,
+      color: theme.colors.text,
     },
     bottomSpacer: {
       height: theme.SH(40),

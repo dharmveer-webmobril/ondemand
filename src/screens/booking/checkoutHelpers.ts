@@ -11,6 +11,7 @@ export type Address = {
   landmark?: string;
   city?: LocationValue;
   country?: LocationValue;
+  countryIso2?: string;
   pincode: string;
   contact: string;
   addressType: 'home' | 'office' | 'other';
@@ -25,6 +26,117 @@ export type OtherPersonDetails = {
   address?: Address | null;
   [key: string]: any;
 } | null;
+
+export type AtHomeCountryRestriction = {
+  name?: string;
+  iso2?: string;
+  phoneCode?: string;
+} | null;
+
+const normalizeText = (value: unknown): string =>
+  String(value ?? '').trim().toLowerCase();
+
+const normalizeIso2 = (value: unknown): string => {
+  const raw = normalizeText(value).replace(/[^a-z]/g, '');
+  return raw.length === 2 ? raw : '';
+};
+
+const normalizePhoneCode = (value: unknown): string => {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  return digits ? `+${digits}` : '';
+};
+
+const getLocationName = (value: unknown): string => {
+  if (!value) return '';
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'object') {
+    const item = value as Record<string, unknown>;
+    return String(item.name ?? item.countryName ?? '').trim();
+  }
+  return '';
+};
+
+const getLocationIso2 = (value: unknown): string => {
+  if (!value || typeof value !== 'object') return '';
+  const item = value as Record<string, unknown>;
+  return (
+    normalizeIso2(item.countryIso2) ||
+    normalizeIso2(item.iso2) ||
+    normalizeIso2(item.code) ||
+    normalizeIso2(item.countryCode)
+  );
+};
+
+export function getAddressCountryName(address: Address | null | undefined): string {
+  return getLocationName(address?.country);
+}
+
+export function getAddressCountryIso2(address: Address | null | undefined): string {
+  return (
+    normalizeIso2(address?.countryIso2) ||
+    getLocationIso2(address?.country)
+  );
+}
+
+export function getAtHomeCountryRestriction(
+  bookingData: any,
+): AtHomeCountryRestriction {
+  const provider = bookingData?.providerData ?? {};
+  const country =
+    provider?.businessProfile?.country ??
+    provider?.spBusinessProfile?.country ??
+    provider?.country ??
+    bookingData?.country;
+
+  const name = getLocationName(country);
+  const iso2 =
+    getLocationIso2(country) ||
+    normalizeIso2(provider?.countryIso2) ||
+    normalizeIso2(bookingData?.countryIso2);
+  const phoneCode =
+    normalizePhoneCode((country as any)?.phoneCode) ||
+    normalizePhoneCode((country as any)?.dialCode) ||
+    normalizePhoneCode(provider?.phoneCode) ||
+    normalizePhoneCode(bookingData?.phoneCode);
+
+  if (!name && !iso2 && !phoneCode) return null;
+  return { name, iso2, phoneCode };
+}
+
+export function addressMatchesAtHomeCountry(
+  address: Address | null | undefined,
+  restriction: AtHomeCountryRestriction,
+): boolean {
+  if (!restriction || !address) return true;
+
+  const targetIso = normalizeIso2(restriction.iso2);
+  const addressIso = getAddressCountryIso2(address);
+  if (targetIso && addressIso) return targetIso === addressIso;
+
+  const targetName = normalizeText(restriction.name);
+  const addressName = normalizeText(getAddressCountryName(address));
+  if (targetName && addressName) return targetName === addressName;
+
+  return true;
+}
+
+export function phoneCountryMatchesAtHomeCountry(
+  countryIso2: string | undefined,
+  dialCode: string | undefined,
+  restriction: AtHomeCountryRestriction,
+): boolean {
+  if (!restriction) return true;
+
+  const targetIso = normalizeIso2(restriction.iso2);
+  const nextIso = normalizeIso2(countryIso2);
+  if (targetIso && nextIso) return targetIso === nextIso;
+
+  const targetDial = normalizePhoneCode(restriction.phoneCode);
+  const nextDial = normalizePhoneCode(dialCode);
+  if (targetDial && nextDial) return targetDial === nextDial;
+
+  return true;
+}
 
 type ValidateCheckoutFormParams = {
   deliveryMode?: string;

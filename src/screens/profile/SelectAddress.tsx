@@ -1,6 +1,6 @@
 import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useMemo, useState, useEffect } from 'react'
-import { Container, AppHeader, CustomButton, CustomText } from '@components';
+import { Container, AppHeader, CustomButton, CustomText, showToast } from '@components';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -8,6 +8,11 @@ import { Platform } from 'react-native';
 import { useGetCustomerAddresses } from '@services/index';
 import { useAppSelector } from '@store/hooks';
 import { formatAddress } from '@utils/tools';
+import {
+  addressMatchesAtHomeCountry,
+  type AtHomeCountryRestriction,
+  type Address as CheckoutAddress,
+} from '../booking/checkoutHelpers';
 
 export default function SelectAddress() {
   const theme = useThemeContext();
@@ -16,11 +21,45 @@ export default function SelectAddress() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  const allowedCountry: AtHomeCountryRestriction = useMemo(
+    () =>
+      route.params?.allowedCountryName || route.params?.allowedCountryIso2
+        ? {
+            name: route.params?.allowedCountryName,
+            iso2: route.params?.allowedCountryIso2,
+          }
+        : null,
+    [route.params?.allowedCountryName, route.params?.allowedCountryIso2],
+  );
+  const allowedCountryLabel =
+    allowedCountry?.name || allowedCountry?.iso2?.toUpperCase() || '';
+  const hasCountryRestriction = !!allowedCountry;
 
   // Fetch addresses from API
   const { data: addressesData, isLoading, refetch } = useGetCustomerAddresses();
-  const addresses = addressesData?.ResponseData || [];
-  const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0];
+  const addresses = useMemo<any[]>(
+    () => addressesData?.ResponseData || [],
+    [addressesData],
+  );
+  const selectableAddresses = useMemo(
+    () =>
+      addresses.filter((addr) =>
+        addressMatchesAtHomeCountry(addr as CheckoutAddress, allowedCountry),
+      ),
+    [addresses, allowedCountry],
+  );
+  const defaultAddress =
+    selectableAddresses.find((addr) => addr.isDefault) || selectableAddresses[0];
+  const selectedAddressValid = useMemo(() => {
+    const selectedAddress = addresses.find((addr) => addr._id === selectedAddressId);
+    return !!(
+      selectedAddress &&
+      addressMatchesAtHomeCountry(
+        selectedAddress as CheckoutAddress,
+        allowedCountry,
+      )
+    );
+  }, [addresses, allowedCountry, selectedAddressId]);
 
   // Set default selected address
   useEffect(() => {
@@ -29,8 +68,22 @@ export default function SelectAddress() {
     }
   }, [defaultAddress, selectedAddressId]);
 
+  useEffect(() => {
+    if (!selectedAddressId) return;
+    const selectedAddress = addresses.find((addr) => addr._id === selectedAddressId);
+    if (
+      selectedAddress &&
+      !addressMatchesAtHomeCountry(
+        selectedAddress as CheckoutAddress,
+        allowedCountry,
+      )
+    ) {
+      setSelectedAddressId(defaultAddress?._id ?? '');
+    }
+  }, [addresses, allowedCountry, defaultAddress, selectedAddressId]);
+
    
-  const userCityName = useAppSelector((state) => state.app.userCity)?.name;
+  const userCityName = useAppSelector((state: any) => state.app.userCity)?.name;
   console.log('userCityName', userCityName);
   console.log('addresses', addresses);
   const handleAddNewAddress = () => {
@@ -38,12 +91,39 @@ export default function SelectAddress() {
   };
 
   const handleSelectAddress = (addressId: string) => {
+    const nextAddress = addresses.find((addr) => addr._id === addressId);
+    if (
+      nextAddress &&
+      !addressMatchesAtHomeCountry(nextAddress as CheckoutAddress, allowedCountry)
+    ) {
+      showToast({
+        type: 'info',
+        message: t('checkout.atHomeCountryRestriction', {
+          country: allowedCountryLabel || t('checkout.sameCountry'),
+        }),
+      });
+      return;
+    }
     setSelectedAddressId(addressId);
   };
 
   const handleConfirm = () => {
     const selectedAddress = addresses.find((addr) => addr._id === selectedAddressId);
     if (selectedAddress) {
+      if (
+        !addressMatchesAtHomeCountry(
+          selectedAddress as CheckoutAddress,
+          allowedCountry,
+        )
+      ) {
+        showToast({
+          type: 'info',
+          message: t('checkout.atHomeCountryRestriction', {
+            country: allowedCountryLabel || t('checkout.sameCountry'),
+          }),
+        });
+        return;
+      }
       // Pass selected address back via route params callback or navigation
       const onSelect = route.params?.onSelect;
       if (onSelect) {
@@ -55,12 +135,19 @@ export default function SelectAddress() {
 
   const renderAddressItem = ({ item }: { item: any }) => {
     const isSelected = selectedAddressId === item._id;
+    const cityRestricted =
+      !hasCountryRestriction &&
+      item.city?.name?.toLowerCase()?.trim() !== userCityName?.toLowerCase()?.trim();
+    const countryRestricted = !addressMatchesAtHomeCountry(
+      item as CheckoutAddress,
+      allowedCountry,
+    );
     let formattedAddress = formatAddress({ line1: item.line1, line2: item.line2, landmark: item.landmark, pincode: item.pincode, city: item.city?.name, country: item.country?.name })
     return (
       <Pressable
-        style={[styles.addressItem, isSelected && styles.addressItemSelected, item.city?.name?.toLowerCase()?.trim() !== userCityName?.toLowerCase()?.trim() && styles.addressItemDisabled]}
+        style={[styles.addressItem, isSelected && styles.addressItemSelected, (cityRestricted || countryRestricted) && styles.addressItemDisabled]}
         onPress={() => handleSelectAddress(item._id)}
-        disabled={item.city?.name?.toLowerCase()?.trim() !== userCityName?.toLowerCase()?.trim()}
+        disabled={cityRestricted}
       >
         <View style={styles.addressContent}>
           <View style={styles.radioButtonContainer}>
@@ -129,7 +216,7 @@ export default function SelectAddress() {
           backgroundColor={theme.colors.primary}
           textColor={theme.colors.white}
           buttonStyle={styles.confirmButton}
-          disable={!selectedAddressId || addresses.length === 0}
+          disable={!selectedAddressId || addresses.length === 0 || !selectedAddressValid}
         />
       </View>
     </Container>

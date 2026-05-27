@@ -36,6 +36,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ROUTINE_MIN_SESSIONS,
   ROUTINE_MAX_DAYS_AHEAD,
+  ROUTINE_ADVANCE_HOURS,
   type RoutineSession,
   getVolumeDiscountForSessionCount,
   applyVolumeDiscount,
@@ -69,6 +70,31 @@ const formatDateToString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+const getSessionDateTime = (date: string, time: string): Date | null => {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  if (
+    !year ||
+    !month ||
+    !day ||
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes)
+  ) {
+    return null;
+  }
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+};
+
+const isAfterRoutineAdvanceWindow = (
+  date: string,
+  time: string,
+  advanceNoticeMs: number,
+) => {
+  const sessionDateTime = getSessionDateTime(date, time);
+  if (!sessionDateTime) return false;
+  return sessionDateTime.getTime() >= Date.now() + advanceNoticeMs;
+};
+
 const getEntityId = (value: any): string => {
   if (typeof value === 'string') return value;
   return value?._id || value?.id || '';
@@ -80,11 +106,13 @@ const reconcileSelectedServicesWithCatalog = (
 ) => {
   if (!Array.isArray(selected) || !Array.isArray(catalog)) return [];
 
-  const catalogById = new Map(
-    catalog
-      .map((service: any) => [getEntityId(service), service])
-      .filter(([id]) => !!id),
-  );
+  const catalogById = new Map<string, any>();
+  catalog.forEach((service: any) => {
+    const serviceId = getEntityId(service);
+    if (serviceId) {
+      catalogById.set(serviceId, service);
+    }
+  });
 
   return selected
     .map((selectedService: any) => {
@@ -179,6 +207,14 @@ export default function BookAppointment() {
   const routineAdvanceNoticeMs = useMemo(
     () => getRoutineAdvanceNoticeMs(currentSelectedServices),
     [currentSelectedServices],
+  );
+  const routineAdvanceNoticeHours = useMemo(
+    () =>
+      Math.max(
+        ROUTINE_ADVANCE_HOURS,
+        Math.ceil(routineAdvanceNoticeMs / (60 * 60 * 1000)),
+      ),
+    [routineAdvanceNoticeMs],
   );
 
   const maxRoutineSessions = routineLimits.maxSessions;
@@ -441,6 +477,16 @@ export default function BookAppointment() {
   };
 
   const handleAddRoutineSession = (date: string, time: string) => {
+    if (!isAfterRoutineAdvanceWindow(date, time, routineAdvanceNoticeMs)) {
+      showToast({
+        type: 'error',
+        message: t('bookAppointment.routineAdvanceNoticeRequired', {
+          hours: routineAdvanceNoticeHours,
+        }),
+      });
+      return;
+    }
+
     const duplicate = routineSessions.some(
       s => s.date === date && s.time === time,
     );
@@ -508,6 +554,24 @@ export default function BookAppointment() {
         type: 'error',
         message: t('bookAppointment.routineMinSessions', {
           min: ROUTINE_MIN_SESSIONS,
+        }),
+      });
+      return;
+    }
+
+    const hasSessionInsideAdvanceWindow = routineSessions.some(
+      session =>
+        !isAfterRoutineAdvanceWindow(
+          session.date,
+          session.time,
+          routineAdvanceNoticeMs,
+        ),
+    );
+    if (hasSessionInsideAdvanceWindow) {
+      showToast({
+        type: 'error',
+        message: t('bookAppointment.routineAdvanceNoticeRequired', {
+          hours: routineAdvanceNoticeHours,
         }),
       });
       return;

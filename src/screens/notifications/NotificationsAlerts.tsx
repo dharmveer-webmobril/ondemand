@@ -2,12 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { AppHeader, Container, CustomText } from '@components/common';
+import { AppHeader, Container, CustomText, LoadingComp } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import {
   extractCustomerEmailEnabled,
   extractCustomerNotificationEnabled,
+  useGetCustomerEmailNotificationSettings,
   useGetCustomerNotificationSettings,
+  useUpdateCustomerEmailNotificationSettings,
   useUpdateCustomerNotificationSettings,
 } from '@services/api/queries/notificationQueries';
 import { handleApiError } from '@utils/apiHelpers';
@@ -22,12 +24,20 @@ export default function NotificationsAlerts() {
   const [emailEnabled, setEmailEnabled] = useState(false);
 
   const { data: settings, isFetching } = useGetCustomerNotificationSettings();
+  const { data: emailSettings, isFetching: isFetchingEmailSettings } =
+    useGetCustomerEmailNotificationSettings();
   const updateSettings = useUpdateCustomerNotificationSettings();
+  const updateEmailSettings = useUpdateCustomerEmailNotificationSettings();
+  const isUpdatingSettings =
+    updateSettings.isPending || updateEmailSettings.isPending;
 
   useEffect(() => {
     setNotificationsEnabled(extractCustomerNotificationEnabled(settings));
-    setEmailEnabled(extractCustomerEmailEnabled(settings));
   }, [settings]);
+
+  useEffect(() => {
+    setEmailEnabled(extractCustomerEmailEnabled(emailSettings));
+  }, [emailSettings]);
 
   const handleNotificationToggle = async (enabled: boolean) => {
     const previousValue = notificationsEnabled;
@@ -37,6 +47,18 @@ export default function NotificationsAlerts() {
       await updateSettings.mutateAsync({ enabled });
     } catch (error) {
       setNotificationsEnabled(previousValue);
+      handleApiError(error);
+    }
+  };
+
+  const handleEmailToggle = async (enabled: boolean) => {
+    const previousValue = emailEnabled;
+    setEmailEnabled(enabled);
+
+    try {
+      await updateEmailSettings.mutateAsync({ enabled });
+    } catch (error) {
+      setEmailEnabled(previousValue);
       handleApiError(error);
     }
   };
@@ -67,7 +89,7 @@ export default function NotificationsAlerts() {
             <Switch
               value={notificationsEnabled}
               onValueChange={handleNotificationToggle}
-              disabled={isFetching || updateSettings.isPending}
+              disabled={isFetching || isUpdatingSettings}
               trackColor={{
                 false: theme.colors.secondary || '#D1D5DB',
                 true: theme.colors.primary,
@@ -82,8 +104,8 @@ export default function NotificationsAlerts() {
             </CustomText>
             <Switch
               value={emailEnabled}
-              onValueChange={setEmailEnabled}
-              disabled={isFetching}
+              onValueChange={handleEmailToggle}
+              disabled={isFetchingEmailSettings || isUpdatingSettings}
               trackColor={{
                 false: theme.colors.secondary || '#D1D5DB',
                 true: theme.colors.primary,
@@ -93,6 +115,7 @@ export default function NotificationsAlerts() {
           </View>
         </View>
       </ScrollView>
+      <LoadingComp visible={isUpdatingSettings} />
     </Container>
   );
 }

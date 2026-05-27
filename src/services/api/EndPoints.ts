@@ -22,6 +22,8 @@ export default {
     GET_SERVICE_PROVIDERS: '/customer/service-providers',
     GET_SERVICE_PROVIDER_DETAIL: '/customer/service-provider',
     GET_SERVICE_PROVIDER_SERVICES: '/customer/service-provider',
+    GET_CUSTOMER_SERVICE_DETAIL: (spId: string, serviceId: string) =>
+        `/customer/service-provider/${spId}/services/${serviceId}`,
     GET_SERVICE_PROVIDER_MEMBERS: (spId: string) => `/customer/service-provider/${spId}/members`,
     GET_SERVICE_PROVIDER_AVAILABILITY: '/customer/bookings/sp',
     GET_CUSTOMER_ADDRESSES: '/auth/customer/addresses',
@@ -69,6 +71,8 @@ export default {
     GET_NOTIFICATIONS_UNREAD_COUNT: '/notifications/customer/unread-count',
     MARK_ALL_NOTIFICATIONS_READ: '/notifications/customer/mark-all-read',
     CUSTOMER_NOTIFICATION_SETTINGS: '/notifications/customer',
+    CUSTOMER_NOTIFICATION_SETTINGS1: '/notifications/customer/push-settings',
+    CUSTOMER_EMAIL_NOTIFICATION_SETTINGS: '/notifications/customer/email-settings',
     CUSTOMER_SUPPORT: '/customer/support',
     DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
     CLEAR_NOTIFICATIONS: '/notifications/customer/',

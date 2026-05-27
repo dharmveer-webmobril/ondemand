@@ -125,6 +125,9 @@ export function extractCustomerEmailEnabled(
 export const CUSTOMER_NOTIFICATION_SETTINGS_QUERY_KEY = [
   'customerNotificationSettings',
 ] as const;
+export const CUSTOMER_EMAIL_NOTIFICATION_SETTINGS_QUERY_KEY = [
+  'customerEmailNotificationSettings',
+] as const;
 
 /** Mark all customer notifications read — no request body. */
 export const markAllNotificationsRead = async (): Promise<NotificationApiResponse> => {
@@ -181,7 +184,7 @@ export const useUpdateCustomerNotificationSettings = () => {
   >({
     mutationFn: async ({ enabled }) => {
       const response = await axiosInstance.put<CustomerNotificationSettingsResponse>(
-        EndPoints.CUSTOMER_NOTIFICATION_SETTINGS,
+        EndPoints.CUSTOMER_NOTIFICATION_SETTINGS1,
         { enabled },
       );
       return response.data;
@@ -189,6 +192,39 @@ export const useUpdateCustomerNotificationSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [...CUSTOMER_NOTIFICATION_SETTINGS_QUERY_KEY],
+      });
+    },
+  });
+};
+
+export const useGetCustomerEmailNotificationSettings = () => {
+  return useQuery<CustomerNotificationSettingsResponse>({
+    queryKey: [...CUSTOMER_EMAIL_NOTIFICATION_SETTINGS_QUERY_KEY],
+    queryFn: async () => {
+      const response = await axiosInstance.get<CustomerNotificationSettingsResponse>(
+        EndPoints.CUSTOMER_EMAIL_NOTIFICATION_SETTINGS,
+      );
+      return response.data;
+    },
+  });
+};
+
+export const useUpdateCustomerEmailNotificationSettings = () => {
+  return useMutation<
+    CustomerNotificationSettingsResponse,
+    Error,
+    { enabled: boolean }
+  >({
+    mutationFn: async ({ enabled }) => {
+      const response = await axiosInstance.put<CustomerNotificationSettingsResponse>(
+        EndPoints.CUSTOMER_EMAIL_NOTIFICATION_SETTINGS,
+        { enabled },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...CUSTOMER_EMAIL_NOTIFICATION_SETTINGS_QUERY_KEY],
       });
     },
   });

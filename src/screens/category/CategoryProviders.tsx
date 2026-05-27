@@ -473,7 +473,7 @@ console.log('filteredProviders-----CategoryProviders', filteredProviders);
                 }) || item.city?.name || ''
               }
               rating={typeof item.rating === 'number' ? item.rating : 0}
-              reviewCount={typeof item.ratingValue === 'number' ? item.ratingValue : 0}
+              reviewCount={typeof item.reviewCount === 'number' ? item.reviewCount : 0}
               serviceType={item.cityName || item.businessProfile?.cityName || undefined}
               isVerified={item.isVerified}
               isOpen={item.status === '1'}
@@ -546,6 +546,7 @@ const createStyles = (theme: ThemeType) => {
     searchInputWrapper: {
       flex: 1,
       minWidth: 0,
+      marginLeft: SW(8),
     },
     filterButton: {
       width: SF(44),

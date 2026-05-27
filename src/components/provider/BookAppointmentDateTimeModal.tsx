@@ -140,7 +140,14 @@ export default function BookAppointmentDateTimeModal({
     }
 
     return slots;
-  }, [availabilityData, selectedDateString, todayString, minDate, mode]);
+  }, [
+    availabilityData,
+    selectedDateString,
+    todayString,
+    minDate,
+    mode,
+    routineAdvanceNoticeMs,
+  ]);
 
   const handleDayPress = useCallback((day: DateData) => {
     setSelectedDateString(day.dateString);
@@ -187,7 +194,7 @@ export default function BookAppointmentDateTimeModal({
         color={theme.colors.primary || '#009BFF'}
       />
     ),
-    [theme.SF, theme.colors.primary],
+    [theme],
   );
 
   const maxDateLabel = maxDate ? formatDateDisplay(maxDate) : '';
@@ -199,7 +206,7 @@ export default function BookAppointmentDateTimeModal({
       transparent
       onRequestClose={onClose}
     >
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+      <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <Pressable style={styles.overlay} onPress={onClose}>
           <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
             <View style={styles.header}>
@@ -344,6 +351,9 @@ const createStyles = (theme: ThemeType) =>
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.45)',
       justifyContent: 'flex-end',
+    },
+    safeArea: {
+      flex: 1,
     },
     sheet: {
       maxHeight: '92%',

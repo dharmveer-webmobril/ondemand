@@ -12,9 +12,9 @@ import {
   CustomButton,
   CustomInput,
   CustomText,
+  showToast,
 } from '@components';
 import { Colors, Fonts, regex, SF, SH, SW } from '@utils';
-import { useThemeContext } from '@utils/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardFormScroll } from '@components/common';
@@ -32,6 +32,12 @@ import {
   isValidNationalPhoneNumber,
   parseContactPhoneNumber,
 } from '@utils/phoneValidation';
+import {
+  addressMatchesAtHomeCountry,
+  phoneCountryMatchesAtHomeCountry,
+  type AtHomeCountryRestriction,
+  type Address as CheckoutAddress,
+} from './checkoutHelpers';
 
 interface FormValues {
   fname: string;
@@ -50,11 +56,34 @@ type ContactListItem = {
 
 const AddOtherPersonDetail: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useThemeContext();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const addressFromPreviousPage = route.params?.address || '';
   const addressRequired = route.params?.addressRequired !== false;
+  const allowedCountry: AtHomeCountryRestriction = useMemo(
+    () =>
+      route.params?.allowedCountryName ||
+      route.params?.allowedCountryIso2 ||
+      route.params?.allowedPhoneCode
+        ? {
+            name: route.params?.allowedCountryName,
+            iso2: route.params?.allowedCountryIso2,
+            phoneCode: route.params?.allowedPhoneCode,
+          }
+        : null,
+    [
+      route.params?.allowedCountryName,
+      route.params?.allowedCountryIso2,
+      route.params?.allowedPhoneCode,
+    ],
+  );
+  const allowedCountryLabel =
+    allowedCountry?.name || allowedCountry?.iso2?.toUpperCase() || '';
+  const initialPhoneDialCode = allowedCountry?.phoneCode || '+91';
+  const initialPhoneCountryIso2 =
+    allowedCountry?.phoneCode && allowedCountry?.iso2
+      ? allowedCountry.iso2
+      : 'in';
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactList, setContactList] = useState<ContactListItem[]>([]);
@@ -100,8 +129,8 @@ const AddOtherPersonDetail: React.FC = () => {
       fname: '',
       nationalNumber: '',
       email: '',
-      phoneDialCode: '+91',
-      phoneCountryIso2: 'in',
+      phoneDialCode: initialPhoneDialCode,
+      phoneCountryIso2: initialPhoneCountryIso2,
       address: addressFromPreviousPage,
     },
     validationSchema,
@@ -110,6 +139,40 @@ const AddOtherPersonDetail: React.FC = () => {
       try {
         if (addressRequired && !selectedAddress) {
           formik.setFieldTouched('address', true);
+          setSubmitting(false);
+          return;
+        }
+
+        if (
+          addressRequired &&
+          !addressMatchesAtHomeCountry(
+            selectedAddress as CheckoutAddress | null,
+            allowedCountry,
+          )
+        ) {
+          showToast({
+            type: 'info',
+            message: t('checkout.atHomeCountryRestriction', {
+              country: allowedCountryLabel || t('checkout.sameCountry'),
+            }),
+          });
+          setSubmitting(false);
+          return;
+        }
+
+        if (
+          !phoneCountryMatchesAtHomeCountry(
+            values.phoneCountryIso2,
+            values.phoneDialCode,
+            allowedCountry,
+          )
+        ) {
+          showToast({
+            type: 'info',
+            message: t('checkout.atHomePhoneCountryRestriction', {
+              country: allowedCountryLabel || t('checkout.sameCountry'),
+            }),
+          });
           setSubmitting(false);
           return;
         }
@@ -130,6 +193,7 @@ const AddOtherPersonDetail: React.FC = () => {
           email: values.email,
           phone: nationalDigits,
           countryCode: phoneCode,
+          phoneCountryIso2: values.phoneCountryIso2,
           address: selectedAddress ?? undefined,
         };
 
@@ -146,6 +210,15 @@ const AddOtherPersonDetail: React.FC = () => {
     },
   });
 
+  const addressRestrictionToast = useCallback(() => {
+    showToast({
+      type: 'info',
+      message: t('checkout.atHomeCountryRestriction', {
+        country: allowedCountryLabel || t('checkout.sameCountry'),
+      }),
+    });
+  }, [allowedCountryLabel, t]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       refetchAddresses();
@@ -153,6 +226,15 @@ const AddOtherPersonDetail: React.FC = () => {
       const addressFromRoute =
         route.params?.selectedAddress || route.params?.address;
       if (addressFromRoute) {
+        if (
+          !addressMatchesAtHomeCountry(
+            addressFromRoute as CheckoutAddress,
+            allowedCountry,
+          )
+        ) {
+          addressRestrictionToast();
+          return;
+        }
         setSelectedAddress(addressFromRoute);
         formik.setFieldValue(
           'address',
@@ -173,11 +255,28 @@ const AddOtherPersonDetail: React.FC = () => {
 
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, route.params, refetchAddresses]);
+  }, [
+    navigation,
+    route.params,
+    refetchAddresses,
+    allowedCountry,
+    addressRestrictionToast,
+  ]);
 
   const handleSelectAddress = () => {
     navigation.navigate(SCREEN_NAMES.SELECT_ADDRESS as never, {
+      allowedCountryName: allowedCountry?.name,
+      allowedCountryIso2: allowedCountry?.iso2,
       onSelect: (address: Address) => {
+        if (
+          !addressMatchesAtHomeCountry(
+            address as CheckoutAddress,
+            allowedCountry,
+          )
+        ) {
+          addressRestrictionToast();
+          return;
+        }
         setSelectedAddress(address);
         formik.setFieldValue(
           'address',
@@ -247,6 +346,22 @@ const AddOtherPersonDetail: React.FC = () => {
         item.phoneNumber,
         formik.values.phoneCountryIso2,
       );
+      if (
+        !phoneCountryMatchesAtHomeCountry(
+          parsed.countryIso2,
+          parsed.dialCode,
+          allowedCountry,
+        )
+      ) {
+        showToast({
+          type: 'info',
+          message: t('checkout.atHomePhoneCountryRestriction', {
+            country: allowedCountryLabel || t('checkout.sameCountry'),
+          }),
+        });
+        setShowContactModal(false);
+        return;
+      }
       formik.setFieldValue('phoneDialCode', parsed.dialCode);
       formik.setFieldValue('phoneCountryIso2', parsed.countryIso2);
       formik.setFieldValue('nationalNumber', parsed.nationalNumber);
@@ -259,7 +374,7 @@ const AddOtherPersonDetail: React.FC = () => {
         formik.setFieldTouched('nationalNumber', true);
       }, 100);
     },
-    [formik],
+    [allowedCountry, allowedCountryLabel, formik, t],
   );
 
   return (
@@ -332,11 +447,29 @@ const AddOtherPersonDetail: React.FC = () => {
               inputTheme="default"
               dialCode={formik.values.phoneDialCode}
               nationalNumber={formik.values.nationalNumber}
-              onSelectionChange={next => {
+              onSelectionChange={(next: {
+                dialCode: string;
+                countryIso2: string;
+              }) => {
+                if (
+                  !phoneCountryMatchesAtHomeCountry(
+                    next.countryIso2,
+                    next.dialCode,
+                    allowedCountry,
+                  )
+                ) {
+                  showToast({
+                    type: 'info',
+                    message: t('checkout.atHomePhoneCountryRestriction', {
+                      country: allowedCountryLabel || t('checkout.sameCountry'),
+                    }),
+                  });
+                  return;
+                }
                 formik.setFieldValue('phoneDialCode', next.dialCode);
                 formik.setFieldValue('phoneCountryIso2', next.countryIso2);
               }}
-              onNationalNumberChange={digits =>
+              onNationalNumberChange={(digits: string) =>
                 formik.setFieldValue('nationalNumber', digits)
               }
               onNationalBlur={() => {
@@ -349,11 +482,7 @@ const AddOtherPersonDetail: React.FC = () => {
                   : ''
               }
               contactsIcon={imagePaths.down_icon}
-              contactsIconStyle={{
-                width: theme.SF(10),
-                height: theme.SF(10),
-                margin: 5,
-              }}
+              contactsIconStyle={styles.contactsIcon}
               onContactsPress={() => loadContacts(true)}
             />
 
@@ -438,5 +567,10 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: Colors.primary,
+  },
+  contactsIcon: {
+    width: SF(10),
+    height: SF(10),
+    margin: 5,
   },
 });

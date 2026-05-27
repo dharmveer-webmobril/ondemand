@@ -9,7 +9,7 @@ const EXIT_DELAY = 1200;
 const useDisableGestures = (enabled: boolean = true) => {
   const navigation = useNavigation<any>();
   const lastBackPress = useRef<number>(0);
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -39,7 +39,7 @@ const useDisableGestures = (enabled: boolean = true) => {
 
         showToast({
           type: 'exit',
-          message: t('messages.doubletab'),
+          message: i18n.t('messages.doubletab'),
           timeout: 1550,
           position: 'bottom'
         });
@@ -65,7 +65,7 @@ const useDisableGestures = (enabled: boolean = true) => {
         backHandler.remove();
         lastBackPress.current = 0;
       };
-    }, [navigation, enabled]),
+    }, [navigation, enabled, i18n]),
   );
 };
 
