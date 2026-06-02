@@ -368,6 +368,7 @@ export const buildRoutineBookingPayload = ({
     paymentType: paymentMode,
     preferences,
     bookedFor: serviceFor,
+    ...(paymentMode === 'online' ? { isTemp: true } : {}),
     ...(selectedAddress?._id ? { addressId: selectedAddress._id } : {}),
     ...(remark != null ? { remark } : {}),
     ...(serviceFor === 'other' ? { other, otherDetails: other } : {}),

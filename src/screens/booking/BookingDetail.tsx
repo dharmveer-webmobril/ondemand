@@ -281,6 +281,7 @@ export default function BookingDetail() {
   const [addonProcessingGateway, setAddonProcessingGateway] = useState<
     'stripe' | 'paypal' | 'flutterwave' | null
   >(null);
+  const [isTotalExpanded, setIsTotalExpanded] = useState(false);
   const [rateReviewOpen, setRateReviewOpen] = useState(false);
 
   const { mutateAsync: addBookedServiceAddon } =
@@ -311,6 +312,9 @@ export default function BookingDetail() {
 
       // addOnServices is already an array of full objects
       const selectedAddOns = bookedService?.addOnServices || [];
+      const postBookingAddOns = Array.isArray(bookedService?.postBookingAddOns)
+        ? bookedService.postBookingAddOns.filter(Boolean)
+        : [];
 
       // promotionOfferId is already a full object
       const appliedOffer = bookedService?.promotionOfferId || null;
@@ -339,6 +343,17 @@ export default function BookingDetail() {
         return sum + (Number.isFinite(discounted) ? discounted : addOnPrice);
       }, 0);
 
+      const postBookingAddOnsTotal = postBookingAddOns.reduce(
+        (sum: number, item: any) => {
+          const line =
+            Number(item?.lineAmount ?? item?.amount ?? 0) ||
+            Number(item?.unitAmount ?? 0) * Number(item?.quantity ?? 0) ||
+            0;
+          return sum + (Number.isFinite(line) ? line : 0);
+        },
+        0,
+      );
+
       return {
         _id: bookedService?._id,
         serviceId: service?._id,
@@ -360,6 +375,8 @@ export default function BookingDetail() {
         discountedAmount: serviceDiscountedAmount,
         promotionOfferAmount: servicePromotionOfferAmount,
         addOnsTotal: addOnsTotal,
+        postBookingAddOns,
+        postBookingAddOnsTotal,
         bookingStatus: bookedService?.bookingStatus,
         assignedMember: assignedMember,
         customerReviewInfo: bookedService?.customerReviewInfo,
@@ -826,7 +843,7 @@ export default function BookingDetail() {
 
       try {
         const bookedServiceId = addonsModalService._id as string;
-        await addBookedServiceAddon({
+        const addOnRes = await addBookedServiceAddon({
           bookedServiceId,
           addonItems: items.map(a => ({
             addonId: a._id,
@@ -834,45 +851,52 @@ export default function BookingDetail() {
           })),
         });
 
-        for (let i = 0; i < items.length; i++) {
-          const addon = items[i];
-          const quantity = Math.max(1, Math.floor(Number(addon.quantity) || 1));
-          const amount = getAddonPayableAmount(addon) * quantity;
+        const serverAmount = Number(addOnRes?.ResponseData?.amount);
+        const amount = Number.isFinite(serverAmount) ? serverAmount : 0;
+        const serverAddonItems = Array.isArray(addOnRes?.ResponseData?.addonItems)
+          ? addOnRes.ResponseData.addonItems
+          : items.map(a => ({
+              addonId: a._id,
+              quantity: Math.max(1, Math.floor(Number(a.quantity) || 1)),
+            }));
 
-          if (isWebRedirectGateway(gateway)) {
-            await runAdditionalAddonGatewayPayment(navigation, {
-              bookedServiceId,
-              addonId: addon._id,
-              amount,
-              paymentGateway: gateway,
-              returnTo: SCREEN_NAMES.BOOKING_DETAIL,
-              returnRouteKey: route.key,
-              returnParams: { bookingId },
-              onSuccess: () => {},
-              onCancel: () => {},
-              onError: err => handleApiError(err),
-              failureMessage: t('bookingDetail.addOns.paymentFailed'),
-            });
-            setAddonsModalService(null);
-            return;
-          }
-
-          await new Promise<void>((resolve, reject) => {
-            runAdditionalAddonGatewayPayment(navigation, {
-              bookedServiceId,
-              addonId: addon._id,
-              amount,
-              paymentGateway: 'stripe',
-              returnTo: SCREEN_NAMES.BOOKING_DETAIL,
-              returnRouteKey: route.key,
-              returnParams: { bookingId },
-              onSuccess: () => resolve(),
-              onCancel: () => reject(new Error('cancel')),
-              onError: err => reject(err),
-              failureMessage: t('bookingDetail.addOns.paymentFailed'),
-            });
-          });
+        if (amount <= 0) {
+          throw new Error(addOnRes?.ResponseMessage || 'Invalid add-on amount');
         }
+
+        if (isWebRedirectGateway(gateway)) {
+          await runAdditionalAddonGatewayPayment(navigation, {
+            bookedServiceId,
+            addonItems: serverAddonItems,
+            amount,
+            paymentGateway: gateway,
+            returnTo: SCREEN_NAMES.BOOKING_DETAIL,
+            returnRouteKey: route.key,
+            returnParams: { bookingId },
+            onSuccess: () => {},
+            onCancel: () => {},
+            onError: err => handleApiError(err),
+            failureMessage: t('bookingDetail.addOns.paymentFailed'),
+          });
+          setAddonsModalService(null);
+          return;
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          runAdditionalAddonGatewayPayment(navigation, {
+            bookedServiceId,
+            addonItems: serverAddonItems,
+            amount,
+            paymentGateway: 'stripe',
+            returnTo: SCREEN_NAMES.BOOKING_DETAIL,
+            returnRouteKey: route.key,
+            returnParams: { bookingId },
+            onSuccess: () => resolve(),
+            onCancel: () => reject(new Error('cancel')),
+            onError: err => reject(err),
+            failureMessage: t('bookingDetail.addOns.paymentFailed'),
+          });
+        });
 
         handleSuccessToast(t('bookingDetail.addOns.paymentSuccess'));
         if (bookingId) {
@@ -1097,22 +1121,10 @@ export default function BookingDetail() {
               trackMemberLoadingId={trackingServiceId}
             />
             <View style={styles.totalContainer}>
-              <View>
-                {(booking?.discountAmount || 0) > 0 && (
-                  <CustomText
-                    fontSize={theme.fontSize.xs}
-                    fontFamily={theme.fonts.REGULAR}
-                    color={theme.colors.lightText}
-                    style={styles.originalPriceText}
-                  >
-                    {t('bookingDetails.originalPriceLabel')}:{' '}
-                    {formatAmount(
-                      Number.isFinite(booking?.originalPrice)
-                        ? booking.originalPrice
-                        : 0,
-                    )}
-                  </CustomText>
-                )}
+              <Pressable
+                style={styles.totalAccordionHeader}
+                onPress={() => setIsTotalExpanded(v => !v)}
+              >
                 <CustomText
                   fontSize={theme.fontSize.md}
                   fontFamily={theme.fonts.SEMI_BOLD}
@@ -1120,16 +1132,41 @@ export default function BookingDetail() {
                 >
                   {t('bookingDetails.totalLabel')}
                 </CustomText>
-              </View>
-              <CustomText
-                fontSize={theme.fontSize.lg}
-                fontFamily={theme.fonts.SEMI_BOLD}
-                color={theme.colors.primary}
-              >
-                {formatAmount(
-                  Number.isFinite(booking?.totalPrice) ? booking.totalPrice : 0,
-                )}
-              </CustomText>
+                <View style={styles.totalAccordionRight}>
+                  <CustomText
+                    fontSize={theme.fontSize.lg}
+                    fontFamily={theme.fonts.SEMI_BOLD}
+                    color={theme.colors.primary}
+                  >
+                    {formatAmount(
+                      Number.isFinite(booking?.totalPrice)
+                        ? booking.totalPrice
+                        : 0,
+                    )}
+                  </CustomText>
+                  <VectoreIcons
+                    name={isTotalExpanded ? 'chevron-up' : 'chevron-down'}
+                    icon="Ionicons"
+                    size={theme.SF(18)}
+                    color={theme.colors.lightText}
+                  />
+                </View>
+              </Pressable>
+              {isTotalExpanded && (booking?.discountAmount || 0) > 0 ? (
+                <CustomText
+                  fontSize={theme.fontSize.xs}
+                  fontFamily={theme.fonts.REGULAR}
+                  color={theme.colors.lightText}
+                  style={styles.originalPriceText}
+                >
+                  {t('bookingDetails.originalPriceLabel')}:{' '}
+                  {formatAmount(
+                    Number.isFinite(booking?.originalPrice)
+                      ? booking.originalPrice
+                      : 0,
+                  )}
+                </CustomText>
+              ) : null}
             </View>
           </View>
 
@@ -1440,14 +1477,23 @@ const createStyles = (theme: ThemeType) =>
       elevation: 3,
     },
     totalContainer: {
-      flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
       marginTop: theme.SH(16),
       paddingTop: theme.SH(16),
       // borderTopWidth: 1,
       paddingHorizontal: theme.SW(20),
       borderTopColor: theme.colors.gray,
+    },
+    totalAccordionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: theme.SW(12),
+    },
+    totalAccordionRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW(8),
     },
     actionsContainer: {
       flexDirection: 'row',

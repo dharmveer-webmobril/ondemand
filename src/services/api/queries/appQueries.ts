@@ -812,6 +812,11 @@ export interface CreateRoutineBookingRequest {
   bookedFor: 'self' | 'other';
   addressId?: string;
   remark?: string;
+  /**
+   * When true, backend should create a temporary routine booking record.
+   * Used for online routine payments: create temp → initiate → confirm.
+   */
+  isTemp?: boolean;
   other?: {
     name: string;
     email: string;
@@ -1181,7 +1186,7 @@ export const useAddBookedServiceAdditionalAddon = () => {
 
 export interface InitiateAdditionalAddonPaymentRequest {
   bookedServiceId: string;
-  addonId: string;
+  addonItems: Array<{ addonId: string; quantity: number }>;
   amount: number;
   paymentGateway: 'stripe' | 'paypal' | 'flutterwave';
   paymentMethod: string;

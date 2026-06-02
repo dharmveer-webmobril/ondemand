@@ -16,7 +16,7 @@ export type AdditionalAddonGateway = 'stripe' | 'paypal' | 'flutterwave';
 
 export interface RunAdditionalAddonGatewayParams {
   bookedServiceId: string;
-  addonId: string;
+  addonItems: Array<{ addonId: string; quantity: number }>;
   amount: number;
   paymentGateway: AdditionalAddonGateway;
   paymentMethod?: string;
@@ -46,7 +46,7 @@ export function useAdditionalAddonGatewayPayment() {
     async (navigation: any, params: RunAdditionalAddonGatewayParams) => {
       const {
         bookedServiceId,
-        addonId,
+        addonItems,
         amount,
         paymentGateway,
         paymentMethod = 'card',
@@ -63,7 +63,7 @@ export function useAdditionalAddonGatewayPayment() {
 
       const paymentRequest = {
         bookedServiceId,
-        addonId,
+        addonItems,
         amount,
         paymentGateway,
         paymentMethod,

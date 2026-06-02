@@ -119,8 +119,10 @@ export default function Checkout() {
   const [paymentFailedMessage, setPaymentFailedMessage] = useState<string>('');
 
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
+
   const [paymentSuccessConfirmRes, setPaymentSuccessConfirmRes] =
     useState<any>(null);
+    
   const paymentSuccessDataRef = useRef<{
     confirmRes: any;
     fallbackPayload: any;

@@ -1044,6 +1044,7 @@ export const english = {
       "assignedMember": "Assigned Member",
       "priceService": "Service:",
       "priceAddons": "Add-ons:",
+      "additionalAddons": "Additional add-ons:",
       "priceSubtotal": "Subtotal:",
       "priceDiscount": "Discount:",
       "priceTotal": "Total:",

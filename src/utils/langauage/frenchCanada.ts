@@ -889,6 +889,7 @@ export const frenchCanada = {
       "assignedMember": "Membre assigné",
       "priceService": "Service :",
       "priceAddons": "Suppléments :",
+      "additionalAddons": "Suppléments additionnels :",
       "priceSubtotal": "Sous-total :",
       "priceDiscount": "Rabais :",
       "priceTotal": "Total :",

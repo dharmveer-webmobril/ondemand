@@ -915,6 +915,7 @@ export const spanish = {
       "assignedMember": "Miembro asignado",
       "priceService": "Servicio:",
       "priceAddons": "Complementos:",
+      "additionalAddons": "Complementos adicionales:",
       "priceSubtotal": "Subtotal:",
       "priceDiscount": "Descuento:",
       "priceTotal": "Total:",

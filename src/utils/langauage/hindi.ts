@@ -921,6 +921,7 @@ export const hindi = {
       "assignedMember": "नियुक्त सदस्य",
       "priceService": "सेवा:",
       "priceAddons": "ऐड-ऑन:",
+      "additionalAddons": "अतिरिक्त ऐड-ऑन:",
       "priceSubtotal": "उप-योग:",
       "priceDiscount": "छूट:",
       "priceTotal": "कुल:",
