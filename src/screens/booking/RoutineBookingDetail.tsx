@@ -7,7 +7,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { AppHeader, Container, CustomButton } from '@components/common';
 import {
@@ -74,15 +74,21 @@ export default function RoutineBookingDetail() {
   const route = useRoute<any>();
   const routineBookingId = route.params?.routineBookingId as string;
 
-  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
+    null,
+  );
   const [isCancellingPackage, setIsCancellingPackage] = useState(false);
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useGetRoutineBookingDetail(routineBookingId);
+  const { data, isLoading, isFetching, refetch } =
+    useGetRoutineBookingDetail(routineBookingId);
+
+  // Always refresh when user lands on this screen again.
+  useFocusEffect(
+    useCallback(() => {
+      if (!routineBookingId) return;
+      refetch();
+    }, [routineBookingId, refetch]),
+  );
 
   const deleteRoutineSession = useDeleteRoutineSession();
   const cancelRoutineBooking = useCancelRoutineBooking();
@@ -106,8 +112,7 @@ export default function RoutineBookingDetail() {
           t('bookingList.serviceProviderDefault'),
         )
       : t('bookingList.serviceProviderDefault');
-  const serviceCount =
-    servicesDetail.length || routine?.services?.length || 1;
+  const serviceCount = servicesDetail.length || routine?.services?.length || 1;
   const showCancelPackage = canCancelRoutinePackage(routine?.routineStatus);
 
   const onRefresh = useCallback(() => {
@@ -159,13 +164,7 @@ export default function RoutineBookingDetail() {
         setDeletingSessionId(null);
       }
     },
-    [
-      routineBookingId,
-      sessions.length,
-      deleteRoutineSession,
-      refetch,
-      t,
-    ],
+    [routineBookingId, sessions.length, deleteRoutineSession, refetch, t],
   );
 
   const onDeleteSession = useCallback(

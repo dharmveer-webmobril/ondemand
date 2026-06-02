@@ -6,6 +6,7 @@ import { CustomText, ImageLoader, Checkbox, VectoreIcons, CustomButton } from '@
 import imagePaths from '@assets';
 import ServiceNameWithRoutineBadge from '@components/provider/ServiceNameWithRoutineBadge';
 import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
+import { formatAmount } from '@utils/formatAmount';
 
 type Service = {
     _id: string;
@@ -129,15 +130,15 @@ export default function ServiceSummeryCard({
                                     {selectedOffers[service._id] || service.selectedOfferId ? (
                                         <View>
                                             <CustomText style={styles.originalPrice}>
-                                                ${(Number.isFinite(service?.price) ? service.price : 0).toFixed(2)}
+                                                {formatAmount(Number.isFinite(service?.price) ? service.price : 0)}
                                             </CustomText>
                                             <CustomText style={styles.servicePrice}>
-                                                ${displayPrice.toFixed(2)} • {displayDuration}m
+                                                {formatAmount(displayPrice)} • {displayDuration}m
                                             </CustomText>
                                         </View>
                                     ) : (
                                         <CustomText style={styles.servicePrice}>
-                                            ${displayPrice.toFixed(2)} • {displayDuration}m
+                                            {formatAmount(displayPrice)} • {displayDuration}m
                                         </CustomText>
                                     )}
                                 </View>
@@ -155,13 +156,13 @@ export default function ServiceSummeryCard({
                                         const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
                                         const cutPrice = Number.isFinite(discountedAddOnPrice) ? discountedAddOnPrice : addOnPrice;
                                         const hasDiscount = discountPct > 0;
-                                        const displayOriginal = (Number.isFinite(addOnPrice) ? addOnPrice : 0).toFixed(2);
-                                        const displayCut = (Number.isFinite(cutPrice) ? cutPrice : addOnPrice).toFixed(2);
+                                        const displayOriginal = formatAmount(Number.isFinite(addOnPrice) ? addOnPrice : 0);
+                                        const displayCut = formatAmount(Number.isFinite(cutPrice) ? cutPrice : addOnPrice);
                                         return (
                                             <View key={addOn._id ?? addOn.name ?? `addon-${index}`} style={styles.addOnTag}>
                                                 <CustomText style={styles.addOnTagText}>
-                                                    {addOn?.name ?? ''}: ${displayOriginal}
-                                                    {hasDiscount ? ` → $${displayCut} (${discountPct}% off)` : ''}
+                                                    {addOn?.name ?? ''}: {displayOriginal}
+                                                    {hasDiscount ? ` → ${displayCut} (${discountPct}% off)` : ''}
                                                 </CustomText>
                                             </View>
                                         );
@@ -213,8 +214,8 @@ export default function ServiceSummeryCard({
                                                     {isSelected && (
                                                         <CustomText style={styles.discountAmount}>
                                                             {t('checkout.offerSavePreview', {
-                                                                save: discountAmount.toFixed(2),
-                                                                price: discountedPrice.toFixed(2),
+                                                                save: formatAmount(discountAmount),
+                                                                price: formatAmount(discountedPrice),
                                                             })}
                                                         </CustomText>
                                                     )}
@@ -245,7 +246,7 @@ export default function ServiceSummeryCard({
                                         {service.discountAmount && (
                                             <CustomText style={styles.appliedDiscountAmount}>
                                                 {t('checkout.youSavedAmount', {
-                                                    amount: service.discountAmount.toFixed(2),
+                                                    amount: formatAmount(service.discountAmount),
                                                 })}
                                             </CustomText>
                                         )}

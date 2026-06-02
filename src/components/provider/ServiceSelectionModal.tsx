@@ -11,6 +11,7 @@ import {
 import type { BookingType } from './BookAppointmentBookingTypeSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
+import { formatAmount } from '@utils/formatAmount';
 
 type Service = {
   _id: string;
@@ -171,7 +172,7 @@ export default function ServiceSelectionModal({
                 disabled && styles.serviceNameDisabled,
               ]}
             >
-              ${item.price.toFixed(2)} • {item.time}m
+              {formatAmount(item.price)} • {item.time}m
             </CustomText>
             {disabledReason === 'routine' ? (
               <CustomText style={styles.unavailableLabel}>

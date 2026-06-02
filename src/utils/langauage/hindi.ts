@@ -484,7 +484,7 @@ export const hindi = {
     "timeLabel": "समय:",
     "totalLabel": "कुल:",
     "routinePackageLine": "रूटीन पैकेज · {{count}} सत्र",
-    "volumeDiscountLine": "{{tier}} ({{percent}}% छूट) −${{amount}}",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% छूट) −{{amount}}",
     "selectServiceFor": "सेवा किसके लिए चुनें",
     "paymentGateways": {
       "stripe": "Stripe",
@@ -499,9 +499,9 @@ export const hindi = {
     "paymentConfirmationFailed": "भुगतान पुष्टि विफल",
     "paymentFailed": "भुगतान विफल",
     "offerLine": "{{title}} ({{percent}}% छूट)",
-    "offerSavePreview": "${{save}} बचाएं • कीमत: ${{price}}",
+    "offerSavePreview": "{{save}} बचाएं • कीमत: {{price}}",
     "appliedOfferApplied": "{{title}} ({{percent}}% छूट) – लागू",
-    "youSavedAmount": "आपने ${{amount}} बचाए",
+    "youSavedAmount": "आपने {{amount}} बचाए",
     "percentOff": "{{percent}}% छूट",
   },
   "auth": {

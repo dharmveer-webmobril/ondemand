@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton, VectoreIcons } from '@components/common';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatAmount } from '@utils/formatAmount';
 
 type AddOn = {
   _id: string;
@@ -116,12 +117,11 @@ export default function AddOnSelectionModal({
             )}
             <View style={styles.priceRow}>
               <CustomText style={styles.addOnPrice}>
-                ${(Number.isFinite(original) ? original : 0).toFixed(2)}
+                {formatAmount(Number.isFinite(original) ? original : 0)}
                 {hasDiscount
-                  ? ` → $${(Number.isFinite(discounted)
-                      ? discounted
-                      : original
-                    ).toFixed(2)} (${discountPct}% off)`
+                  ? ` → ${formatAmount(
+                      Number.isFinite(discounted) ? discounted : original,
+                    )} (${discountPct}% off)`
                   : ''}
                 {' • '}
                 {item?.duration ?? 0}m

@@ -1,6 +1,7 @@
 /** Routine booking & session status helpers (customer app). */
 
 import { ROUTINE_MIN_SESSIONS } from '@utils/routineVolumeDiscount';
+import { formatAmount } from '@utils/formatAmount';
 
 export type RoutineStatusFilter =
   | ''
@@ -141,10 +142,7 @@ export function centsToDisplay(
   currency = 'USD',
 ): string {
   const amount = Number(cents ?? 0) / 100;
-  if (currency.toUpperCase() === 'USD') {
-    return `$${amount.toFixed(2)}`;
-  }
-  return `${currency} ${amount.toFixed(2)}`;
+  return formatAmount(amount);
 }
 
 export function formatProRespondBy(iso: string | undefined | null): string {

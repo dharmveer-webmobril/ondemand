@@ -6,6 +6,7 @@ import { CustomText, ImageLoader, VectoreIcons } from '@components/common';
 import imagePaths from '@assets';
 import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
 import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
+import { formatAmount } from '@utils/formatAmount';
 
 type Service = {
   _id: string;
@@ -85,7 +86,7 @@ export default function ServiceCart({
                   containerStyle={styles.serviceNameBlock}
                 />
                 <CustomText style={styles.servicePrice}>
-                  ${displayPrice.toFixed(2)} • {displayDuration}m
+                  {formatAmount(displayPrice)} • {displayDuration}m
                 </CustomText>
               </View>
             </View>
@@ -101,13 +102,13 @@ export default function ServiceCart({
                     const discounted = addOnPrice * (1 - discountPct / 100);
                     const cutPrice = Number.isFinite(discounted) ? discounted : addOnPrice;
                     const hasDiscount = discountPct > 0;
-                    const displayOriginal = (Number.isFinite(addOnPrice) ? addOnPrice : 0).toFixed(2);
-                    const displayCut = (Number.isFinite(cutPrice) ? cutPrice : addOnPrice).toFixed(2);
+                    const displayOriginal = formatAmount(Number.isFinite(addOnPrice) ? addOnPrice : 0);
+                    const displayCut = formatAmount(Number.isFinite(cutPrice) ? cutPrice : addOnPrice);
                     return (
                       <View key={addOn._id ?? `addon-${index}`} style={styles.addOnTag}>
                         <CustomText style={styles.addOnTagText}>
-                          {addOn?.name ?? ''}: ${displayOriginal}
-                          {hasDiscount ? ` → $${displayCut} (${discountPct}% off)` : ''}
+                          {addOn?.name ?? ''}: {displayOriginal}
+                          {hasDiscount ? ` → ${displayCut} (${discountPct}% off)` : ''}
                         </CustomText>
                       </View>
                     );
@@ -153,8 +154,7 @@ const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
   return StyleSheet.create({
     section: {
-      // paddingHorizontal: SW(20),
-      paddingVertical: SH(20),
+      paddingVertical: SH(10),
       borderBottomWidth: 1,
       borderBottomColor: Colors.gray || '#E0E0E0',
     },

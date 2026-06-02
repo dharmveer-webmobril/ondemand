@@ -50,6 +50,7 @@ import {
   type RoutineStatusFilter,
 } from '@utils/routineBookingHelpers';
 import { formatTime } from './BookingDetail';
+import { formatAmount } from '@utils/formatAmount';
 
 const bookingStatusOptions: BookingStatusOption[] = [
   { value: '', labelKey: 'myBookingScreen.filter.allBookings' },
@@ -222,11 +223,7 @@ export default function BookingList() {
           t('bookingList.serviceProviderDefault'),
         ),
         address: booking?.addressId?.formattedAddress || '',
-        price: `$${(
-          booking.discountedAmount ??
-          booking.totalAmount ??
-          0
-        ).toFixed(2)}`,
+        price: formatAmount(booking.discountedAmount ?? booking.totalAmount ?? 0),
         image: booking?.spBusinessProfile?.bannerImage
           ? { uri: booking.spBusinessProfile.bannerImage }
           : imagePaths.no_image,

@@ -4,6 +4,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { CustomText, CustomButton, VectoreIcons, ImageLoader } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
+import { formatAmount } from '@utils/formatAmount';
 
 type Service = {
   id: string;
@@ -63,7 +64,7 @@ export default function ServiceMemberCard({
               color={theme.colors.primary}
               style={styles.price}
             >
-              ${service.price.toFixed(2)}
+              {formatAmount(service.price)}
             </CustomText>
           </View>
         </View>

@@ -478,7 +478,7 @@ export const frenchCanada = {
     "timeLabel": "Heure :",
     "totalLabel": "Total :",
     "routinePackageLine": "Forfait récurrent · {{count}} séances",
-    "volumeDiscountLine": "{{tier}} ({{percent}}% de rabais) −{{amount}} $",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% de rabais) −{{amount}}",
     "selectServiceFor": "Sélectionner le service pour",
     "paymentGateways": {
       "stripe": "Stripe",
@@ -493,9 +493,9 @@ export const frenchCanada = {
     "paymentConfirmationFailed": "Échec de la confirmation du paiement",
     "paymentFailed": "Paiement échoué",
     "offerLine": "{{title}} ({{percent}} % de rabais)",
-    "offerSavePreview": "Économisez {{save}} $ • Prix : {{price}} $",
+    "offerSavePreview": "Économisez {{save}} • Prix : {{price}}",
     "appliedOfferApplied": "{{title}} ({{percent}} % de rabais) – Appliqué",
-    "youSavedAmount": "Vous avez économisé {{amount}} $",
+    "youSavedAmount": "Vous avez économisé {{amount}}",
     "percentOff": "{{percent}} % de rabais",
   },
   "auth": {

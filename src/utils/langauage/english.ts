@@ -495,7 +495,7 @@ export const english = {
     "timeLabel": "Time:",
     "totalLabel": "Total:",
     "routinePackageLine": "Routine package · {{count}} sessions",
-    "volumeDiscountLine": "{{tier}} ({{percent}}% off) −${{amount}}",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% off) −{{amount}}",
     "selectServiceFor": "Select Service For",
     "paymentGateways": {
       "stripe": "Stripe",
@@ -510,9 +510,9 @@ export const english = {
     "paymentConfirmationFailed": "Payment confirmation failed",
     "paymentFailed": "Payment failed",
     "offerLine": "{{title}} ({{percent}}% off)",
-    "offerSavePreview": "Save ${{save}} • Price: ${{price}}",
+    "offerSavePreview": "Save {{save}} • Price: {{price}}",
     "appliedOfferApplied": "{{title}} ({{percent}}% off) – Applied",
-    "youSavedAmount": "You saved ${{amount}}",
+    "youSavedAmount": "You saved {{amount}}",
     "percentOff": "{{percent}}% off",
     "paymentSuccessModal": {
       "title": "Payment confirmed",

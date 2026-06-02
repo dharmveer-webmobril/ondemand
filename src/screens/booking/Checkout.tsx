@@ -1,13 +1,25 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { AppHeader, Container, LoadingComp, SweetAlert, showToast } from '@components/common';
+import {
+  AppHeader,
+  Container,
+  LoadingComp,
+  SweetAlert,
+  showToast,
+} from '@components/common';
 import { KeyboardFormScroll } from '@components/common';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { queryClient } from '@services/api';
 import {
   useCreateBooking,
+  useCreateTempBooking,
   useCreateRoutineBooking,
+  useWalletCheckoutBooking,
   useGetWallet,
 } from '@services/api/queries/appQueries';
 import { useGatewayPayment } from '@services/payment';
@@ -29,6 +41,7 @@ import {
   OtherPersonDetails,
   PaymentModeKey,
   buildBookingPayload,
+  buildWalletCheckoutPayload,
   buildRoutineBookingPayload,
   getBookingIdFromCreateResponse,
   getRoutineAmountFromCreateResponse,
@@ -43,6 +56,7 @@ import {
   phoneCountryMatchesAtHomeCountry,
   isCheckoutFormValid,
   isWalletFullyCovered,
+  shouldCreateTempBooking,
   shouldUseGatewayPayment,
 } from './checkoutHelpers';
 import BookingPaymentSuccessModal from './BookingPaymentSuccessModal';
@@ -82,13 +96,14 @@ export default function Checkout() {
   const [serviceFor, setServiceFor] = useState<'self' | 'other'>(
     draft?.serviceFor ?? 'self',
   );
-  const [otherPersonDetails, setOtherPersonDetails] = useState<OtherPersonDetails>(
-    draft?.otherPersonDetails ?? null,
-  );
+  const [otherPersonDetails, setOtherPersonDetails] =
+    useState<OtherPersonDetails>(draft?.otherPersonDetails ?? null);
   const [paymentMode, setPaymentMode] = useState<PaymentModeKey>(() => {
     const draftMode = draft?.paymentMode;
     if (isRoutine) {
-      return draftMode === 'cash' || draftMode === 'online' ? draftMode : 'online';
+      return draftMode === 'cash' || draftMode === 'online'
+        ? draftMode
+        : 'online';
     }
     return draftMode ?? 'online';
   });
@@ -104,14 +119,18 @@ export default function Checkout() {
   const [paymentFailedMessage, setPaymentFailedMessage] = useState<string>('');
 
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
-  const [paymentSuccessConfirmRes, setPaymentSuccessConfirmRes] = useState<any>(null);
+  const [paymentSuccessConfirmRes, setPaymentSuccessConfirmRes] =
+    useState<any>(null);
   const paymentSuccessDataRef = useRef<{
     confirmRes: any;
     fallbackPayload: any;
   } | null>(null);
 
   const showCheckoutError = useCallback(
-    (error: any, fallbackMessage: string = t('checkout.failedToCreateBooking')) => {
+    (
+      error: any,
+      fallbackMessage: string = t('checkout.failedToCreateBooking'),
+    ) => {
       const message =
         typeof error === 'string'
           ? error
@@ -150,13 +169,25 @@ export default function Checkout() {
 
   const { data: walletData } = useGetWallet();
   const walletBalance =
-    Number(walletData?.ResponseData?.balance ?? walletData?.ResponseData?.amount ?? 0) || 0;
+    Number(
+      walletData?.ResponseData?.balance ??
+        walletData?.ResponseData?.amount ??
+        0,
+    ) || 0;
 
-  const { mutate: createBooking, isPending: isCreatingBooking } = useCreateBooking();
+  const { mutate: createBooking, isPending: isCreatingBooking } =
+    useCreateBooking();
+  const { mutate: createTempBooking, isPending: isCreatingTempBooking } =
+    useCreateTempBooking();
   const { mutate: createRoutineBooking, isPending: isCreatingRoutine } =
     useCreateRoutineBooking();
+  const {
+    mutate: walletCheckoutBooking,
+    isPending: isWalletCheckoutPending,
+  } = useWalletCheckoutBooking();
 
-  const { runGatewayPayment, isPending: isGatewayPaymentPending } = useGatewayPayment();
+  const { runGatewayPayment, isPending: isGatewayPaymentPending } =
+    useGatewayPayment();
 
   const totalPrice = Number.isFinite(bookingData?.totalPrice)
     ? Number(bookingData.totalPrice)
@@ -168,9 +199,16 @@ export default function Checkout() {
     walletPartialAmount,
   );
 
-  const remainingAfterWallet = getRemainingAfterWallet(totalPrice, walletPartialNum);
+  const remainingAfterWallet = getRemainingAfterWallet(
+    totalPrice,
+    walletPartialNum,
+  );
 
-  const walletFullyCovers = isWalletFullyCovered(totalPrice, walletBalance, paymentMode);
+  const walletFullyCovers = isWalletFullyCovered(
+    totalPrice,
+    walletBalance,
+    paymentMode,
+  );
 
   const insufficientWalletBalance = hasInsufficientWalletBalance(
     paymentMode,
@@ -186,7 +224,11 @@ export default function Checkout() {
   );
 
   const isLoading =
-    isCreatingBooking || isCreatingRoutine || isGatewayPaymentPending;
+    isCreatingBooking ||
+    isCreatingTempBooking ||
+    isCreatingRoutine ||
+    isWalletCheckoutPending ||
+    isGatewayPaymentPending;
   const baseFormValid = isCheckoutFormValid({
     deliveryMode,
     needsAddress,
@@ -295,12 +337,15 @@ export default function Checkout() {
     openOtherPersonDetailsScreen();
   };
 
-  const navigateToBookingList = useCallback((payload: any) => {
-    navigation.navigate(SCREEN_NAMES.HOME, {
-      screen: SCREEN_NAMES.BOOKING_LIST,
-      params: { bookingData: payload },
-    });
-  }, [navigation]);
+  const navigateToBookingList = useCallback(
+    (payload: any) => {
+      navigation.navigate(SCREEN_NAMES.HOME, {
+        screen: SCREEN_NAMES.BOOKING_LIST,
+        params: { bookingData: payload },
+      });
+    },
+    [navigation],
+  );
 
   const navigateToRoutineDetail = useCallback(
     (routineBookingId: string) => {
@@ -322,7 +367,9 @@ export default function Checkout() {
     (confirmRes: any, fallbackPayload?: any) => {
       const fromConfirm = getRoutineBookingIdFromCreateResponse(confirmRes);
       if (fromConfirm) return fromConfirm;
-      const rb = fallbackPayload?.routineBooking ?? confirmRes?.ResponseData?.routineBooking;
+      const rb =
+        fallbackPayload?.routineBooking ??
+        confirmRes?.ResponseData?.routineBooking;
       if (typeof rb === 'string' && rb.trim()) return rb.trim();
       if (rb?._id != null) return String(rb._id);
       if (rb?.id != null) return String(rb.id);
@@ -336,11 +383,14 @@ export default function Checkout() {
     queryClient.invalidateQueries({ queryKey: ['customerWallet'] });
   };
 
-  const openCheckoutPaymentSuccessModal = useCallback((confirmRes: any, fallbackPayload: any) => {
-    paymentSuccessDataRef.current = { confirmRes, fallbackPayload };
-    setPaymentSuccessConfirmRes(confirmRes);
-    setShowPaymentSuccessModal(true);
-  }, []);
+  const openCheckoutPaymentSuccessModal = useCallback(
+    (confirmRes: any, fallbackPayload: any) => {
+      paymentSuccessDataRef.current = { confirmRes, fallbackPayload };
+      setPaymentSuccessConfirmRes(confirmRes);
+      setShowPaymentSuccessModal(true);
+    },
+    [],
+  );
 
   const handlePaymentSuccessContinue = useCallback(() => {
     const data = paymentSuccessDataRef.current;
@@ -421,7 +471,10 @@ export default function Checkout() {
       }
       if (result === 'failure' && route.params?.paymentError) {
         showCheckoutError(route.params.paymentError);
-        navigation.setParams({ paymentResult: undefined, paymentError: undefined });
+        navigation.setParams({
+          paymentResult: undefined,
+          paymentError: undefined,
+        });
       }
       if (result === 'cancel') {
         // User closed/backed out of gateway: keep data, show no message.
@@ -431,8 +484,20 @@ export default function Checkout() {
           paymentMessage: undefined,
         });
       }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    }, [route.params?.paymentResult, route.params?.checkoutPayload, route.params?.paymentMessage, route.params?.paymentConfirmResponse, route.params?.paymentError, showCheckoutError, openCheckoutPaymentSuccessModal, isRoutine, navigateToRoutineDetail, resolveRoutineBookingId, t]),
+      /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    }, [
+      route.params?.paymentResult,
+      route.params?.checkoutPayload,
+      route.params?.paymentMessage,
+      route.params?.paymentConfirmResponse,
+      route.params?.paymentError,
+      showCheckoutError,
+      openCheckoutPaymentSuccessModal,
+      isRoutine,
+      navigateToRoutineDetail,
+      resolveRoutineBookingId,
+      t,
+    ]),
   );
 
   useEffect(() => {
@@ -457,13 +522,20 @@ export default function Checkout() {
       ? { routineBookingId: entityId }
       : { bookingId: entityId };
 
-    const needsCardGateway = shouldUseGatewayPayment(selectedPaymentMethod) && totalPrice > 0 &&  (paymentMode === 'online' || (paymentMode === 'wallet_partial' && remainingAfterWallet > 0));
+    const needsCardGateway =
+      shouldUseGatewayPayment(selectedPaymentMethod) &&
+      totalPrice > 0 &&
+      (paymentMode === 'online' ||
+        (paymentMode === 'wallet_partial' && remainingAfterWallet > 0));
 
     if (needsCardGateway) {
       runGatewayPayment(navigation, {
         ...gatewayParams,
         amount: paymentAmount,
-        paymentGateway: selectedPaymentMethod as 'stripe' | 'paypal' | 'flutterwave',
+        paymentGateway: selectedPaymentMethod as
+          | 'stripe'
+          | 'paypal'
+          | 'flutterwave',
         paymentType: paymentMode,
         paymentMethod: 'card',
         walletAmountUsed,
@@ -482,7 +554,8 @@ export default function Checkout() {
               return;
             }
             showCheckoutError(
-              confirmRes?.ResponseMessage || t('checkout.failedToCreateBooking'),
+              confirmRes?.ResponseMessage ||
+                t('checkout.failedToCreateBooking'),
             );
             return;
           }
@@ -548,7 +621,8 @@ export default function Checkout() {
               return;
             }
             showCheckoutError(
-              confirmRes?.ResponseMessage || t('checkout.failedToCreateBooking'),
+              confirmRes?.ResponseMessage ||
+                t('checkout.failedToCreateBooking'),
             );
             return;
           }
@@ -561,7 +635,8 @@ export default function Checkout() {
           );
           if (!hasBooking) {
             showCheckoutError(
-              confirmRes?.ResponseMessage || t('checkout.failedToCreateBooking'),
+              confirmRes?.ResponseMessage ||
+                t('checkout.failedToCreateBooking'),
             );
             return;
           }
@@ -598,7 +673,9 @@ export default function Checkout() {
       openCheckoutPaymentSuccessModal(response, payload);
       return;
     }
-    handleSuccessToast(response?.ResponseMessage || t('checkout.bookingCreatedSuccess'));
+    handleSuccessToast(
+      response?.ResponseMessage || t('checkout.bookingCreatedSuccess'),
+    );
     invalidateCheckoutQueries();
     setTimeout(() => navigateToBookingList(payload), 800);
   };
@@ -610,7 +687,10 @@ export default function Checkout() {
     walletAmountUsed: number,
   ) => {
     if (!response?.succeeded && !response?.ResponseData) {
-      showCheckoutError(response?.ResponseMessage, t('checkout.failedToCreateBooking'));
+      showCheckoutError(
+        response?.ResponseMessage,
+        t('checkout.failedToCreateBooking'),
+      );
       return;
     }
 
@@ -642,12 +722,18 @@ export default function Checkout() {
     walletAmountUsed: number,
   ) => {
     if (!response?.succeeded && !response?.ResponseData) {
-      showCheckoutError(response?.ResponseMessage, t('checkout.failedToCreateBooking'));
+      showCheckoutError(
+        response?.ResponseMessage,
+        t('checkout.failedToCreateBooking'),
+      );
       return;
     }
 
     const routineBookingId = getRoutineBookingIdFromCreateResponse(response);
-    const paymentAmount = getRoutineAmountFromCreateResponse(response, totalPrice);
+    const paymentAmount = getRoutineAmountFromCreateResponse(
+      response,
+      totalPrice,
+    );
 
     if (!routineBookingId) {
       queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
@@ -679,11 +765,12 @@ export default function Checkout() {
         selectedServices,
         serviceFor,
         selectedAddress,
+        otherPersonDetails,
         paymentMode,
       });
-
       createRoutineBooking(routinePayload, {
         onSuccess: async (response: any) => {
+
           await handleRoutineBookingCreated(
             response,
             routinePayload,
@@ -693,6 +780,39 @@ export default function Checkout() {
         },
         onError: (error: any) => {
           console.error('Routine booking creation error:', error);
+          showCheckoutError(error);
+        },
+      });
+      return;
+    }
+
+    if (paymentMode === 'wallet') {
+      const walletPayload = buildWalletCheckoutPayload({
+        bookingData,
+        selectedServices,
+        serviceFor,
+        selectedAddress,
+        otherPersonDetails,
+      });
+
+      walletCheckoutBooking(walletPayload, {
+        onSuccess: (response: any) => {
+          if (
+            response?.ResponseData?.booking ||
+            response?.ResponseData?.bookingId
+          ) {
+            invalidateCheckoutQueries();
+            openCheckoutPaymentSuccessModal(response, walletPayload);
+            return;
+          }
+
+          handleSuccessToast(
+            response?.ResponseMessage || t('checkout.bookingCreatedSuccess'),
+          );
+          invalidateCheckoutQueries();
+          setTimeout(() => navigateToBookingList(walletPayload), 800);
+        },
+        onError: (error: any) => {
           showCheckoutError(error);
         },
       });
@@ -710,7 +830,15 @@ export default function Checkout() {
       bookingId: undefined,
     });
 
-    createBooking(payload, {
+    const useTempBooking = shouldCreateTempBooking(
+      paymentMode,
+      remainingAfterWallet,
+    );
+    const createBookingMutation = useTempBooking
+      ? createTempBooking
+      : createBooking;
+
+    createBookingMutation(payload, {
       onSuccess: async (response: any) => {
         await handleBookingCreated(
           response,
@@ -720,7 +848,6 @@ export default function Checkout() {
         );
       },
       onError: (error: any) => {
-        console.error('Booking creation error:', error);
         showCheckoutError(error);
       },
     });
@@ -789,11 +916,8 @@ export default function Checkout() {
     submitBooking(selectedPaymentMethod, walletUsed);
   };
 
-  
-
   return (
     <Container safeArea={true} style={styles.container}>
-
       <AppHeader
         title={t('checkout.title')}
         onLeftPress={() => navigation.goBack()}
@@ -801,7 +925,6 @@ export default function Checkout() {
         tintColor={theme.colors.text}
         containerStyle={{ marginHorizontal: theme.SW(20) }}
       />
-
 
       <KeyboardFormScroll contentContainerStyle={styles.content}>
         <AppointmentDetailsSection
@@ -821,7 +944,7 @@ export default function Checkout() {
           serviceFor={serviceFor}
           onPress={() => setShowServiceForModal(true)}
         />
-        
+
         <AddressSection
           styles={styles}
           t={t}
@@ -863,7 +986,6 @@ export default function Checkout() {
           isLoading={isLoading}
         />
       </KeyboardFormScroll>
-
 
       <LoadingComp visible={isLoading} />
 

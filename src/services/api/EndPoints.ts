@@ -31,6 +31,8 @@ export default {
     UPDATE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     DELETE_CUSTOMER_ADDRESS: '/auth/customer/addresses',
     CREATE_BOOKING: '/customer/bookings/bookings',
+    CREATE_TEMP_BOOKING: '/customer/bookings/bookings/temp',
+    CREATE_WALLET_CHECKOUT_BOOKING: '/customer/bookings/bookings/checkout/wallet',
     CREATE_ROUTINE_BOOKING: '/customer/bookings/routine',
     GET_CUSTOMER_BOOKINGS: '/customer/bookings/bookings',
     GET_ROUTINE_BOOKINGS: '/customer/bookings/routine',

@@ -57,7 +57,8 @@ const createStyles = (theme: ThemeType) =>
       borderRadius: theme.SF(12),
       borderWidth: 1,
       borderColor: theme.colors.gray || '#E8E8E8',
-      padding: theme.SW(16),
+      paddingHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(10),
     },
     title: {
       fontSize: theme.fontSize.md,
@@ -71,7 +72,7 @@ const createStyles = (theme: ThemeType) =>
     },
     btn: {
       flex: 1,
-      paddingVertical: theme.SH(12),
+      paddingVertical: theme.SH(6),
       borderRadius: theme.SF(10),
       borderWidth: 1,
       borderColor: theme.colors.primary,

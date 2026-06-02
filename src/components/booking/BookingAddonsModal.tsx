@@ -17,6 +17,7 @@ import {
 } from '@services/api/queries/appQueries';
 import { SH } from '@utils/dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatAmount } from '@utils/formatAmount';
 
 export function getCatalogServiceId(service: any): string | null {
   if (!service) return null;
@@ -41,7 +42,7 @@ type BookingAddonsModalProps = {
   onClose: () => void;
   bookedService: any | null;
   onProceedToPayment: (
-    selectedAddons: ServiceAddonItem[],
+    selectedAddons: Array<ServiceAddonItem & { quantity: number }>,
     gateway: 'stripe' | 'paypal' | 'flutterwave',
   ) => void;
   isProcessing?: boolean;
@@ -75,32 +76,52 @@ export default function BookingAddonsModal({
     return Array.isArray(rd) ? rd : [];
   }, [data]);
 
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedQtyById, setSelectedQtyById] = useState<Record<string, number>>(
+    {},
+  );
   const [showPayModal, setShowPayModal] = useState(false);
 
   useEffect(() => {
     if (!visible) {
-      setSelectedIds(new Set());
+      setSelectedQtyById({});
       setShowPayModal(false);
     }
   }, [visible]);
 
   const toggleId = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    setSelectedQtyById(prev => {
+      const current = prev[id];
+      if (current != null) {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      }
+      return { ...prev, [id]: 1 };
+    });
+  };
+
+  const setQty = (id: string, qty: number) => {
+    const safeQty = Number.isFinite(qty) ? Math.max(1, Math.floor(qty)) : 1;
+    setSelectedQtyById(prev => {
+      if (prev[id] == null) return prev;
+      return { ...prev, [id]: safeQty };
     });
   };
 
   const selectedAddons = useMemo(
-    () => addons.filter(a => selectedIds.has(a._id)),
-    [addons, selectedIds],
+    () =>
+      addons
+        .filter(a => selectedQtyById[a._id] != null)
+        .map(a => ({ ...a, quantity: selectedQtyById[a._id] ?? 1 })),
+    [addons, selectedQtyById],
   );
 
   const totalAmount = useMemo(
-    () => selectedAddons.reduce((sum, a) => sum + getAddonPayableAmount(a), 0),
+    () =>
+      selectedAddons.reduce(
+        (sum, a) => sum + getAddonPayableAmount(a) * (a.quantity || 1),
+        0,
+      ),
     [selectedAddons],
   );
 
@@ -118,12 +139,6 @@ export default function BookingAddonsModal({
     setShowPayModal(false);
     onProceedToPayment(selectedAddons, method);
   };
-
-  const formatMoney = (n: number) =>
-    n.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
 
   return (
     <>
@@ -199,8 +214,9 @@ export default function BookingAddonsModal({
                     style={styles.list}
                     contentContainerStyle={styles.listContent}
                     renderItem={({ item }) => {
-                      const checked = selectedIds.has(item._id);
-                      const lineTotal = getAddonPayableAmount(item);
+                      const checked = selectedQtyById[item._id] != null;
+                      const qty = checked ? selectedQtyById[item._id] ?? 1 : 1;
+                      const lineTotal = getAddonPayableAmount(item) * qty;
                       return (
                         <Pressable
                           style={[styles.row, checked && styles.rowSelected]}
@@ -216,7 +232,7 @@ export default function BookingAddonsModal({
                               </CustomText>
                             ) : null}
                             <CustomText style={styles.priceLine}>
-                              {formatMoney(lineTotal)}{' '}
+                              {formatAmount(lineTotal)}{' '}
                               {item.discountPercentage != null &&
                               item.discountPercentage > 0
                                 ? t('bookingDetail.addOns.afterDiscount', {
@@ -225,11 +241,38 @@ export default function BookingAddonsModal({
                                 : null}
                             </CustomText>
                           </View>
-                          <Checkbox
-                            checked={checked}
-                            onChange={() => toggleId(item._id)}
-                            size={theme.SF(20)}
-                          />
+                          <View style={styles.controls}>
+                            {checked ? (
+                              <View style={styles.qtyControls}>
+                                <Pressable
+                                  style={styles.qtyBtn}
+                                  onPress={() => setQty(item._id, qty - 1)}
+                                  hitSlop={10}
+                                >
+                                  <CustomText style={styles.qtyBtnText}>
+                                    -
+                                  </CustomText>
+                                </Pressable>
+                                <CustomText style={styles.qtyText}>
+                                  {String(qty)}
+                                </CustomText>
+                                <Pressable
+                                  style={styles.qtyBtn}
+                                  onPress={() => setQty(item._id, qty + 1)}
+                                  hitSlop={10}
+                                >
+                                  <CustomText style={styles.qtyBtnText}>
+                                    +
+                                  </CustomText>
+                                </Pressable>
+                              </View>
+                            ) : null}
+                            <Checkbox
+                              checked={checked}
+                              onChange={() => toggleId(item._id)}
+                              size={theme.SF(20)}
+                            />
+                          </View>
                         </Pressable>
                       );
                     }}
@@ -242,7 +285,7 @@ export default function BookingAddonsModal({
                       {t('bookingDetail.addOns.total')}
                     </CustomText>
                     <CustomText style={styles.totalValue}>
-                      ${formatMoney(totalAmount)}
+                      {formatAmount(totalAmount)}
                     </CustomText>
                   </View>
                   <CustomButton
@@ -352,6 +395,38 @@ const createStyles = (theme: any) =>
       fontFamily: theme.fonts?.MEDIUM,
       color: theme.colors.primary,
       // marginTop: theme.SH(6),
+    },
+    controls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW?.(10) ?? 10,
+      marginLeft: theme.SW?.(10) ?? 10,
+    },
+    qtyControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border || '#e5e7eb',
+      borderRadius: theme.borderRadius?.md ?? 12,
+      overflow: 'hidden',
+    },
+    qtyBtn: {
+      paddingHorizontal: theme.SW?.(10) ?? 10,
+      paddingVertical: theme.SH?.(6) ?? 6,
+      backgroundColor: 'rgba(0,0,0,0.03)',
+    },
+    qtyBtnText: {
+      fontSize: theme.fontSize?.md ?? 15,
+      fontFamily: theme.fonts?.BOLD,
+      color: theme.colors.text,
+    },
+    qtyText: {
+      paddingHorizontal: theme.SW?.(10) ?? 10,
+      fontSize: theme.fontSize?.sm ?? 14,
+      fontFamily: theme.fonts?.SEMI_BOLD,
+      color: theme.colors.text,
+      minWidth: theme.SW?.(24) ?? 24,
+      textAlign: 'center',
     },
     emptyState: {
       minHeight: SH(280),

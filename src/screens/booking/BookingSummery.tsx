@@ -11,6 +11,7 @@ import RoutineSessionsList, {
   toRoutineSessionListItems,
 } from '@components/routine/RoutineSessionsList';
 import { getProviderDisplayName } from '@utils/tools';
+import { formatAmount } from '@utils/formatAmount';
 
 type SelectedOffer = {
   serviceId: string;
@@ -211,13 +212,12 @@ export default function BookingSummery() {
                         tier: volumeDiscount.tier,
                         percent: volumeDiscount.percent,
                       })}{' '}
-                      (−${Number(volumeDiscount.amount || 0).toFixed(2)})
+                      (−{formatAmount(Number(volumeDiscount.amount || 0))})
                     </CustomText>
                   ) : null}
                   {subtotalBeforeDiscount != null ? (
                     <CustomText style={styles.subtotalLine}>
-                      {t('bookAppointment.subtotal')}: $
-                      {Number(subtotalBeforeDiscount).toFixed(2)}
+                      {t('bookAppointment.subtotal')}: {formatAmount(Number(subtotalBeforeDiscount))}
                     </CustomText>
                   ) : null}
                 </>
@@ -248,7 +248,7 @@ export default function BookingSummery() {
           </CustomText>
           <View style={styles.totalDetails}>
             <CustomText style={styles.totalPrice}>
-              ${(Number.isFinite(totalPrice) ? totalPrice : 0).toFixed(2)}
+              {formatAmount(Number.isFinite(totalPrice) ? totalPrice : 0)}
             </CustomText>
             <CustomText style={styles.totalDuration}>
               • {totalDuration}m

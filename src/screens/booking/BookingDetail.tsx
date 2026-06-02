@@ -52,6 +52,7 @@ import BookingReviewsView from '@components/booking/BookingReviewsView';
 import { bookedServiceHasAnySubmittedReview } from '@utils/bookingReviewHelpers';
 import { SweetAlert } from '@components/common';
 import { queryClient } from '@services/api';
+import { formatAmount } from '@utils/formatAmount';
 import {
   useGetBookingDetail,
   useCancelBooking,
@@ -805,7 +806,10 @@ export default function BookingDetail() {
   // console.log('booking', JSON.stringify(booking, null, 2));
 
   const handleProceedAddons = useCallback(
-    async (selected: ServiceAddonItem[], gateway: 'stripe' | 'paypal' | 'flutterwave') => {
+    async (
+      selected: Array<ServiceAddonItem & { quantity: number }>,
+      gateway: 'stripe' | 'paypal' | 'flutterwave',
+    ) => {
       if (!addonsModalService?._id || selected.length === 0) return;
 
       let items = [...selected];
@@ -822,11 +826,18 @@ export default function BookingDetail() {
 
       try {
         const bookedServiceId = addonsModalService._id as string;
+        await addBookedServiceAddon({
+          bookedServiceId,
+          addonItems: items.map(a => ({
+            addonId: a._id,
+            quantity: Math.max(1, Math.floor(Number(a.quantity) || 1)),
+          })),
+        });
 
         for (let i = 0; i < items.length; i++) {
           const addon = items[i];
-          const amount = getAddonPayableAmount(addon);
-          await addBookedServiceAddon({ bookedServiceId, addonId: addon._id });
+          const quantity = Math.max(1, Math.floor(Number(addon.quantity) || 1));
+          const amount = getAddonPayableAmount(addon) * quantity;
 
           if (isWebRedirectGateway(gateway)) {
             await runAdditionalAddonGatewayPayment(navigation, {
@@ -1082,6 +1093,7 @@ export default function BookingDetail() {
               mainBookingStatus={booking?.bookingStatus}
               onAddAddOns={svc => setAddonsModalService(svc)}
               onTrackMember={handleTrackMember}
+              showTrackMemberButton={Array.isArray(booking?.preferences) && booking.preferences.length > 0 && booking.preferences.includes('atHome')}
               trackMemberLoadingId={trackingServiceId}
             />
             <View style={styles.totalContainer}>
@@ -1093,11 +1105,12 @@ export default function BookingDetail() {
                     color={theme.colors.lightText}
                     style={styles.originalPriceText}
                   >
-                    {t('bookingDetails.originalPriceLabel')}: $
-                    {(Number.isFinite(booking?.originalPrice)
-                      ? booking.originalPrice
-                      : 0
-                    ).toFixed(2)}
+                    {t('bookingDetails.originalPriceLabel')}:{' '}
+                    {formatAmount(
+                      Number.isFinite(booking?.originalPrice)
+                        ? booking.originalPrice
+                        : 0,
+                    )}
                   </CustomText>
                 )}
                 <CustomText
@@ -1113,11 +1126,9 @@ export default function BookingDetail() {
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.primary}
               >
-                $
-                {(Number.isFinite(booking?.totalPrice)
-                  ? booking.totalPrice
-                  : 0
-                ).toFixed(2)}
+                {formatAmount(
+                  Number.isFinite(booking?.totalPrice) ? booking.totalPrice : 0,
+                )}
               </CustomText>
             </View>
           </View>

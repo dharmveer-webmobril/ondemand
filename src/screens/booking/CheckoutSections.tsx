@@ -11,6 +11,7 @@ import { formatAddress } from '@utils/tools';
 import RoutineSessionsList, {
   toRoutineSessionListItems,
 } from '@components/routine/RoutineSessionsList';
+import { formatAmount } from '@utils/formatAmount';
 import {
   Address,
   OtherPersonDetails,
@@ -143,7 +144,7 @@ export const AppointmentDetailsSection = ({
                 {t('checkout.volumeDiscountLine', {
                   tier: volumeDiscount.tier,
                   percent: volumeDiscount.percent,
-                  amount: Number(volumeDiscount.amount || 0).toFixed(2),
+                  amount: formatAmount(Number(volumeDiscount.amount || 0)),
                 })}
               </CustomText>
             ) : null}
@@ -168,7 +169,9 @@ export const AppointmentDetailsSection = ({
           <CustomText style={styles.summaryLabel}>
             {t('checkout.totalLabel')}
           </CustomText>
-          <CustomText style={styles.summaryValue}>${totalPrice.toFixed(2)}</CustomText>
+              <CustomText style={styles.summaryValue}>
+                {formatAmount(totalPrice)}
+              </CustomText>
         </View>
       </View>
     </View>
@@ -383,13 +386,17 @@ export const PaymentSection = ({
               <CustomText style={styles.walletLabel}>
                 {t('checkout.wallet.walletBalance')}
               </CustomText>
-              <CustomText style={styles.walletValue}>${walletBalance.toFixed(2)}</CustomText>
+              <CustomText style={styles.walletValue}>
+                {formatAmount(walletBalance)}
+              </CustomText>
             </View>
             <View style={styles.walletRow}>
               <CustomText style={styles.walletLabel}>
                 {t('checkout.wallet.orderTotal')}
               </CustomText>
-              <CustomText style={styles.walletValue}>${totalPrice.toFixed(2)}</CustomText>
+              <CustomText style={styles.walletValue}>
+                {formatAmount(totalPrice)}
+              </CustomText>
             </View>
             <View style={[styles.walletRow, styles.walletRowLast]}>
               <CustomText style={styles.walletLabelBold}>
@@ -398,7 +405,7 @@ export const PaymentSection = ({
               <CustomText style={styles.walletValueBold}>
                 {walletFullyCovers
                   ? t('checkout.wallet.fullyCovered')
-                  : `$${Math.max(0, totalPrice - walletBalance).toFixed(2)}`}
+                  : formatAmount(Math.max(0, totalPrice - walletBalance))}
               </CustomText>
             </View>
           </View>
@@ -415,7 +422,7 @@ export const PaymentSection = ({
           <View style={styles.walletCard}>
             <CustomText style={styles.walletInputLabel}>
               {t('checkout.wallet.amountFromWallet', {
-                max: Math.min(walletBalance, totalPrice).toFixed(2),
+                max: formatAmount(Math.min(walletBalance, totalPrice)),
               })}
             </CustomText>
             <View style={styles.walletInputWrap}>
@@ -436,20 +443,24 @@ export const PaymentSection = ({
               <CustomText style={styles.walletLabel}>
                 {t('checkout.wallet.walletBalance')}
               </CustomText>
-              <CustomText style={styles.walletValue}>${walletBalance.toFixed(2)}</CustomText>
+              <CustomText style={styles.walletValue}>
+                {formatAmount(walletBalance)}
+              </CustomText>
             </View>
             <View style={styles.walletRow}>
               <CustomText style={styles.walletLabel}>
                 {t('checkout.wallet.orderTotal')}
               </CustomText>
-              <CustomText style={styles.walletValue}>${totalPrice.toFixed(2)}</CustomText>
+              <CustomText style={styles.walletValue}>
+                {formatAmount(totalPrice)}
+              </CustomText>
             </View>
             <View style={[styles.walletRow, styles.walletRowLast]}>
               <CustomText style={styles.walletLabelBold}>
                 {t('checkout.wallet.remainingPayByCard')}
               </CustomText>
               <CustomText style={styles.walletValueBold}>
-                ${remainingAfterWallet.toFixed(2)}
+                {formatAmount(remainingAfterWallet)}
               </CustomText>
             </View>
             {remainingAfterWallet > 0 && (

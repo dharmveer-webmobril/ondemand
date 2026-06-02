@@ -745,6 +745,8 @@ export interface CreateBookingRequest {
   preferences: string[];
   /** Sent only for full wallet checkout when the API expects the amount to reserve. */
   walletAmountUsed?: number;
+  /** Optional client platform hint, e.g. 'web', 'ios', 'android'. */
+  platform?: string;
 }
 
 export interface CreateBookingResponse {
@@ -771,6 +773,32 @@ export const useCreateBooking = () => {
   });
 };
 
+/** Temp booking (same payload/response as create); used before online / wallet+gateway payment. */
+export const useCreateTempBooking = () => {
+  return useMutation<CreateBookingResponse, Error, CreateBookingRequest>({
+    mutationFn: async (data: CreateBookingRequest) => {
+      const response = await axiosInstance.post<CreateBookingResponse>(
+        EndPoints.CREATE_TEMP_BOOKING,
+        data,
+      );
+      return response.data;
+    },
+  });
+};
+
+/** Full-wallet checkout booking (single-call flow, booking is confirmed). */
+export const useWalletCheckoutBooking = () => {
+  return useMutation<CreateBookingResponse, Error, CreateBookingRequest>({
+    mutationFn: async (data: CreateBookingRequest) => {
+      const response = await axiosInstance.post<CreateBookingResponse>(
+        EndPoints.CREATE_WALLET_CHECKOUT_BOOKING,
+        data,
+      );
+      return response.data;
+    },
+  });
+};
+
 export interface CreateRoutineBookingRequest {
   spId: string;
   services: Array<{
@@ -784,6 +812,18 @@ export interface CreateRoutineBookingRequest {
   bookedFor: 'self' | 'other';
   addressId?: string;
   remark?: string;
+  other?: {
+    name: string;
+    email: string;
+    contact: string;
+    countryCode?: string;
+  } | null;
+  otherDetails?: {
+    name: string;
+    email: string;
+    contact: string;
+    countryCode?: string;
+  } | null;
 }
 
 export interface CreateRoutineBookingResponse {
@@ -815,6 +855,7 @@ export const useCreateRoutineBooking = () => {
         EndPoints.CREATE_ROUTINE_BOOKING,
         data,
       );
+      console.log('CreateRoutineBookingResponse', response.data);
       return response.data;
     },
   });
@@ -1126,12 +1167,12 @@ export const useAddBookedServiceAdditionalAddon = () => {
   return useMutation<
     any,
     Error,
-    { bookedServiceId: string; addonId: string }
+    { bookedServiceId: string; addonItems: Array<{ addonId: string; quantity: number }> }
   >({
-    mutationFn: async ({ bookedServiceId, addonId }) => {
+    mutationFn: async ({ bookedServiceId, addonItems }) => {
       const response = await axiosInstance.post(
         EndPoints.ADD_BOOKED_SERVICE_ADDITIONAL_ADDON(bookedServiceId),
-        { addonId },
+        { addonItems },
       );
       return response.data;
     },

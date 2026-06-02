@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export type PaymentModeKey = 'cash' | 'online' | 'wallet' | 'wallet_partial';
 export type BookingPaymentMethod = 'paypal' | 'stripe' | 'flutterwave' | 'cash' | 'wallet';
 
@@ -330,8 +332,9 @@ export const buildRoutineBookingPayload = ({
   selectedServices,
   serviceFor,
   selectedAddress,
+  otherPersonDetails,
   paymentMode,
-}: Omit<BuildBookingPayloadParams, 'otherPersonDetails' | 'walletAmountUsed' | 'bookingId'>) => {
+}: Omit<BuildBookingPayloadParams, 'walletAmountUsed' | 'bookingId'>) => {
   const remark =
     typeof bookingData?.remark === 'string' && bookingData.remark.trim() !== ''
       ? bookingData.remark.trim()
@@ -346,6 +349,18 @@ export const buildRoutineBookingPayload = ({
 
   const preferences = bookingData?.deliveryMode ? [bookingData.deliveryMode] : [];
 
+  const other =
+    serviceFor === 'other' && otherPersonDetails
+      ? {
+          name: otherPersonDetails?.name ?? '',
+          email: otherPersonDetails?.email ?? '',
+          contact: [otherPersonDetails?.countryCode, otherPersonDetails?.phone]
+            .filter(Boolean)
+            .join(' '),
+          countryCode: otherPersonDetails?.countryCode ?? '',
+        }
+      : null;
+
   return {
     spId: bookingData?.providerData?._id ?? bookingData?.providerId,
     services: buildSelectedServicesPayload(selectedServices),
@@ -355,6 +370,7 @@ export const buildRoutineBookingPayload = ({
     bookedFor: serviceFor,
     ...(selectedAddress?._id ? { addressId: selectedAddress._id } : {}),
     ...(remark != null ? { remark } : {}),
+    ...(serviceFor === 'other' ? { other, otherDetails: other } : {}),
   };
 };
 
@@ -403,6 +419,42 @@ export const buildBookingPayload = ({
   };
 };
 
+export const buildWalletCheckoutPayload = ({
+  bookingData,
+  selectedServices,
+  serviceFor,
+  selectedAddress,
+  otherPersonDetails,
+}: Omit<BuildBookingPayloadParams, 'paymentMode' | 'walletAmountUsed' | 'bookingId'>) => {
+  const remark =
+    typeof bookingData?.remark === 'string' && bookingData.remark.trim() !== ''
+      ? bookingData.remark.trim()
+      : undefined;
+
+  return {
+    spId: bookingData?.providerData?._id,
+    services: buildSelectedServicesPayload(selectedServices),
+    bookedFor: serviceFor,
+    addressId: selectedAddress?._id,
+    otherDetails: otherPersonDetails
+      ? {
+          name: otherPersonDetails?.name ?? '',
+          email: otherPersonDetails?.email ?? '',
+          contact: [otherPersonDetails?.countryCode, otherPersonDetails?.phone]
+            .filter(Boolean)
+            .join(' '),
+          countryCode: otherPersonDetails?.countryCode ?? '',
+        }
+      : null,
+    date: bookingData?.date,
+    time: bookingData?.timeSlot,
+    paymentType: 'wallet',
+    ...(remark != null ? { remark } : {}),
+    preferences: [bookingData?.deliveryMode],
+    platform: Platform.OS === 'ios' ? 'ios' : 'android',
+  };
+};
+
 export const shouldUseGatewayPayment = (
   selectedPaymentMethod: BookingPaymentMethod,
 ) => {
@@ -412,6 +464,13 @@ export const shouldUseGatewayPayment = (
     selectedPaymentMethod === 'flutterwave'
   );
 };
+
+/** Wallet partial with online card for remainder — temp booking before gateway payment. */
+export const shouldCreateTempBooking = (
+  paymentMode: PaymentModeKey,
+  remainingAfterWallet: number,
+): boolean =>
+  paymentMode === 'wallet_partial' && remainingAfterWallet > 0;
 
 /** Initiate-payment `amount`: full booking total; backend applies `wallet_partial` split. */
 export const getGatewayChargeAmount = (

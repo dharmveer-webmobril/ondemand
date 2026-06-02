@@ -29,6 +29,7 @@ import { queryClient } from '@services/api';
 import { handleApiError, handleSuccessToast } from '@utils/apiHelpers';
 import { SH } from '@utils/dimensions';
 import type { WithdrawRequestFormValues } from '@utils/validationSchemas';
+import { formatAmount } from '@utils/formatAmount';
 
 const PAGE_SIZE = 10;
 const SETTLEMENT_PAGE_SIZE = 10;
@@ -54,14 +55,6 @@ function formatDate(dateString: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function formatAmount(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
 }
 
 function extractTransactionRows(resp: any): WalletTransaction[] {
@@ -385,7 +378,7 @@ export default function WalletScreen() {
                 {/* {credit ? '+' : '−'} */}
                 {item.status === 'completed' && item.isRefund && '+'}
                 {item.status === 'completed' && !item.isRefund && '-'}{' '}
-                {formatAmount(amt, cur)}
+                {formatAmount(amt)}
               </CustomText>
             </View>
             <CustomText style={styles.txDateMuted}>
@@ -427,7 +420,7 @@ export default function WalletScreen() {
                   {t('wallet.amount')}
                 </CustomText>
                 <CustomText style={styles.settlementAmountHero}>
-                  {formatAmount(Math.abs(item.amount), cur)}
+                  {formatAmount(Math.abs(item.amount))}
                 </CustomText>
               </View>
               <View
@@ -543,7 +536,7 @@ export default function WalletScreen() {
                 ) : (
                   <>
                     <CustomText style={styles.heroAmount}>
-                      {formatAmount(balance, currency)}
+                      {formatAmount(balance)}
                     </CustomText>
                     <CustomText style={styles.heroCurrency}>
                       {currency}
@@ -579,7 +572,7 @@ export default function WalletScreen() {
                   {t(row.labelKey)}
                 </CustomText>
                 <CustomText style={styles.kvValue}>
-                  {formatAmount(row.value, currency)}
+                  {formatAmount(row.value)}
                 </CustomText>
               </View>
             </View>

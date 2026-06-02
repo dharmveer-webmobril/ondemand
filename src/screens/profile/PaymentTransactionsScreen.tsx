@@ -9,7 +9,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Container, AppHeader, CustomText, VectoreIcons } from '@components/common';
+import {
+  Container,
+  AppHeader,
+  CustomText,
+  VectoreIcons,
+} from '@components/common';
 import { useThemeContext } from '@utils/theme';
 import {
   useGetPaymentTransactions,
@@ -18,6 +23,7 @@ import {
   type PaymentTransactionScope,
 } from '@services/api/queries/appQueries';
 import { SH } from '@utils/dimensions';
+import { formatAmount } from '@utils/formatAmount';
 
 const PAGE_SIZE = 10;
 
@@ -61,14 +67,6 @@ function formatDate(dateString: string): string {
   });
 }
 
-function formatAmount(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
 function extractRows(resp: any): WalletTransaction[] {
   const rd = resp?.ResponseData;
   if (Array.isArray(rd)) return rd as WalletTransaction[];
@@ -82,7 +80,10 @@ function totalPages(resp: any): number {
   return 0;
 }
 
-function statusLabel(item: WalletTransaction, t: (k: string) => string): string {
+function statusLabel(
+  item: WalletTransaction,
+  t: (k: string) => string,
+): string {
   if (item.isRefund) return t('transactions.refund');
   const s = (item.status || '').toLowerCase();
   if (s === 'completed') return t('wallet.filterCompleted');
@@ -91,11 +92,34 @@ function statusLabel(item: WalletTransaction, t: (k: string) => string): string 
 
 function pillColors(item: WalletTransaction, theme: any) {
   if (item.isRefund)
-    return { bg: 'rgba(19, 93, 150, 0.12)', color: theme.colors.primary || '#135D96' };
+    return {
+      bg: 'rgba(19, 93, 150, 0.12)',
+      color: theme.colors.primary || '#135D96',
+    };
   const s = (item.status || '').toLowerCase();
   if (s === 'completed')
-    return { bg: 'rgba(34,197,94,0.12)', color: theme.colors.success || '#16a34a' };
-  return { bg: 'rgba(19,93,150,0.12)', color: theme.colors.primary || '#135D96' };
+    return {
+      bg: 'rgba(34,197,94,0.12)',
+      color: theme.colors.success || '#16a34a',
+    };
+  return {
+    bg: 'rgba(19,93,150,0.12)',
+    color: theme.colors.primary || '#135D96',
+  };
+}
+
+type EntryKind = 'debit' | 'credit' | 'other';
+
+function entryKind(item: WalletTransaction): EntryKind {
+  const raw =
+    (item as any)?.entryType ??
+    (item as any)?.entryLabel ??
+    (item as any)?.type ??
+    null;
+  const s = raw == null ? '' : String(raw).toLowerCase();
+  if (s === 'debit') return 'debit';
+  if (s === 'credit') return 'credit';
+  return 'other';
 }
 
 export default function PaymentTransactionsScreen() {
@@ -116,19 +140,13 @@ export default function PaymentTransactionsScreen() {
     [transactionFilter],
   );
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    isRefetching,
-    isFetching,
-  } = useGetPaymentTransactions({
-    page,
-    limit: PAGE_SIZE,
-    type: activeFilter.type,
-    transactionScope: activeFilter.transactionScope,
-  });
+  const { data, isLoading, isError, refetch, isRefetching, isFetching } =
+    useGetPaymentTransactions({
+      page,
+      limit: PAGE_SIZE,
+      type: activeFilter.type,
+      transactionScope: activeFilter.transactionScope,
+    });
 
   const pageRows = extractRows(data);
   const pages = totalPages(data);
@@ -167,13 +185,22 @@ export default function PaymentTransactionsScreen() {
   const renderItem = useCallback(
     ({ item }: { item: WalletTransaction }) => {
       const cur = item.currency || 'USD';
-      const credit = item.isRefund === true;
+      const kind = entryKind(item);
       const amt = Math.abs(item.amount);
       const pill = pillColors(item, theme);
       const bookingRef =
         typeof item.bookingId === 'object' && item.bookingId?.bookingId
           ? item.bookingId.bookingId
           : null;
+
+      const amountColorStyle =
+        kind === 'debit'
+          ? styles.amountDebit
+          : kind === 'credit'
+          ? styles.amountCredit
+          : styles.amountNeutral;
+      const signPrefix = kind === 'debit' ? '-' : kind === 'credit' ? '+' : '';
+   
       return (
         <View style={styles.card}>
           <View style={styles.cardInner}>
@@ -183,19 +210,22 @@ export default function PaymentTransactionsScreen() {
                   {item.description || item.paymentType || '—'}
                 </CustomText>
                 {bookingRef ? (
-                  <CustomText style={styles.bookingRef}>{bookingRef}</CustomText>
+                  <CustomText style={styles.bookingRef}>
+                    {bookingRef}
+                  </CustomText>
                 ) : null}
               </View>
-              <CustomText
-                style={[
-                  styles.amount,
-                  credit ? styles.amountCredit : styles.amountDebit,
-                ]}
-              >
-                {formatAmount(amt, cur)}
-              </CustomText>
+              <View style={styles.amountRow}>
+              
+                <CustomText style={[styles.amount, amountColorStyle]}>
+                  {signPrefix}
+                  {formatAmount(amt)}
+                </CustomText>
+              </View>
             </View>
-            <CustomText style={styles.dateMuted}>{formatDate(item.createdAt)}</CustomText>
+            <CustomText style={styles.dateMuted}>
+              {formatDate(item.createdAt)}
+            </CustomText>
             <View style={[styles.pill, { backgroundColor: pill.bg }]}>
               <CustomText style={[styles.pillText, { color: pill.color }]}>
                 {statusLabel(item, t)}
@@ -270,12 +300,16 @@ export default function PaymentTransactionsScreen() {
 
       {isError && list.length === 0 ? (
         <View style={styles.center}>
-          <CustomText style={styles.empty}>{t('transactions.loadError')}</CustomText>
+          <CustomText style={styles.empty}>
+            {t('transactions.loadError')}
+          </CustomText>
         </View>
       ) : (
         <FlatList
           data={list}
-          keyExtractor={item => item._id || item.transactionId || String(Math.random())}
+          keyExtractor={item =>
+            item._id || item.transactionId || String(Math.random())
+          }
           renderItem={renderItem}
           ListHeaderComponent={ListHeader}
           contentContainerStyle={styles.listContent}
@@ -311,7 +345,9 @@ export default function PaymentTransactionsScreen() {
                   size={theme.SF(22)}
                   color={theme.colors.primary || '#135D96'}
                 />
-                <CustomText style={styles.infoText}>{t('transactions.empty')}</CustomText>
+                <CustomText style={styles.infoText}>
+                  {t('transactions.empty')}
+                </CustomText>
               </View>
             )
           }
@@ -415,7 +451,15 @@ const createStyles = (theme: any) =>
       color: theme.colors.success || '#15803d',
     },
     amountDebit: {
+      color: theme.colors.red || '#dc2626',
+    },
+    amountNeutral: {
       color: theme.colors.text,
+    },
+    amountRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW?.(6) ?? 6,
     },
     dateMuted: {
       fontSize: theme.fontSize?.xs ?? 12,

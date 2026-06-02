@@ -6,6 +6,7 @@ import { CustomText, ImageLoader, CustomButton } from '@components/common';
 import imagePaths from '@assets';
 import { getStatusColor, mapBookingStatusToDisplay } from '@utils/tools';
 import { SW } from '@utils/dimensions';
+import { formatAmount } from '@utils/formatAmount';
 
 type Service = {
   _id: string;
@@ -38,6 +39,7 @@ type BookingServiceCardProps = {
   onTrackMember?: (service: Service) => void;
   serviceLoadingStates?: Record<string, 'accept' | 'reject' | null>;
   trackMemberLoadingId?: string | null;
+  showTrackMemberButton?: boolean;
 };
 
 export default function BookingServiceCard({
@@ -53,13 +55,13 @@ export default function BookingServiceCard({
   onTrackMember,
   serviceLoadingStates,
   trackMemberLoadingId,
+  showTrackMemberButton,
 }: BookingServiceCardProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
   console.log('mainBookingStatus-----BookingServiceCard', mainBookingStatus);
-  // Check if actions should be disabled based on main booking status
-
+ 
   const safeServices = Array.isArray(services) ? services : [];
 
   return (
@@ -310,7 +312,7 @@ export default function BookingServiceCard({
                     </CustomText>
                     {/* {(Number(service?.discountAmount) || 0) > 0 && (
                                             <CustomText style={styles.appliedDiscountAmount}>
-                                                Discount: ${(Number.isFinite(service?.discountAmount) ? service.discountAmount : 0).toFixed(2)}
+                                                Discount: {formatAmount(Number.isFinite(service?.discountAmount) ? service.discountAmount : 0)}
                                             </CustomText>
                                         )} */}
                   </View>
@@ -334,17 +336,17 @@ export default function BookingServiceCard({
                       // const discounted = addOnPrice * (1 - discountPct / 100);
                       // const cutPrice = Number.isFinite(discounted) ? discounted : addOnPrice;
                       // const hasDiscount = discountPct > 0;
-                      const displayOriginal = (
-                        Number.isFinite(addOnPrice) ? addOnPrice : 0
-                      ).toFixed(2);
-                      // const displayCut = (Number.isFinite(cutPrice) ? cutPrice : addOnPrice).toFixed(2);
+                      const displayOriginal = formatAmount(
+                        Number.isFinite(addOnPrice) ? addOnPrice : 0,
+                      );
+                      // const displayCut = formatAmount(Number.isFinite(cutPrice) ? cutPrice : addOnPrice);
                       return (
                         <View
                           key={addOn._id ?? `addon-${index}`}
                           style={styles.addOnTag}
                         >
                           <CustomText style={styles.addOnTagText}>
-                            {addOn?.name ?? ''}: ${displayOriginal}
+                            {addOn?.name ?? ''}: {displayOriginal}
                             {discountPct
                               ? ` (${t('checkout.percentOff', { percent: discountPct })})`
                               : ''}
@@ -366,11 +368,7 @@ export default function BookingServiceCard({
                     {t('bookingDetails.serviceCard.priceService')}
                   </CustomText>
                   <CustomText style={styles.priceValue}>
-                    $
-                    {(Number.isFinite(service?.price)
-                      ? service.price
-                      : 0
-                    ).toFixed(2)}
+                    {formatAmount(Number.isFinite(service?.price) ? service.price : 0)}
                   </CustomText>
                 </View>
               )}
@@ -380,11 +378,9 @@ export default function BookingServiceCard({
                     {t('bookingDetails.serviceCard.priceAddons')}
                   </CustomText>
                   <CustomText style={styles.priceValue}>
-                    $
-                    {(Number.isFinite(service?.addOnsTotal)
-                      ? service.addOnsTotal
-                      : 0
-                    ).toFixed(2)}
+                    {formatAmount(
+                      Number.isFinite(service?.addOnsTotal) ? service.addOnsTotal : 0,
+                    )}
                   </CustomText>
                 </View>
               )}
@@ -394,11 +390,9 @@ export default function BookingServiceCard({
                     {t('bookingDetails.serviceCard.priceSubtotal')}
                   </CustomText>
                   <CustomText style={styles.priceValue}>
-                    $
-                    {(Number.isFinite(service?.totalAmount)
-                      ? service.totalAmount
-                      : 0
-                    ).toFixed(2)}
+                    {formatAmount(
+                      Number.isFinite(service?.totalAmount) ? service.totalAmount : 0,
+                    )}
                   </CustomText>
                 </View>
               )}
@@ -411,11 +405,11 @@ export default function BookingServiceCard({
                     <CustomText
                       style={[styles.priceValue, styles.discountText]}
                     >
-                      -$
-                      {(Number.isFinite(service?.discountAmount)
-                        ? service.discountAmount
-                        : 0
-                      ).toFixed(2)}
+                      -{formatAmount(
+                        Number.isFinite(service?.discountAmount)
+                          ? service.discountAmount
+                          : 0,
+                      )}
                     </CustomText>
                   </View>
                 )}
@@ -425,11 +419,11 @@ export default function BookingServiceCard({
                     {t('bookingDetails.serviceCard.priceTotal')}
                   </CustomText>
                   <CustomText style={styles.totalPriceValue}>
-                    $
-                    {(Number.isFinite(service?.discountedAmount)
-                      ? service.discountedAmount
-                      : 0
-                    ).toFixed(2)}
+                    {formatAmount(
+                      Number.isFinite(service?.discountedAmount)
+                        ? service.discountedAmount
+                        : 0,
+                    )}
                   </CustomText>
                 </View>
               )}
@@ -543,7 +537,7 @@ export default function BookingServiceCard({
                     />
                   </View>
                 ) : null}
-                {serviceStatus === 'onTheWay' && onTrackMember ? (
+                {serviceStatus === 'onTheWay' && showTrackMemberButton && onTrackMember ? (
                   <View
                     style={[
                       styles.serviceActionButtonWrap,

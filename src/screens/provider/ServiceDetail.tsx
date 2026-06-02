@@ -23,17 +23,13 @@ import {
 import { ThemeType, useThemeContext } from '@utils/theme';
 import imagePaths from '@assets';
 import { formatPreferenceLabel, getProviderDisplayName } from '@utils/tools';
+import { formatAmount } from '@utils/formatAmount';
 import DeliveryModeModal from '@components/category/DeliveryModeModal';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useGetCustomerServiceDetail } from '@services/index';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const IMAGE_HEIGHT = 220;
-
-const formatAmount = (amount: number | string | null | undefined): string => {
-  const value = Number(amount) || 0;
-  return `$${value.toFixed(2)}`;
-};
 
 const formatDuration = (minutes: number | string | null | undefined): string => {
   const total = Number(minutes) || 0;
@@ -461,7 +457,7 @@ export default function ServiceDetail() {
       <View
         style={[
           styles.footer,
-          { paddingBottom: Math.max(insets.bottom, theme.SH(12)) },
+          { paddingBottom: Math.max(insets.bottom+10, theme.SH(12)) },
         ]}
       >
         <CustomButton

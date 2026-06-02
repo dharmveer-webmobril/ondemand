@@ -6,5 +6,6 @@ export * from './timeSlotUtils'
 export * from './StaticData'
 export * from './validationSchemas'
 export * from './apiHelpers'
+export * from './formatAmount'
 export {default as StorageProvider} from './StorageProvider';
 export {default as regex} from './regexList';

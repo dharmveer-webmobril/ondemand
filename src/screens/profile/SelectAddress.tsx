@@ -13,6 +13,7 @@ import {
   type AtHomeCountryRestriction,
   type Address as CheckoutAddress,
 } from '../booking/checkoutHelpers';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SelectAddress() {
   const theme = useThemeContext();
@@ -20,6 +21,9 @@ export default function SelectAddress() {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
+  const bottomButtonOffset = Math.max(insets.bottom, theme.SH(12));
+
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const allowedCountry: AtHomeCountryRestriction = useMemo(
     () =>
@@ -209,7 +213,8 @@ export default function SelectAddress() {
         />
       )}
 
-      <View style={styles.buttonContainer}>
+
+      <View style={[styles.buttonContainer, { bottom: bottomButtonOffset }]}>
         <CustomButton
           title={t('selectAddress.confirm')}
           onPress={handleConfirm}
@@ -331,7 +336,7 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: theme.SW(20),
-    paddingBottom: Platform.OS === 'ios' ? theme.SH(20) : theme.SH(30),
+    paddingBottom: theme.SH(12),
     paddingTop: theme.SH(16),
     backgroundColor: theme.colors.background || '#F7F7F7',
     borderTopWidth: 1,

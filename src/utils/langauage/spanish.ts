@@ -479,7 +479,7 @@ export const spanish = {
     "timeLabel": "Hora:",
     "totalLabel": "Total:",
     "routinePackageLine": "Paquete de rutina · {{count}} sesiones",
-    "volumeDiscountLine": "{{tier}} ({{percent}}% dto.) −${{amount}}",
+    "volumeDiscountLine": "{{tier}} ({{percent}}% dto.) −{{amount}}",
     "selectServiceFor": "Seleccionar servicio para",
     "paymentGateways": {
       "stripe": "Stripe",
@@ -494,9 +494,9 @@ export const spanish = {
     "paymentConfirmationFailed": "Error al confirmar el pago",
     "paymentFailed": "Pago fallido",
     "offerLine": "{{title}} ({{percent}}% de descuento)",
-    "offerSavePreview": "Ahorra ${{save}} • Precio: ${{price}}",
+    "offerSavePreview": "Ahorra {{save}} • Precio: {{price}}",
     "appliedOfferApplied": "{{title}} ({{percent}}% de descuento) – Aplicado",
-    "youSavedAmount": "Ahorraste ${{amount}}",
+    "youSavedAmount": "Ahorraste {{amount}}",
     "percentOff": "{{percent}}% de descuento",
     "paymentSuccessModal": {
       "title": "Pago confirmado",

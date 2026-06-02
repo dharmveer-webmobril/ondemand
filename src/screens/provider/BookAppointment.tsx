@@ -33,6 +33,7 @@ import BookAppointmentSessionSection from '@components/provider/BookAppointmentS
 import RoutinePackageSummaryCard from '@components/provider/RoutinePackageSummaryCard';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatAmount } from '@utils/formatAmount';
 import {
   ROUTINE_MIN_SESSIONS,
   ROUTINE_MAX_DAYS_AHEAD,
@@ -700,7 +701,7 @@ export default function BookAppointment() {
         {bookingType === 'routine' && sessionCount > 0 ? (
           <View style={styles.summaryPreview}>
             <CustomText style={styles.summaryPreviewText}>
-              ${totalPrice.toFixed(2)} · {sessionCount}{' '}
+              {formatAmount(totalPrice)} · {sessionCount}{' '}
               {t('bookAppointment.sessionsLabel')}
             </CustomText>
           </View>

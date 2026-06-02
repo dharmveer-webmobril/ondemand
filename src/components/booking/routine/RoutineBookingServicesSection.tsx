@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { BoundedVerticalScroll, CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import RoutineDetailSection from './RoutineDetailSection';
+import { formatAmount } from '@utils/formatAmount';
 
 export type RoutineServiceDetailItem = {
   serviceId: string;
@@ -43,7 +44,7 @@ export default function RoutineBookingServicesSection({
           >
             <CustomText style={styles.name}>{svc.name}</CustomText>
             <CustomText style={styles.meta}>
-              ${Number(svc.price || 0).toFixed(2)} · {svc.durationMinutes}m
+              {formatAmount(Number(svc.price || 0))} · {svc.durationMinutes}m
             </CustomText>
           </View>
         ))}

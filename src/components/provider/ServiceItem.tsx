@@ -11,6 +11,7 @@ import imagePaths from '@assets';
 import ServiceNameWithRoutineBadge from './ServiceNameWithRoutineBadge';
 import { formatPreferenceLabel } from '@utils/tools';
 import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
+import { formatAmount } from '@utils/formatAmount';
 
 type BestOffer = {
   title: string;
@@ -96,12 +97,16 @@ export default function ServiceItem({
             <View style={styles.priceContainer}>
               {hasOffer ? (
                 <>
-                  <CustomText style={styles.originalPrice}>${(Number.isFinite(price) ? price : 0).toFixed(2)}</CustomText>
-                  <CustomText style={styles.price}>${displayPrice.toFixed(2)}</CustomText>
+                  <CustomText style={styles.originalPrice}>
+                    {formatAmount(Number.isFinite(price) ? price : 0)}
+                  </CustomText>
+                  <CustomText style={styles.price}>
+                    {formatAmount(displayPrice)}
+                  </CustomText>
                 </>
               ) : (
                 <CustomText style={styles.price}>
-                  ${(Number.isFinite(price) ? price : 0).toFixed(2)}
+                  {formatAmount(Number.isFinite(price) ? price : 0)}
                 </CustomText>
               )}
               {duration && (

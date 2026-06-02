@@ -13,6 +13,7 @@ import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, CustomButton } from '@components/common';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getProviderDisplayName } from '@utils/tools';
+import { formatAmount } from '@utils/formatAmount';
 
 /** Matches common “success” UI green (see booking-confirmed mockups). */
 const SUCCESS_GREEN = '#58B78D';
@@ -29,12 +30,7 @@ function formatMoneyAmount(
   currency?: string | null,
 ): string {
   if (amount == null || !Number.isFinite(Number(amount))) return '';
-  const n = Number(amount);
-  const c = (currency || '').toUpperCase();
-  if (c === 'USD') return `$${n.toFixed(2)}`;
-  if (c === 'EUR') return `€${n.toFixed(2)}`;
-  if (currency?.trim()) return `${currency} ${n.toFixed(2)}`;
-  return String(n);
+  return formatAmount(amount);
 }
 
 export default function BookingPaymentSuccessModal({

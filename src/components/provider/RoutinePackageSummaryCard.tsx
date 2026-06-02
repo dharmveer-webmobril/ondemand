@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import type { VolumeDiscountTier } from '@utils/routineVolumeDiscount';
+import { formatAmount } from '@utils/formatAmount';
 
 type Props = {
   packageSubtotal: number;
@@ -32,7 +33,7 @@ export default function RoutinePackageSummaryCard({
           {t('bookAppointment.subtotal')}
         </CustomText>
         <CustomText style={styles.value}>
-          ${packageSubtotal.toFixed(2)}
+          {formatAmount(packageSubtotal)}
         </CustomText>
       </View>
       {activeTier ? (
@@ -44,7 +45,7 @@ export default function RoutinePackageSummaryCard({
             })}
           </CustomText>
           <CustomText style={[styles.value, styles.discount]}>
-            −${discountAmount.toFixed(2)}
+            −{formatAmount(discountAmount)}
           </CustomText>
         </View>
       ) : null}
@@ -53,7 +54,7 @@ export default function RoutinePackageSummaryCard({
           {t('bookAppointment.packageTotal')}
         </CustomText>
         <CustomText style={styles.totalValue}>
-          ${totalPrice.toFixed(2)}
+          {formatAmount(totalPrice)}
         </CustomText>
       </View>
       <CustomText style={styles.note}>
