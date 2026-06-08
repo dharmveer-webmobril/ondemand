@@ -1,4 +1,4 @@
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, DistanceLabel, ImageLoader, VectoreIcons } from '@components/common';
@@ -8,12 +8,15 @@ import {
   formatAddress,
   getProviderDisplayName,
 } from '@utils/tools';
+import { HOME_BENTO_RADIUS } from './bentoEffects';
+import { HOME_CARD_SHADOW } from './homeLayout';
+import LiquidBentoPressable from './LiquidBentoPressable';
 
 type HomeProviderItemProps = {
   provider: ServiceProvider;
   onPress?: () => void;
-  /** Full-width row for vertical lists; default is home carousel card */
   layout?: 'carousel' | 'list';
+  index?: number;
 };
 
 const CAROUSEL_AVATAR_SIZE = 48;
@@ -26,6 +29,7 @@ export default function HomeProviderItem({
   provider,
   onPress,
   layout = 'carousel',
+  index = 0,
 }: HomeProviderItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(
@@ -57,13 +61,18 @@ export default function HomeProviderItem({
     ? { uri: provider.profileImage }
     : imagePaths.no_image;
 
+  const cardRadius = theme.SF(
+    layout === 'carousel' ? HOME_BENTO_RADIUS + 2 : HOME_BENTO_RADIUS + 4,
+  );
+
   return (
-    <Pressable
+    <LiquidBentoPressable
+      index={index}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.container,
-        pressed && styles.pressedContainer,
-      ]}
+      bentoSurface={false}
+      borderRadius={cardRadius}
+      style={[styles.container, HOME_CARD_SHADOW]}
+      contentStyle={styles.liquidSurface}
     >
       <View style={styles.coverSection}>
         <View style={styles.coverImageClip}>
@@ -129,7 +138,7 @@ export default function HomeProviderItem({
           textStyle={styles.distanceText}
         />
       </View>
-    </Pressable>
+    </LiquidBentoPressable>
   );
 }
 
@@ -148,15 +157,9 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
       backgroundColor: Colors.white,
       borderRadius: SF(isCarousel ? 14 : 16),
       overflow: 'visible',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.12,
-      shadowRadius: 8,
-      elevation: 5,
     },
-    pressedContainer: {
-      opacity: 0.94,
-      transform: [{ scale: 0.99 }],
+    liquidSurface: {
+      flex: 1,
     },
     coverSection: {
       position: 'relative',
@@ -183,11 +186,7 @@ const createStyles = (theme: ThemeType, layout: 'carousel' | 'list') => {
       backgroundColor: Colors.white,
       overflow: 'hidden',
       zIndex: 2,
-      elevation: 6,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+      ...HOME_CARD_SHADOW,
     },
     avatarImage: {
       width: '100%',

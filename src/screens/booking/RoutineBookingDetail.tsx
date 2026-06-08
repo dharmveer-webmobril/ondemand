@@ -7,7 +7,11 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { AppHeader, Container, CustomButton } from '@components/common';
 import {
@@ -34,6 +38,8 @@ import {
   formatRoutineStatusLabel,
   getRoutineStatusColor,
   getSessionBookingMongoId,
+  buildRoutinePaymentBreakdown,
+  mapRoutineServicesForDisplay,
 } from '@utils/routineBookingHelpers';
 
 const createScreenStyles = (theme: ReturnType<typeof useThemeContext>) =>
@@ -96,7 +102,26 @@ export default function RoutineBookingDetail() {
   const detail = data?.ResponseData;
   const routine = detail?.routineBooking;
   const sessions = (detail?.sessions ?? []) as RoutineSessionItem[];
-  const servicesDetail = detail?.servicesDetail ?? [];
+  const servicesDetailRaw = detail?.servicesDetail ?? [];
+  const routineServices = routine?.services ?? [];
+
+  const servicesDetail = useMemo(
+    () => mapRoutineServicesForDisplay(servicesDetailRaw, routineServices),
+    [servicesDetailRaw, routineServices],
+  );
+
+  const sessionCount =
+    sessions.length || routine?.pricing?.sessionCount || 1;
+
+  const paymentBreakdown = useMemo(
+    () =>
+      buildRoutinePaymentBreakdown(
+        servicesDetail,
+        routine?.pricing,
+        sessionCount,
+      ),
+    [servicesDetail, routine?.pricing, sessionCount],
+  );
 
   const routineStatus = routine?.routineStatus || 'pending';
   const statusColor = getRoutineStatusColor(routineStatus);
@@ -279,13 +304,6 @@ export default function RoutineBookingDetail() {
           })}
         />
 
-        <RoutineBookingPricingCard
-          pricing={routine?.pricing}
-          sessionCountFallback={sessions.length}
-          paymentType={routine?.paymentType}
-          paymentStatus={routine?.paymentStatus}
-        />
-
         <RoutineBookingServicesSection services={servicesDetail} />
 
         <RoutineBookingSessionsSection
@@ -294,6 +312,14 @@ export default function RoutineBookingDetail() {
           onViewSessionDetails={onViewSessionDetails}
           onDeleteSession={onDeleteSession}
           deletingSessionId={deletingSessionId}
+        />
+
+        <RoutineBookingPricingCard
+          breakdown={paymentBreakdown}
+          paymentType={routine?.paymentType}
+          paymentStatus={routine?.paymentStatus}
+          discountTierLabel={routine?.pricing?.discountTierLabel}
+          discountPct={routine?.pricing?.discountPct}
         />
       </ScrollView>
 

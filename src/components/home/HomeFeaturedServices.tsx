@@ -15,6 +15,7 @@ import type {
   FeaturedServiceItem,
   FeaturedListType,
 } from '@services/api/queries/appQueries';
+import { HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 type HomeFeaturedServicesProps = {
   title: string;
@@ -147,9 +148,10 @@ export default function HomeFeaturedServices({
           horizontal
           data={data}
           keyExtractor={item => item._id}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <FeaturedServiceCard
               service={item}
+              index={index}
               onPress={handlePressService}
               variant="carousel"
               listType={listType}
@@ -175,14 +177,14 @@ const createStyles = (theme: ThemeType) =>
       alignItems: 'center',
     },
     sectionHeader: {
-      paddingHorizontal: theme.SW(16),
+      paddingHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
       marginBottom: theme.SH(10),
     },
     viewAllText: {
       textDecorationLine: 'underline',
     },
     listContent: {
-      paddingHorizontal: theme.SW(16),
+      paddingHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
       paddingBottom: theme.SH(4),
     },
     loader: {
@@ -190,7 +192,7 @@ const createStyles = (theme: ThemeType) =>
       alignItems: 'center',
     },
     errorBox: {
-      paddingHorizontal: theme.SW(16),
+      paddingHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
       paddingVertical: theme.SH(16),
       alignItems: 'center',
     },
@@ -198,7 +200,7 @@ const createStyles = (theme: ThemeType) =>
       borderRadius: theme.SF(8),
     },
     locationEmptyBox: {
-      marginHorizontal: theme.SW(16),
+      marginHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
       paddingVertical: theme.SH(18),
       paddingHorizontal: theme.SW(14),
       borderRadius: theme.SF(12),

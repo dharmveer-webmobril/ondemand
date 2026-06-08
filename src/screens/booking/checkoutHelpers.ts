@@ -252,16 +252,50 @@ export const isCheckoutFormValid = ({
   return true;
 };
 
-export const buildSelectedServicesPayload = (selectedServices: any[] = []) => {
+export type BookingAddonItemPayload = {
+  addonId: string;
+  quantity: number;
+};
+
+export type BookingServiceLinePayload = {
+  serviceId: string;
+  addonItems: BookingAddonItemPayload[];
+  promotionOfferId: string | null;
+};
+
+/** Unit price, quantity, and line total for a selected add-on (checkout UI). */
+export const getSelectedAddOnPricing = (addOn: any) => {
+  const addOnPrice = Number(addOn?.price) || 0;
+  const discountPct = Math.min(
+    100,
+    Math.max(0, Number(addOn?.discountPercentage) || 0),
+  );
+  const unitRaw = addOnPrice * (1 - discountPct / 100);
+  const unit = Number.isFinite(unitRaw) ? unitRaw : addOnPrice;
+  const qty = Math.max(1, Math.floor(Number(addOn?.quantity) || 1));
+  return { unit, qty, lineTotal: unit * qty };
+};
+
+/** Build addonItems with quantity for create-booking / routine-booking APIs. */
+export const buildAddonItemsFromSelectedAddOns = (
+  selectedAddOns: any[] = [],
+): BookingAddonItemPayload[] => {
+  return (Array.isArray(selectedAddOns) ? selectedAddOns : [])
+    .filter((addOn: any) => addOn != null && addOn?._id)
+    .map((addOn: any) => ({
+      addonId: String(addOn._id),
+      quantity: Math.max(1, Math.floor(Number(addOn?.quantity) || 1)),
+    }));
+};
+
+export const buildSelectedServicesPayload = (
+  selectedServices: any[] = [],
+): BookingServiceLinePayload[] => {
   return (Array.isArray(selectedServices) ? selectedServices : [])
     .filter((service: any) => service != null)
     .map((service: any) => ({
       serviceId: service?._id,
-      addOnIds:
-        (service?.selectedAddOns || [])
-          .filter((addOn: any) => addOn != null)
-          .map((addOn: any) => addOn?._id)
-          .filter(Boolean) || [],
+      addonItems: buildAddonItemsFromSelectedAddOns(service?.selectedAddOns),
       promotionOfferId: service?.selectedOfferId || null,
     }));
 };

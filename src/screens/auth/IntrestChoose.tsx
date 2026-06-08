@@ -1,5 +1,6 @@
 import { AppHeader, CustomButton, CustomText, InterestItem, Spacing, showToast } from '@components';
 import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils';
+import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { useThemeContext } from '@utils/theme';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -82,6 +83,7 @@ const IntrestChoose = () => {
                 // Navigate to home after successful submission
                 setTimeout(() => {
                     navigate(SCREEN_NAMES.HOME);
+                    setTimeout(() => tryOpenPendingProviderProfile(), 600);
                 }, 1000);
             } else {
                 showToast({

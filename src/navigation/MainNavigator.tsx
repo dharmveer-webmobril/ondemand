@@ -1,15 +1,27 @@
+import { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceDetail, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, RoutineBookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, TrackingWebViewScreen, WalletScreen, PaymentTransactionsScreen, NotificationsScreen, NotificationsAlerts, CustomerSupport, LanguageSettings, FavoriteProvidersScreen, HomeQuickVoiceScreen } from '@screens/index'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
+import {
+  captureInitialProviderProfileUrl,
+  subscribeToAppDeepLinks,
+  tryOpenPendingProviderProfile,
+} from '@utils/providerProfileDeepLink'
+import { linking } from './linking'
 import BottomTabs from './tabs/BottomsTabs'
 import { SCREEN_NAMES } from './ScreenNames'
 
 const Stack = createNativeStackNavigator()
 const MainNavigator = () => {
+  useEffect(() => {
+    void captureInitialProviderProfileUrl();
+    return subscribeToAppDeepLinks();
+  }, []);
+
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator
         screenOptions={{
           headerShown: false

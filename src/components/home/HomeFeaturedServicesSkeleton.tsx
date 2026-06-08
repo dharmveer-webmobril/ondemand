@@ -2,13 +2,14 @@ import React, { useMemo } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { Shimmer } from '@components/common';
+import { HOME_CARD_SHADOW, HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 const FeaturedSkeletonItem = () => {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, HOME_CARD_SHADOW]}>
       <Shimmer width="100%" height="100%" borderRadius={theme.SF(12)} />
     </View>
   );
@@ -38,7 +39,7 @@ export default function HomeFeaturedServicesSkeleton() {
 const createStyles = (theme: ThemeType) =>
   StyleSheet.create({
     listContent: {
-      paddingHorizontal: theme.SW(16),
+      paddingHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
       paddingBottom: theme.SH(4),
     },
     separator: {
@@ -49,6 +50,7 @@ const createStyles = (theme: ThemeType) =>
       height: theme.SH(140),
       borderRadius: theme.SF(12),
       overflow: 'hidden',
+      backgroundColor: theme.colors.white,
     },
   });
 

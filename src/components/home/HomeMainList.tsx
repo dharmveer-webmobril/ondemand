@@ -15,6 +15,7 @@ import HomeFeaturedServices from './HomeFeaturedServices';
 import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { SH } from '@utils/dimensions';
+import { HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 type HomeMainListProps = {
   refreshing?: boolean;
@@ -244,7 +245,7 @@ const createStyles = (theme: ThemeType) =>
       alignItems: 'center',
     },
     sectionHeader: {
-      paddingHorizontal: theme.SW(16),
+      paddingHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
     },
     viewAllText: {
       textDecorationLine: 'underline',

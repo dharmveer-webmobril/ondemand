@@ -38,6 +38,27 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+
+        <!-- Custom scheme: squedio://profile/{providerId} -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="squedio" android:host="profile" />
+            <data android:scheme="squedio" android:host="provider" />
+        </intent-filter>
+
+        <!-- HTTPS profile share link (provider app shares /api/v1/profile/share/{id}) -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data
+              android:scheme="https"
+              android:host="indoredev.webmobrildemo.com"
+              android:port="10054"
+              android:pathPrefix="/api/v1/profile/share" />
+        </intent-filter>
       </activity>
     </application>
 </manifest>

@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { CustomText } from '@components/common';
+import { CustomText, VectoreIcons } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { centsToDisplay } from '@utils/routineBookingHelpers';
+import { formatAmount } from '@utils/formatAmount';
+import RoutineDetailSection from './RoutineDetailSection';
 import RoutineDetailKeyValueRow from './RoutineDetailKeyValueRow';
+import type { RoutinePaymentBreakdownDisplay } from '@utils/routineBookingHelpers';
 
 export type RoutineBookingPricing = {
   sessionCount?: number;
@@ -17,76 +19,143 @@ export type RoutineBookingPricing = {
 };
 
 type RoutineBookingPricingCardProps = {
-  pricing?: RoutineBookingPricing | null;
-  sessionCountFallback?: number;
+  breakdown: RoutinePaymentBreakdownDisplay;
   paymentType?: string | null;
   paymentStatus?: string | null;
+  discountTierLabel?: string | null;
+  discountPct?: number | null;
 };
 
 export default function RoutineBookingPricingCard({
-  pricing,
-  sessionCountFallback = 0,
+  breakdown,
   paymentType,
   paymentStatus,
+  discountTierLabel,
+  discountPct,
 }: RoutineBookingPricingCardProps) {
   const { t } = useTranslation();
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const currency = pricing?.currency || 'USD';
+  const [expanded, setExpanded] = useState(false);
+
+  const {
+    servicesAmount,
+    addOnsAmount,
+    perSessionSubtotal,
+    sessionCount,
+    packageSubtotal,
+    discountAmount,
+    total,
+  } = breakdown;
+
+  const showMultiply = sessionCount > 1;
+  const showAddons = addOnsAmount > 0;
+  const showDiscount = discountAmount > 0;
 
   return (
-    <View style={styles.card}>
-      <RoutineDetailKeyValueRow
-        label={t('routineBooking.sessions')}
-        value={String(pricing?.sessionCount ?? sessionCountFallback)}
-      />
-      <RoutineDetailKeyValueRow
-        label={t('routineBooking.subtotal')}
-        value={centsToDisplay(pricing?.subtotalCents, currency)}
-      />
-      <RoutineDetailKeyValueRow
-        label={t('routineBooking.volumeDiscount')}
-        value={
-          <View style={styles.discountCol}>
-            <CustomText style={[styles.value, styles.discountValue]}>
-              -{centsToDisplay(pricing?.discountAmountCents, currency)}
+    <RoutineDetailSection title={t('routineBooking.paymentSection')}>
+      <View style={styles.card}>
+        <Pressable
+          style={styles.accordionHeader}
+          onPress={() => setExpanded(prev => !prev)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+        >
+          <CustomText style={styles.accordionTitle}>
+            {t('routineBooking.total')}
+          </CustomText>
+          <View style={styles.accordionHeaderRight}>
+            <CustomText style={styles.accordionTotal}>
+              {formatAmount(total)}
             </CustomText>
-            {pricing?.discountTierLabel ? (
-              <CustomText style={styles.tierHint}>
-                {pricing.discountPct}% · {pricing.discountTierLabel}
-              </CustomText>
-            ) : null}
+            <VectoreIcons
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              icon="Ionicons"
+              size={theme.SF(20)}
+              color={theme.colors.lightText}
+            />
           </View>
-        }
-      />
-      <RoutineDetailKeyValueRow
-        label={t('routineBooking.total')}
-        value={
-          <CustomText style={[styles.value, styles.totalValue]}>
-            {centsToDisplay(pricing?.totalCents, currency)}
-          </CustomText>
-        }
-      />
+        </Pressable>
 
-      <View style={styles.divider} />
+        {expanded ? (
+          <View style={styles.breakdown}>
+            <RoutineDetailKeyValueRow
+              label={t('routineBooking.paymentServicesAmount')}
+              value={formatAmount(servicesAmount)}
+              valueStyle={styles.rowValue}
+            />
+            {showAddons ? (
+              <RoutineDetailKeyValueRow
+                label={t('routineBooking.paymentAddonsAmount')}
+                value={formatAmount(addOnsAmount)}
+                valueStyle={styles.rowValue}
+              />
+            ) : null}
+            {showMultiply ? (
+              <RoutineDetailKeyValueRow
+                label={t('routineBooking.paymentMultiplyAmount', {
+                  perSession: formatAmount(perSessionSubtotal),
+                  count: sessionCount,
+                })}
+                value={formatAmount(packageSubtotal)}
+                valueStyle={styles.rowValue}
+              />
+            ) : (
+              <RoutineDetailKeyValueRow
+                label={t('routineBooking.subtotal')}
+                value={formatAmount(packageSubtotal)}
+                valueStyle={styles.rowValue}
+              />
+            )}
+            {showDiscount ? (
+              <RoutineDetailKeyValueRow
+                label={t('routineBooking.volumeDiscount')}
+                value={
+                  <View style={styles.discountCol}>
+                    <CustomText style={[styles.rowValue, styles.discountValue]}>
+                      -{formatAmount(discountAmount)}
+                    </CustomText>
+                    {discountTierLabel ? (
+                      <CustomText style={styles.tierHint}>
+                        {discountPct}% · {discountTierLabel}
+                      </CustomText>
+                    ) : null}
+                  </View>
+                }
+              />
+            ) : null}
+            <View style={styles.totalDivider} />
+            <RoutineDetailKeyValueRow
+              label={t('routineBooking.total')}
+              value={
+                <CustomText style={styles.breakdownTotalValue}>
+                  {formatAmount(total)}
+                </CustomText>
+              }
+            />
 
-      <RoutineDetailKeyValueRow
-        label={t('routineBooking.paymentType')}
-        value={
-          <CustomText style={styles.paymentValue}>
-            {paymentType || '—'}
-          </CustomText>
-        }
-      />
-      <RoutineDetailKeyValueRow
-        label={t('routineBooking.paymentStatus')}
-        value={
-          <CustomText style={styles.paymentValue}>
-            {paymentStatus || '—'}
-          </CustomText>
-        }
-      />
-    </View>
+            <View style={styles.paymentDivider} />
+
+            <RoutineDetailKeyValueRow
+              label={t('routineBooking.paymentType')}
+              value={
+                <CustomText style={styles.paymentMeta}>
+                  {paymentType || '—'}
+                </CustomText>
+              }
+            />
+            <RoutineDetailKeyValueRow
+              label={t('routineBooking.paymentStatus')}
+              value={
+                <CustomText style={styles.paymentMeta}>
+                  {paymentStatus || '—'}
+                </CustomText>
+              }
+            />
+          </View>
+        ) : null}
+      </View>
+    </RoutineDetailSection>
   );
 }
 
@@ -97,22 +166,48 @@ const createStyles = (theme: ThemeType) =>
       borderRadius: theme.SF(12),
       borderWidth: 1,
       borderColor: theme.colors.gray || '#E8E8E8',
-      padding: theme.SW(16),
+      overflow: 'hidden',
+    },
+    accordionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: theme.SW(16),
+      paddingVertical: theme.SH(14),
+      gap: theme.SW(12),
+    },
+    accordionTitle: {
+      fontSize: theme.fontSize.md,
+      fontFamily: theme.fonts.SEMI_BOLD,
+      color: theme.colors.text,
+      flex: 1,
+    },
+    accordionHeaderRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.SW(8),
+    },
+    accordionTotal: {
+      fontSize: theme.fontSize.md,
+      fontFamily: theme.fonts.BOLD,
+      color: theme.colors.primary,
+    },
+    breakdown: {
+      paddingHorizontal: theme.SW(16),
+      paddingBottom: theme.SH(14),
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.gray || '#EEE',
+    },
+    rowValue: {
+      fontSize: theme.fontSize.sm,
+      fontFamily: theme.fonts.MEDIUM,
+      color: theme.colors.text,
     },
     discountCol: {
       alignItems: 'flex-end',
     },
-    value: {
-      fontSize: theme.fontSize.md,
-      fontFamily: theme.fonts.BOLD,
-      color: theme.colors.text,
-      textAlign: 'right',
-    },
     discountValue: {
       color: '#2E7D32',
-    },
-    totalValue: {
-      color: theme.colors.primary,
     },
     tierHint: {
       marginTop: theme.SH(2),
@@ -120,14 +215,26 @@ const createStyles = (theme: ThemeType) =>
       color: theme.colors.lightText,
       textAlign: 'right',
     },
-    divider: {
+    totalDivider: {
       marginVertical: theme.SH(6),
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.colors.gray || '#EEE',
     },
-    paymentValue: {
+    breakdownTotalValue: {
+      fontSize: theme.fontSize.md,
+      fontFamily: theme.fonts.BOLD,
+      color: theme.colors.primary,
+      textAlign: 'right',
+    },
+    paymentDivider: {
+      marginVertical: theme.SH(8),
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.gray || '#EEE',
+    },
+    paymentMeta: {
       fontSize: theme.fontSize.sm,
       fontFamily: theme.fonts.SEMI_BOLD,
       textTransform: 'capitalize',
+      textAlign: 'right',
     },
   });

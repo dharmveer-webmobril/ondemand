@@ -2,26 +2,21 @@ import { View, FlatList, StyleSheet } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { Shimmer } from '@components/common';
+import { HOME_CARD_SHADOW, HOME_HORIZONTAL_PADDING } from './homeLayout';
 
-const CategorySkeletonItem = () => {
+const CATEGORY_BOX_SIZE = 82;
+
+const CategorySkeletonItem = ({ boxSize }: { boxSize: number }) => {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
     <View style={styles.itemContainer}>
-      <View style={styles.imageLoader}>
-        <Shimmer
-          width="100%"
-          height="100%"
-          borderRadius={theme.SF(29)}
-        />
+      <View style={[styles.shimmerBox, HOME_CARD_SHADOW, { width: boxSize, height: boxSize }]}>
+        <Shimmer width="100%" height="100%" borderRadius={theme.SF(12)} />
       </View>
       <View style={styles.textContainer}>
-        <Shimmer
-          width={theme.SW(60)}
-          height={theme.SF(12)}
-          borderRadius={4}
-        />
+        <Shimmer width={theme.SW(56)} height={theme.SF(12)} borderRadius={4} />
       </View>
     </View>
   );
@@ -30,21 +25,23 @@ const CategorySkeletonItem = () => {
 export default function HomeCategoryListSkeleton() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const boxSize = theme.SF(CATEGORY_BOX_SIZE);
 
-  // Render 6 skeleton items
-  const skeletonData = Array.from({ length: 6 }, (_, i) => ({ id: `skeleton-${i}` }));
+  const skeletonData = Array.from({ length: 6 }, (_, i) => ({
+    id: `skeleton-${i}`,
+  }));
 
   return (
     <View style={styles.container}>
       <FlatList
         horizontal
         data={skeletonData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         renderItem={() => (
           <View style={styles.itemWrapper}>
-            <CategorySkeletonItem />
+            <CategorySkeletonItem boxSize={boxSize} />
           </View>
         )}
       />
@@ -54,33 +51,31 @@ export default function HomeCategoryListSkeleton() {
 
 const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SW, SF, SH } = theme;
+  const boxSize = SF(CATEGORY_BOX_SIZE);
+
   return StyleSheet.create({
     container: {
-      paddingHorizontal: SW(20),
-      alignSelf: 'center',
-    },
-    listContent: {
-      paddingRight: SW(20),
+      paddingHorizontal: SW(HOME_HORIZONTAL_PADDING),
       marginTop: SH(10),
     },
+    listContent: {
+      paddingRight: SW(4),
+    },
     itemWrapper: {
-      marginRight: SW(15),
+      marginRight: SW(14),
     },
     itemContainer: {
       alignItems: 'center',
+      width: boxSize,
     },
-    imageLoader: {
-      height: SF(63),
-      width: SF(63),
-      borderRadius: SF(63) / 2,
-      borderWidth: 1,
-      borderColor: Colors.primary,
+    shimmerBox: {
+      borderRadius: SF(12),
       overflow: 'hidden',
     },
     textContainer: {
-      marginTop: SH(5),
+      marginTop: SH(8),
       alignItems: 'center',
-      maxWidth: SW(80),
+      width: boxSize,
     },
   });
 };

@@ -120,12 +120,20 @@ const reconcileSelectedServicesWithCatalog = (
       const catalogService = catalogById.get(getEntityId(selectedService));
       if (!catalogService) return null;
 
-      const selectedAddOnIds = new Set(
-        (selectedService?.selectedAddOns || []).map(getEntityId).filter(Boolean),
-      );
-      const selectedAddOns = (catalogService?.serviceAddOns || []).filter(
-        (addOn: any) => selectedAddOnIds.has(getEntityId(addOn)),
-      );
+      const selectedAddOns = (selectedService?.selectedAddOns || [])
+        .map((addOn: any) => {
+          const id = getEntityId(addOn);
+          if (!id) return null;
+          const catalogAddOn = (catalogService?.serviceAddOns || []).find(
+            (a: any) => getEntityId(a) === id,
+          );
+          if (!catalogAddOn) return null;
+          return {
+            ...catalogAddOn,
+            quantity: Math.max(1, Math.floor(Number(addOn?.quantity) || 1)),
+          };
+        })
+        .filter(Boolean);
 
       return {
         ...catalogService,
@@ -342,9 +350,11 @@ export default function BookAppointment() {
               Math.max(0, Number(addOn.discountPercentage) || 0),
             );
             const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
-            addOnsTotal += Number.isFinite(discountedAddOnPrice)
+            const unit = Number.isFinite(discountedAddOnPrice)
               ? discountedAddOnPrice
               : addOnPrice;
+            const qty = Math.max(1, Math.floor(Number(addOn?.quantity) || 1));
+            addOnsTotal += unit * qty;
           });
         }
         return sum + basePrice + addOnsTotal;
@@ -396,7 +406,8 @@ export default function BookAppointment() {
         let serviceDuration = service.time || 0;
         if (service.selectedAddOns?.length > 0) {
           service.selectedAddOns.forEach((addOn: any) => {
-            serviceDuration += addOn.duration || 0;
+            const qty = Math.max(1, Math.floor(Number(addOn?.quantity) || 1));
+            serviceDuration += (addOn.duration || 0) * qty;
           });
         }
         return sum + serviceDuration;
@@ -455,12 +466,16 @@ export default function BookAppointment() {
     setShowAddOnModal(true);
   };
 
-  const handleAddOnSelection = (selectedAddOnIds: string[]) => {
+  const handleAddOnSelection = (
+    selectedAddOns: Array<{ _id: string; quantity?: number; [key: string]: any }>,
+  ) => {
     if (!selectedServiceForAddOns) return;
-    const addOns =
-      selectedServiceForAddOns.serviceAddOns?.filter((addOn: any) =>
-        selectedAddOnIds.includes(addOn._id),
-      ) || [];
+    const addOns = (Array.isArray(selectedAddOns) ? selectedAddOns : []).map(
+      addOn => ({
+        ...addOn,
+        quantity: Math.max(1, Math.floor(Number(addOn?.quantity) || 1)),
+      }),
+    );
     setCurrentSelectedServices(prev =>
       prev.map(service =>
         service._id === selectedServiceForAddOns._id
@@ -767,10 +782,7 @@ export default function BookAppointment() {
           }}
           onConfirm={handleAddOnSelection}
           addOns={selectedServiceForAddOns.serviceAddOns || []}
-          selectedAddOnIds={
-            selectedServiceForAddOns.selectedAddOns?.map((a: any) => a._id) ||
-            []
-          }
+          selectedAddOns={selectedServiceForAddOns.selectedAddOns || []}
         />
       ) : null}
     </SafeAreaView>

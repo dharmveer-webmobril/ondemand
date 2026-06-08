@@ -12,6 +12,7 @@ import { ensureCurrentLocationHydrated } from '@utils/address';
 import { setUserCity } from '@store/slices/appSlice';
 import LottieView from 'lottie-react-native';
 import imagePaths from '@assets';
+import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 
 export default function SplashScreen() {
   const theme = useThemeContext();
@@ -52,6 +53,7 @@ export default function SplashScreen() {
       if (hasInterests) {
         dispatch(setUserCity(userData.ResponseData?.city));
         resetAndNavigate(SCREEN_NAMES.HOME);
+        setTimeout(() => tryOpenPendingProviderProfile(), 600);
       } else {
         resetAndNavigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
       }

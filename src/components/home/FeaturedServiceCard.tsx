@@ -1,12 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  View,
-  Pressable,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, VectoreIcons } from '@components/common';
@@ -16,17 +9,25 @@ import type {
   FeaturedServiceItem,
   FeaturedListType,
 } from '@services/api/queries/appQueries';
-import ServiceNameWithRoutineBadge from '@components/provider/ServiceNameWithRoutineBadge';
+import RoutineAvailableBadge from '@components/provider/RoutineAvailableBadge';
+import { isServiceRoutineEnabled } from '@utils/serviceRoutineConfig';
+import { HOME_BENTO_RADIUS } from './bentoEffects';
+import { HOME_CARD_SHADOW } from './homeLayout';
+import LiquidBentoPressable from './LiquidBentoPressable';
 
 type FeaturedServiceCardProps = {
   service: FeaturedServiceItem;
   onPress: (service: FeaturedServiceItem) => void;
-  /** Card outer size (carousel vs grid) */
   variant?: 'carousel' | 'grid';
-  /** When top-offered, show discount, preferences, and price type */
   listType?: FeaturedListType;
   style?: StyleProp<ViewStyle>;
+  index?: number;
 };
+
+const CAROUSEL_WIDTH = 160;
+const CAROUSEL_IMAGE_H = 100;
+const CAROUSEL_TITLE_H = 38;
+const CAROUSEL_META_MIN_H = 40;
 
 function preferenceLabelKey(pref: string): string {
   const k = pref.trim();
@@ -44,6 +45,7 @@ export default function FeaturedServiceCard({
   variant = 'carousel',
   listType,
   style,
+  index = 0,
 }: FeaturedServiceCardProps) {
   const theme = useThemeContext();
   const { t } = useTranslation();
@@ -51,16 +53,21 @@ export default function FeaturedServiceCard({
 
   const imageUri = service.images?.[0] ?? null;
   const showOfferMeta = listType === 'topOffered';
+  const showRoutine = isServiceRoutineEnabled(service);
 
   const averageRating =
     typeof service.averageRating === 'number' ? service.averageRating : 0;
   const ratingCount =
     typeof service.ratingCount === 'number' ? service.ratingCount : 0;
-  const showRatingBadge = averageRating > 0;
+  const showRatingBadge = !showOfferMeta && averageRating > 0;
 
   const discountPercent = useMemo(() => {
-    const d = typeof service.discountPercentage === 'number' ? service.discountPercentage : 0;
-    const h = typeof service.highestDiscount === 'number' ? service.highestDiscount : 0;
+    const d =
+      typeof service.discountPercentage === 'number'
+        ? service.discountPercentage
+        : 0;
+    const h =
+      typeof service.highestDiscount === 'number' ? service.highestDiscount : 0;
     return Math.max(d, h);
   }, [service.discountPercentage, service.highestDiscount]);
 
@@ -81,196 +88,215 @@ export default function FeaturedServiceCard({
     return translated === key ? pt : translated;
   }, [service.priceType, t]);
 
+  const hasPreferences = preferenceLabels.length > 0;
+  const hasPriceType = !!priceTypeLabel;
+  const preferencesText = preferenceLabels.join(' · ');
+  const hasMetaFooter = hasPreferences || hasPriceType;
+
   return (
-    <Pressable
+    <LiquidBentoPressable
+      index={index}
       onPress={() => onPress(service)}
-      style={({ pressed }) => [
-        styles.wrapper,
-        style,
-        pressed && styles.pressed,
-      ]}
+      bentoSurface={false}
+      borderRadius={theme.SF(HOME_BENTO_RADIUS)}
+      style={[styles.wrapper, HOME_CARD_SHADOW, style]}
+      contentStyle={styles.liquidSurface}
     >
       <View style={styles.imageBox}>
         <ImageLoader
           source={imageUri ? { uri: imageUri } : imagePaths.no_image}
-          resizeMode="contain"
+          resizeMode="cover"
           mainImageStyle={styles.image}
         />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.82)']}
-          locations={[0, 0.45, 1]}
-          style={styles.gradient}
-        />
-        {showOfferMeta && discountPercent > 0 ? (
-          <View style={styles.discountBadge}>
-            <CustomText
-              color="#FFFFFF"
-              fontFamily={theme.fonts.BOLD}
-              fontSize={theme.fontSize.xs}
-            >
-              {t('home.offerDiscount', {
-                percent: Math.round(discountPercent),
-              })}
-            </CustomText>
+
+        <View style={styles.imageOverlayRow} pointerEvents="none">
+          <View style={styles.overlayLeft}>
+            {showRoutine ? (
+              <RoutineAvailableBadge
+                service={service}
+                compact
+                style={styles.routineBadgeOnImage}
+              />
+            ) : null}
           </View>
-        ) : null}
-        {showRatingBadge ? (
-          <View style={styles.ratingBadge}>
-            <VectoreIcons
-              icon="Ionicons"
-              name="star"
-              size={theme.SF(11)}
-              color="#FFC107"
-            />
-            <CustomText
-              color="#FFFFFF"
-              fontFamily={theme.fonts.SEMI_BOLD}
-              fontSize={theme.fontSize.xs}
-              style={styles.ratingText}
-            >
-              {averageRating.toFixed(1)}
-              {ratingCount > 0 ? ` (${ratingCount})` : ''}
-            </CustomText>
+          <View style={styles.overlayRight}>
+            {showOfferMeta && discountPercent > 0 ? (
+              <View style={styles.discountBadge}>
+                <CustomText
+                  color="#FFFFFF"
+                  fontFamily={theme.fonts.BOLD}
+                  fontSize={theme.fontSize.xs}
+                >
+                  {t('home.offerDiscount', {
+                    percent: Math.round(discountPercent),
+                  })}
+                </CustomText>
+              </View>
+            ) : null}
+            {showRatingBadge ? (
+              <View style={styles.ratingBadge}>
+                <VectoreIcons
+                  icon="Ionicons"
+                  name="star"
+                  size={theme.SF(11)}
+                  color="#FFC107"
+                />
+                <CustomText
+                  color="#FFFFFF"
+                  fontFamily={theme.fonts.SEMI_BOLD}
+                  fontSize={theme.fontSize.xs}
+                  style={styles.ratingText}
+                >
+                  {averageRating.toFixed(1)}
+                  {ratingCount > 0 ? ` (${ratingCount})` : ''}
+                </CustomText>
+              </View>
+            ) : null}
           </View>
-        ) : null}
-        <View style={styles.titleWrap}>
-          <ServiceNameWithRoutineBadge
-            name={service.name?.trim() || ''}
-            service={service}
-            numberOfLines={2}
-            nameStyle={[
-              styles.title,
-              {
-                color: '#FFFFFF',
-                fontFamily: theme.fonts.SEMI_BOLD,
-                fontSize:
-                  variant === 'carousel'
-                    ? theme.fontSize.md
-                    : theme.fontSize.sm,
-              },
-            ]}
-            badgeStyle={styles.routineBadgeOnImage}
-            containerStyle={styles.titleNameBlock}
-          />
         </View>
       </View>
-      {showOfferMeta &&
-      (preferenceLabels.length > 0 || priceTypeLabel) ? (
+
+      <View style={styles.titleFooter}>
+        <CustomText
+          style={styles.title}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {service.name?.trim() || ''}
+        </CustomText>
+      </View>
+
+      {hasMetaFooter ? (
         <View style={styles.metaFooter}>
-          {showOfferMeta && preferenceLabels.length > 0 ? (
+          {hasPreferences ? (
             <CustomText
-              numberOfLines={2}
               color={theme.colors.lightText || '#666565'}
               fontFamily={theme.fonts.REGULAR}
               fontSize={theme.fontSize.xs}
               style={styles.metaLine}
+              numberOfLines={1}
             >
-              {preferenceLabels.join(' · ')}
+              {preferencesText}
             </CustomText>
           ) : null}
-          {showOfferMeta && priceTypeLabel ? (
+          {hasPriceType ? (
             <CustomText
               numberOfLines={1}
+              ellipsizeMode="tail"
               color={theme.colors.lightText || theme.colors.gray || '#888'}
               fontFamily={theme.fonts.SEMI_BOLD}
               fontSize={theme.fontSize.xs}
-              style={preferenceLabels.length > 0 ? styles.metaSecondLine : styles.metaLine}
+              style={hasPreferences ? styles.metaSecondLine : styles.metaLine}
             >
               {priceTypeLabel}
             </CustomText>
           ) : null}
         </View>
       ) : null}
-    </Pressable>
+    </LiquidBentoPressable>
   );
 }
 
 const createStyles = (theme: ThemeType, variant: 'carousel' | 'grid') => {
-  const { SW, SH, SF } = theme;
+  const { SW, SH, SF, fonts, colors } = theme;
   const isCarousel = variant === 'carousel';
+
   return StyleSheet.create({
     wrapper: {
-      width: isCarousel ? SW(160) : undefined,
+      width: isCarousel ? SW(CAROUSEL_WIDTH) : undefined,
       flex: isCarousel ? undefined : 1,
-      borderRadius: SF(12),
+      borderRadius: SF(HOME_BENTO_RADIUS),
       overflow: 'hidden',
-      backgroundColor: theme.colors.white,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.12,
-      shadowRadius: 6,
-      elevation: 4,
+      backgroundColor: colors.white,
+      ...(isCarousel
+        ? {
+            minHeight: SH(CAROUSEL_IMAGE_H) + SH(CAROUSEL_TITLE_H),
+          }
+        : {}),
     },
-    pressed: {
-      opacity: 0.92,
+    liquidSurface: {
+      backgroundColor: colors.white,
+      flex: 1,
     },
     imageBox: {
       width: '100%',
-      height: isCarousel ? SH(110) : SH(110),
-      borderRadius: SF(12),
+      height: isCarousel ? SH(CAROUSEL_IMAGE_H) : SH(110),
+      borderTopLeftRadius: SF(HOME_BENTO_RADIUS),
+      borderTopRightRadius: SF(HOME_BENTO_RADIUS),
       overflow: 'hidden',
+      backgroundColor: colors.secondary || '#F0F4F8',
     },
     image: {
       width: '100%',
       height: '100%',
-      borderRadius: SF(12),
     },
-    gradient: {
+    imageOverlayRow: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: SF(12),
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingTop: SH(6),
+      paddingHorizontal: SW(6),
     },
-    titleWrap: {
-      position: 'absolute',
-      left: SW(12),
-      right: SW(12),
-      bottom: SH(10),
+    overlayLeft: {
+      flex: 1,
+      alignItems: 'flex-start',
+      minWidth: 0,
+      paddingRight: SW(4),
     },
-    title: {
-      textShadowColor: 'rgba(0,0,0,0.45)',
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
-    },
-    titleNameBlock: {
-      width: '100%',
+    overlayRight: {
+      flexShrink: 0,
+      alignItems: 'flex-end',
+      maxWidth: '55%',
     },
     routineBadgeOnImage: {
-      marginTop: SH(6),
+      marginTop: 0,
       backgroundColor: 'rgba(255,255,255,0.95)',
     },
     discountBadge: {
-      position: 'absolute',
-      top: SH(8),
-      right: SW(8),
-      paddingHorizontal: SW(8),
-      paddingVertical: SH(4),
-      borderRadius: SF(8),
-      backgroundColor: theme.colors.primary || '#135D96',
+      paddingHorizontal: SW(7),
+      paddingVertical: SH(3),
+      borderRadius: SF(6),
+      backgroundColor: colors.primary || '#135D96',
     },
     ratingBadge: {
-      position: 'absolute',
-      top: SH(8),
-      left: SW(8),
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: SW(6),
       paddingVertical: SH(3),
-      borderRadius: SF(8),
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      borderRadius: SF(6),
+      backgroundColor: 'rgba(0,0,0,0.65)',
     },
     ratingText: {
       marginLeft: SW(3),
     },
-    metaFooter: {
+    titleFooter: {
+      height: isCarousel ? SH(CAROUSEL_TITLE_H) : undefined,
+      minHeight: isCarousel ? SH(CAROUSEL_TITLE_H) : SH(36),
+      justifyContent: 'center',
       paddingHorizontal: SW(8),
-      paddingTop: SH(6),
+      backgroundColor: colors.white,
+    },
+    title: {
+      color: colors.text,
+      fontFamily: fonts.SEMI_BOLD,
+      fontSize: theme.fontSize.sm,
+    },
+    metaFooter: {
+      minHeight: isCarousel ? SH(CAROUSEL_META_MIN_H) : SH(40),
+      paddingHorizontal: SW(8),
+      paddingTop: SH(4),
       paddingBottom: SH(8),
-      backgroundColor: theme.colors.white,
+      backgroundColor: colors.white,
+      borderBottomLeftRadius: SF(HOME_BENTO_RADIUS),
+      borderBottomRightRadius: SF(HOME_BENTO_RADIUS),
     },
     metaLine: {
-      lineHeight: theme.fontSize.xs * 1.35,
+      lineHeight: theme.fontSize.xs * 1.4,
+      flexShrink: 1,
     },
     metaSecondLine: {
-      marginTop: SH(4),
+      marginTop: SH(3),
       lineHeight: theme.fontSize.xs * 1.35,
     },
   });

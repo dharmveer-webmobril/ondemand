@@ -62,11 +62,11 @@ export default function ProviderSubHeader({
         {serviceType ? (
           <CustomText style={styles.serviceType}>{serviceType}</CustomText>
         ) : null}
-        {reviewCount !== undefined && (
+        {/* {reviewCount !== undefined && (
           <CustomText style={styles.reviewCount}>
             {reviewCount} Reviews
           </CustomText>
-        )}
+        )} */}
       </View>
 
       {/* Action Buttons */}
@@ -184,7 +184,7 @@ const createStyles = (theme: ThemeType) => {
     actionsContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: SW(12),
+      gap: SW(8),
     },
     actionButton: {
       padding: SW(8),

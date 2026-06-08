@@ -1,4 +1,13 @@
-import { StyleSheet, Linking, Alert, RefreshControl, View, StatusBar } from 'react-native';
+import {
+  StyleSheet,
+  Linking,
+  Alert,
+  RefreshControl,
+  View,
+  StatusBar,
+  Share,
+  Platform,
+} from 'react-native';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +36,7 @@ import {
   useRemoveFavoriteServiceProvider,
 } from '@services/index';
 import { formatAddress, getProviderDisplayName } from '@utils/tools';
+import { buildProviderProfileShareLink } from '@utils/deepLinkConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import localStorage from '@utils/StorageProvider';
 
@@ -45,13 +55,10 @@ export default function ProviderDetailsScreen() {
     route.params?.provider?._id ||
     route.params?.spId ||
     route.params?.providerId;
-  const isShowBookButton = prevScreenFlag === 'without_data';
   const [bookingDetails, setBookingDetails] = useState<{
     deliveryMode?: any;
     serviceFor?: any;
   }>({ deliveryMode: null, serviceFor: null });
-  console.log('spId--------isShowBookButton', isShowBookButton);
-  // Fetch provider details and services
   const {
     data: providerData,
     isLoading: isLoadingProvider,
@@ -115,7 +122,6 @@ export default function ProviderDetailsScreen() {
 
   const socialLinks = businessProfile?.websiteAndSocialLinks;
 
-  console.log('businessProfile----------businessProfile', businessProfile);
   const isLoading = isLoadingProvider || isLoadingServices;
   const isFetching = isFetchingProvider || isFetchingServices;
   const isError = isErrorProvider || isErrorServices;
@@ -156,6 +162,45 @@ export default function ProviderDetailsScreen() {
   useEffect(() => {
     setOptimisticFavorite(null);
   }, [spId]);
+
+  const handleShareProfile = useCallback(async () => {
+    const id = String(provider?._id || spId || '').trim();
+    if (!id) {
+      showToast({
+        type: 'error',
+        message: t('providerDetails.shareLinkUnavailable'),
+      });
+      return;
+    }
+
+    const profileUrl = buildProviderProfileShareLink(id);
+
+    if (!profileUrl) {
+      showToast({
+        type: 'error',
+        message: t('providerDetails.shareLinkUnavailable'),
+      });
+      return;
+    }
+
+    const shareMessage = `${t('providerDetails.shareProfileMessage', {
+      name: providerDisplayName,
+    })}\n${profileUrl}`;
+
+    try {
+      const result = await Share.share({
+        message: shareMessage,
+        title: t('providerDetails.share'),
+        ...(Platform.OS === 'ios' ? { url: profileUrl } : {}),
+      });
+      if (result.action === Share.dismissedAction) return;
+    } catch {
+      showToast({
+        type: 'error',
+        message: t('providerDetails.shareFailed'),
+      });
+    }
+  }, [provider?._id, spId, providerDisplayName, t]);
 
   const handleFavoriteToggle = useCallback(
     async (next: boolean) => {
@@ -255,14 +300,7 @@ export default function ProviderDetailsScreen() {
       deliveryMode,
       ...(serviceFor && { serviceFor }),
     };
-    console.log(
-      'deliveryMode--------navigateToBookAppointment',
-      deliveryMode,
-      serviceFor,
-    );
-    console.log('deliveryMode--------pendingServiceId', bookingData, services);
-    console.log('deliveryMode--------bookingData', pendingServiceId);
-
+    
     // navigate(SCREEN_NAMES.BOOK_APPOINTMENT, {
     //   providerId: provider._id || spId,
     //   serviceId: pendingServiceId,
@@ -307,7 +345,6 @@ export default function ProviderDetailsScreen() {
   };
 
   useEffect(() => {
-    console.log('bookingDetails--------useEffect', bookingDetails);
     refetchServices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refetchServices]);
@@ -344,7 +381,6 @@ export default function ProviderDetailsScreen() {
   );
 
   const renderContent = () => {
-    console.log('renderContent--------renderContent', isError, providerData?.ResponseData);
     if (isError && !providerData?.ResponseData) {
       return (
         <ProviderErrorState errorMessage={errorMessage} onRetry={handleRetry} />
@@ -528,7 +564,7 @@ export default function ProviderDetailsScreen() {
             }
             rating={provider.rating || undefined}
             reviewCount={0} // TODO: Get from API if available
-            onShare={() => console.log('Share pressed')}
+            onShare={handleShareProfile}
             isFavorite={favoriteShown}
             onFavorite={handleFavoriteToggle}
             isFavoriteLoading={addFavorite.isPending || removeFavorite.isPending}

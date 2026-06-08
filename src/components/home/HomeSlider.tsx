@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native'
 import React, { useMemo } from 'react'
+import Animated, { FadeInRight } from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import Swiper from 'react-native-swiper';
@@ -7,6 +8,7 @@ import { Banner } from '@services/api/queries/appQueries';
 import ImageLoader from '@components/common/ImageLoader';
 import CustomButton from '@components/common/CustomButton';
 import HomeSliderSkeleton from './HomeSliderSkeleton';
+import { HOME_CARD_SHADOW, HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 type HomeSliderProps = {
     banners?: Banner[];
@@ -81,14 +83,20 @@ export default function HomeSlider({ banners = [], isLoading = false, isError = 
                 activeDot={<View style={styles.activeDot} />}
                 paginationStyle={styles.paginationStyle}
             >
-                {activeBanners.map((banner) => (
-                    <View style={[styles.slide]} key={banner._id}>
-                        <ImageLoader
+                {activeBanners.map((banner, index) => (
+                    <Animated.View
+                      key={banner._id}
+                      entering={FadeInRight.delay(index * 80).springify().damping(14)}
+                      style={[styles.slide, HOME_CARD_SHADOW]}
+                    >
+                        <View style={styles.slideClip}>
+                          <ImageLoader
                             source={{ uri: banner.image }}
                             resizeMode="stretch"
                             mainImageStyle={styles.image}
-                            />
-                    </View>
+                          />
+                        </View>
+                    </Animated.View>
                 ))}
             </Swiper>
         </View>
@@ -99,7 +107,7 @@ const createStyles = (theme: ThemeType) => {
     const { colors: Colors, SF, fonts: Fonts, SW } = theme;
     return StyleSheet.create({
         container: {
-            paddingHorizontal: SW(20),
+            paddingHorizontal: SW(HOME_HORIZONTAL_PADDING),
             flex: 1,
         },
         wrapper: {
@@ -128,14 +136,17 @@ const createStyles = (theme: ThemeType) => {
         },
         slide: {
             height: SF(140),
-            borderRadius: SF(10),
+            borderRadius: SF(12),
+            backgroundColor: theme.colors.secondary,
+        },
+        slideClip: {
+            flex: 1,
+            borderRadius: SF(12),
             overflow: 'hidden',
-            backgroundColor:theme.colors.secondary,
         },
         image: {
             height: '100%',
             width: '100%',
-            borderRadius: SF(10),
         },
         loaderContainer: {
             height: SF(140),

@@ -29,6 +29,7 @@ import {
 } from '@store/slices/authSlice';
 import { useLogin } from '@services';
 import { SCREEN_NAMES } from '@navigation';
+import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { useDisableGestures } from '@utils/hooks';
 import { setUserCity } from '@store/slices/appSlice';
 
@@ -104,6 +105,7 @@ const Login = () => {
           if (customer?.interests && customer?.interests?.length > 0) {
             setTimeout(() => {
               navigate(SCREEN_NAMES.HOME);
+              setTimeout(() => tryOpenPendingProviderProfile(), 600);
             }, 1000);
           } else {
             navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });

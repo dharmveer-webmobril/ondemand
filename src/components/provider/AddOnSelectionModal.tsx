@@ -15,12 +15,15 @@ type AddOn = {
   discountPercentage?: number;
 };
 
+export type SelectedAddOnWithQty = AddOn & { quantity: number };
+
 type AddOnSelectionModalProps = {
   visible: boolean;
   onClose: () => void;
-  onConfirm: (selectedAddOnIds: string[]) => void;
+  onConfirm: (selectedAddOns: SelectedAddOnWithQty[]) => void;
   addOns: AddOn[];
-  selectedAddOnIds?: string[];
+  /** Previously selected add-ons (quantity preserved when re-opening). */
+  selectedAddOns?: Array<{ _id: string; quantity?: number }>;
 };
 
 export default function AddOnSelectionModal({
@@ -28,32 +31,52 @@ export default function AddOnSelectionModal({
   onClose,
   onConfirm,
   addOns,
-  selectedAddOnIds = [],
+  selectedAddOns = [],
 }: AddOnSelectionModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
-  const [selectedIds, setSelectedIds] =
-    React.useState<string[]>(selectedAddOnIds);
+  const [selectedQtyById, setSelectedQtyById] = React.useState<
+    Record<string, number>
+  >({});
 
   React.useEffect(() => {
-    if (visible) {
-      setSelectedIds(selectedAddOnIds);
-    }
-  }, [visible, selectedAddOnIds]);
+    if (!visible) return;
+    const next: Record<string, number> = {};
+    (Array.isArray(selectedAddOns) ? selectedAddOns : []).forEach(item => {
+      if (!item?._id) return;
+      next[item._id] = Math.max(1, Math.floor(Number(item.quantity) || 1));
+    });
+    setSelectedQtyById(next);
+  }, [visible, selectedAddOns]);
 
   const handleToggleAddOn = (addOnId: string) => {
-    setSelectedIds(prev => {
-      if (prev.includes(addOnId)) {
-        return prev.filter(id => id !== addOnId);
-      } else {
-        return [...prev, addOnId];
+    setSelectedQtyById(prev => {
+      if (prev[addOnId] != null) {
+        const next = { ...prev };
+        delete next[addOnId];
+        return next;
       }
+      return { ...prev, [addOnId]: 1 };
+    });
+  };
+
+  const setQty = (addOnId: string, qty: number) => {
+    const safeQty = Number.isFinite(qty) ? Math.max(1, Math.floor(qty)) : 1;
+    setSelectedQtyById(prev => {
+      if (prev[addOnId] == null) return prev;
+      return { ...prev, [addOnId]: safeQty };
     });
   };
 
   const handleConfirm = () => {
-    onConfirm(selectedIds);
+    const list = (Array.isArray(addOns) ? addOns : [])
+      .filter(a => selectedQtyById[a._id] != null)
+      .map(a => ({
+        ...a,
+        quantity: selectedQtyById[a._id] ?? 1,
+      }));
+    onConfirm(list);
     onClose();
   };
 
@@ -76,9 +99,13 @@ export default function AddOnSelectionModal({
 
   const renderAddOnItem = ({ item }: { item: AddOn }) => {
     if (item == null) return null;
-    const isSelected = selectedIds.includes(item?._id ?? '');
+    const addOnId = item?._id ?? '';
+    const isSelected = selectedQtyById[addOnId] != null;
+    const qty = isSelected ? selectedQtyById[addOnId] ?? 1 : 1;
     const { original, discounted, discountPct, hasDiscount } =
       getAddOnDisplayPrice(item);
+    const unitPrice = hasDiscount ? discounted : original;
+    const lineTotal = unitPrice * qty;
     return (
       <Pressable
         style={({ pressed }) => [
@@ -86,7 +113,7 @@ export default function AddOnSelectionModal({
           isSelected && styles.selectedAddOnItem,
           pressed && { opacity: 0.7 },
         ]}
-        onPress={() => handleToggleAddOn(item?._id ?? '')}
+        onPress={() => handleToggleAddOn(addOnId)}
       >
         <View style={styles.addOnContent}>
           <View
@@ -117,17 +144,45 @@ export default function AddOnSelectionModal({
             )}
             <View style={styles.priceRow}>
               <CustomText style={styles.addOnPrice}>
-                {formatAmount(Number.isFinite(original) ? original : 0)}
-                {hasDiscount
-                  ? ` → ${formatAmount(
-                      Number.isFinite(discounted) ? discounted : original,
-                    )} (${discountPct}% off)`
+                {formatAmount(lineTotal)}
+                {isSelected && qty > 1
+                  ? ` (${qty} × ${formatAmount(unitPrice)})`
                   : ''}
+                {hasDiscount ? ` (${discountPct}% off)` : ''}
                 {' • '}
                 {item?.duration ?? 0}m
               </CustomText>
             </View>
           </View>
+          {isSelected ? (
+            <View style={styles.qtyControls}>
+              <Pressable
+                style={styles.qtyBtn}
+                onPress={e => {
+                  e.stopPropagation?.();
+                  if (qty <= 1) {
+                    handleToggleAddOn(addOnId);
+                  } else {
+                    setQty(addOnId, qty - 1);
+                  }
+                }}
+                hitSlop={10}
+              >
+                <CustomText style={styles.qtyBtnText}>-</CustomText>
+              </Pressable>
+              <CustomText style={styles.qtyText}>{String(qty)}</CustomText>
+              <Pressable
+                style={styles.qtyBtn}
+                onPress={e => {
+                  e.stopPropagation?.();
+                  setQty(addOnId, qty + 1);
+                }}
+                hitSlop={10}
+              >
+                <CustomText style={styles.qtyBtnText}>+</CustomText>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
       </Pressable>
     );
@@ -316,6 +371,34 @@ const createStyles = (theme: ThemeType) => {
       fontSize: SF(14),
       fontFamily: Fonts.REGULAR,
       color: Colors.lightText,
+    },
+    qtyControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SW(6),
+      marginTop: SH(4),
+    },
+    qtyBtn: {
+      width: SF(28),
+      height: SF(28),
+      borderRadius: SF(6),
+      borderWidth: 1,
+      borderColor: Colors.gray || '#E0E0E0',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: Colors.white,
+    },
+    qtyBtnText: {
+      fontSize: SF(16),
+      fontFamily: Fonts.SEMI_BOLD,
+      color: Colors.text,
+    },
+    qtyText: {
+      fontSize: SF(14),
+      fontFamily: Fonts.MEDIUM,
+      color: Colors.text,
+      minWidth: SF(20),
+      textAlign: 'center',
     },
     confirmButton: {
       borderRadius: SF(12),

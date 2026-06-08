@@ -1,8 +1,9 @@
 import React,{ useState, useCallback, useEffect, useMemo } from 'react';
-import { StatusBar, View, StyleSheet, Platform, Pressable } from 'react-native';
+import { StatusBar, View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { HomeHeader, HomeMainList, HomeSearchBar, VectoreIcons } from '@components';
+import GlassSkyButton from '@components/home/GlassSkyButton';
 import { SCREEN_NAMES } from '@navigation/ScreenNames';
 import { TAB_BAR_BASE_HEIGHT } from '@navigation/tabs/CustomTabs';
 import { useDisableGestures, useHomeCurrentAddress } from '@utils/hooks';
@@ -334,27 +335,25 @@ export default function Home() {
           onRetryTopRatedProviders={refetchTopRatedProviders}
         />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('home.aiAssistantTitle')}
+        <GlassSkyButton
+          accessibilityLabel={t('home.quickVoiceTitle')}
           onPress={() => navigation.navigate(SCREEN_NAMES.HOME_QUICK_VOICE)}
-          style={({ pressed }) => [
+          size={theme.SF(56)}
+          borderRadius={theme.SF(28)}
+          showAiBadge
+          style={[
             styles.quickChatFab,
-            {
-              bottom: fabBottom,
-              right: theme.SW(16),
-              backgroundColor: theme.colors.primary,
-            },
-            pressed && { opacity: 0.9 },
+            { bottom: fabBottom, right: theme.SW(16) },
           ]}
-        >
-          <VectoreIcons
-            icon="Ionicons"
-            name="chatbubbles"
-            size={theme.SF(26)}
-            color={theme.colors.white}
-          />
-        </Pressable>
+          icon={
+            <VectoreIcons
+              icon="Ionicons"
+              name="sparkles"
+              size={theme.SF(26)}
+              color="#0C4A6E"
+            />
+          }
+        />
       </View>
     </SafeAreaView>
   );
@@ -371,16 +370,6 @@ const styles = StyleSheet.create({
   },
   quickChatFab: {
     position: 'absolute',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
     zIndex: 10000,
-    elevation: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
   },
 });

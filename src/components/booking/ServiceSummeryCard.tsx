@@ -7,6 +7,7 @@ import imagePaths from '@assets';
 import ServiceNameWithRoutineBadge from '@components/provider/ServiceNameWithRoutineBadge';
 import type { ServiceRoutineConfig } from '@utils/serviceRoutineConfig';
 import { formatAmount } from '@utils/formatAmount';
+import { getSelectedAddOnPricing } from '@screens/booking/checkoutHelpers';
 
 type Service = {
     _id: string;
@@ -79,17 +80,18 @@ export default function ServiceSummeryCard({
         const discountedServicePrice = basePrice - discountAmount;
         const addOnsPrice = service.selectedAddOns?.reduce((sum: number, addOn: any) => {
             if (!addOn) return sum;
-            const addOnPrice = Number(addOn.price) || 0;
-            const discountPct = Math.min(100, Math.max(0, Number(addOn.discountPercentage) || 0));
-            const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
-            return sum + (Number.isFinite(discountedAddOnPrice) ? discountedAddOnPrice : addOnPrice);
+            return sum + getSelectedAddOnPricing(addOn).lineTotal;
         }, 0) || 0;
         return discountedServicePrice + addOnsPrice;
     };
 
     const calculateServiceDuration = (service: Service) => {
         const baseDuration = service?.time || 0;
-        const addOnsDuration = service?.selectedAddOns?.reduce((sum: number, addOn: any) => sum + (addOn?.duration || 0), 0) || 0;
+        const addOnsDuration =
+            service?.selectedAddOns?.reduce((sum: number, addOn: any) => {
+                const qty = Math.max(1, Math.floor(Number(addOn?.quantity) || 1));
+                return sum + (addOn?.duration || 0) * qty;
+            }, 0) || 0;
         return baseDuration + addOnsDuration;
     };
 
@@ -151,18 +153,18 @@ export default function ServiceSummeryCard({
                                 {service.selectedAddOns
                                     .filter((addOn: any) => addOn != null)
                                     .map((addOn: any, index: number) => {
-                                        const addOnPrice = Number(addOn?.price) || 0;
-                                        const discountPct = Math.min(100, Math.max(0, Number(addOn?.discountPercentage) || 0));
-                                        const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
-                                        const cutPrice = Number.isFinite(discountedAddOnPrice) ? discountedAddOnPrice : addOnPrice;
+                                        const { qty, lineTotal } = getSelectedAddOnPricing(addOn);
+                                        const discountPct = Math.min(
+                                            100,
+                                            Math.max(0, Number(addOn?.discountPercentage) || 0),
+                                        );
                                         const hasDiscount = discountPct > 0;
-                                        const displayOriginal = formatAmount(Number.isFinite(addOnPrice) ? addOnPrice : 0);
-                                        const displayCut = formatAmount(Number.isFinite(cutPrice) ? cutPrice : addOnPrice);
                                         return (
                                             <View key={addOn._id ?? addOn.name ?? `addon-${index}`} style={styles.addOnTag}>
                                                 <CustomText style={styles.addOnTagText}>
-                                                    {addOn?.name ?? ''}: {displayOriginal}
-                                                    {hasDiscount ? ` → ${displayCut} (${discountPct}% off)` : ''}
+                                                    {addOn?.name ?? ''}
+                                                    {qty > 1 ? ` × ${qty}` : ''}: {formatAmount(lineTotal)}
+                                                    {hasDiscount ? ` (${discountPct}% off)` : ''}
                                                 </CustomText>
                                             </View>
                                         );

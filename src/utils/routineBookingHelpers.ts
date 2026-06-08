@@ -2,6 +2,7 @@
 
 import { ROUTINE_MIN_SESSIONS } from '@utils/routineVolumeDiscount';
 import { formatAmount } from '@utils/formatAmount';
+import { getSelectedAddOnPricing } from '@screens/booking/checkoutHelpers';
 
 export type RoutineStatusFilter =
   | ''
@@ -179,4 +180,213 @@ export function getTimeLeftForProRespond(iso: string | undefined | null): {
         : `${minutes}m left`;
 
   return { label, progress };
+}
+
+export type RoutineServiceAddonLine = {
+  name: string;
+  quantity: number;
+  lineTotal: number;
+};
+
+export type RoutineServiceDetailDisplay = {
+  serviceId: string;
+  name: string;
+  price: number;
+  durationMinutes?: number;
+  addOns: RoutineServiceAddonLine[];
+  addOnsTotal: number;
+  perSessionSubtotal: number;
+};
+
+function resolveRoutineAddonLine(item: any): RoutineServiceAddonLine | null {
+  if (item == null) return null;
+
+  const nested = item?.addon ?? item?.addOn ?? item?.addOnId;
+  const name =
+    (typeof nested === 'object' && nested != null ? nested?.name : null) ??
+    item?.name ??
+    'Add-on';
+  const qty = Math.max(1, Math.floor(Number(item?.quantity) || 1));
+
+  const lineFromApi = Number(item?.lineAmount ?? item?.amount);
+  if (Number.isFinite(lineFromApi) && lineFromApi >= 0) {
+    return { name: String(name), quantity: qty, lineTotal: lineFromApi };
+  }
+
+  const pricingSource =
+    typeof nested === 'object' && nested != null
+      ? { ...nested, quantity: qty }
+      : {
+          price: Number(item?.unitAmount ?? item?.price) || 0,
+          discountPercentage: item?.discountPercentage,
+          quantity: qty,
+        };
+
+  return {
+    name: String(name),
+    quantity: qty,
+    lineTotal: getSelectedAddOnPricing(pricingSource).lineTotal,
+  };
+}
+
+function collectRoutineAddonLines(source: any): RoutineServiceAddonLine[] {
+  if (!source) return [];
+
+  const candidates = [
+    source.addOnServices,
+    source.addons,
+    source.addOns,
+    source.addonItems,
+  ];
+
+  for (const list of candidates) {
+    if (!Array.isArray(list) || list.length === 0) continue;
+    const lines = list
+      .map(resolveRoutineAddonLine)
+      .filter((line): line is RoutineServiceAddonLine => line != null);
+    if (lines.length > 0) return lines;
+  }
+
+  return [];
+}
+
+/** Merge API `servicesDetail` with `routineBooking.services` (addonItems + quantities). */
+export function mapRoutineServicesForDisplay(
+  servicesDetail: any[] = [],
+  routineServices: any[] = [],
+): RoutineServiceDetailDisplay[] {
+  const routineByServiceId = new Map<string, any>();
+  for (const rs of routineServices) {
+    const id = String(rs?.serviceId?._id ?? rs?.serviceId ?? '').trim();
+    if (id) routineByServiceId.set(id, rs);
+  }
+
+  const hasDetail = Array.isArray(servicesDetail) && servicesDetail.length > 0;
+  const sourceRows = hasDetail
+    ? servicesDetail
+    : routineServices.map((rs: any, index: number) => {
+        const serviceObj =
+          typeof rs?.serviceId === 'object' ? rs.serviceId : null;
+        const serviceId = String(
+          serviceObj?._id ?? rs?.serviceId ?? `service-${index}`,
+        );
+        return {
+          serviceId,
+          name: serviceObj?.name ?? 'Service',
+          price: Number(serviceObj?.price) || 0,
+          durationMinutes: serviceObj?.time ?? serviceObj?.duration,
+          addonItems: rs?.addonItems,
+          addOnServices: rs?.addOnServices,
+        };
+      });
+
+  return sourceRows.map((svc: any, index: number) => {
+    const serviceId = String(svc?.serviceId ?? svc?._id ?? `service-${index}`);
+    const routineSvc = routineByServiceId.get(serviceId);
+    const merged = {
+      ...routineSvc,
+      ...svc,
+      addonItems: svc?.addonItems ?? routineSvc?.addonItems,
+      addOnServices: svc?.addOnServices ?? routineSvc?.addOnServices,
+    };
+
+    const basePrice =
+      Number(svc?.price ?? svc?.servicePrice) ||
+      Number(
+        typeof routineSvc?.serviceId === 'object'
+          ? routineSvc.serviceId?.price
+          : 0,
+      ) ||
+      0;
+    const addOns = collectRoutineAddonLines(merged);
+    const addOnsTotal = addOns.reduce((sum, line) => sum + line.lineTotal, 0);
+
+    return {
+      serviceId,
+      name: String(svc?.name ?? 'Service'),
+      price: Number.isFinite(basePrice) ? basePrice : 0,
+      durationMinutes:
+        Number(svc?.durationMinutes ?? svc?.time) || undefined,
+      addOns,
+      addOnsTotal,
+      perSessionSubtotal:
+        (Number.isFinite(basePrice) ? basePrice : 0) + addOnsTotal,
+    };
+  });
+}
+
+export function sumRoutinePerSessionSubtotal(
+  services: RoutineServiceDetailDisplay[],
+): number {
+  return services.reduce((sum, svc) => sum + svc.perSessionSubtotal, 0);
+}
+
+export function sumRoutineServicesBaseAmount(
+  services: RoutineServiceDetailDisplay[],
+): number {
+  return services.reduce((sum, svc) => sum + svc.price, 0);
+}
+
+export function sumRoutineAddOnsAmount(
+  services: RoutineServiceDetailDisplay[],
+): number {
+  return services.reduce((sum, svc) => sum + svc.addOnsTotal, 0);
+}
+
+export type RoutinePaymentBreakdownDisplay = {
+  servicesAmount: number;
+  addOnsAmount: number;
+  perSessionSubtotal: number;
+  sessionCount: number;
+  packageSubtotal: number;
+  discountAmount: number;
+  total: number;
+  currency: string;
+};
+
+/** Client-side breakdown; prefers API cents for package subtotal, discount, and total when present. */
+export function buildRoutinePaymentBreakdown(
+  services: RoutineServiceDetailDisplay[],
+  pricing?: {
+    sessionCount?: number;
+    subtotalCents?: number;
+    discountAmountCents?: number;
+    totalCents?: number;
+    currency?: string;
+  } | null,
+  sessionCountFallback = 1,
+): RoutinePaymentBreakdownDisplay {
+  const servicesAmount = sumRoutineServicesBaseAmount(services);
+  const addOnsAmount = sumRoutineAddOnsAmount(services);
+  const perSessionSubtotal = sumRoutinePerSessionSubtotal(services);
+  const sessionCount = Math.max(
+    1,
+    Number(pricing?.sessionCount) || sessionCountFallback || 1,
+  );
+  const currency = pricing?.currency || 'USD';
+  const computedPackage = perSessionSubtotal * sessionCount;
+  const packageSubtotal =
+    pricing?.subtotalCents != null
+      ? Number(pricing.subtotalCents) / 100
+      : computedPackage;
+  const totalFromApi =
+    pricing?.totalCents != null ? Number(pricing.totalCents) / 100 : null;
+  const discountAmount =
+    pricing?.discountAmountCents != null
+      ? Number(pricing.discountAmountCents) / 100
+      : totalFromApi != null
+        ? Math.max(0, packageSubtotal - totalFromApi)
+        : 0;
+  const total = totalFromApi ?? Math.max(0, packageSubtotal - discountAmount);
+
+  return {
+    servicesAmount,
+    addOnsAmount,
+    perSessionSubtotal,
+    sessionCount,
+    packageSubtotal,
+    discountAmount,
+    total,
+    currency,
+  };
 }

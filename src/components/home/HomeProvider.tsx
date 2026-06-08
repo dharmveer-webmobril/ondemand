@@ -8,6 +8,7 @@ import { navigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import HomeProviderSkeleton from './HomeProviderSkeleton';
 import { formatAddress, getProviderDisplayName } from '@utils/tools';
+import { HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 type HomeProviderProps = {
   onViewAll?: () => void;
@@ -109,9 +110,10 @@ export default function HomeProvider({ onViewAll, providersData, providersLoadin
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <HomeProviderItem
             provider={item}
+            index={index}
             onPress={() => handleProviderPress(item)}
           />
         )}
@@ -139,8 +141,7 @@ const createStyles = (theme: any) => {
   return StyleSheet.create({
   
     listContent: {
-      paddingHorizontal: SW(18),
-      paddingRight: SW(20),
+      paddingHorizontal: SW(HOME_HORIZONTAL_PADDING),
       marginVertical: SH(8),
     },
     loaderContainer: {
@@ -155,7 +156,7 @@ const createStyles = (theme: any) => {
     },
     emptyContainer: {
       paddingVertical: SH(24),
-      paddingHorizontal: SW(16),
+      paddingHorizontal: SW(HOME_HORIZONTAL_PADDING),
       alignItems: 'center',
       justifyContent: 'center',
     },

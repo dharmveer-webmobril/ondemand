@@ -12,6 +12,7 @@ import RoutineSessionsList, {
 } from '@components/routine/RoutineSessionsList';
 import { getProviderDisplayName } from '@utils/tools';
 import { formatAmount } from '@utils/formatAmount';
+import { getSelectedAddOnPricing } from '@screens/booking/checkoutHelpers';
 
 type SelectedOffer = {
   serviceId: string;
@@ -98,27 +99,16 @@ export default function BookingSummery() {
       const addOnsPrice =
         service.selectedAddOns?.reduce((sum: number, addOn: any) => {
           if (!addOn) return sum;
-          const addOnPrice = Number(addOn.price) || 0;
-          const discountPct = Math.min(
-            100,
-            Math.max(0, Number(addOn.discountPercentage) || 0),
-          );
-          const discountedAddOnPrice = addOnPrice * (1 - discountPct / 100);
-          return (
-            sum +
-            (Number.isFinite(discountedAddOnPrice)
-              ? discountedAddOnPrice
-              : addOnPrice)
-          );
+          return sum + getSelectedAddOnPricing(addOn).lineTotal;
         }, 0) || 0;
       price += discountedServicePrice + addOnsPrice;
 
       const baseDuration = service.time || 0;
       const addOnsDuration =
-        service.selectedAddOns?.reduce(
-          (sum: number, addOn: any) => sum + (addOn.duration || 0),
-          0,
-        ) || 0;
+        service.selectedAddOns?.reduce((sum: number, addOn: any) => {
+          const qty = Math.max(1, Math.floor(Number(addOn?.quantity) || 1));
+          return sum + (addOn.duration || 0) * qty;
+        }, 0) || 0;
       duration += baseDuration + addOnsDuration;
     });
 

@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@store/hooks';
 import HomeLocationPickerModal from './HomeLocationPickerModal';
 import { HOME_HEADER_GRADIENT } from './homeHeaderConstants';
+import { HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 type HomeHeaderProps = {
   onCityUpdate?: () => void;
@@ -79,7 +80,7 @@ export default function HomeHeader({
     paddingTop: topInset + theme.SH(10),
     /* Extra blue below address before search overlap — larger = more space above the input. */
     paddingBottom: theme.SF(40),
-    paddingHorizontal: theme.SW(16),
+    paddingHorizontal: theme.SW(HOME_HORIZONTAL_PADDING),
   };
 
   return (

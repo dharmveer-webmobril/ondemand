@@ -2,6 +2,7 @@ import { View, FlatList, StyleSheet } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { Shimmer } from '@components/common';
+import { HOME_CARD_SHADOW, HOME_HORIZONTAL_PADDING } from './homeLayout';
 
 const COVER_HEIGHT = 104;
 const AVATAR_SIZE = 48;
@@ -98,8 +99,7 @@ const createStyles = (theme: ThemeType) => {
   return StyleSheet.create({
     container: {},
     listContent: {
-      paddingHorizontal: SW(18),
-      paddingRight: SW(20),
+      paddingHorizontal: SW(HOME_HORIZONTAL_PADDING),
       marginVertical: SH(8),
       paddingTop: SH(4),
     },
@@ -109,11 +109,7 @@ const createStyles = (theme: ThemeType) => {
       backgroundColor: Colors.white,
       borderRadius: SF(14),
       overflow: 'visible',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.12,
-      shadowRadius: 8,
-      elevation: 5,
+      ...HOME_CARD_SHADOW,
     },
     coverSection: {
       position: 'relative',
@@ -135,7 +131,7 @@ const createStyles = (theme: ThemeType) => {
       overflow: 'hidden',
       backgroundColor: Colors.white,
       zIndex: 2,
-      elevation: 6,
+      ...HOME_CARD_SHADOW,
     },
     bottomSection: {
       paddingHorizontal: SW(10),

@@ -727,7 +727,7 @@ export interface CreateBookingRequest {
   spId: string;
   services: Array<{
     serviceId: string;
-    addOnIds: string[];
+    addonItems: Array<{ addonId: string; quantity: number }>;
     promotionOfferId: string | null;
   }>;
   bookedFor: 'self' | 'other';
@@ -803,7 +803,7 @@ export interface CreateRoutineBookingRequest {
   spId: string;
   services: Array<{
     serviceId: string;
-    addOnIds: string[];
+    addonItems: Array<{ addonId: string; quantity: number }>;
     promotionOfferId: string | null;
   }>;
   sessions: Array<{ date: string; time: string }>;

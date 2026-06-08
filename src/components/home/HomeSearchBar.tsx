@@ -1,15 +1,14 @@
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Image,
-  TextInput,
-} from 'react-native';
+import { View, StyleSheet, TextInput, Pressable } from 'react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { VectoreIcons } from '@components/common';
-import imagePaths from '@assets';
+import {
+  HOME_BENTO_RADIUS,
+  HOME_SEARCH_SHADOW,
+} from './bentoEffects';
+import { HOME_HORIZONTAL_PADDING } from './homeLayout';
+import GlassSkyButton from './GlassSkyButton';
 
 type HomeSearchBarProps = {
   onSearchPress?: () => void;
@@ -25,10 +24,20 @@ export default function HomeSearchBar({
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
+  const rowH = theme.SF(48);
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.searchContainer} onPress={onSearchPress}>
+      <Pressable
+        onPress={onSearchPress}
+        accessibilityRole="button"
+        accessibilityLabel={t('home.search')}
+        style={({ pressed }) => [
+          styles.searchContainer,
+          HOME_SEARCH_SHADOW,
+          pressed && styles.searchPressed,
+        ]}
+      >
         <VectoreIcons
           name="search"
           size={theme.SF(20)}
@@ -37,71 +46,65 @@ export default function HomeSearchBar({
         />
         <TextInput
           placeholder={placeholder || t('home.search')}
+          placeholderTextColor={theme.colors.lightText || '#9CA3AF'}
           editable={false}
           pointerEvents="none"
           style={styles.searchInput}
         />
       </Pressable>
-      <Pressable style={styles.filterButton} onPress={onFilterPress}>
-        <Image
-          source={imagePaths.filter_icon}
-          style={styles.filterIcon}
-          resizeMode="contain"
-        />
-      </Pressable>
+
+      <GlassSkyButton
+        onPress={onFilterPress ?? (() => {})}
+        size={rowH}
+        borderRadius={theme.SF(HOME_BENTO_RADIUS)}
+        accessibilityLabel="Filter"
+        icon={
+          <VectoreIcons
+            name="options-outline"
+            icon="Ionicons"
+            size={theme.SF(22)}
+            color="#0C4A6E"
+          />
+        }
+      />
     </View>
   );
 }
 
 const createStyles = (theme: ThemeType) => {
-  const { colors: Colors, SF, SW } = theme;
-  /** Filter drives row height; pull up by half for “half on header, half on content”. */
+  const { SF, SW, fonts } = theme;
   const rowH = SF(48);
   const overlapHalf = rowH / 2;
+
   return StyleSheet.create({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: SW(20),
+      paddingHorizontal: SW(HOME_HORIZONTAL_PADDING),
       paddingTop: 0,
       marginTop: -overlapHalf,
       gap: SW(12),
     },
     searchContainer: {
       flex: 1,
-      backgroundColor: '#fff',
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
       minHeight: rowH,
-      paddingLeft: theme.SF(10),
-      borderRadius: theme.SF(10),
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
+      backgroundColor: '#FFFFFF',
+      borderRadius: SF(HOME_BENTO_RADIUS),
+      paddingLeft: SF(14),
+      paddingRight: SF(12),
+    },
+    searchPressed: {
+      opacity: 0.92,
     },
     searchInput: {
-      paddingVertical: theme.SF(12),
-      paddingHorizontal: theme.SF(5),
       flex: 1,
-    },
-    filterButton: {
-      width: SF(48),
-      height: SF(48),
-      backgroundColor: Colors.primary || '#135D96',
-      borderRadius: SF(12),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    filterIcon: {
-      width: SF(20),
-      height: SF(20),
-      tintColor: Colors.white,
+      paddingVertical: SF(12),
+      paddingHorizontal: SF(8),
+      fontSize: theme.fontSize.md,
+      fontFamily: fonts.REGULAR,
+      color: theme.colors.text,
     },
   });
 };

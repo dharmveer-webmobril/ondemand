@@ -1,5 +1,6 @@
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigate } from '@utils/NavigationUtils';
+import { parseProviderProfileShareUrl } from '@utils/providerProfileDeepLink';
 
 export type ParsedAssistantLink =
   | {
@@ -16,6 +17,11 @@ export type ParsedAssistantLink =
 export function parseAssistantUrl(url: string): ParsedAssistantLink | null {
   const raw = String(url || '').trim();
   if (!raw) return null;
+
+  const profileSpId = parseProviderProfileShareUrl(raw);
+  if (profileSpId) {
+    return { type: 'provider', spId: profileSpId };
+  }
 
   try {
     const u = new URL(raw, 'https://app.local');
@@ -66,8 +72,10 @@ export function parseAssistantUrl(url: string): ParsedAssistantLink | null {
 
 export function navigateToAssistantProvider(spId: string): void {
   if (!spId?.trim()) return;
+  const id = spId.trim();
   navigate(SCREEN_NAMES.PROVIDER_DETAILS, {
-    provider: { id: spId.trim() },
+    spId: id,
+    provider: { id },
     prevScreenFlag: 'without_data',
   });
 }
