@@ -15,6 +15,7 @@ export const english = {
     "orText": "Or",
     "termsOfService": "Terms of service",
     "privacyPolicy": "Privacy policy",
+    "andText": "and",
     "acceptTerms": "By signing up, you accept the",
     "selectCountry": "Select Country",
     "selectCity": "Select City",

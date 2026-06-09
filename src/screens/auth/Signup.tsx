@@ -227,6 +227,7 @@ const Signup = () => {
         <AuthBottomContainer
           style={{
             paddingVertical: theme.SH(40),
+            paddingBottom: theme.SH(90),
             paddingHorizontal: theme.SW(25),
           }}
         >
@@ -415,31 +416,50 @@ const Signup = () => {
               fontFamily={theme.fonts.MEDIUM}
               style={styles.acceptTermsText}
             >
-              {t('signup.acceptTerms')}
+              {t('signup.acceptTerms')}{' '}
               <CustomText
-                fontSize={theme.SF(14)}
-                fontFamily={theme.fonts.MEDIUM}
-                color={theme.colors.whitetext}
+                style={{
+                  marginLeft: theme.SW(5),
+                  textDecorationLine: 'underline',
+                  fontSize: theme.SF(13),
+                  fontFamily: theme.fonts.MEDIUM,
+                  color: theme.colors.whitetext,
+                }}
                 onPress={() => {
                   navigate(SCREEN_NAMES.TERMS_AND_CONDITIONS, {
                     type: 'Terms and Condition',
                   });
                 }}
               >
-                {' '}
                 {t('signup.termsOfService')}
               </CustomText>
               <CustomText
-                fontSize={theme.SF(14)}
-                fontFamily={theme.fonts.MEDIUM}
-                color={theme.colors.whitetext}
+                style={{
+                  marginLeft: theme.SW(5),
+                  fontSize: theme.SF(13),
+                  fontFamily: theme.fonts.MEDIUM,
+                  color: theme.colors.whitetext,
+                }}
+                
+              >
+                {'\n'}
+                {t('signup.andText')}{' '}
+              </CustomText>
+              <CustomText
+                style={{
+                  marginLeft: theme.SW(5),
+                  textDecorationLine: 'underline',
+                  fontSize: theme.SF(13),
+                  fontFamily: theme.fonts.MEDIUM,
+                  color: theme.colors.whitetext,
+                }}
                 onPress={() => {
                   navigate(SCREEN_NAMES.TERMS_AND_CONDITIONS, {
                     type: 'Privacy Policies',
                   });
                 }}
               >
-                {' \n'}and {t('signup.privacyPolicy')}
+                {t('signup.privacyPolicy')}
               </CustomText>
             </CustomText>
           </View>

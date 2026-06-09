@@ -1,10 +1,24 @@
-import { AppHeader, CustomButton, CustomText, InterestItem, Spacing, showToast } from '@components';
+import {
+  AppHeader,
+  CustomButton,
+  CustomText,
+  InterestItem,
+  Spacing,
+  showToast,
+} from '@components';
 import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { useThemeContext } from '@utils/theme';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, StyleSheet, View, ActivityIndicator, BackHandler, Platform } from 'react-native';
+import {
+  FlatList,
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  BackHandler,
+  Platform,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSubmitInterests } from '@services/api/queries/authQueries';
@@ -13,230 +27,244 @@ import { SCREEN_NAMES } from '@navigation';
 import { useDisableGestures } from '@utils/hooks';
 import { useRoute } from '@react-navigation/native';
 const IntrestChoose = () => {
-    const theme = useThemeContext();
-    const { t } = useTranslation();
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const submitInterestsMutation = useSubmitInterests();
-    const route = useRoute<any>();
-    const prevScreen = route?.params?.prevScreen;
-    const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategories();
-    useDisableGestures(prevScreen === 'auth');
-    const toggleSelect = (id: string) => {
-        setSelectedIds(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
+  const theme = useThemeContext();
+  const { t } = useTranslation();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const submitInterestsMutation = useSubmitInterests();
+  const route = useRoute<any>();
+  const prevScreen = route?.params?.prevScreen;
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useGetCategories();
+  useDisableGestures(prevScreen === 'auth');
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const insets = useSafeAreaInsets();
+  const statusBarHeight = insets.top;
+  const bottomInset = Math.max(insets.bottom, theme.SH(12));
+  const footerHeight = theme.SF(52) + bottomInset + theme.SH(16);
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  // Get categories from API response
+  const categories = useMemo(() => {
+    return categoriesData?.ResponseData || [];
+  }, [categoriesData]);
+
+  // Handle back button navigation
+  const handleBackPress = useCallback(() => {
+    if (prevScreen === 'auth') {
+      // If coming from auth flow, navigate to Login
+      resetAndNavigate(SCREEN_NAMES.LOGIN);
+    } else {
+      // Otherwise, go back normally
+      goBack();
+    }
+    return true; // Prevent default back behavior
+  }, [prevScreen]);
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleBackPress,
+      );
+      return () => backHandler.remove();
+    }
+  }, [handleBackPress]);
+
+  const handleSubmit = async () => {
+    if (selectedIds.size === 0) {
+      showToast({
+        type: 'error',
+        title: t('messages.error'),
+        message: t('interestChoose.selectAtLeastOne'),
+      });
+      return;
+    }
+
+    try {
+      const interests = Array.from(selectedIds);
+      const response = await submitInterestsMutation.mutateAsync({
+        categoryIds: interests,
+        enum: 'service_interests',
+      });
+
+      if (response.succeeded && response.ResponseCode === 201) {
+        showToast({
+          type: 'success',
+          title: t('messages.success'),
+          message: t('interestChoose.interestsSubmitted'),
         });
-    };
 
-    const styles = useMemo(() => createStyles(theme), [theme]);
-    const insets = useSafeAreaInsets();
-    const statusBarHeight = insets.top;
+        // Navigate to home after successful submission
+        setTimeout(() => {
+          navigate(SCREEN_NAMES.HOME);
+          setTimeout(() => tryOpenPendingProviderProfile(), 600);
+        }, 1000);
+      } else {
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message:
+            response.ResponseMessage || t('interestChoose.submissionFailed'),
+        });
+      }
+    } catch (error: any) {
+      console.error('Submit interests error:', error);
+      showToast({
+        type: 'error',
+        title: t('messages.error'),
+        message:
+          error?.response?.data?.ResponseMessage ||
+          t('interestChoose.submissionFailed'),
+      });
+    }
+  };
 
-    // Get categories from API response
-    const categories = useMemo(() => {
-        return categoriesData?.ResponseData || [];
-    }, [categoriesData]);
+  return (
+    <View style={styles.container}>
+      <LinearGradient
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        colors={theme.colors.gradientColor}
+        style={styles.gradient}
+      >
+        {/* Actual Screen Content */}
+        <View style={styles.content}>
+          <View style={styles.innerContent}>
+            <Spacing space={statusBarHeight} />
 
-    // Handle back button navigation
-    const handleBackPress = useCallback(() => {
-        if (prevScreen === 'auth') {
-            // If coming from auth flow, navigate to Login
-            resetAndNavigate(SCREEN_NAMES.LOGIN);
-        } else {
-            // Otherwise, go back normally
-            goBack();
-        }
-        return true; // Prevent default back behavior
-    }, [prevScreen]);
+            <AppHeader
+              title={t('interestChoose.title')}
+              onLeftPress={handleBackPress}
+              tintColor="#ffffff"
+            />
 
-    // Handle Android hardware back button
-    useEffect(() => {
-        if (Platform.OS === 'android') {
-            const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-            return () => backHandler.remove();
-        }
-    }, [handleBackPress]);
-
-    const handleSubmit = async () => {
-        if (selectedIds.size === 0) {
-            showToast({
-                type: 'error',
-                title: t('messages.error'),
-                message: t('interestChoose.selectAtLeastOne'),
-            });
-            return;
-        }
-
-        try {
-            const interests = Array.from(selectedIds);
-            const response = await submitInterestsMutation.mutateAsync({ categoryIds: interests, enum: 'service_interests' });
-
-            if (response.succeeded && response.ResponseCode === 201) {
-                showToast({
-                    type: 'success',
-                    title: t('messages.success'),
-                    message: t('interestChoose.interestsSubmitted'),
-                });
-
-                // Navigate to home after successful submission
-                setTimeout(() => {
-                    navigate(SCREEN_NAMES.HOME);
-                    setTimeout(() => tryOpenPendingProviderProfile(), 600);
-                }, 1000);
-            } else {
-                showToast({
-                    type: 'error',
-                    title: t('messages.error'),
-                    message: response.ResponseMessage || t('interestChoose.submissionFailed'),
-                });
-            }
-        } catch (error: any) {
-            console.error('Submit interests error:', error);
-            showToast({
-                type: 'error',
-                title: t('messages.error'),
-                message: error?.response?.data?.ResponseMessage || t('interestChoose.submissionFailed'),
-            });
-        }
-    };
-
-    return (
-        <View style={styles.container}>
-            <LinearGradient
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                colors={theme.colors.gradientColor}
-                style={styles.gradient}
+            <CustomText
+              numberOfLines={1}
+              color={theme.colors.whitetext}
+              textAlign="center"
+              marginTop={-12}
+              fontSize={theme.fontSize.sm}
+              fontFamily={theme.fonts.MEDIUM}
             >
-                {/* Actual Screen Content */}
-                <View style={styles.content}>
-                    <View style={styles.innerContent}>
+              {t('interestChoose.subtitle')}
+            </CustomText>
 
-                        <Spacing space={statusBarHeight} />
-
-                        <AppHeader
-                            title={t('interestChoose.title')}
-                            onLeftPress={handleBackPress}
-                            tintColor="#ffffff"
-                        />
-
-                        <CustomText
-                            numberOfLines={1}
-                            color={theme.colors.whitetext}
-                            textAlign="center"
-                            marginTop={-12}
-                            fontSize={theme.fontSize.sm}
-                            fontFamily={theme.fonts.MEDIUM}
-                        >
-                            {t('interestChoose.subtitle')}
-                        </CustomText>
-
-                        {categoriesLoading ? (
-                            <View style={styles.loaderContainer}>
-                                <ActivityIndicator size="large" color={theme.colors.white} />
-                            </View>
-                        ) : categoriesError ? (
-                            <View style={styles.errorContainer}>
-                                <CustomText color={theme.colors.whitetext} textAlign="center">
-                                    {t('interestChoose.loadError')}
-                                </CustomText>
-                            </View>
-                        ) : categories.length === 0 ? (
-                            <View style={styles.errorContainer}>
-                                <CustomText color={theme.colors.whitetext} textAlign="center">
-                                    {t('interestChoose.noCategories')}
-                                </CustomText>
-                            </View>
-                        ) : (
-                            <FlatList
-                                data={categories}
-                                renderItem={({ item }) => {
-                                    const isSelected = selectedIds.has(item._id);
-                                    return (
-                                        <InterestItem
-                                            name={item.name}
-                                            image={item.image}
-                                            isSelected={isSelected}
-                                            onPress={() => toggleSelect(item._id)}
-                                        />
-                                    );
-                                }}
-                                keyExtractor={(item) => item._id}
-                                numColumns={2}
-                                columnWrapperStyle={styles.columnWrapper}
-                                contentContainerStyle={styles.listContent}
-                                showsVerticalScrollIndicator={false}
-                            />
-                        )}
-                    </View>
-
-                    {/* Bottom Fixed Button */}
-                    <CustomButton
-                        title={`${t('interestChoose.continue')} (${selectedIds.size})`}
-                        onPress={handleSubmit}
-                        backgroundColor={theme.colors.primary}
-                        textColor={theme.colors.whitetext}
-                        buttonStyle={styles.bottomButton}
-                        isLoading={submitInterestsMutation.isPending}
-                        disable={submitInterestsMutation.isPending || selectedIds.size === 0}
+            {categoriesLoading ? (
+              <View style={styles.loaderContainer}>
+                <ActivityIndicator size="large" color={theme.colors.white} />
+              </View>
+            ) : categoriesError ? (
+              <View style={styles.errorContainer}>
+                <CustomText color={theme.colors.whitetext} textAlign="center">
+                  {t('interestChoose.loadError')}
+                </CustomText>
+              </View>
+            ) : categories.length === 0 ? (
+              <View style={styles.errorContainer}>
+                <CustomText color={theme.colors.whitetext} textAlign="center">
+                  {t('interestChoose.noCategories')}
+                </CustomText>
+              </View>
+            ) : (
+              <FlatList
+                data={categories}
+                renderItem={({ item }) => {
+                  const isSelected = selectedIds.has(item._id);
+                  return (
+                    <InterestItem
+                      name={item.name}
+                      image={item.image}
+                      isSelected={isSelected}
+                      onPress={() => toggleSelect(item._id)}
                     />
-                </View>
-            </LinearGradient>
+                  );
+                }}
+                keyExtractor={item => item._id}
+                numColumns={2}
+                columnWrapperStyle={styles.columnWrapper}
+                contentContainerStyle={[
+                  styles.listContent,
+                  { paddingBottom: footerHeight },
+                ]}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </View>
+          <View style={[styles.buttonFooter, { paddingBottom: bottomInset }]}>
+            <CustomButton
+              title={`${t('interestChoose.continue')} (${selectedIds.size})`}
+              onPress={handleSubmit}
+              backgroundColor={theme.colors.primary}
+              textColor={theme.colors.whitetext}
+              buttonStyle={styles.bottomButton}
+            />
+          </View>
         </View>
-    );
-}
+      </LinearGradient>
+    </View>
+  );
+};
 
 export default IntrestChoose;
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: any) =>
+  StyleSheet.create({
     container: {
-        flex: 1,
+      flex: 1,
     },
     gradient: {
-        flex: 1,
+      flex: 1,
     },
     content: {
-        flex: 1,
-        paddingBottom: 40,
+      flex: 1,
     },
     innerContent: {
-        flex: 1,
-        paddingHorizontal: theme.SW(25),
+      flex: 1,
+      paddingHorizontal: theme.SW(25),
     },
     listContent: {
-        paddingTop: theme.SF(12),
-        paddingBottom: theme.SF(120),   // Increased bottom padding
+      paddingTop: theme.SF(12),
     },
     columnWrapper: {
-        justifyContent: 'space-between',
+      justifyContent: 'space-between',
     },
     gradientContainer: {
-        flex: 1,
-        borderRadius: 0,
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
-        paddingHorizontal: theme.SW(20),
+      flex: 1,
+      borderRadius: 0,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      paddingHorizontal: theme.SW(20),
     },
-    bottomButtonWrapper: {
-        marginBottom: theme.SH(10),
+    buttonFooter: {
+      paddingTop: theme.SH(8),
+      paddingHorizontal: theme.SW(25),
     },
     bottomButton: {
-        opacity: 1,
-        width: '88%',
-        alignSelf: 'center',
+      width: '100%',
+      alignSelf: 'center',
     },
     loaderContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 100,
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 100,
     },
     errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 100,
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 100,
     },
-});
+  });
