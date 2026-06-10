@@ -13,6 +13,8 @@ import RoutineSessionsList, {
 import { getProviderDisplayName } from '@utils/tools';
 import { formatAmount } from '@utils/formatAmount';
 import { getSelectedAddOnPricing } from '@screens/booking/checkoutHelpers';
+import { useGuestGuard } from '@utils/hooks';
+import { GuestLoginRequiredModal } from '@components';
 
 type SelectedOffer = {
   serviceId: string;
@@ -48,6 +50,13 @@ export default function BookingSummery() {
   const [selectedOffers, setSelectedOffers] = useState<
     Record<string, SelectedOffer>
   >({});
+  const {
+    requireFullAccount,
+    modalVisible,
+    modalMessage,
+    closeModal,
+    goToLogin,
+  } = useGuestGuard();
 
   const handleOfferChange = useCallback(
     (
@@ -122,6 +131,12 @@ export default function BookingSummery() {
   ]);
 
   const handleCheckout = useCallback(() => {
+    if (
+      !requireFullAccount(undefined, t('guest.bookingLoginMessage'))
+    ) {
+      return;
+    }
+
     const updatedServices = isRoutine
       ? selectedServices
       : selectedServices.map((service: any) => {
@@ -155,6 +170,8 @@ export default function BookingSummery() {
     totalDuration,
     navigation,
     isRoutine,
+    requireFullAccount,
+    t,
   ]);
  
   return (
@@ -253,6 +270,13 @@ export default function BookingSummery() {
           textColor={theme.colors.white}
         />
       </View>
+
+      <GuestLoginRequiredModal
+        visible={modalVisible}
+        message={modalMessage}
+        onClose={closeModal}
+        onLogin={goToLogin}
+      />
     </Container>
   );
 }

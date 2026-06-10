@@ -12,6 +12,8 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Container, Shimmer, showToast } from '@components/common';
+import { GuestLoginRequiredModal } from '@components';
+import { useGuestGuard } from '@utils/hooks';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import ProviderTabs from '@components/provider/ProviderTabs';
 import ProviderErrorState from '@components/provider/ProviderErrorState';
@@ -47,6 +49,13 @@ export default function ProviderDetailsScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
+  const {
+    requireFullAccount,
+    modalVisible,
+    modalMessage,
+    closeModal,
+    goToLogin,
+  } = useGuestGuard();
   const [activeTab, setActiveTab] = useState<TabType>('services');
   const prevScreenFlag = route.params?.prevScreenFlag;
   // Get spId from route params - could be provider.id or provider._id or direct spId
@@ -236,6 +245,9 @@ export default function ProviderDetailsScreen() {
     t('providerDetails.failedToLoadProvider');
 
   const handleBookService = async (serviceId: string) => {
+    if (!requireFullAccount(undefined, t('guest.bookingLoginMessage'))) {
+      return;
+    }
     await localStorage.removeItem('bookingId');
     const service = services.find((s: any) => s._id === serviceId);
     const modes = (service?.preferences || []).filter((p: string) =>
@@ -601,6 +613,13 @@ export default function ProviderDetailsScreen() {
         }}
         onConfirm={handleServiceForConfirm}
         selectedServiceFor={bookingDetails.serviceFor}
+      />
+
+      <GuestLoginRequiredModal
+        visible={modalVisible}
+        message={modalMessage}
+        onClose={closeModal}
+        onLogin={goToLogin}
       />
     </SafeAreaView>
   );

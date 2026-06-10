@@ -216,7 +216,9 @@ export default function AddressAdd() {
   const { loading, error, fetchLocation } = useLocation();
   const [fillingFromLocation, setFillingFromLocation] = useState(false);
   const route = useRoute<any>();
-  const isSignupFlow = route.params?.prevScreen === 'signup';
+  const isSignupFlow =
+    route.params?.prevScreen === 'signup' ||
+    route.params?.prevScreen === 'guest-login';
   const isEditMode = route.params?.mode === 'edit';
   const savedAddress = route.params?.addData as
     | (SavedAddressRef & SignupAddressLike)
@@ -620,7 +622,9 @@ export default function AddressAdd() {
             title={
               route.params?.mode === 'edit'
                 ? t('addAddress.edittitle')
-                : t('addAddress.title')
+                : route.params?.prevScreen === 'guest-login'
+                  ? t('guest.addAddress')
+                  : t('addAddress.title')
             }
             onLeftPress={() => goBack()}
             backgroundColor={theme.colors.white}

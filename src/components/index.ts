@@ -8,6 +8,8 @@ export { default as InterestItem } from './auth/InterestItem'
 export { default as CountryModal } from './auth/CountryModal'
 export { default as CountryCodeSelector } from './auth/CountryCodeSelector'
 export { default as PhoneCountryPicker } from './auth/PhoneCountryPicker'
+export { default as GuestLoginRequiredModal } from './auth/GuestLoginRequiredModal'
+export { default as GuestLoginAddressModal } from './auth/GuestLoginAddressModal'
 //splash============
 export { default as SplashAnimation } from './splash/SplashAnimation'
 

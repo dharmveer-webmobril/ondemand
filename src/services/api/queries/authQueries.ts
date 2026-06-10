@@ -34,7 +34,6 @@ export const useProfile = (enabled: boolean = true) => {
 };
 
 export const useProfileSplashScreen = (enabled: boolean = true, token: string | null) => {
-  console.log('token------ 36', token);
   return useQuery({
     queryKey: ['profileSplashScreen', token],
     queryFn: async () => {
@@ -55,6 +54,18 @@ export interface LoginData {
   email: string;
   password: string;
 }
+
+export const useGuestLogin = () => {
+  return useMutation<any, Error, Record<string, unknown>>({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const response = await axiosInstance.post<any>(
+        EndPoints.GUEST_LOGIN,
+        data,
+      );
+      return response.data;
+    },
+  });
+};
 
 export const useLogin = () => {
   return useMutation<any, Error, any>({

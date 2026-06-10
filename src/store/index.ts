@@ -8,7 +8,7 @@ import appReducer from './slices/appSlice';
 const authPersistConfig = {
   key: 'auth',
   storage: AsyncStorage,
-  whitelist: ['userId', 'token', 'userDetails', 'isAuthenticated'],
+  whitelist: ['userId', 'token', 'userDetails', 'isAuthenticated', 'isGuest'],
 };
 
 // Persist configuration for app slice (optional - you can remove if not needed)

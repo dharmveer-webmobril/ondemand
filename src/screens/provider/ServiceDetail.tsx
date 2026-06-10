@@ -27,6 +27,8 @@ import { formatAmount } from '@utils/formatAmount';
 import DeliveryModeModal from '@components/category/DeliveryModeModal';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useGetCustomerServiceDetail } from '@services/index';
+import { GuestLoginRequiredModal } from '@components';
+import { useGuestGuard } from '@utils/hooks';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const IMAGE_HEIGHT = 220;
@@ -121,6 +123,13 @@ export default function ServiceDetail() {
     routeProvider;
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showDeliveryModeModal, setShowDeliveryModeModal] = useState(false);
+  const {
+    requireFullAccount,
+    modalVisible,
+    modalMessage,
+    closeModal,
+    goToLogin,
+  } = useGuestGuard();
 
   const imageList = useMemo(() => {
     const images = Array.isArray(service?.images) ? service.images : [];
@@ -169,6 +178,9 @@ export default function ServiceDetail() {
   );
 
   const handleBookService = useCallback(() => {
+    if (!requireFullAccount(undefined, t('guest.bookingLoginMessage'))) {
+      return;
+    }
     if (!service || availableModes.length === 0) {
       showToast({
         type: 'info',
@@ -177,7 +189,7 @@ export default function ServiceDetail() {
       return;
     }
     setShowDeliveryModeModal(true);
-  }, [availableModes.length, service, t]);
+  }, [availableModes.length, requireFullAccount, service, t]);
 
   const handleDeliveryModeConfirm = useCallback(
     (deliveryMode: string | null) => {
@@ -476,6 +488,13 @@ export default function ServiceDetail() {
         availableModes={availableModes}
       />
       <LoadingComp visible={isFetchingDetail && !!service} />
+
+      <GuestLoginRequiredModal
+        visible={modalVisible}
+        message={modalMessage}
+        onClose={closeModal}
+        onLogin={goToLogin}
+      />
     </Container>
   );
 }

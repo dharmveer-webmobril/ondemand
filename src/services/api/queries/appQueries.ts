@@ -1063,6 +1063,7 @@ export const useRequestWalletSettlement = () => {
 // Initiate Booking Payment
 export interface InitiateBookingPaymentRequest {
   bookingId?: string;
+  tempBookingId?: string;
   routineBookingId?: string;
   amount: number;
   /** Omitted for pure wallet settlement after create (server uses paymentMethod `wallet`). */

@@ -115,7 +115,7 @@ export default function HomeQuickVoiceScreen() {
   const contextSpId: string | undefined = route.params?.contextSpId;
 
   const isAuthenticated = useAppSelector(
-    state => state.auth.isAuthenticated,
+    state => state.auth.isAuthenticated && !state.auth.isGuest,
   );
 
   const welcomeMessage = useMemo(

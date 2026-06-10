@@ -25,6 +25,7 @@ export function useGatewayPayment() {
     async (navigation: any, params: RunGatewayPaymentParams) => {
       const {
         bookingId,
+        tempBookingId,
         routineBookingId,
         amount,
         paymentGateway,
@@ -43,7 +44,7 @@ export function useGatewayPayment() {
         failureMessage = 'Payment initiation failed',
       } = params;
 
-      const paymentEntityId = routineBookingId ?? bookingId;
+      const paymentEntityId = routineBookingId ?? tempBookingId ?? bookingId;
       if (!paymentEntityId) {
         onError(new Error('Missing booking id for payment'), paymentEntityId);
         return;
@@ -52,7 +53,9 @@ export function useGatewayPayment() {
       const paymentRequest: InitiateBookingPaymentRequest = {
         ...(routineBookingId
           ? { routineBookingId }
-          : { bookingId: bookingId! }),
+          : tempBookingId
+            ? { tempBookingId }
+            : { bookingId: bookingId! }),
         amount,
         ...(paymentType != null && String(paymentType) !== ''
           ? { paymentType: String(paymentType) }

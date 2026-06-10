@@ -339,8 +339,37 @@ export function getRoutineAmountFromCreateResponse(
   return fallbackTotal;
 }
 
+/** Temp booking Mongo id from create-temp-booking response. */
+export function getTempBookingIdFromCreateResponse(response: any): string | null {
+  const data = response?.ResponseData;
+  if (!data) {
+    return null;
+  }
+  const raw = data.tempBooking;
+  if (raw && typeof raw === 'object') {
+    const id = raw._id ?? raw.id;
+    if (id != null && String(id).trim() !== '') {
+      return String(id).trim();
+    }
+  }
+  if (data.isTemp && data._id != null && String(data._id).trim() !== '') {
+    return String(data._id).trim();
+  }
+  return null;
+}
+
+export function isTempBookingCreateResponse(response: any): boolean {
+  const data = response?.ResponseData;
+  return data?.isTemp === true || !!getTempBookingIdFromCreateResponse(response);
+}
+
 /** Booking id from create-booking (shape varies: string id, object, or bookingId). */
 export function getBookingIdFromCreateResponse(response: any): string | null {
+  const tempId = getTempBookingIdFromCreateResponse(response);
+  if (tempId) {
+    return tempId;
+  }
+
   const data = response?.ResponseData;
   if (!data) {
     return null;

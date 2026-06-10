@@ -5,14 +5,16 @@ import {
   CustomButton,
   CustomInput,
   CustomText,
+  GuestLoginAddressModal,
   ImageComp,
+  LoadingComp,
   OrText,
   showToast,
   SocialButtons,
 } from '@components';
 import { LoginStyle } from '@styles/screens';
 import { SF } from '@utils/dimensions';
-import { navigate } from '@utils/NavigationUtils';
+import { navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import { useThemeContext } from '@utils/theme';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,11 +29,20 @@ import {
   setCountryId,
   setCredentials,
 } from '@store/slices/authSlice';
-import { useLogin } from '@services';
+import { useGuestLogin, useLogin } from '@services';
 import { SCREEN_NAMES } from '@navigation';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { useDisableGestures } from '@utils/hooks';
-import { setUserCity } from '@store/slices/appSlice';
+import { setCurrentLocationAddress, setUserCity } from '@store/slices/appSlice';
+import type { SignupAddressSelection } from '@utils/address';
+import type { CustomerLocationAddress } from '@utils/address/customerLocation';
+import {
+  buildGuestLoginPayload,
+  buildGuestLoginPayloadFromSignupAddress,
+  mapSignupAddressToCustomerLocation,
+} from '@utils/guest/guestAuth';
+import { resolveGuestLocationWithPrompt } from '@utils/guest/requestGuestLocation';
+import type { GuestLoginPayload } from '@utils/guest/guestAuth';
 
 export const socialButtons = [
   {
@@ -55,10 +66,14 @@ const Login = () => {
   const dispatch = useAppDispatch();
   useDisableGestures();
   const [passwordVisibility, setPasswordVisibility] = useState(true);
+  const [guestAddressModalVisible, setGuestAddressModalVisible] = useState(false);
+  const [guestFlowLoading, setGuestFlowLoading] = useState(false);
+  const [guestFlowLoadingMessage, setGuestFlowLoadingMessage] = useState('');
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
 
   const loginMutation = useLogin();
+  const guestLoginMutation = useGuestLogin();
 
   // Validation schema with translations
   const validationSchema = Yup.object().shape({
@@ -146,6 +161,127 @@ const Login = () => {
       }
     },
   });
+
+  const completeGuestLogin = async (
+    payload: GuestLoginPayload,
+    location: CustomerLocationAddress,
+  ) => {
+    const response = await guestLoginMutation.mutateAsync(payload);
+    if (response?.succeeded && response?.ResponseCode === 200) {
+      const { token, customer, city, country } = response.ResponseData ?? {};
+      dispatch(
+        setCredentials({
+          userId: customer._id,
+          token,
+          userDetails: customer,
+          isGuest: true,
+        }),
+      );
+      dispatch(setCurrentLocationAddress(location));
+      if (city) {
+        dispatch(setUserCity(city));
+      } else if (customer?.cityName) {
+        dispatch(setUserCity(customer.cityName));
+      }
+      if (country) {
+        dispatch(setCountryId(country));
+      }
+      setGuestAddressModalVisible(false);
+      showToast({
+        type: 'success',
+        title: t('messages.success'),
+        message: t('guest.loginSuccess'),
+      });
+      resetAndNavigate(SCREEN_NAMES.HOME);
+      return;
+    }
+
+    setGuestFlowLoading(false);
+    showToast({
+      type: 'error',
+      title: t('messages.error'),
+      message: response?.ResponseMessage || t('messages.loginFailed'),
+    });
+  };
+
+  const submitGuestLoginWithAddress = async (address: SignupAddressSelection) => {
+    setGuestFlowLoading(true);
+    setGuestFlowLoadingMessage(t('guest.signingInAsGuest'));
+    try {
+      const payload = buildGuestLoginPayloadFromSignupAddress(address);
+      if (!payload) {
+        setGuestFlowLoading(false);
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message: t('guest.locationRequired'),
+        });
+        return;
+      }
+      await completeGuestLogin(
+        payload,
+        mapSignupAddressToCustomerLocation(address),
+      );
+    } catch (error: any) {
+      setGuestFlowLoading(false);
+      showToast({
+        type: 'error',
+        title: t('messages.error'),
+        message:
+          error?.response?.data?.ResponseMessage ||
+          error?.message ||
+          t('messages.loginFailed'),
+      });
+    }
+  };
+
+  const handleGuestUseCurrentLocation = async () => {
+    setGuestFlowLoading(true);
+    setGuestFlowLoadingMessage(t('guest.detectingLocation'));
+    try {
+      const location = await resolveGuestLocationWithPrompt(t);
+      if (!location) {
+        setGuestFlowLoading(false);
+        return;
+      }
+      setGuestFlowLoadingMessage(t('guest.signingInAsGuest'));
+      const payload = buildGuestLoginPayload(location);
+      if (!payload) {
+        setGuestFlowLoading(false);
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message: t('guest.locationRequired'),
+        });
+        return;
+      }
+      await completeGuestLogin(payload, location);
+    } catch (error: any) {
+      setGuestFlowLoading(false);
+      showToast({
+        type: 'error',
+        title: t('messages.error'),
+        message:
+          error?.response?.data?.ResponseMessage ||
+          error?.message ||
+          t('messages.loginFailed'),
+      });
+    }
+  };
+
+  const handleGuestAddAddress = () => {
+    setGuestAddressModalVisible(false);
+    navigate(SCREEN_NAMES.ADD_ADDRESS, {
+      prevScreen: 'guest-login',
+      onDone: (address: SignupAddressSelection) => {
+        submitGuestLoginWithAddress(address);
+      },
+    });
+  };
+
+  const handleGuestLogin = () => {
+    setGuestAddressModalVisible(true);
+  };
 
   const handleLogin = () => {
     formik.setTouched({
@@ -241,7 +377,7 @@ const Login = () => {
             marginTop={theme.SH(40)}
             onPress={handleLogin}
             isLoading={loginMutation.isPending}
-            disable={loginMutation.isPending}
+            disable={loginMutation.isPending || guestLoginMutation.isPending}
           />
 
           <OrText />
@@ -277,8 +413,34 @@ const Login = () => {
               </CustomText>
             </CustomText>
           </View>
+
+          <CustomButton
+            title={t('login.continueAsGuest')}
+            backgroundColor={theme.colors.white}
+            textColor={theme.colors.primary}
+            marginTop={theme.SH(24)}
+            onPress={handleGuestLogin}
+            isLoading={guestLoginMutation.isPending}
+            disable={loginMutation.isPending || guestLoginMutation.isPending}
+            buttonStyle={styles.guestButton}
+          />
         </AuthBottomContainer>
       </KeyboardFormScroll>
+
+      <LoadingComp visible={guestFlowLoading && !guestAddressModalVisible} />
+
+      <GuestLoginAddressModal
+        visible={guestAddressModalVisible}
+        onClose={() => {
+          if (!guestFlowLoading) {
+            setGuestAddressModalVisible(false);
+          }
+        }}
+        onAddAddress={handleGuestAddAddress}
+        onUseCurrentLocation={handleGuestUseCurrentLocation}
+        isLoading={guestFlowLoading}
+        loadingMessage={guestFlowLoadingMessage}
+      />
     </Container>
   );
 };

@@ -12,6 +12,7 @@ interface AuthState {
   countryId: string | null;
   userDetails: UserDetails | null;
   isAuthenticated: boolean;
+  isGuest: boolean;
 }
 
 const initialState: AuthState = {
@@ -19,6 +20,7 @@ const initialState: AuthState = {
   token: null,
   userDetails: null,
   isAuthenticated: false,
+  isGuest: false,
   cityId: null,
   countryId: null,
 };
@@ -33,12 +35,16 @@ const authSlice = createSlice({
         userId: string;
         token: string;
         userDetails: UserDetails;
+        isGuest?: boolean;
       }>
     ) => {
       state.userId = action.payload.userId;
       state.token = action.payload.token;
       state.userDetails = action.payload.userDetails;
       state.isAuthenticated = true;
+      state.isGuest =
+        action.payload.isGuest === true ||
+        action.payload.userDetails?.isGuest === true;
     },
     setCityId: (state, action: PayloadAction<string>) => {
       state.cityId = action.payload;
@@ -57,6 +63,7 @@ const authSlice = createSlice({
       state.token = null;
       state.userDetails = null;
       state.isAuthenticated = false;
+      state.isGuest = false;
       state.cityId = null;
       state.countryId = null;
     },

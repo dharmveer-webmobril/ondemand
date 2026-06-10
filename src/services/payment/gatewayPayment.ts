@@ -66,6 +66,7 @@ export function isSuccessfulPaymentInitiation(response: any): boolean {
 /** Params for the common runGatewayPayment (used from Checkout, Wallet, BookingDetail) */
 export interface RunGatewayPaymentParams {
   bookingId?: string;
+  tempBookingId?: string;
   routineBookingId?: string;
   amount: number;
   /** Omit for post–create wallet-only initiate (no Stripe / web checkout). */

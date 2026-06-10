@@ -44,6 +44,7 @@ import {
   buildWalletCheckoutPayload,
   buildRoutineBookingPayload,
   getBookingIdFromCreateResponse,
+  isTempBookingCreateResponse,
   getRoutineAmountFromCreateResponse,
   getRoutineBookingIdFromCreateResponse,
   isRoutineCheckout,
@@ -61,6 +62,8 @@ import {
 } from './checkoutHelpers';
 import BookingPaymentSuccessModal from './BookingPaymentSuccessModal';
 import localStorage from '@utils/StorageProvider';
+import { GuestLoginRequiredModal } from '@components';
+import { useGuestGuard } from '@utils/hooks';
 
 export default function Checkout() {
   const theme = useThemeContext();
@@ -88,6 +91,14 @@ export default function Checkout() {
     '';
 
   const draft = route.params?.checkoutDraft;
+  const {
+    isGuest,
+    requireFullAccount,
+    modalVisible,
+    modalMessage,
+    closeModal,
+    goToLogin,
+  } = useGuestGuard();
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(
     draft?.selectedAddress ?? null,
@@ -517,12 +528,14 @@ export default function Checkout() {
     payload: any,
     selectedPaymentMethod: BookingPaymentMethod,
     walletAmountUsed: number,
-    options: { isRoutine: boolean },
+    options: { isRoutine: boolean; isTempBooking?: boolean },
   ) => {
-    const { isRoutine: routineFlow } = options;
+    const { isRoutine: routineFlow, isTempBooking = false } = options;
     const gatewayParams = routineFlow
       ? { routineBookingId: entityId }
-      : { bookingId: entityId };
+      : isTempBooking
+        ? { tempBookingId: entityId }
+        : { bookingId: entityId };
 
     const needsCardGateway =
       shouldUseGatewayPayment(selectedPaymentMethod) &&
@@ -697,6 +710,7 @@ export default function Checkout() {
     }
 
     const bookingId = getBookingIdFromCreateResponse(response);
+    const isTempBooking = isTempBookingCreateResponse(response);
 
     if (!bookingId) {
       queryClient.invalidateQueries({ queryKey: ['customerBookings'] });
@@ -704,7 +718,9 @@ export default function Checkout() {
       return;
     }
 
-    await localStorage.saveItem('bookingId', bookingId as string);
+    if (!isTempBooking) {
+      await localStorage.saveItem('bookingId', bookingId as string);
+    }
 
     await runPaymentAfterCreate(
       bookingId,
@@ -713,7 +729,7 @@ export default function Checkout() {
       payload,
       selectedPaymentMethod,
       walletAmountUsed,
-      { isRoutine: false },
+      { isRoutine: false, isTempBooking },
     );
   };
 
@@ -856,6 +872,10 @@ export default function Checkout() {
   };
 
   const handleConfirmBooking = () => {
+    if (isGuest && !requireFullAccount(undefined, t('guest.bookingLoginMessage'))) {
+      return;
+    }
+
     if (!isFormValid) {
       if (
         needsAddress &&
@@ -1021,6 +1041,13 @@ export default function Checkout() {
         visible={showPaymentSuccessModal}
         confirmResponse={paymentSuccessConfirmRes}
         onContinueToBooking={handlePaymentSuccessContinue}
+      />
+
+      <GuestLoginRequiredModal
+        visible={modalVisible}
+        message={modalMessage}
+        onClose={closeModal}
+        onLogin={goToLogin}
       />
     </Container>
   );

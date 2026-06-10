@@ -2,9 +2,11 @@ import React, { useMemo } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SH, ThemeType, useThemeContext } from "@utils";
-import { CustomText } from "@components";
+import { CustomText, GuestLoginRequiredModal } from "@components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import { useGuestGuard } from "@utils/hooks";
+import { GUEST_BLOCKED_TAB_ROUTES } from "@utils/guest/guestAuth";
 import TabImages from "./TabImages";
 
 /** Base tab bar content height (before safe-area). Keep in sync with tab bar layout. */
@@ -22,6 +24,14 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
     const bottom = useSafeAreaInsets();
     const styles = useMemo(() => createStyles(theme), [theme]);
     const { t, i18n } = useTranslation();
+    const {
+        isGuest,
+        modalVisible,
+        modalMessage,
+        promptLogin,
+        closeModal,
+        goToLogin,
+    } = useGuestGuard();
 
     const tabLabels = useMemo(() => {
         const labels: Record<string, string> = {};
@@ -54,6 +64,18 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
                                 style={[styles.tabItem, isFocused && styles.focusedTabItem]}
                                 activeOpacity={0.7}
                                 onPress={() => {
+                                    if (
+                                        isGuest &&
+                                        GUEST_BLOCKED_TAB_ROUTES.has(route.name)
+                                    ) {
+                                        const message =
+                                            route.name === 'BookingList'
+                                                ? t('guest.tabBookingsMessage')
+                                                : t('guest.tabMessagesMessage');
+                                        promptLogin(message);
+                                        return;
+                                    }
+
                                     const event = navigation.emit({
                                         type: "tabPress",
                                         target: route.key,
@@ -83,6 +105,12 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
                     })}
                 </View>
             </View>
+            <GuestLoginRequiredModal
+                visible={modalVisible}
+                message={modalMessage}
+                onClose={closeModal}
+                onLogin={goToLogin}
+            />
         </View>
     );
 };

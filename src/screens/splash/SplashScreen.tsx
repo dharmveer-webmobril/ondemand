@@ -1,5 +1,5 @@
 import { View, StyleSheet } from 'react-native';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { useThemeContext } from '@utils/theme';
 import { resetAndNavigate } from '@utils/NavigationUtils';
@@ -10,26 +10,36 @@ import { store } from '@store/index';
 import { queryClient } from '@services/api';
 import { ensureCurrentLocationHydrated } from '@utils/address';
 import { setUserCity } from '@store/slices/appSlice';
-import LottieView from 'lottie-react-native';
-import imagePaths from '@assets';
+import SplashAnimation from '@components/splash/SplashAnimation';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
+import { isGuestUser } from '@utils/guest/guestAuth';
+
+const SPLASH_MAX_WAIT_MS = 4500;
 
 export default function SplashScreen() {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(), []);
 
   const [animationFinished, setAnimationFinished] = useState(false);
+  const navigatedRef = useRef(false);
 
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const token = useAppSelector((state) => state.auth.token);
-  const { data: userData, isLoading ,error} = useProfileSplashScreen(true, token || '');
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
+  const isGuest = useAppSelector(state =>
+    isGuestUser(state.auth.userDetails, state.auth.isGuest),
+  );
+  const token = useAppSelector(state => state.auth.token);
+  const profileQueryEnabled = !isGuest && !!token && isAuthenticated;
+  const { data: userData, isLoading } = useProfileSplashScreen(
+    profileQueryEnabled,
+    token || '',
+  );
   const dispatch = useAppDispatch();
-  console.log('error------ 29', error);
 
-  /** If location not set yet, resolve once (GPS or first saved address); otherwise leave as-is. */
   useEffect(() => {
     if (!token || !isAuthenticated) return;
-    void ensureCurrentLocationHydrated(dispatch, queryClient, () => store.getState());
+    void ensureCurrentLocationHydrated(dispatch, queryClient, () =>
+      store.getState(),
+    );
   }, [token, isAuthenticated, dispatch]);
 
   const onAnimationFinish = useCallback(() => {
@@ -37,16 +47,31 @@ export default function SplashScreen() {
   }, []);
 
   useEffect(() => {
-    if (!animationFinished) return;
+    const timer = setTimeout(() => {
+      setAnimationFinished(true);
+    }, SPLASH_MAX_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!animationFinished || navigatedRef.current) return;
 
     if (!isAuthenticated || !token) {
+      navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.LOGIN);
       return;
     }
 
-    if (isLoading) return;
+    if (isGuest) {
+      navigatedRef.current = true;
+      resetAndNavigate(SCREEN_NAMES.HOME);
+      return;
+    }
+
+    if (profileQueryEnabled && isLoading) return;
 
     if (userData?.succeeded) {
+      navigatedRef.current = true;
       const hasInterests =
         userData?.ResponseData?.interests &&
         userData.ResponseData.interests.length > 0;
@@ -57,10 +82,23 @@ export default function SplashScreen() {
       } else {
         resetAndNavigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
       }
-    } else {
+      return;
+    }
+
+    if (profileQueryEnabled && !isLoading) {
+      navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.LOGIN);
     }
-  }, [animationFinished, isAuthenticated, token, isLoading, userData, dispatch]);
+  }, [
+    animationFinished,
+    isAuthenticated,
+    isGuest,
+    token,
+    profileQueryEnabled,
+    isLoading,
+    userData,
+    dispatch,
+  ]);
 
   return (
     <View style={styles.container}>
@@ -68,15 +106,9 @@ export default function SplashScreen() {
         style={styles.linearGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        colors={theme.colors.gradientColor}
+        colors={[...theme.colors.gradientColor]}
       >
-        <LottieView
-          source={imagePaths.logo_json}
-          autoPlay
-          style={{ height: theme.size.SH(130), width: theme.size.SH(130) }}
-          loop={false}
-          onAnimationFinish={onAnimationFinish}
-        />
+        <SplashAnimation onAnimationFinish={onAnimationFinish} />
       </LinearGradient>
     </View>
   );

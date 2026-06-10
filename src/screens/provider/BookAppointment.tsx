@@ -32,6 +32,8 @@ import VolumeDiscountTiersSection from '@components/provider/VolumeDiscountTiers
 import BookAppointmentSessionSection from '@components/provider/BookAppointmentSessionSection';
 import RoutinePackageSummaryCard from '@components/provider/RoutinePackageSummaryCard';
 import SCREEN_NAMES from '@navigation/ScreenNames';
+import { GuestLoginRequiredModal } from '@components';
+import { useGuestGuard } from '@utils/hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatAmount } from '@utils/formatAmount';
 import {
@@ -149,6 +151,13 @@ export default function BookAppointment() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const {
+    requireFullAccount,
+    modalVisible,
+    modalMessage,
+    closeModal,
+    goToLogin,
+  } = useGuestGuard();
   const { bookingDetails, providerId, selectedServices, providerData } =
     route?.params ?? {};
 
@@ -539,6 +548,10 @@ export default function BookAppointment() {
   };
 
   const handleBook = () => {
+    if (!requireFullAccount(undefined, t('guest.bookingLoginMessage'))) {
+      return;
+    }
+
     if (bookingType === 'single') {
       if (!selectedTimeSlot) {
         showToast({
@@ -785,6 +798,13 @@ export default function BookAppointment() {
           selectedAddOns={selectedServiceForAddOns.selectedAddOns || []}
         />
       ) : null}
+
+      <GuestLoginRequiredModal
+        visible={modalVisible}
+        message={modalMessage}
+        onClose={closeModal}
+        onLogin={goToLogin}
+      />
     </SafeAreaView>
   );
 }

@@ -1,5 +1,6 @@
 export default {
     LOGIN: '/auth/customer/login',
+    GUEST_LOGIN: '/auth/customer/guest-login',
     LOGOUT: '/auth/customer/logout',
     SIGNUP: '/auth/customer/signup',
     GET_COUNTRIES: '/master/country/all',
