@@ -20,6 +20,7 @@ module.exports = {
           '@store': path.join(src, 'store'),
           '@services': path.join(src, 'services'),
           '@navigation': path.join(src, 'navigation'),
+          '@contexts': path.join(src, 'contexts'),
         },
       },
     ],

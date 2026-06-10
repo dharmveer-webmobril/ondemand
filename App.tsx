@@ -26,6 +26,7 @@ import {
   requestUserPermission,
 } from '@services/PushNotification';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { BiometricSetupProvider } from '@contexts/BiometricSetupContext';
 
 LogBox.ignoreLogs([
   'Open debugger to view warnings',
@@ -56,7 +57,9 @@ const App = () => {
                     <ApplicationProvider {...eva} theme={eva.light}>
                       <MenuProvider>
                         <ThemeProvider>
-                          <RootNavigator />
+                          <BiometricSetupProvider>
+                            <RootNavigator />
+                          </BiometricSetupProvider>
                         </ThemeProvider>
                       </MenuProvider>
                     </ApplicationProvider>

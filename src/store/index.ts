@@ -8,7 +8,8 @@ import appReducer from './slices/appSlice';
 const authPersistConfig = {
   key: 'auth',
   storage: AsyncStorage,
-  whitelist: ['userId', 'token', 'userDetails', 'isAuthenticated', 'isGuest'],
+  // JWT is stored in react-native-keychain — not persisted here
+  whitelist: ['userId', 'userDetails', 'isAuthenticated', 'isGuest', 'biometricEnabled'],
 };
 
 // Persist configuration for app slice (optional - you can remove if not needed)

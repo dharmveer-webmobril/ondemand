@@ -16,13 +16,14 @@ import { LoginStyle } from '@styles/screens';
 import { SF } from '@utils/dimensions';
 import { navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import { useThemeContext } from '@utils/theme';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAppDispatch } from '@store/hooks';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { KeyboardFormScroll } from '@components/common';
 import {
   setCityId,
@@ -43,6 +44,19 @@ import {
 } from '@utils/guest/guestAuth';
 import { resolveGuestLocationWithPrompt } from '@utils/guest/requestGuestLocation';
 import type { GuestLoginPayload } from '@utils/guest/guestAuth';
+import { saveTokenToKeychain, hasTokenInKeychain } from '@services/auth/keychainService';
+import { hydrateAuthToken } from '@services/auth/authTokenService';
+import {
+  authenticateWithBiometrics,
+  BiometricError,
+  checkBiometricAvailability,
+  getBiometricLabel,
+} from '@services/auth/biometricService';
+import { useBiometricSetup } from '@contexts/BiometricSetupContext';
+import {
+  customerHasInterests,
+  getPostAuthDestination,
+} from '@utils/authNavigation';
 
 export const socialButtons = [
   {
@@ -64,16 +78,115 @@ const Login = () => {
   const { t } = useTranslation();
   const styles = LoginStyle(theme);
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
+  const { promptBiometricSetup } = useBiometricSetup();
   useDisableGestures();
   const [passwordVisibility, setPasswordVisibility] = useState(true);
   const [guestAddressModalVisible, setGuestAddressModalVisible] = useState(false);
   const [guestFlowLoading, setGuestFlowLoading] = useState(false);
   const [guestFlowLoadingMessage, setGuestFlowLoadingMessage] = useState('');
+  const [showBiometricLogin, setShowBiometricLogin] = useState(false);
+  const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
 
+  const biometricEnabled = useAppSelector(state => state.auth.biometricEnabled);
+  const userDetails = useAppSelector(state => state.auth.userDetails);
+
   const loginMutation = useLogin();
   const guestLoginMutation = useGuestLogin();
+
+  useEffect(() => {
+    (async () => {
+      if (!biometricEnabled) {
+        setShowBiometricLogin(false);
+        return;
+      }
+
+      const tokenExists = await hasTokenInKeychain();
+      setShowBiometricLogin(tokenExists);
+
+      if (tokenExists) {
+        const { biometryType } = await checkBiometricAvailability();
+        setBiometricLabel(getBiometricLabel(biometryType));
+      }
+    })();
+  }, [biometricEnabled]);
+
+  const resetToDestination = useCallback(
+    (screen: string, params?: Record<string, unknown>) => {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: screen, params }],
+        }),
+      );
+    },
+    [navigation],
+  );
+
+  const handleBiometricLogin = useCallback(async () => {
+    if (isBiometricLoading) {
+      return;
+    }
+
+    setIsBiometricLoading(true);
+
+    try {
+      await authenticateWithBiometrics(t('biometric.loginPromptMessage'));
+
+      const token = await hydrateAuthToken(dispatch);
+      if (!token) {
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message: t('biometric.tokenMissing'),
+        });
+        return;
+      }
+
+      const destination = getPostAuthDestination(customerHasInterests(userDetails));
+      resetToDestination(destination.screen, destination.params);
+
+      if (destination.screen === SCREEN_NAMES.HOME) {
+        setTimeout(() => tryOpenPendingProviderProfile(), 600);
+      }
+    } catch (error) {
+      if (error instanceof BiometricError && error.code === 'CANCELLED') {
+        return;
+      }
+
+      showToast({
+        type: 'error',
+        title: t('messages.error'),
+        message:
+          error instanceof BiometricError
+            ? error.message
+            : t('messages.somethingWentWrong'),
+      });
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  }, [dispatch, isBiometricLoading, resetToDestination, t, userDetails]);
+
+  const persistCredentials = useCallback(
+    async (
+      userId: string,
+      token: string,
+      userDetailsPayload: Record<string, unknown>,
+    ) => {
+      dispatch(
+        setCredentials({
+          userId,
+          token,
+          userDetails: userDetailsPayload,
+        }),
+      );
+      await saveTokenToKeychain(token);
+    },
+    [dispatch],
+  );
 
   // Validation schema with translations
   const validationSchema = Yup.object().shape({
@@ -100,14 +213,7 @@ const Login = () => {
 
         const { token, customer, otp = '', note = '' } = response.ResponseData;
         if (response.succeeded && response.ResponseCode === 200) {
-          // Store credentials in Redux
-          dispatch(
-            setCredentials({
-              userId: customer._id,
-              token: token,
-              userDetails: customer,
-            }),
-          );
+          await persistCredentials(customer._id, token, customer);
           dispatch(setCityId(customer.city));
           dispatch(setCountryId(customer.country));
           dispatch(setUserCity(customer.city));
@@ -116,6 +222,8 @@ const Login = () => {
             title: t('messages.success'),
             message: t('login.loginSuccess'),
           });
+
+          await promptBiometricSetup();
 
           if (customer?.interests && customer?.interests?.length > 0) {
             setTimeout(() => {
@@ -379,6 +487,16 @@ const Login = () => {
             isLoading={loginMutation.isPending}
             disable={loginMutation.isPending || guestLoginMutation.isPending}
           />
+
+          {showBiometricLogin && (
+            <CustomButton
+              title={t('biometric.loginWith', { type: biometricLabel })}
+              marginTop={theme.SH(16)}
+              onPress={handleBiometricLogin}
+              isLoading={isBiometricLoading}
+              disable={isBiometricLoading}
+            />
+          )}
 
           <OrText />
 

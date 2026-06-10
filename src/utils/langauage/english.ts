@@ -1,4 +1,25 @@
 export const english = {
+  "biometric": {
+    "setupTitle": "Enable Biometric Login?",
+    "setupSubtitle": "Would you like to enable biometric login?",
+    "enable": "Enable",
+    "maybeLater": "Maybe Later",
+    "setupPromptMessage": "Verify your identity to enable biometric login",
+    "enablePromptMessage": "Verify your identity to enable biometric login",
+    "disablePromptMessage": "Verify your identity to disable biometric login",
+    "loginPromptMessage": "Authenticate to sign in",
+    "loginWith": "Login with {{type}}",
+    "notAvailable": "Biometric authentication is not available on this device.",
+    "enabledSuccess": "Biometric login enabled successfully.",
+    "disabledSuccess": "Biometric login disabled successfully.",
+    "tokenMissing": "No saved session found. Please log in with your credentials."
+  },
+  "security": {
+    "title": "Security",
+    "sectionTitle": "Security",
+    "enableBiometricLogin": "Enable Biometric Login",
+    "enableBiometricDescription": "Use {{type}} to unlock the app quickly and securely."
+  },
   "login": {
     "forgotPassword": "Forgot Password?",
     "loginButton": "Log In",
@@ -249,6 +270,7 @@ export const english = {
       "confirmPasswordPlaceholder": "Confirm new password",
       "update": "Update"
     },
+    "securitySettings": "Security",
     "changePassword": "Change Password",
     "myAddress": "My Address",
     "myCalendar": "My Calendar",

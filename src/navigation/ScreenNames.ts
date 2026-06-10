@@ -59,6 +59,7 @@ export const SCREEN_NAMES = {
   NOTIFICATIONS: 'Notifications',
   NOTIFICATIONS_ALERTS: 'NotificationsAlerts',
   CUSTOMER_SUPPORT: 'CustomerSupport',
+  SECURITY_SETTINGS: 'SecuritySettings',
   LANGUAGE_SETTINGS: 'LanguageSettings',
   MULTI_LANGUAGE_CURRENCY: 'MultiLanguageCurrency',
   FAVORITE_PROVIDERS: 'FavoriteProviders',

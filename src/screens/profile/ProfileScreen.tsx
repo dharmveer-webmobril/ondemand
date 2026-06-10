@@ -81,6 +81,11 @@ export default function ProfileScreen() {
 
     return [
       {
+        id: 'security',
+        label: t('profile.securitySettings'),
+        icon: { name: 'shield-checkmark-outline', icon: 'Ionicons' },
+      },
+      {
         id: '2',
         label: t('profile.changePassword'),
         icon: { name: 'lock-closed-outline', icon: 'Ionicons' },
@@ -145,7 +150,9 @@ export default function ProfileScreen() {
       return;
     }
 
-    if (item.id === '2') {
+    if (item.id === 'security') {
+      navigation.navigate(SCREEN_NAMES.SECURITY_SETTINGS as never);
+    } else if (item.id === '2') {
       navigation.navigate('ChangePassword' as never);
     } else if (item.id === '3') {
       navigation.navigate('MyAddress' as never);

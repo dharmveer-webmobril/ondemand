@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
+import { clearAuthToken } from '@services/auth/authTokenService';
 import { resetAndNavigate } from '@utils/NavigationUtils';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { isGuestUser } from '@utils/guest/guestAuth';
@@ -42,8 +43,11 @@ export function useGuestGuard() {
 
   const goToLogin = useCallback(() => {
     setModalVisible(false);
-    dispatch(logout());
-    resetAndNavigate(SCREEN_NAMES.LOGIN);
+    void (async () => {
+      await clearAuthToken(dispatch);
+      dispatch(logout());
+      resetAndNavigate(SCREEN_NAMES.LOGIN);
+    })();
   }, [dispatch]);
 
   return {

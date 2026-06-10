@@ -17,12 +17,15 @@ import { showToast } from '@components/common/CustomToast';
 import { SCREEN_NAMES } from '@navigation';
 import { setUserCity } from '@store/slices/appSlice';
 import { KeyboardFormScroll } from '@components/common';
+import { saveTokenToKeychain } from '@services/auth/keychainService';
+import { useBiometricSetup } from '@contexts/BiometricSetupContext';
 
 const OtpVerify = () => {
     const theme = useThemeContext();
     const { t } = useTranslation();
     const route = useRoute<any>();
     const dispatch = useAppDispatch();
+    const { promptBiometricSetup } = useBiometricSetup();
     const input = useRef<any>(null);
     const [otp, setOtp] = useState<string>('');
     const { SW, colors: Colors, SH, fonts } = theme;
@@ -89,6 +92,7 @@ const OtpVerify = () => {
                             userDetails: customer,
                         })
                     );
+                    await saveTokenToKeychain(token);
                     dispatch(setCityId(customer.city));
                     dispatch(setCountryId(customer.country));
                     dispatch(setUserCity(customer.city));
@@ -98,7 +102,8 @@ const OtpVerify = () => {
                         message: t('otpverify.otpVerifiedSuccess'),
                     });
 
-                    // Navigate to interest choose or home
+                    await promptBiometricSetup();
+
                     setTimeout(() => {
                         navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
                     }, 1000);

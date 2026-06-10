@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceDetail, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, RoutineBookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, TrackingWebViewScreen, WalletScreen, PaymentTransactionsScreen, NotificationsScreen, NotificationsAlerts, CustomerSupport, LanguageSettings, FavoriteProvidersScreen, HomeQuickVoiceScreen } from '@screens/index'
+import SecuritySettings from '@screens/settings/SecuritySettings'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
 import {
@@ -63,6 +64,7 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.NOTIFICATIONS} component={NotificationsScreen} />
         <Stack.Screen name={SCREEN_NAMES.NOTIFICATIONS_ALERTS} component={NotificationsAlerts} />
         <Stack.Screen name={SCREEN_NAMES.CUSTOMER_SUPPORT} component={CustomerSupport} />
+        <Stack.Screen name={SCREEN_NAMES.SECURITY_SETTINGS} component={SecuritySettings} />
         <Stack.Screen name={SCREEN_NAMES.LANGUAGE_SETTINGS} component={LanguageSettings as any} />
         <Stack.Screen name={SCREEN_NAMES.FAVORITE_PROVIDERS} component={FavoriteProvidersScreen} />
         <Stack.Screen name={SCREEN_NAMES.HOME_QUICK_VOICE} component={HomeQuickVoiceScreen} />

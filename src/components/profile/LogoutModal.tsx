@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import LinearGradient from 'react-native-linear-gradient';
 import { useAppDispatch } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
+import { clearAuthToken } from '@services/auth/authTokenService';
 import { resetUserScopedAppState } from '@store/slices/appSlice';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { useLogout } from '@services/index';
@@ -27,35 +28,29 @@ export default function LogoutModal({ visible, onClose }: LogoutModalProps) {
   const queryClient = useQueryClient();
   const { mutateAsync: logoutMutation, isPending } = useLogout();
 
-  const clearLocalSession = () => {
-    // Wipe all React Query caches so the next user doesn't see stale
-    // booking/chat/profile data while fresh queries are in flight.
+  const clearLocalSession = async () => {
     queryClient.cancelQueries();
     queryClient.removeQueries();
     queryClient.clear();
 
     void clearBackendSyncedFcmToken();
 
-    // Reset user-scoped Redux state across slices.
+    await clearAuthToken(dispatch);
     dispatch(logout());
     dispatch(resetUserScopedAppState());
   };
 
-  const logOutButton = () => {
-    logoutMutation()
-      .then(() => {
-        clearLocalSession();
-        resetAndNavigate(SCREEN_NAMES.LOGIN);
-      })
-      .catch(error => {
-        console.log('❌ Logout Error Message:', error.message);
-        console.log('❌ Status Code:', error.response?.status);
-        console.log('❌ API Response:', error.response?.data);
-        // Even if the server call fails we still want the device to
-        // forget the previous session, otherwise stale data lingers.
-        clearLocalSession();
-        resetAndNavigate(SCREEN_NAMES.LOGIN);
-      });
+  const logOutButton = async () => {
+    try {
+      await logoutMutation();
+    } catch (error: any) {
+      console.log('❌ Logout Error Message:', error.message);
+      console.log('❌ Status Code:', error.response?.status);
+      console.log('❌ API Response:', error.response?.data);
+    } finally {
+      await clearLocalSession();
+      resetAndNavigate(SCREEN_NAMES.LOGIN);
+    }
   };
 
   return (

@@ -13,6 +13,8 @@ import { setUserCity } from '@store/slices/appSlice';
 import SplashAnimation from '@components/splash/SplashAnimation';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { isGuestUser } from '@utils/guest/guestAuth';
+import { hydrateAuthToken } from '@services/auth/authTokenService';
+import { authenticateWithBiometrics } from '@services/auth/biometricService';
 
 const SPLASH_MAX_WAIT_MS = 4500;
 
@@ -21,26 +23,96 @@ export default function SplashScreen() {
   const styles = useMemo(() => createStyles(), []);
 
   const [animationFinished, setAnimationFinished] = useState(false);
-  const navigatedRef = useRef(false);
+  const [tokenHydrated, setTokenHydrated] = useState(false);
+  const [biometricVerified, setBiometricVerified] = useState(false);
 
+  const navigatedRef = useRef(false);
+  const hydrationStartedRef = useRef(false);
+  const biometricStartedRef = useRef(false);
+  const legacyTokenRef = useRef<string | null>(null);
+
+  const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const isGuest = useAppSelector(state =>
     isGuestUser(state.auth.userDetails, state.auth.isGuest),
   );
   const token = useAppSelector(state => state.auth.token);
-  const profileQueryEnabled = !isGuest && !!token && isAuthenticated;
+  const biometricEnabled = useAppSelector(state => state.auth.biometricEnabled);
+
+  legacyTokenRef.current = token;
+
+  const profileQueryEnabled =
+    tokenHydrated && !isGuest && !!token && isAuthenticated && biometricVerified;
+
   const { data: userData, isLoading } = useProfileSplashScreen(
     profileQueryEnabled,
     token || '',
   );
-  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!token || !isAuthenticated) return;
+    if (hydrationStartedRef.current) {
+      return;
+    }
+    hydrationStartedRef.current = true;
+
+    (async () => {
+      try {
+        await hydrateAuthToken(dispatch, legacyTokenRef.current);
+      } catch {
+        // Hydration failure is handled during navigation
+      } finally {
+        setTokenHydrated(true);
+      }
+    })();
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!token || !isAuthenticated) {
+      return;
+    }
     void ensureCurrentLocationHydrated(dispatch, queryClient, () =>
       store.getState(),
     );
   }, [token, isAuthenticated, dispatch]);
+
+  useEffect(() => {
+    if (!tokenHydrated || biometricStartedRef.current) {
+      return;
+    }
+
+    const state = store.getState().auth;
+    const currentToken = state.token;
+
+    if (!state.isAuthenticated || !currentToken) {
+      biometricStartedRef.current = true;
+      setBiometricVerified(true);
+      return;
+    }
+
+    if (isGuestUser(state.userDetails, state.isGuest)) {
+      biometricStartedRef.current = true;
+      setBiometricVerified(true);
+      return;
+    }
+
+    if (!state.biometricEnabled) {
+      biometricStartedRef.current = true;
+      setBiometricVerified(true);
+      return;
+    }
+
+    biometricStartedRef.current = true;
+
+    (async () => {
+      try {
+        await authenticateWithBiometrics('Authenticate to access your account');
+        setBiometricVerified(true);
+      } catch {
+        navigatedRef.current = true;
+        resetAndNavigate(SCREEN_NAMES.LOGIN);
+      }
+    })();
+  }, [tokenHydrated, biometricEnabled]);
 
   const onAnimationFinish = useCallback(() => {
     setAnimationFinished(true);
@@ -54,21 +126,28 @@ export default function SplashScreen() {
   }, []);
 
   useEffect(() => {
-    if (!animationFinished || navigatedRef.current) return;
+    if (!animationFinished || !tokenHydrated || !biometricVerified || navigatedRef.current) {
+      return;
+    }
 
-    if (!isAuthenticated || !token) {
+    const state = store.getState().auth;
+    const currentToken = state.token;
+
+    if (!state.isAuthenticated || !currentToken) {
       navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.LOGIN);
       return;
     }
 
-    if (isGuest) {
+    if (isGuestUser(state.userDetails, state.isGuest)) {
       navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.HOME);
       return;
     }
 
-    if (profileQueryEnabled && isLoading) return;
+    if (profileQueryEnabled && isLoading) {
+      return;
+    }
 
     if (userData?.succeeded) {
       navigatedRef.current = true;
@@ -91,9 +170,8 @@ export default function SplashScreen() {
     }
   }, [
     animationFinished,
-    isAuthenticated,
-    isGuest,
-    token,
+    tokenHydrated,
+    biometricVerified,
     profileQueryEnabled,
     isLoading,
     userData,
