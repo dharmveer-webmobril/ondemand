@@ -214,7 +214,9 @@ const Signup = () => {
       statusBarColor={theme.colors.white}
       style={{ backgroundColor: theme.colors.white }}
     >
-      <KeyboardFormScroll contentContainerStyle={styles.contentContainer}>
+      <KeyboardFormScroll 
+      contentContainerStyle={styles.contentContainer}
+      >
         <ImageComp
           imageSource={imagePaths.signup_img}
           marginLeft={'auto'}

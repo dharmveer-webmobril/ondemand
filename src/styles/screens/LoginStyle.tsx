@@ -22,8 +22,6 @@ const LoginStyle = (theme: ThemeType) => {
         },
         scrollViewContainer: {
             flexGrow: 1,
-            paddingHorizontal: 0,
-            paddingBottom: SH(32),
         },
         guestButton: {
             width: '100%',

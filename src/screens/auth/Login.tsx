@@ -414,7 +414,7 @@ const Login = () => {
     >
       <KeyboardFormScroll
         contentContainerStyle={styles.scrollViewContainer}
-        bottomOffset={theme.SH(40)}
+        // bottomOffset={theme.SH(40)}
       >
         <ImageComp
           imageSource={imagePaths.login_img}
