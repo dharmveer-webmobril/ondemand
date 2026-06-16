@@ -30,6 +30,7 @@
 		CC660EDF00344EF0A7638A32 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C00B3F8B9324B2699DF1B79 /* Inter-Medium.ttf */; };
 		D66E1C4E1E7A4D79BCEC720D /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EFA936552AB44AD89F3B0CF2 /* Inter-Bold.ttf */; };
 		F0513C7D022C4FE0BE81ABB1 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2D2380D256341678A5501F4 /* Inter-SemiBold.ttf */; };
+		1A525BC583874D2090560E64 /* Kanit-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +62,7 @@
 		E57EDB6F66EF48E59D60316B /* Inter-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Light.ttf"; path = "../src/assets/fonts/Inter-Light.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EFA936552AB44AD89F3B0CF2 /* Inter-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Bold.ttf"; path = "../src/assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; };
+		54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */ = {isa = PBXFileReference; name = "Kanit-SemiBold.ttf"; path = "../src/assets/fonts/Kanit-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +119,7 @@
 				3A86EDB87E724B88A9CAE98B /* PlusJakartaSans-Medium.ttf */,
 				B45C451A377044B594305A74 /* PlusJakartaSans-Regular.ttf */,
 				C0549DB98EBC4C7A92155715 /* PlusJakartaSans-SemiBold.ttf */,
+				54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -242,6 +245,7 @@
 				A79FB8E75EF24C68AA1FE91B /* PlusJakartaSans-Regular.ttf in Resources */,
 				C0F11F743A64438FAA2C9779 /* PlusJakartaSans-SemiBold.ttf in Resources */,
 				B1FFA7EF2F83A27A00B9F21D /* GoogleService-Info.plist in Resources */,
+				1A525BC583874D2090560E64 /* Kanit-SemiBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
+import LottieView from 'lottie-react-native';
 import { useThemeContext } from '@utils/theme';
 import { resetAndNavigate } from '@utils/NavigationUtils';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
@@ -10,17 +11,19 @@ import { store } from '@store/index';
 import { queryClient } from '@services/api';
 import { ensureCurrentLocationHydrated } from '@utils/address';
 import { setUserCity } from '@store/slices/appSlice';
-import SplashAnimation from '@components/splash/SplashAnimation';
+import imagePaths from '@assets';
+import SplashBrandTitle from '@components/splash/SplashBrandTitle';
+import { SPLASH_LOTTIE_DURATION_MS } from '@components/splash/splashTiming';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { isGuestUser } from '@utils/guest/guestAuth';
 import { hydrateAuthToken } from '@services/auth/authTokenService';
 import { authenticateWithBiometrics } from '@services/auth/biometricService';
 
-const SPLASH_MAX_WAIT_MS = 4500;
+const SPLASH_ANIMATION_SAFETY_MS = SPLASH_LOTTIE_DURATION_MS + 2000;
 
 export default function SplashScreen() {
   const theme = useThemeContext();
-  const styles = useMemo(() => createStyles(), []);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [animationFinished, setAnimationFinished] = useState(false);
   const [tokenHydrated, setTokenHydrated] = useState(false);
@@ -30,6 +33,7 @@ export default function SplashScreen() {
   const hydrationStartedRef = useRef(false);
   const biometricStartedRef = useRef(false);
   const legacyTokenRef = useRef<string | null>(null);
+  const animationFinishedRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
@@ -114,15 +118,23 @@ export default function SplashScreen() {
     })();
   }, [tokenHydrated, biometricEnabled]);
 
-  const onAnimationFinish = useCallback(() => {
+  const onAnimationFinish = useCallback((isCancelled = false) => {
+    if (isCancelled || animationFinishedRef.current) {
+      return;
+    }
+    animationFinishedRef.current = true;
     setAnimationFinished(true);
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimationFinished(true);
-    }, SPLASH_MAX_WAIT_MS);
-    return () => clearTimeout(timer);
+    const safetyTimer = setTimeout(() => {
+      if (!animationFinishedRef.current) {
+        animationFinishedRef.current = true;
+        setAnimationFinished(true);
+      }
+    }, SPLASH_ANIMATION_SAFETY_MS);
+
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   useEffect(() => {
@@ -186,13 +198,25 @@ export default function SplashScreen() {
         end={{ x: 0, y: 1 }}
         colors={[...theme.colors.gradientColor]}
       >
-        <SplashAnimation onAnimationFinish={onAnimationFinish} />
+        <View style={styles.brandContainer}>
+          <LottieView
+            source={imagePaths.logo_json}
+            autoPlay
+            loop={false}
+            resizeMode="contain"
+            cacheComposition
+            onAnimationFinish={onAnimationFinish}
+            onAnimationFailure={() => onAnimationFinish()}
+            style={styles.lottie}
+          />
+          <SplashBrandTitle />
+        </View>
       </LinearGradient>
     </View>
   );
 }
 
-const createStyles = () =>
+const createStyles = (theme: ReturnType<typeof useThemeContext>) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -201,5 +225,13 @@ const createStyles = () =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    brandContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    lottie: {
+      height: theme.SH(130),
+      width: theme.SH(130),
     },
   });
