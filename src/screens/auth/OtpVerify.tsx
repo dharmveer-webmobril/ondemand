@@ -35,7 +35,6 @@ const OtpVerify = () => {
     // Get route params
     const prevScreen = route?.params?.prevScreen;
     const email = route?.params?.email || '';
-    const initialOtp = route?.params?.otp || '';
 
     const verifyOtpMutation = useVerifyOtp();
     const resendOtpMutation = useResendOtp();
@@ -43,14 +42,6 @@ const OtpVerify = () => {
     useEffect(() => {
         startCountdown(60);
     }, [startCountdown]);
-
-    // Auto-fill OTP if provided (for testing/development)
-    useEffect(() => {
-        if (initialOtp && input.current) {
-            setOtp(initialOtp);
-            input.current.setValue(initialOtp);
-        }
-    }, [initialOtp]);
 
     const insets = useSafeAreaInsets();
     const statusBarHeight = insets.top;
@@ -166,17 +157,9 @@ const OtpVerify = () => {
                 resetCountdown();
                 startCountdown(60);
 
-                // Clear OTP input
-                const newOtp = response.ResponseData?.otp || '';
-                if (newOtp && input.current) {
-                    setOtp(newOtp);
-                    input.current.setValue(newOtp);
-                } else {
-                    // Clear OTP input if no OTP in response
-                    setOtp('');
-                    if (input.current) {
-                        input.current.clear();
-                    }
+                setOtp('');
+                if (input.current) {
+                    input.current.clear();
                 }
             } else {
                 showToast({
@@ -226,6 +209,18 @@ const OtpVerify = () => {
                     >
                         {t('otpverify.subtitle')}
                     </CustomText>
+                    {email ? (
+                        <CustomText
+                            variant="h5"
+                            textAlign={'center'}
+                            color={Colors.whitetext}
+                            fontFamily={fonts.SEMI_BOLD}
+                            marginTop={theme.margins.sm}
+                            style={styles.emailText}
+                        >
+                            {email}
+                        </CustomText>
+                    ) : null}
 
                     <OTPTextView
                         ref={input}
@@ -289,12 +284,8 @@ const createStyles = (SH: any, SW: any, Colors: any, fonts: any, theme: any) =>
             marginTop: 8,
             color: Colors.whitetext,
         },
-        otpText: {
-            fontFamily: fonts.REGULAR,
+        emailText: {
             fontSize: SF(14),
-            textAlign: 'center',
-            marginTop: 8,
-            color: Colors.whitetext,
         },
         activeIndigator: { marginTop: 8 },
     });

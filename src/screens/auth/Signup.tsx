@@ -15,19 +15,26 @@ import { SCREEN_NAMES } from '@navigation';
 import { SignupStyle } from '@styles/screens';
 import { navigate } from '@utils/NavigationUtils';
 import { useThemeContext } from '@utils/theme';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRoute } from '@react-navigation/native';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSignup } from '@services/api/queries/authQueries';
+import { useValidateReferralCode } from '@services/api/queries/referralQueries';
 import { KeyboardFormScroll } from '@components/common';
 import regex from '@utils/regexList';
 import { isValidNationalPhoneNumber } from '@utils/phoneValidation';
 import type { SignupAddressSelection } from '@utils/address';
 
+function sanitizeReferralCode(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8);
+}
+
 const Signup = () => {
+  const route = useRoute<any>();
   const theme = useThemeContext();
   const { t } = useTranslation();
   const styles = SignupStyle(theme);
@@ -35,51 +42,69 @@ const Signup = () => {
   const [confirmPasswordVisibility, setConfirmPasswordVisibility] =
     useState(true);
   const [checked, setChecked] = useState(false);
+  const [isReferralValid, setIsReferralValid] = useState(false);
+  const [referralApiError, setReferralApiError] = useState('');
+  const [isValidatingReferral, setIsValidatingReferral] = useState(false);
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
 
   const signupMutation = useSignup();
+  const validateReferralMutation = useValidateReferralCode();
 
-  const validationSchema = Yup.object().shape({
-    name: Yup.string()
-      .min(3, t('validation.fullNameMinLength'))
-      .matches(regex.NAME_REGEX, t('validation.validFullName'))
-      .required(t('validation.emptyFullName')),
-    email: Yup.string()
-      .email(t('validation.validEmail'))
-      .required(t('validation.emptyEmail')),
-    phoneDialCode: Yup.string().required(),
-    phoneCountryIso2: Yup.string().required(),
-    nationalNumber: Yup.string()
-      .required(t('validation.emptyMobile'))
-      .test('phone-valid', t('validation.validMobile'), function (value) {
-        const iso = this.parent.phoneCountryIso2;
-        if (!iso || value == null || value === '') return false;
-        return isValidNationalPhoneNumber(String(value), String(iso));
+  const validationSchema = useMemo(
+    () =>
+      Yup.object().shape({
+        name: Yup.string()
+          .min(3, t('validation.fullNameMinLength'))
+          .matches(regex.NAME_REGEX, t('validation.validFullName'))
+          .required(t('validation.emptyFullName')),
+        email: Yup.string()
+          .email(t('validation.validEmail'))
+          .required(t('validation.emptyEmail')),
+        phoneDialCode: Yup.string().required(),
+        phoneCountryIso2: Yup.string().required(),
+        nationalNumber: Yup.string()
+          .required(t('validation.emptyMobile'))
+          .test('phone-valid', t('validation.validMobile'), function (value) {
+            const iso = this.parent.phoneCountryIso2;
+            if (!iso || value == null || value === '') return false;
+            return isValidNationalPhoneNumber(String(value), String(iso));
+          }),
+        referralCode: Yup.string()
+          .test('referral-length', t('referral.codeLength'), value => {
+            if (!value) return true;
+            return value.length === 8;
+          })
+          .test('referral-valid', t('referral.codeInvalid'), value => {
+            if (!value) return true;
+            if (value.length !== 8) return false;
+            return isReferralValid;
+          }),
+        password: Yup.string()
+          .matches(regex.PASSWORD, t('validation.passValid'))
+          .required(t('validation.emptyPassword')),
+        confirmPassword: Yup.string()
+          .oneOf([Yup.ref('password')], t('validation.notMatchConfirmPassword'))
+          .required(t('validation.emptyConfirmPassword')),
+        address: Yup.object({
+          formattedAddress: Yup.string().trim().required(),
+          cityName: Yup.string().trim().required(),
+          countryName: Yup.string().trim().required(),
+          countryIso2: Yup.string().trim().required(),
+          pincode: Yup.string().trim(),
+          coordinates: Yup.object({
+            lat: Yup.number().required(),
+            lng: Yup.number().required(),
+          }).required(),
+        })
+          .nullable()
+          .required(t('signup.addressRequired')),
+        acceptTerms: Yup.boolean()
+          .oneOf([true], t('messages.acceptTermCond'))
+          .required(t('messages.acceptTermCond')),
       }),
-    password: Yup.string()
-      .matches(regex.PASSWORD, t('validation.passValid'))
-      .required(t('validation.emptyPassword')),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password')], t('validation.notMatchConfirmPassword'))
-      .required(t('validation.emptyConfirmPassword')),
-    address: Yup.object({
-      formattedAddress: Yup.string().trim().required(),
-      cityName: Yup.string().trim().required(),
-      countryName: Yup.string().trim().required(),
-      countryIso2: Yup.string().trim().required(),
-      pincode: Yup.string().trim(),
-      coordinates: Yup.object({
-        lat: Yup.number().required(),
-        lng: Yup.number().required(),
-      }).required(),
-    })
-      .nullable()
-      .required(t('signup.addressRequired')),
-    acceptTerms: Yup.boolean()
-      .oneOf([true], t('messages.acceptTermCond'))
-      .required(t('messages.acceptTermCond')),
-  });
+    [isReferralValid, t],
+  );
 
   const formik = useFormik({
     initialValues: {
@@ -88,12 +113,14 @@ const Signup = () => {
       phoneDialCode: '+91',
       phoneCountryIso2: 'in',
       nationalNumber: '',
+      referralCode: sanitizeReferralCode(String(route.params?.ref || '')),
       password: '',
       confirmPassword: '',
       address: null as SignupAddressSelection | null,
       acceptTerms: false,
     },
     validationSchema,
+    enableReinitialize: false,
     onSubmit: async (values, { setSubmitting }) => {
       const addr = values.address;
       if (!addr) {
@@ -131,6 +158,9 @@ const Signup = () => {
           countryName: addr.countryName,
           countryIso2: addr.countryIso2,
           pincode: addr.pincode,
+          ...(values.referralCode && isReferralValid
+            ? { referralCode: values.referralCode }
+            : {}),
         };
 
         const response = await signupMutation.mutateAsync(signupData);
@@ -144,13 +174,11 @@ const Signup = () => {
           const rd = response.ResponseData as {
             email?: string;
             customerId?: string;
-            otp?: string;
           };
           navigate(SCREEN_NAMES.OTP_VERIFY, {
             prevScreen: 'signup',
-            email: rd?.email,
+            email: rd?.email ?? values.email,
             customerId: rd?.customerId,
-            otp: rd?.otp,
           });
         } else {
           showToast({
@@ -177,13 +205,89 @@ const Signup = () => {
     },
   });
 
+  const validateReferralCode = useCallback(
+    async (code: string) => {
+      if (code.length !== 8) return;
+
+      setIsValidatingReferral(true);
+      setReferralApiError('');
+      setIsReferralValid(false);
+
+      try {
+        const response = await validateReferralMutation.mutateAsync({
+          referralCode: code,
+          userType: 'customer',
+        });
+
+        if (response.succeeded) {
+          setIsReferralValid(true);
+          setReferralApiError('');
+        } else {
+          setIsReferralValid(false);
+          setReferralApiError(
+            response.ResponseMessage || t('referral.codeInvalid'),
+          );
+        }
+      } catch (error: any) {
+        setIsReferralValid(false);
+        setReferralApiError(
+          error?.response?.data?.ResponseMessage ||
+            error?.message ||
+            t('referral.codeInvalid'),
+        );
+      } finally {
+        setIsValidatingReferral(false);
+      }
+    },
+    [t, validateReferralMutation],
+  );
+
+  const handleReferralCodeChange = useCallback(
+    (text: string) => {
+      const sanitized = sanitizeReferralCode(text);
+      formik.setFieldValue('referralCode', sanitized);
+
+      if (sanitized.length !== 8) {
+        setIsReferralValid(false);
+        setReferralApiError('');
+        setIsValidatingReferral(false);
+        return;
+      }
+
+      void validateReferralCode(sanitized);
+    },
+    [formik, validateReferralCode],
+  );
+
+  useEffect(() => {
+    const prefilled = sanitizeReferralCode(String(route.params?.ref || ''));
+    if (prefilled.length === 8) {
+      void validateReferralCode(prefilled);
+    }
+  }, [route.params?.ref, validateReferralCode]);
+
+  const referralErrorText = useMemo(() => {
+    if (formik.touched.referralCode && formik.errors.referralCode) {
+      return String(formik.errors.referralCode);
+    }
+    if (referralApiError) return referralApiError;
+    return '';
+  }, [
+    formik.touched.referralCode,
+    formik.errors.referralCode,
+    referralApiError,
+  ]);
+
   const handleFormSubmit = () => {
+    if (isValidatingReferral) return;
+
     formik.setTouched({
       name: true,
       email: true,
       phoneDialCode: true,
       phoneCountryIso2: true,
       nationalNumber: true,
+      referralCode: true,
       password: true,
       confirmPassword: true,
       address: true,
@@ -286,6 +390,52 @@ const Signup = () => {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+
+          <View>
+            <CustomInput
+              placeholder={t('signup.referralCodePlaceholder')}
+              errortext={referralErrorText}
+              inputTheme={'white'}
+              value={formik.values.referralCode}
+              onChangeText={handleReferralCodeChange}
+              onBlur={formik.handleBlur('referralCode')}
+              marginTop={theme.SH(15)}
+              maxLength={8}
+              autoCapitalize="characters"
+            />
+            {isValidatingReferral ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginTop: theme.SH(6),
+                  gap: theme.SW(8),
+                }}
+              >
+                <ActivityIndicator
+                  size="small"
+                  color={theme.colors.white}
+                />
+                <CustomText
+                  fontSize={theme.fontSize.xxs}
+                  color={theme.colors.whitetext}
+                >
+                  {t('referral.validating')}
+                </CustomText>
+              </View>
+            ) : null}
+            {!isValidatingReferral &&
+            formik.values.referralCode.length === 8 &&
+            isReferralValid ? (
+              <CustomText
+                fontSize={theme.fontSize.xxs}
+                color={theme.colors.success || '#86efac'}
+                marginTop={5}
+              >
+                {t('referral.codeValid')}
+              </CustomText>
+            ) : null}
+          </View>
 
           <View style={styles.addressFieldContainer}>
             <Pressable
@@ -481,8 +631,16 @@ const Signup = () => {
             textColor={theme.colors.primary}
             marginTop={theme.SH(40)}
             onPress={handleFormSubmit}
-            isLoading={signupMutation.isPending || formik.isSubmitting}
-            disable={signupMutation.isPending || formik.isSubmitting}
+            isLoading={
+              signupMutation.isPending ||
+              formik.isSubmitting ||
+              isValidatingReferral
+            }
+            disable={
+              signupMutation.isPending ||
+              formik.isSubmitting ||
+              isValidatingReferral
+            }
           />
 
           <OrText />

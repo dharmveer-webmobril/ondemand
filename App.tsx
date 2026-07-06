@@ -10,11 +10,14 @@ import {
 import { StripeProvider } from '@stripe/stripe-react-native';
 import RootNavigator from './src/navigation/RootNavigator';
 import { StorageProvider, ThemeProvider } from '@utils/index';
+import { setFormattingLocaleSync } from '@utils/currency';
+import { mapI18nLanguageToIntlLocale } from './src/utils/langauage/locale';
 import i18next from 'i18next';
 import './src/utils/langauage/i18n';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider } from '@ui-kitten/components';
 import { store, persistor } from './src/store';
+import { setLanguage } from './src/store/slices/appSlice';
 import { queryClient } from './src/services/api/queryClient';
 import { STRIPE_PUBLISHABLE_KEY } from './src/config/stripe';
 import Toast from 'react-native-toast-message';
@@ -27,6 +30,7 @@ import {
 } from '@services/PushNotification';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { BiometricSetupProvider } from '@contexts/BiometricSetupContext';
+import { CurrencyProvider } from '@contexts/CurrencyContext';
 
 LogBox.ignoreLogs([
   'Open debugger to view warnings',
@@ -39,8 +43,11 @@ const App = () => {
     init();
   }, []);
   async function init() {
-    let language = await StorageProvider.getItem('language');
-    i18next.changeLanguage(language || 'en');
+    const language = await StorageProvider.getItem('language');
+    const lang = language || 'en';
+    i18next.changeLanguage(lang);
+    store.dispatch(setLanguage(lang));
+    setFormattingLocaleSync(mapI18nLanguageToIntlLocale(lang));
     await requestUserPermission();
     notificationListener();
   }
@@ -58,7 +65,9 @@ const App = () => {
                       <MenuProvider>
                         <ThemeProvider>
                           <BiometricSetupProvider>
-                            <RootNavigator />
+                            <CurrencyProvider>
+                              <RootNavigator />
+                            </CurrencyProvider>
                           </BiometricSetupProvider>
                         </ThemeProvider>
                       </MenuProvider>

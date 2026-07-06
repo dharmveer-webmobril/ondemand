@@ -77,6 +77,10 @@ export default {
     CUSTOMER_NOTIFICATION_SETTINGS1: '/notifications/customer/push-settings',
     CUSTOMER_EMAIL_NOTIFICATION_SETTINGS: '/notifications/customer/email-settings',
     CUSTOMER_SUPPORT: '/customer/support',
+    SUPPORT_TICKET_REPORT_TYPES: '/customer/support-tickets/report-types',
+    SUPPORT_TICKETS: '/customer/support-tickets',
+    SUPPORT_TICKET_DETAIL: (ticketId: string) =>
+        `/customer/support-tickets/${ticketId}`,
     DELETE_NOTIFICATION: (notificationId: string) => `/notifications/customer/${notificationId}`,
     CLEAR_NOTIFICATIONS: '/notifications/customer/',
     FAVORITE_SP: '/customer/favorite-sp',
@@ -88,4 +92,6 @@ export default {
         `/tracking/booked-service/${bookedServiceId}/link`,
     AI_ASSISTANT_HISTORY: '/customer/ai-assistant/history',
     AI_ASSISTANT_CHAT: '/customer/ai-assistant/chat',
+    CUSTOMER_REFERRAL_DASHBOARD: '/customer/referrals/dashboard',
+    PUBLIC_VALIDATE_REFERRAL: '/public/referrals/validate',
 };

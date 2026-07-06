@@ -143,7 +143,7 @@ export function centsToDisplay(
   currency = 'USD',
 ): string {
   const amount = Number(cents ?? 0) / 100;
-  return formatAmount(amount);
+  return formatAmount(amount, currency);
 }
 
 export function formatProRespondBy(iso: string | undefined | null): string {

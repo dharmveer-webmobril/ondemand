@@ -99,6 +99,7 @@ export interface SignupData {
   countryName: string;
   countryIso2: string;
   pincode: string;
+  referralCode?: string;
 }
 
 export interface SignupResponse {

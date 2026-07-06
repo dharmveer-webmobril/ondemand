@@ -1,21 +1,19 @@
-export const formatAmount = (value: unknown): string => {
-  let amount: number;
+import {
+  formatCurrencyAmount,
+  formatDisplayAmount,
+  getFormattingLocale,
+} from './currency';
 
-  if (typeof value === 'number') {
-    amount = value;
-  } else if (typeof value === 'string') {
-    const normalized = value.replace(/[^0-9.-]/g, '');
-    amount = Number(normalized);
-  } else {
-    amount = Number(value);
+export const formatAmount = (
+  value: unknown,
+  currencyCode?: string,
+): string => {
+  if (currencyCode) {
+    return formatCurrencyAmount(
+      Number(value) || 0,
+      currencyCode,
+      getFormattingLocale(),
+    );
   }
-
-  if (!Number.isFinite(amount)) {
-    amount = 0;
-  }
-
-  const rounded = Math.round((Math.abs(amount) + Number.EPSILON) * 100) / 100;
-  const formatted = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2);
-  return `${amount < 0 ? '-' : ''}$${formatted}`;
+  return formatDisplayAmount(value);
 };
-

@@ -59,10 +59,12 @@ export const SCREEN_NAMES = {
   NOTIFICATIONS: 'Notifications',
   NOTIFICATIONS_ALERTS: 'NotificationsAlerts',
   CUSTOMER_SUPPORT: 'CustomerSupport',
+  CREATE_SUPPORT_TICKET: 'CreateSupportTicket',
+  SUPPORT_TICKET_DETAIL: 'SupportTicketDetail',
   SECURITY_SETTINGS: 'SecuritySettings',
   LANGUAGE_SETTINGS: 'LanguageSettings',
-  MULTI_LANGUAGE_CURRENCY: 'MultiLanguageCurrency',
   FAVORITE_PROVIDERS: 'FavoriteProviders',
+  REFER_EARN: 'ReferEarn',
   /** Home → voice + assistant search for services / providers */
   HOME_QUICK_VOICE: 'HomeQuickVoice',
 } as const;

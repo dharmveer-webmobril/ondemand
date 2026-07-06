@@ -867,7 +867,7 @@ export default function AddressAdd() {
         <View
           style={[
             styles.buttonContainer,
-            { paddingBottom: bottomButtonPadding },
+            // { paddingBottom: bottomButtonPadding },
           ]}
         >
           <CustomButton
@@ -940,7 +940,7 @@ const createStyles = (theme: ThemeType) =>
     },
     buttonContainer: {
       paddingHorizontal: theme.SW(20),
-      paddingBottom: theme.SH(24),
+      paddingBottom: theme.SH(10),
       paddingTop: theme.SH(8),
       backgroundColor: theme.colors.white,
       borderTopWidth: StyleSheet.hairlineWidth,

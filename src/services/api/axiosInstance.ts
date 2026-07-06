@@ -3,6 +3,7 @@ import { store } from '@store/index';
 import { setIsUserActiveOrNotModal, setInactiveMessage } from '@store/slices/appSlice';
 import SCREEN_NAMES from '@navigation/ScreenNames';
 import { navigationRef } from '@utils/NavigationUtils';
+import { getApiLocaleHeaders } from '@utils/apiLocaleHeaders';
 
 // Base URL - Update this with your API base URL
 export const BASE_URL = 'https://indoredev.webmobrildemo.com:10054/api';
@@ -25,12 +26,16 @@ axiosInstance.interceptors.request.use(
     }
 
     const isFormData = config.data instanceof FormData;
-    // console.log('isFormData-----', isFormData);
     if (isFormData) {
-      config.headers['Content-Type'] = 'multipart/form-data';
+      config.headers.set('Content-Type', 'multipart/form-data');
     } else {
       config.headers['Content-Type'] = 'application/json';
     }
+
+    const localeHeaders = getApiLocaleHeaders();
+    config.headers['X-Currency'] = localeHeaders['X-Currency'];
+    config.headers['X-Country-Iso2'] = localeHeaders['X-Country-Iso2'];
+    config.headers['Accept-Language'] = localeHeaders['Accept-Language'];
 
     console.log('AXIOS REQUEST', {
       url: config.url,
@@ -51,7 +56,9 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
+    console.log('AXIOS ERROR RESPONSE----', error);
     console.log('AXIOS ERROR RESPONSE------logout', error.response?.data);
+
     if (error.response?.status === 401) {
       const currentRoute = navigationRef.getCurrentRoute();
       const isLoginScreen = currentRoute?.name === SCREEN_NAMES.LOGIN || currentRoute?.name === SCREEN_NAMES.SIGNUP || currentRoute?.name === SCREEN_NAMES.OTP_VERIFY || currentRoute?.name === SCREEN_NAMES.CHANGE_PASSWORD;

@@ -5,4 +5,6 @@ export * from './api/queries/appQueries';
 export * from './api/queries/notificationQueries';
 export * from './api/queries/chatQueries';
 export * from './api/queries/aiAssistantQueries';
+export * from './api/queries/referralQueries';
+export * from './api/queries/supportTicketQueries';
 

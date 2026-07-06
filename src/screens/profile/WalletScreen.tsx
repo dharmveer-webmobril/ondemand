@@ -207,6 +207,7 @@ export default function WalletScreen() {
     page,
     limit: PAGE_SIZE,
   });
+console.log('transactionsDatatransactionsData',transactionsData);
 
   const {
     data: settlementData,
@@ -375,9 +376,7 @@ export default function WalletScreen() {
                   credit ? styles.txAmountCredit : styles.txAmountDebit,
                 ]}
               >
-                {/* {credit ? '+' : '−'} */}
-                {item.status === 'completed' && item.isRefund && '+'}
-                {item.status === 'completed' && !item.isRefund && '-'}{' '}
+                {item.entryType === "credit" ? '+ ' : '- '}
                 {formatAmount(amt)}
               </CustomText>
             </View>

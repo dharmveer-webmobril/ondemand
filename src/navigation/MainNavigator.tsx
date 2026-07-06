@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceDetail, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, RoutineBookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, TrackingWebViewScreen, WalletScreen, PaymentTransactionsScreen, NotificationsScreen, NotificationsAlerts, CustomerSupport, LanguageSettings, FavoriteProvidersScreen, HomeQuickVoiceScreen } from '@screens/index'
+import { ForgotPass, IntrestChoose, Login, OtpVerify, Signup, UpdatePass, TermsAndConditions, ChatScreen, ProfileSetup, ChangePassword, MyAddress, AddAddress, SelectAddress, CategoryProviders, CategoryList, FeaturedServicesList, ProviderDetailsScreen, ServiceDetail, ServiceFeePolicy, PaymentPolicy, Report, BookAppointment, BookingDetail, RoutineBookingDetail, Checkout, AddOtherPersonDetail, BookingSummery, PaymentWebViewScreen, TrackingWebViewScreen, WalletScreen, PaymentTransactionsScreen, ReferEarnScreen, NotificationsScreen, NotificationsAlerts, CustomerSupport, CreateSupportTicket, SupportTicketDetail, LanguageSettings, FavoriteProvidersScreen, HomeQuickVoiceScreen } from '@screens/index'
 import SecuritySettings from '@screens/settings/SecuritySettings'
 import SplashScreen from '@screens/splash/SplashScreen'
 import { navigationRef } from '@utils/NavigationUtils'
@@ -61,9 +61,12 @@ const MainNavigator = () => {
         <Stack.Screen name={SCREEN_NAMES.TRACKING_WEBVIEW} component={TrackingWebViewScreen} />
         <Stack.Screen name={SCREEN_NAMES.WALLET} component={WalletScreen} />
         <Stack.Screen name={SCREEN_NAMES.PAYMENT_TRANSACTIONS} component={PaymentTransactionsScreen} />
+        <Stack.Screen name={SCREEN_NAMES.REFER_EARN} component={ReferEarnScreen} />
         <Stack.Screen name={SCREEN_NAMES.NOTIFICATIONS} component={NotificationsScreen} />
         <Stack.Screen name={SCREEN_NAMES.NOTIFICATIONS_ALERTS} component={NotificationsAlerts} />
         <Stack.Screen name={SCREEN_NAMES.CUSTOMER_SUPPORT} component={CustomerSupport} />
+        <Stack.Screen name={SCREEN_NAMES.CREATE_SUPPORT_TICKET} component={CreateSupportTicket} />
+        <Stack.Screen name={SCREEN_NAMES.SUPPORT_TICKET_DETAIL} component={SupportTicketDetail} />
         <Stack.Screen name={SCREEN_NAMES.SECURITY_SETTINGS} component={SecuritySettings} />
         <Stack.Screen name={SCREEN_NAMES.LANGUAGE_SETTINGS} component={LanguageSettings as any} />
         <Stack.Screen name={SCREEN_NAMES.FAVORITE_PROVIDERS} component={FavoriteProvidersScreen} />

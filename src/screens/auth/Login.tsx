@@ -247,7 +247,6 @@ const Login = () => {
           navigate(SCREEN_NAMES.OTP_VERIFY, {
             prevScreen: 'signup',
             email: values.email,
-            otp: otp,
             note: note,
           });
         } else {

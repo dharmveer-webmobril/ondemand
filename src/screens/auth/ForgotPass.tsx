@@ -50,7 +50,6 @@ const ForgotPass = () => {
                     navigate(SCREEN_NAMES.OTP_VERIFY, {
                         prevScreen: 'forgotpass',
                         email: values.email,
-                        otp: response.ResponseData?.otp,
                     });
                 } else {
                     showToast({

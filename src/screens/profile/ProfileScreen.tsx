@@ -62,7 +62,7 @@ export default function ProfileScreen() {
       return [
         {
           id: '7',
-          label: t('profile.multiLanguageCurrency'),
+          label: t('profile.languageSettings'),
           icon: { name: 'language-outline', icon: 'Ionicons' },
         },
         {
@@ -80,11 +80,7 @@ export default function ProfileScreen() {
     }
 
     return [
-      {
-        id: 'security',
-        label: t('profile.securitySettings'),
-        icon: { name: 'shield-checkmark-outline', icon: 'Ionicons' },
-      },
+     
       {
         id: '2',
         label: t('profile.changePassword'),
@@ -112,12 +108,17 @@ export default function ProfileScreen() {
       },
       {
         id: '6',
-        label: t('profile.loyaltyReferralDiscounts'),
+        label: t('profile.referAndEarn'),
         icon: { name: 'gift-outline', icon: 'Ionicons' },
       },
       {
+        id: 'security',
+        label: t('profile.securitySettings'),
+        icon: { name: 'shield-checkmark-outline', icon: 'Ionicons' },
+      },
+      {
         id: '7',
-        label: t('profile.multiLanguageCurrency'),
+        label: t('profile.languageSettings'),
         icon: { name: 'language-outline', icon: 'Ionicons' },
       },
       {
@@ -162,6 +163,8 @@ export default function ProfileScreen() {
       navigation.navigate(SCREEN_NAMES.PAYMENT_TRANSACTIONS as never);
     } else if (item.id === 'wallet') {
       navigation.navigate(SCREEN_NAMES.WALLET as never);
+    } else if (item.id === '6') {
+      navigation.navigate(SCREEN_NAMES.REFER_EARN as never);
     } else if (item.id === '9') {
       navigation.navigate(SCREEN_NAMES.CUSTOMER_SUPPORT as never);
     } else if (item.id === '8') {

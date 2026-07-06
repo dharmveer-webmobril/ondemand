@@ -11,6 +11,7 @@
 		118B6BC717B448D7B030D15C /* Chivo-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 259FA0C147DD4C0588AA901B /* Chivo-SemiBold.ttf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		14E19092A97B4010AD0F521C /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B985AC3B573448D7940A8323 /* Inter-Regular.ttf */; };
+		1A525BC583874D2090560E64 /* Kanit-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */; };
 		287188CE6CFB809899CA9803 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		5CBDD905415E424D90404909 /* Chivo-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C9418988DE743558720C18C /* Chivo-Medium.ttf */; };
 		69D4C737FFF844C0A0C5C8CF /* Chivo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 78A6F3F4F90A4884B00BE812 /* Chivo-Regular.ttf */; };
@@ -30,7 +31,6 @@
 		CC660EDF00344EF0A7638A32 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C00B3F8B9324B2699DF1B79 /* Inter-Medium.ttf */; };
 		D66E1C4E1E7A4D79BCEC720D /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EFA936552AB44AD89F3B0CF2 /* Inter-Bold.ttf */; };
 		F0513C7D022C4FE0BE81ABB1 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2D2380D256341678A5501F4 /* Inter-SemiBold.ttf */; };
-		1A525BC583874D2090560E64 /* Kanit-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +45,7 @@
 		2C9418988DE743558720C18C /* Chivo-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Chivo-Medium.ttf"; path = "../src/assets/fonts/Chivo-Medium.ttf"; sourceTree = "<group>"; };
 		3A86EDB87E724B88A9CAE98B /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Medium.ttf"; path = "../src/assets/fonts/PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Squedio.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Squedio.debug.xcconfig"; path = "Target Support Files/Pods-Squedio/Pods-Squedio.debug.xcconfig"; sourceTree = "<group>"; };
+		54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Kanit-SemiBold.ttf"; path = "../src/assets/fonts/Kanit-SemiBold.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Squedio.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Squedio.release.xcconfig"; path = "Target Support Files/Pods-Squedio/Pods-Squedio.release.xcconfig"; sourceTree = "<group>"; };
 		5882615F46524019BE13CEF5 /* Inter_28pt-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_28pt-Regular.ttf"; path = "../src/assets/fonts/Inter_28pt-Regular.ttf"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-Squedio.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Squedio.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -62,7 +63,6 @@
 		E57EDB6F66EF48E59D60316B /* Inter-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Light.ttf"; path = "../src/assets/fonts/Inter-Light.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EFA936552AB44AD89F3B0CF2 /* Inter-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Bold.ttf"; path = "../src/assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; };
-		54B66C4EE4F6488FABDBCFD2 /* Kanit-SemiBold.ttf */ = {isa = PBXFileReference; name = "Kanit-SemiBold.ttf"; path = "../src/assets/fonts/Kanit-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
