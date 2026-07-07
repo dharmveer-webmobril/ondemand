@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle, TextStyle } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { formatDistanceKmAway } from '@utils/tools';
 import CustomText from './CustomText';
@@ -21,8 +22,9 @@ export default function DistanceLabel({
   iconColor,
 }: DistanceLabelProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const label = formatDistanceKmAway(distanceKm);
+  const label = formatDistanceKmAway(distanceKm, t);
 
   if (!label) {
     return null;

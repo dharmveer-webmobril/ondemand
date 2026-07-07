@@ -169,7 +169,7 @@ export default function AddressSelectionModal({
 
               <Pressable style={styles.addButton} onPress={handleAddNewAddress}>
                 <CustomText style={styles.addButtonText}>
-                  + Add New Address
+                  {t('myAddress.addNewAddress')}
                 </CustomText>
               </Pressable>
 
@@ -180,16 +180,16 @@ export default function AddressSelectionModal({
                     color={theme.colors.primary}
                   />
                   <CustomText style={styles.loaderText}>
-                    Loading addresses...
+                    {t('home.loadingAddresses')}
                   </CustomText>
                 </View>
               ) : addresses.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <CustomText style={styles.emptyText}>
-                    No addresses found
+                    {t('myAddress.notFound')}
                   </CustomText>
                   <CustomText style={styles.emptySubtext}>
-                    Please add an address to continue
+                    {t('checkout.addAddressToContinue')}
                   </CustomText>
                 </View>
               ) : (
@@ -203,7 +203,7 @@ export default function AddressSelectionModal({
               )}
 
               <CustomButton
-                title={t('category.confirm') || 'Confirm'}
+                title={t('category.confirm')}
                 onPress={handleConfirm}
                 buttonStyle={styles.confirmButton}
                 backgroundColor={theme.colors.primary}

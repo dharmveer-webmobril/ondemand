@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import i18next from 'i18next';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -75,7 +76,8 @@ function dedupeMembers(services: ServiceLike[]): MemberRef[] {
     const id = typeof m === 'object' ? m?._id : m;
     if (!id) return;
     const name =
-      (typeof m === 'object' && (m?.name || m?.fullName)) || 'Member';
+      (typeof m === 'object' && (m?.name || m?.fullName)) ||
+      i18next.t('bookingDetail.rateReview.memberFallback');
     const profileImage =
       typeof m === 'object' ? m?.profileImage ?? null : null;
     if (!map.has(String(id))) {

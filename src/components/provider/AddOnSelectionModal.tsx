@@ -220,7 +220,7 @@ export default function AddOnSelectionModal({
               {(Array.isArray(addOns) ? addOns : []).length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <CustomText style={styles.emptyText}>
-                    No add-ons available
+                    {t('bookingDetail.addOns.emptyShort')}
                   </CustomText>
                 </View>
               ) : (
@@ -234,7 +234,7 @@ export default function AddOnSelectionModal({
               )}
 
               <CustomButton
-                title={t('category.confirm') || 'Confirm'}
+                title={t('category.confirm')}
                 onPress={handleConfirm}
                 buttonStyle={styles.confirmButton}
                 backgroundColor={theme.colors.primary}

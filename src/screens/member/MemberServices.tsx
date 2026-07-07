@@ -34,12 +34,15 @@ export default function MemberServices() {
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const tabs = [
-    { id: 1, name: 'Today', type: 'today' },
-    { id: 2, name: 'Upcoming', type: 'upcoming' },
-    { id: 3, name: 'Completed', type: 'completed' },
-    { id: 4, name: 'Pending', type: 'pending' },
-  ];
+  const tabs = useMemo(
+    () => [
+      { id: 1, name: t('member.today'), type: 'today' },
+      { id: 2, name: t('member.upcoming'), type: 'upcoming' },
+      { id: 3, name: t('member.completed'), type: 'completed' },
+      { id: 4, name: t('member.pending'), type: 'pending' },
+    ],
+    [t],
+  );
 
   // Mock data - replace with actual API data
   const allServices: Service[] = [
@@ -148,6 +151,19 @@ export default function MemberServices() {
     console.log('View service:', serviceId);
   }, []);
 
+  const getStatusLabel = (status: ServiceStatus) => {
+    switch (status) {
+      case 'Upcoming':
+        return t('member.upcoming');
+      case 'Completed':
+        return t('member.completed');
+      case 'Pending':
+        return t('member.pending');
+      default:
+        return status;
+    }
+  };
+
   const getStatusColor = (status: ServiceStatus) => {
     switch (status) {
       case 'Completed':
@@ -239,7 +255,7 @@ export default function MemberServices() {
             fontFamily={theme.fonts.SEMI_BOLD}
             color={theme.colors.white}
           >
-            {item.status}
+            {getStatusLabel(item.status)}
           </CustomText>
         </View>
       </View>

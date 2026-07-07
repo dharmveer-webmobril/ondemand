@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import {
   CustomText,
@@ -99,7 +100,8 @@ function dedupeMembers(services: ServiceLike[]): Array<{
     const id = typeof m === 'object' ? m?._id : m;
     if (!id) return;
     const name =
-      (typeof m === 'object' && (m?.name || m?.fullName)) || 'Member';
+      (typeof m === 'object' && (m?.name || m?.fullName)) ||
+      i18next.t('bookingDetail.rateReview.memberFallback');
     const profileImage = typeof m === 'object' ? m?.profileImage ?? null : null;
     if (!map.has(String(id))) {
       map.set(String(id), { id: String(id), name: String(name), profileImage });

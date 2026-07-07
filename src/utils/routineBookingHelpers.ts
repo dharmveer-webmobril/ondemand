@@ -4,6 +4,9 @@ import { ROUTINE_MIN_SESSIONS } from '@utils/routineVolumeDiscount';
 import { formatAmount } from '@utils/formatAmount';
 import { getSelectedAddOnPricing } from '@screens/booking/checkoutHelpers';
 
+import i18next from 'i18next';
+import type { TFunction } from 'i18next';
+
 export type RoutineStatusFilter =
   | ''
   | 'pending'
@@ -158,10 +161,15 @@ export function formatProRespondBy(iso: string | undefined | null): string {
   }
 }
 
-export function getTimeLeftForProRespond(iso: string | undefined | null): {
+export function getTimeLeftForProRespond(
+  iso: string | undefined | null,
+  t?: TFunction,
+): {
   label: string;
   progress: number;
 } {
+  const translate = t ?? ((key: string, opts?: Record<string, unknown>) =>
+    i18next.t(key, opts));
   if (!iso) return { label: '', progress: 0 };
   const end = new Date(iso).getTime();
   const now = Date.now();
@@ -174,10 +182,10 @@ export function getTimeLeftForProRespond(iso: string | undefined | null): {
   const minutes = Math.floor((left % (60 * 60 * 1000)) / (60 * 1000));
   const label =
     left <= 0
-      ? '0m left'
+      ? translate('routineBooking.timeLeftZero')
       : hours > 0
-        ? `${hours}h ${minutes}m left`
-        : `${minutes}m left`;
+        ? translate('routineBooking.timeLeftHoursMinutes', { hours, minutes })
+        : translate('routineBooking.timeLeftMinutes', { minutes });
 
   return { label, progress };
 }

@@ -1,5 +1,6 @@
 import { Colors } from './theme';
 import { Platform, Alert } from 'react-native';
+import i18next from 'i18next';
 import {
   check,
   request,
@@ -41,7 +42,7 @@ const formatBookingAddress = (booking: any): string => {
     if (addr.landmark) parts.push(addr.landmark);
     return parts.join(', ');
   }
-  return 'Address not available';
+  return i18next.t('bookingList.addressNotAvailable');
 };
 
 // Map API booking status to display-friendly status
@@ -348,11 +349,16 @@ export function formatBookingDisplayDate(
 /** Formats API `distanceKm` for UI (e.g. "0.15 km away", "6.9 km away"). */
 export function formatDistanceKmAway(
   km: number | undefined | null,
+  t?: (key: string, options?: Record<string, unknown>) => string,
 ): string | null {
   if (km == null || typeof km !== 'number' || !Number.isFinite(km) || km < 0) {
     return null;
   }
-  return km < 1 ? `${km.toFixed(2)} km away` : `${km.toFixed(1)} km away`;
+  const distance = km < 1 ? km.toFixed(2) : km.toFixed(1);
+  if (t) {
+    return t('common.distanceKmAway', { distance });
+  }
+  return i18next.t('common.distanceKmAway', { distance });
 }
 
 export function formatProviderName(name: string): string {

@@ -155,7 +155,7 @@ export default function ProfileSetup() {
         console.error('Update profile error:', error);
         showToast({
           type: 'error',
-          title: t('messages.error') || 'Error',
+          title: t('messages.error'),
           message: error?.response?.data?.ResponseMessage || t('messages.somethingWentWrong') || 'Failed to update profile. Please try again.',
         });
       }
@@ -179,7 +179,7 @@ export default function ProfileSetup() {
         if (firstError) {
           showToast({
             type: 'error',
-            title: t('messages.error') || 'Error',
+            title: t('messages.error'),
             message: firstError as string,
           });
         }
@@ -203,7 +203,7 @@ export default function ProfileSetup() {
       } else {
         showToast({
           type: 'error',
-          title: t('messages.error') || 'Error',
+          title: t('messages.error'),
           message: response.ResponseMessage || t('profile.imageUploadFailed') || 'Failed to upload image. Please try again.',
         });
       }
@@ -274,7 +274,7 @@ export default function ProfileSetup() {
               style={styles.label}
               fontFamily={theme.fonts.MEDIUM}
             >
-              Full Name
+              {t('profile.fullName')}
             </CustomText>
             <CustomInput
               placeholder={t('placeholders.enterFullName')}
@@ -294,7 +294,7 @@ export default function ProfileSetup() {
               style={styles.label}
               fontFamily={theme.fonts.MEDIUM}
             >
-              {t('profile.mobileNumber') || 'Mobile Number'}
+              {t('profile.mobileNumber')}
             </CustomText>
             <PhoneCountryPicker
               inputTheme="default"
@@ -330,7 +330,7 @@ export default function ProfileSetup() {
               style={styles.label}
               fontFamily={theme.fonts.MEDIUM}
             >
-              Email ID
+              {t('profile.emailID')}
             </CustomText>
             <CustomInput
               placeholder={t('placeholders.enterEmail')}

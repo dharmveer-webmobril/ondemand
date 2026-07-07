@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import i18next from 'i18next';
 import axiosInstance from '../axiosInstance';
 import EndPoints from '../EndPoints';
 
@@ -243,7 +244,7 @@ export function getSupportTicketReportTypeName(ticket: SupportTicket): string {
   if (ticket.reportType && typeof ticket.reportType === 'object') {
     return ticket.reportType.name || ticket.reportType.type || '—';
   }
-  if (ticket.isOtherReportType) return 'Other';
+  if (ticket.isOtherReportType) return i18next.t('supportTickets.otherReportType');
   return '—';
 }
 

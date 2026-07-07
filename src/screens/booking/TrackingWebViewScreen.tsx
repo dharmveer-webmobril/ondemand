@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { WebView } from 'react-native-webview';
 import { AppHeader, Container } from '@components/common';
 import { useThemeContext } from '@utils/theme';
@@ -14,9 +15,11 @@ export default function TrackingWebViewScreen() {
   const theme = useThemeContext();
   const route = useRoute<any>();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(), []);
 
-  const { trackingUrl, title = 'Track Member' } = (route.params || {}) as RouteParams;
+  const { trackingUrl, title } = (route.params || {}) as RouteParams;
+  const headerTitle = title || t('bookingDetails.serviceCard.trackMember');
 
   if (!trackingUrl) {
     return null;
@@ -25,7 +28,7 @@ export default function TrackingWebViewScreen() {
   return (
     <Container safeArea={true} style={styles.container}>
       <AppHeader
-        title={title}
+        title={headerTitle}
         onLeftPress={() => navigation.goBack()}
         backgroundColor={theme.colors.background}
         tintColor={theme.colors.text}

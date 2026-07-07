@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import type { AiAssistantAction } from '@services/api/queries/aiAssistantQueries';
@@ -69,6 +70,7 @@ export default function AssistantMessageContent({
   contextSpId,
 }: Props) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const text = isUser ? String(content || '') : cleanAssistantText(content);
   const bodySize = theme.fontSize.sm;
@@ -248,7 +250,7 @@ export default function AssistantMessageContent({
                 fontFamily={theme.fonts.SEMI_BOLD}
                 color={theme.colors.white}
               >
-                {a.label || 'Book now'}
+                {a.label || t('home.assistantBookNow')}
               </CustomText>
             </Pressable>
           ))}

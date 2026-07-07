@@ -242,7 +242,7 @@ export default function ServiceSelectionModal({
               />
 
               <CustomButton
-                title={t('category.confirm') || 'Confirm'}
+                title={t('category.confirm')}
                 onPress={handleConfirm}
                 buttonStyle={styles.confirmButton}
                 backgroundColor={theme.colors.primary}

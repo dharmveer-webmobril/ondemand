@@ -43,9 +43,9 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             message:
               t('imagePickerModal.cameraPermissionMessage') ||
               'App needs access to your camera',
-            buttonNeutral: t('imagePickerModal.askMeLater') || 'Ask Me Later',
-            buttonNegative: t('imagePickerModal.cancel') || 'Cancel',
-            buttonPositive: t('imagePickerModal.ok') || 'OK',
+            buttonNeutral: t('imagePickerModal.askMeLater'),
+            buttonNegative: t('imagePickerModal.cancel'),
+            buttonPositive: t('imagePickerModal.ok'),
           },
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -61,7 +61,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert(
-        t('imagePickerModal.permissionDenied') || 'Permission Denied',
+        t('imagePickerModal.permissionDenied'),
         t('imagePickerModal.cameraPermissionRequired') ||
           'Camera permission is required to capture images.',
       );
@@ -84,7 +84,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.warn('Camera error:', error);
         Alert.alert(
-          t('messages.error') || 'Error',
+          t('messages.error'),
           t('imagePickerModal.cameraError') ||
             'Failed to capture image. Please try again.',
         );
@@ -109,7 +109,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.warn('Gallery error:', error);
         Alert.alert(
-          t('messages.error') || 'Error',
+          t('messages.error'),
           t('imagePickerModal.galleryError') ||
             'Failed to select image. Please try again.',
         );
@@ -133,7 +133,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
           >
             <View style={styles.content}>
               <CustomText style={styles.title}>
-                {t('imagePickerModal.title') || 'Select Image'}
+                {t('imagePickerModal.title')}
               </CustomText>
 
               <View style={styles.divider} />
@@ -178,7 +178,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             <View style={styles.cancelButtonContainer}>
               <CustomButton
                 onPress={onClose}
-                title={t('imagePickerModal.cancel') || 'Cancel'}
+                title={t('imagePickerModal.cancel')}
                 buttonStyle={styles.cancelButton}
                 buttonTextStyle={styles.cancelButtonText}
                 backgroundColor={theme.colors.white}

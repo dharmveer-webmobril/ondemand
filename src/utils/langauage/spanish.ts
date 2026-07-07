@@ -202,6 +202,69 @@ export const spanish = {
       "validDescription": "La descripción debe tener al menos 10 caracteres"
     }
   },
+  "supportTickets": {
+    "title": "Ayuda y soporte",
+    "subtitle": "Sigue y gestiona tus solicitudes de soporte.",
+    "newTicket": "+ Nuevo ticket",
+    "raiseTicket": "Crear ticket de soporte",
+    "ticketDetail": "Detalles del ticket",
+    "filterAll": "Todos",
+    "filterOpen": "Abierto",
+    "filterInProgress": "En progreso",
+    "filterResolved": "Resuelto",
+    "filterClosed": "Cerrado",
+    "empty": "Aún no hay tickets de soporte.",
+    "emptyFiltered": "No se encontraron tickets {{status}}.",
+    "loadError": "No se pudieron cargar los tickets. Inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "ticketNotFound": "Ticket no encontrado.",
+    "statusProgress": "Progreso del estado",
+    "currentStep": "Paso actual",
+    "ticketInfo": "Información del ticket",
+    "fieldStatus": "Estado",
+    "generalType": "General",
+    "noDescription": "No se proporcionó descripción.",
+    "submitted": "Enviado",
+    "description": "Descripción",
+    "adminResponse": "Respuesta del administrador",
+    "attachments": "Adjuntos",
+    "attachmentN": "Adjunto {{n}}",
+    "fieldTitle": "Título",
+    "fieldTitlePlaceholder": "Breve resumen de tu problema",
+    "fieldReportType": "Tipo de reporte",
+    "fieldReportTypePlaceholder": "Seleccionar tipo de reporte",
+    "fieldPriority": "Prioridad",
+    "fieldDescription": "Descripción",
+    "fieldDescriptionPlaceholder": "Describe tu problema en detalle",
+    "attachmentsOptional": "Adjuntos (opcional)",
+    "attachmentsHint": "Máx. 2 archivos, 5 MB cada uno",
+    "uploadFiles": "Subir archivos",
+    "cancel": "Cancelar",
+    "submitTicket": "Enviar ticket",
+    "createSuccess": "Ticket de soporte enviado correctamente",
+    "createError": "No se pudo enviar el ticket de soporte",
+    "loading": "Cargando...",
+    "otherReportType": "Otro",
+    "maxAttachments": "Puedes adjuntar hasta {{count}} archivos",
+    "fileTooLarge": "Cada archivo debe ser de 5 MB o menos",
+    "pickFileError": "No se pudo seleccionar el archivo. Inténtalo de nuevo.",
+    "errors": {
+      "titleRequired": "El título es obligatorio",
+      "descriptionRequired": "La descripción es obligatoria",
+      "reportTypeRequired": "Selecciona un tipo de reporte"
+    },
+    "status": {
+      "open": "Abierto",
+      "in_progress": "En progreso",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "priority": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    }
+  },
   "logoutPopup": {
     "heading": "Cerrar sesión",
     "subtitle": "¿Estás seguro de que quieres cerrar sesión?",
@@ -1092,7 +1155,10 @@ export const spanish = {
     "phoneNotSupported": "Las llamadas telefónicas no son compatibles con este dispositivo",
     "unableToCall": "No se puede realizar la llamada",
     "loading": "Cargando...",
-    "noData": "No hay datos disponibles"
+    "noData": "No hay datos disponibles",
+    "unauthorized": "No estás autorizado para acceder a este recurso",
+    "verifiedUser": "Usuario verificado",
+    "distanceKmAway": "{{distance}} km de distancia"
   },
   "bookingDetail": {
     "rescheduleAccepted": "Reprogramación aceptada",

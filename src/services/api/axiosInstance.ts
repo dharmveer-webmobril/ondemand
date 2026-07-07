@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import i18next from 'i18next';
 import { store } from '@store/index';
 import { setIsUserActiveOrNotModal, setInactiveMessage } from '@store/slices/appSlice';
 import SCREEN_NAMES from '@navigation/ScreenNames';
@@ -61,10 +62,18 @@ axiosInstance.interceptors.response.use(
 
     if (error.response?.status === 401) {
       const currentRoute = navigationRef.getCurrentRoute();
-      const isLoginScreen = currentRoute?.name === SCREEN_NAMES.LOGIN || currentRoute?.name === SCREEN_NAMES.SIGNUP || currentRoute?.name === SCREEN_NAMES.OTP_VERIFY || currentRoute?.name === SCREEN_NAMES.CHANGE_PASSWORD;
-      if (!isLoginScreen) {
+      const isAuthScreen =
+        currentRoute?.name === SCREEN_NAMES.LOGIN ||
+        currentRoute?.name === SCREEN_NAMES.SIGNUP ||
+        currentRoute?.name === SCREEN_NAMES.OTP_VERIFY ||
+        currentRoute?.name === SCREEN_NAMES.CHANGE_PASSWORD;
+      const isSplashScreen = currentRoute?.name === SCREEN_NAMES.SPLASH;
+      const hasToken = !!store.getState().auth.token;
+
+      // Skip modal during splash / before token hydration, or when no session exists.
+      if (!isAuthScreen && !isSplashScreen && hasToken) {
         store.dispatch(setIsUserActiveOrNotModal(true));
-        store.dispatch(setInactiveMessage('You are not authorized to access this resource'));
+        store.dispatch(setInactiveMessage(i18next.t('common.unauthorized')));
       }
     }
 

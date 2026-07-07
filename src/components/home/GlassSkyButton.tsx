@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pressable,
   StyleProp,
@@ -44,6 +45,7 @@ export default function GlassSkyButton({
   style,
   accessibilityLabel,
 }: GlassSkyButtonProps) {
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
   const float = useSharedValue(0);
 
@@ -98,7 +100,7 @@ export default function GlassSkyButton({
         {icon}
         {showAiBadge ? (
           <View style={styles.aiBadge}>
-            <CustomText style={styles.aiBadgeText}>AI</CustomText>
+            <CustomText style={styles.aiBadgeText}>{t('home.aiBadge')}</CustomText>
           </View>
         ) : null}
       </View>

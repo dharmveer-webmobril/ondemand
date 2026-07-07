@@ -308,7 +308,7 @@ export default function ServiceSummeryCard({
                                                             color={theme.colors.primary}
                                                             style={styles.callButtonText}
                                                         >
-                                                            Call
+                                                            {t('providerDetails.call')}
                                                         </CustomText>
                                                     </Pressable>
                                                 )}

@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText, ImageLoader } from '@components/common';
 import StarRating from 'react-native-star-rating-widget';
@@ -24,6 +25,7 @@ export default function ReviewItem({
   isVerified = false,
 }: ReviewItemProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
@@ -42,7 +44,7 @@ export default function ReviewItem({
             {isVerified ? (
               <View style={styles.verifiedBadge}>
                 <CustomText style={styles.verifiedText}>
-                  Verified User
+                  {t('common.verifiedUser')}
                 </CustomText>
               </View>
             ) : null}

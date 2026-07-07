@@ -18,11 +18,13 @@ import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
 import { isGuestUser } from '@utils/guest/guestAuth';
 import { hydrateAuthToken } from '@services/auth/authTokenService';
 import { authenticateWithBiometrics } from '@services/auth/biometricService';
+import { useTranslation } from 'react-i18next';
 
 const SPLASH_ANIMATION_SAFETY_MS = SPLASH_LOTTIE_DURATION_MS + 2000;
 
 export default function SplashScreen() {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [animationFinished, setAnimationFinished] = useState(false);
@@ -109,7 +111,7 @@ export default function SplashScreen() {
 
     (async () => {
       try {
-        await authenticateWithBiometrics('Authenticate to access your account');
+        await authenticateWithBiometrics(t('biometric.splashPromptMessage'));
         setBiometricVerified(true);
       } catch {
         navigatedRef.current = true;
@@ -154,6 +156,7 @@ export default function SplashScreen() {
     if (isGuestUser(state.userDetails, state.isGuest)) {
       navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.HOME);
+      setTimeout(() => tryOpenPendingProviderProfile(), 600);
       return;
     }
 

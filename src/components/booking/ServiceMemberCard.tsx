@@ -120,7 +120,7 @@ export default function ServiceMemberCard({
                       color={theme.colors.primary}
                       style={styles.actionText}
                     >
-                      Call
+                      {t('providerDetails.call')}
                     </CustomText>
                   </Pressable>
                   <Pressable
@@ -139,7 +139,7 @@ export default function ServiceMemberCard({
                       color={theme.colors.primary}
                       style={styles.actionText}
                     >
-                      Location
+                      {t('providerDetails.locationButton')}
                     </CustomText>
                   </Pressable>
                 </View>

@@ -794,14 +794,14 @@ export default function BookingDetail() {
         const trackingToken = res?.ResponseData?.trackingToken;
         if (!res?.succeeded || !trackingToken) {
           handleApiError(
-            new Error(res?.ResponseMessage || 'Unable to load tracking link'),
+            new Error(res?.ResponseMessage || t('bookingDetails.unableToLoadTrackingLink')),
           );
           return;
         }
 
         navigate(SCREEN_NAMES.TRACKING_WEBVIEW, {
           trackingUrl: buildMemberTrackingUrl(trackingToken),
-          title: 'Track Member',
+          title: t('bookingDetails.serviceCard.trackMember'),
         });
       } catch (err) {
         handleApiError(err);
@@ -861,7 +861,7 @@ export default function BookingDetail() {
             }));
 
         if (amount <= 0) {
-          throw new Error(addOnRes?.ResponseMessage || 'Invalid add-on amount');
+          throw new Error(addOnRes?.ResponseMessage || t('bookingDetails.invalidAddonAmount'));
         }
 
         if (isWebRedirectGateway(gateway)) {
@@ -998,7 +998,7 @@ export default function BookingDetail() {
             color={theme.colors.gray || '#666666'}
             textAlign="center"
           >
-            Details not found
+            {t('bookingDetails.detailsNotFound')}
           </CustomText>
         </View>
       ) : !booking ? (
@@ -1009,7 +1009,7 @@ export default function BookingDetail() {
             color={theme.colors.gray || '#666666'}
             textAlign="center"
           >
-            Booking not found
+            {t('bookingDetails.bookingNotFound')}
           </CustomText>
         </View>
       ) : (

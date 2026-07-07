@@ -417,7 +417,7 @@ export default function ProviderDetails({
             onPress={onPaymentPolicyPress}
           >
             <CustomText style={styles.linkText}>
-              Payment & Cancellation Policy
+              {t('paymentPolicy.title')}
             </CustomText>
             <VectoreIcons
               name="chevron-forward"

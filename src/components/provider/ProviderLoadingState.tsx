@@ -1,5 +1,6 @@
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { CustomText } from '@components/common';
 
@@ -9,11 +10,13 @@ type ProviderLoadingStateProps = {
 };
 
 export default function ProviderLoadingState({
-  message = 'Loading provider details...',
+  message,
   fullScreen = false,
 }: ProviderLoadingStateProps) {
   const theme = useThemeContext();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const displayMessage = message ?? t('providerDetails.loadingDetails');
 
   return (
     <View style={fullScreen ? styles.fullScreenContainer : styles.container}>
@@ -24,7 +27,7 @@ export default function ProviderLoadingState({
         color={theme.colors.lightText}
         style={{ marginTop: theme.SH(12) }}
       >
-        {message}
+        {displayMessage}
       </CustomText>
     </View>
   );

@@ -16,7 +16,7 @@ const TermsAndConditions = () => {
     const statusBarHeight = insets.top;
     
     // Get the type from route params (e.g., 'Terms and Condition', 'Privacy Policies', 'Return Policies')
-    const type = route?.params?.type || 'Terms and Condition';
+    const type = route?.params?.type || t('privacyPolicy.header_terms_conditions');
     
     const { data: termsData, isLoading, error } = useGetTermsAndConditions();
     
