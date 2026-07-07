@@ -33,6 +33,20 @@ function sanitizeReferralCode(value: string): string {
   return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8);
 }
 
+function normalizeCountryIso2(iso?: string | null): string {
+  return String(iso || '').trim().toLowerCase();
+}
+
+function signupAddressMatchesPhoneCountry(
+  phoneCountryIso2: string,
+  addressCountryIso2: string | undefined,
+): boolean {
+  const phone = normalizeCountryIso2(phoneCountryIso2);
+  const address = normalizeCountryIso2(addressCountryIso2);
+  if (!phone || !address) return true;
+  return phone === address;
+}
+
 const Signup = () => {
   const route = useRoute<any>();
   const theme = useThemeContext();
@@ -128,6 +142,21 @@ const Signup = () => {
           type: 'error',
           title: t('messages.error'),
           message: t('signup.addressRequired'),
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (
+        !signupAddressMatchesPhoneCountry(
+          values.phoneCountryIso2,
+          addr.countryIso2,
+        )
+      ) {
+        showToast({
+          type: 'error',
+          title: t('messages.error'),
+          message: t('signup.addressCountryMismatch'),
         });
         setSubmitting(false);
         return;
@@ -296,6 +325,20 @@ const Signup = () => {
 
     formik.validateForm().then(errors => {
       if (Object.keys(errors).length === 0) {
+        if (
+          formik.values.address &&
+          !signupAddressMatchesPhoneCountry(
+            formik.values.phoneCountryIso2,
+            formik.values.address.countryIso2,
+          )
+        ) {
+          showToast({
+            type: 'error',
+            title: t('messages.error'),
+            message: t('signup.addressCountryMismatch'),
+          });
+          return;
+        }
         formik.handleSubmit();
       }
     });

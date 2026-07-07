@@ -19,32 +19,50 @@ import { useTranslation } from 'react-i18next';
 
 interface BiometricSetupContextValue {
   promptBiometricSetup: () => Promise<void>;
+  finishBiometricSetupFlow: () => void;
 }
 
 const BiometricSetupContext = createContext<BiometricSetupContextValue | null>(null);
+
+type BiometricPendingAction = 'enable' | 'later';
 
 export function BiometricSetupProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [isEnabling, setIsEnabling] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [pendingAction, setPendingAction] =
+    useState<BiometricPendingAction | null>(null);
   const resolverRef = useRef<(() => void) | null>(null);
 
-  const resolvePrompt = useCallback(() => {
-    resolverRef.current?.();
-    resolverRef.current = null;
+  const finishBiometricSetupFlow = useCallback(() => {
     setVisible(false);
     setIsEnabling(false);
+    setIsRedirecting(false);
+    setPendingAction(null);
+  }, []);
+
+  const completeUserChoice = useCallback((action: BiometricPendingAction) => {
+    setIsEnabling(false);
+    setPendingAction(action);
+    setIsRedirecting(true);
+    resolverRef.current?.();
+    resolverRef.current = null;
   }, []);
 
   const promptBiometricSetup = useCallback(() => {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(resolve => {
       resolverRef.current = resolve;
       setVisible(true);
+      setIsEnabling(false);
+      setIsRedirecting(false);
+      setPendingAction(null);
     });
   }, []);
 
   const handleEnable = useCallback(async () => {
+    if (isEnabling || isRedirecting) return;
     setIsEnabling(true);
 
     try {
@@ -56,7 +74,6 @@ export function BiometricSetupProvider({ children }: { children: React.ReactNode
           title: t('messages.error'),
           message: t('biometric.notAvailable'),
         });
-        resolvePrompt();
         return;
       }
 
@@ -85,17 +102,18 @@ export function BiometricSetupProvider({ children }: { children: React.ReactNode
         });
       }
     } finally {
-      resolvePrompt();
+      completeUserChoice('enable');
     }
-  }, [dispatch, resolvePrompt, t]);
+  }, [completeUserChoice, dispatch, isEnabling, isRedirecting, t]);
 
   const handleMaybeLater = useCallback(() => {
-    resolvePrompt();
-  }, [resolvePrompt]);
+    if (isEnabling || isRedirecting) return;
+    completeUserChoice('later');
+  }, [completeUserChoice, isEnabling, isRedirecting]);
 
   const value = useMemo(
-    () => ({ promptBiometricSetup }),
-    [promptBiometricSetup],
+    () => ({ promptBiometricSetup, finishBiometricSetupFlow }),
+    [promptBiometricSetup, finishBiometricSetupFlow],
   );
 
   return (
@@ -103,7 +121,9 @@ export function BiometricSetupProvider({ children }: { children: React.ReactNode
       {children}
       <BiometricSetupModal
         visible={visible}
-        isLoading={isEnabling}
+        isEnabling={isEnabling}
+        isRedirecting={isRedirecting}
+        pendingAction={pendingAction}
         onEnable={handleEnable}
         onMaybeLater={handleMaybeLater}
       />

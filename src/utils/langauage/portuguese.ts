@@ -20,6 +20,10 @@ export const portuguese = {
     "selectCity": "Selecionar Cidade",
     "selectCountryFirst": "Por favor, selecione um país primeiro para escolher uma cidade.",
     "countryRequired": "Por favor, selecione um país e uma cidade para continuar.",
+    "addressRequired": "Por favor, pesquise e selecione seu endereço.",
+    "addressLabel": "Seu endereço",
+    "addressCountryMismatch": "Selecione um endereço no mesmo país do seu número de celular.",
+    "andText": "e",
     "referralCodeLabel": "Código de indicação (opcional)",
     "referralCodePlaceholder": "Digite o código de indicação"
   },

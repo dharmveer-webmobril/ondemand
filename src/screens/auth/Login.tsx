@@ -79,7 +79,7 @@ const Login = () => {
   const styles = LoginStyle(theme);
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
-  const { promptBiometricSetup } = useBiometricSetup();
+  const { promptBiometricSetup, finishBiometricSetupFlow } = useBiometricSetup();
   useDisableGestures();
   const [passwordVisibility, setPasswordVisibility] = useState(true);
   const [guestAddressModalVisible, setGuestAddressModalVisible] = useState(false);
@@ -225,13 +225,15 @@ const Login = () => {
 
           await promptBiometricSetup();
 
-          if (customer?.interests && customer?.interests?.length > 0) {
-            setTimeout(() => {
+          try {
+            if (customer?.interests && customer?.interests?.length > 0) {
               navigate(SCREEN_NAMES.HOME);
               setTimeout(() => tryOpenPendingProviderProfile(), 600);
-            }, 1000);
-          } else {
-            navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
+            } else {
+              navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
+            }
+          } finally {
+            finishBiometricSetupFlow();
           }
         } else if (
           !response.succeeded &&

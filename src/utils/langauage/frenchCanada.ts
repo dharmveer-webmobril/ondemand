@@ -20,6 +20,10 @@ export const frenchCanada = {
     "selectCity": "Sélectionner la ville",
     "selectCountryFirst": "Veuillez d'abord sélectionner un pays pour choisir une ville.",
     "countryRequired": "Veuillez sélectionner un pays et une ville pour continuer.",
+    "addressRequired": "Veuillez rechercher et sélectionner votre adresse.",
+    "addressLabel": "Votre adresse",
+    "addressCountryMismatch": "Veuillez sélectionner une adresse dans le même pays que votre numéro de mobile.",
+    "andText": "et",
     "referralCodeLabel": "Code de parrainage (optionnel)",
     "referralCodePlaceholder": "Entrez le code de parrainage"
   },

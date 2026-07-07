@@ -25,7 +25,7 @@ const OtpVerify = () => {
     const { t } = useTranslation();
     const route = useRoute<any>();
     const dispatch = useAppDispatch();
-    const { promptBiometricSetup } = useBiometricSetup();
+    const { promptBiometricSetup, finishBiometricSetupFlow } = useBiometricSetup();
     const input = useRef<any>(null);
     const [otp, setOtp] = useState<string>('');
     const { SW, colors: Colors, SH, fonts } = theme;
@@ -95,9 +95,11 @@ const OtpVerify = () => {
 
                     await promptBiometricSetup();
 
-                    setTimeout(() => {
+                    try {
                         navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
-                    }, 1000);
+                    } finally {
+                        finishBiometricSetupFlow();
+                    }
 
                 } else {
                     // Coming from forgot password

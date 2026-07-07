@@ -9,20 +9,25 @@ import type { ThemeType } from '@utils/theme';
 
 interface BiometricSetupModalProps {
   visible: boolean;
-  isLoading?: boolean;
+  isEnabling?: boolean;
+  isRedirecting?: boolean;
+  pendingAction?: 'enable' | 'later' | null;
   onEnable: () => void;
   onMaybeLater: () => void;
 }
 
 export default function BiometricSetupModal({
   visible,
-  isLoading = false,
+  isEnabling = false,
+  isRedirecting = false,
+  pendingAction = null,
   onEnable,
   onMaybeLater,
 }: BiometricSetupModalProps) {
   const theme = useThemeContext();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const buttonsLocked = isEnabling || isRedirecting;
 
   return (
     <Modal
@@ -30,10 +35,14 @@ export default function BiometricSetupModal({
       statusBarTranslucent
       visible={visible}
       animationType="slide"
-      onRequestClose={onMaybeLater}
+      onRequestClose={buttonsLocked ? () => {} : onMaybeLater}
     >
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        <Pressable style={styles.overlay} onPress={onMaybeLater}>
+        <Pressable
+          style={styles.overlay}
+          onPress={buttonsLocked ? undefined : onMaybeLater}
+          disabled={buttonsLocked}
+        >
           <LinearGradient
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -50,13 +59,17 @@ export default function BiometricSetupModal({
                   backgroundColor={theme.colors.white}
                   textColor={theme.colors.primary}
                   onPress={onEnable}
-                  isLoading={isLoading}
-                  disable={isLoading}
+                  isLoading={
+                    isEnabling ||
+                    (isRedirecting && pendingAction === 'enable')
+                  }
+                  disable={buttonsLocked}
                 />
                 <CustomButton
                   title={t('biometric.maybeLater')}
                   onPress={onMaybeLater}
-                  disable={isLoading}
+                  isLoading={isRedirecting && pendingAction === 'later'}
+                  disable={buttonsLocked}
                   buttonTextStyle={styles.secondaryButtonText}
                 />
               </View>

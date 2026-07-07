@@ -20,6 +20,10 @@ export const hindi = {
     "selectCity": "शहर चुनें",
     "selectCountryFirst": "शहर चुनने के लिए कृपया पहले देश चुनें।",
     "countryRequired": "आगे बढ़ने के लिए कृपया देश और शहर चुनें।",
+    "addressRequired": "कृपया अपना पता खोजें और चुनें।",
+    "addressLabel": "आपका पता",
+    "addressCountryMismatch": "कृपया वही देश चुनें जो आपके मोबाइल नंबर के देश से मेल खाता हो।",
+    "andText": "और",
     "referralCodeLabel": "रेफरल कोड (वैकल्पिक)",
     "referralCodePlaceholder": "रेफरल कोड दर्ज करें"
   },

@@ -74,6 +74,7 @@ export const english = {
     "countryRequired": "Please select a country and city to continue.",
     "addressRequired": "Please search and select your address.",
     "addressLabel": "Your address",
+    "addressCountryMismatch": "Please select an address in the same country as your mobile number.",
     "referralCodeLabel": "Referral code (optional)",
     "referralCodePlaceholder": "Enter referral code"
   },
