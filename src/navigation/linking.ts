@@ -9,6 +9,11 @@ import {
   handleProviderProfileDeepLink,
   parseProviderProfileShareUrl,
 } from '@utils/providerProfileDeepLink';
+import {
+  captureReferralShareUrl,
+  handleReferralDeepLink,
+  parseReferralShareUrl,
+} from '@utils/referralDeepLink';
 
 /**
  * React Navigation linking — maps URL paths to ProviderDetails.
@@ -33,15 +38,20 @@ export const linking: LinkingOptions<any> = {
   async getInitialURL() {
     const url = await Linking.getInitialURL();
     if (!url) return undefined;
+    if (parseReferralShareUrl(url)) {
+      captureReferralShareUrl(url);
+      return undefined;
+    }
     if (parseProviderProfileShareUrl(url)) {
       captureProviderProfileUrl(url);
       return undefined;
     }
     return url;
   },
-  /** Warm start: route profile links through auth-aware handler instead of RN auto-nav. */
+  /** Warm start: route profile/referral links through auth-aware handlers. */
   subscribe(listener) {
     const onReceiveURL = ({ url }: { url: string }) => {
+      if (handleReferralDeepLink(url)) return;
       if (handleProviderProfileDeepLink(url)) return;
       if (navigateFromAssistantUrl(url)) return;
       listener(url);

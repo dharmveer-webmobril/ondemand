@@ -48,6 +48,31 @@
             <data android:scheme="squedio" android:host="provider" />
         </intent-filter>
 
+        <!-- Custom scheme: squedio://signup?role=customer&ref=CODE -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="squedio" android:host="signup" />
+        </intent-filter>
+
+        <!-- HTTPS share bridge pages opened from referral / profile web links -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data
+              android:scheme="https"
+              android:host="indoredev.webmobrildemo.com"
+              android:port="10054"
+              android:pathPrefix="/referral-share" />
+            <data
+              android:scheme="https"
+              android:host="indoredev.webmobrildemo.com"
+              android:port="10054"
+              android:pathPrefix="/profile-share" />
+        </intent-filter>
+
         <!-- HTTPS profile share link (provider app shares /api/v1/profile/share/{id}) -->
         <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.VIEW" />

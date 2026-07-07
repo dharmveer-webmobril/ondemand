@@ -15,6 +15,7 @@ import imagePaths from '@assets';
 import SplashBrandTitle from '@components/splash/SplashBrandTitle';
 import { SPLASH_LOTTIE_DURATION_MS } from '@components/splash/splashTiming';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
+import { tryOpenPendingReferralDeepLink } from '@utils/referralDeepLink';
 import { isGuestUser } from '@utils/guest/guestAuth';
 import { hydrateAuthToken } from '@services/auth/authTokenService';
 import { authenticateWithBiometrics } from '@services/auth/biometricService';
@@ -150,13 +151,17 @@ export default function SplashScreen() {
     if (!state.isAuthenticated || !currentToken) {
       navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.LOGIN);
+      setTimeout(() => tryOpenPendingReferralDeepLink(), 600);
       return;
     }
 
     if (isGuestUser(state.userDetails, state.isGuest)) {
       navigatedRef.current = true;
       resetAndNavigate(SCREEN_NAMES.HOME);
-      setTimeout(() => tryOpenPendingProviderProfile(), 600);
+      setTimeout(() => {
+        tryOpenPendingReferralDeepLink();
+        tryOpenPendingProviderProfile();
+      }, 600);
       return;
     }
 
@@ -172,7 +177,10 @@ export default function SplashScreen() {
       if (hasInterests) {
         dispatch(setUserCity(userData.ResponseData?.city));
         resetAndNavigate(SCREEN_NAMES.HOME);
-        setTimeout(() => tryOpenPendingProviderProfile(), 600);
+        setTimeout(() => {
+          tryOpenPendingReferralDeepLink();
+          tryOpenPendingProviderProfile();
+        }, 600);
       } else {
         resetAndNavigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
       }

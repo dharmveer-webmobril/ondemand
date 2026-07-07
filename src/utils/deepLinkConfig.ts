@@ -42,3 +42,28 @@ export function buildProviderProfileShareLink(providerId: string): string {
   const params = new URLSearchParams({ link: deepLink });
   return `${PROFILE_SHARE_HOST}/profile-share?${params.toString()}`;
 }
+
+/** Custom scheme — opens signup with referral code. */
+export function buildReferralSignupAppLink(referralCode: string): string {
+  const code = String(referralCode || '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 8);
+  if (code.length !== 8) return '';
+  const params = new URLSearchParams({
+    role: 'customer',
+    ref: code,
+  });
+  return `${APP_LINK_SCHEME}://signup?${params.toString()}`;
+}
+
+/**
+ * Web share URL — opens `/referral-share`, which forwards to the customer app signup deep link.
+ * Example: https://host:port/referral-share?link=squedio://signup?role=customer&ref=CODE
+ */
+export function buildReferralShareLink(referralCode: string): string {
+  const deepLink = buildReferralSignupAppLink(referralCode);
+  if (!deepLink) return '';
+  const params = new URLSearchParams({ link: deepLink });
+  return `${PROFILE_SHARE_HOST}/referral-share?${params.toString()}`;
+}

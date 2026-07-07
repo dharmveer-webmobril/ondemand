@@ -425,6 +425,8 @@ export const english = {
     "codeInvalid": "Please enter a valid referral code",
     "codeValid": "Valid referral code",
     "validating": "Validating referral code...",
+    "deepLinkTitle": "Referral link",
+    "existingAccountOnly": "Referral rewards apply to new accounts only. You are already signed in.",
     "trigger": {
       "first_booking_completed": "First booking completed",
       "account_creation": "Account creation",

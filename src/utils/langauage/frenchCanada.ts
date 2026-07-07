@@ -1,4 +1,26 @@
 export const frenchCanada = {
+  "biometric": {
+    "setupTitle": "Activer la connexion biométrique?",
+    "setupSubtitle": "Souhaitez-vous activer la connexion biométrique?",
+    "enable": "Activer",
+    "maybeLater": "Plus tard",
+    "setupPromptMessage": "Vérifiez votre identité pour activer la connexion biométrique",
+    "enablePromptMessage": "Vérifiez votre identité pour activer la connexion biométrique",
+    "disablePromptMessage": "Vérifiez votre identité pour désactiver la connexion biométrique",
+    "loginPromptMessage": "Authentifiez-vous pour vous connecter",
+    "splashPromptMessage": "Authentifiez-vous pour accéder à votre compte",
+    "loginWith": "Connexion avec {{type}}",
+    "notAvailable": "L'authentification biométrique n'est pas disponible sur cet appareil.",
+    "enabledSuccess": "Connexion biométrique activée avec succès.",
+    "disabledSuccess": "Connexion biométrique désactivée avec succès.",
+    "tokenMissing": "Aucune session enregistrée. Veuillez vous connecter avec vos identifiants."
+  },
+  "security": {
+    "title": "Sécurité",
+    "sectionTitle": "Sécurité",
+    "enableBiometricLogin": "Activer la connexion biométrique",
+    "enableBiometricDescription": "Utilisez {{type}} pour déverrouiller l'application rapidement et en toute sécurité."
+  },
   "login": {
     "forgotPassword": "Mot de passe oublié?",
     "loginButton": "Connexion",
@@ -6,7 +28,8 @@ export const frenchCanada = {
     "dontHaveAccount": "Vous n'avez pas de compte?",
     "signUp": "Inscrivez-vous",
     "loginSuccess": "Connexion réussie.",
-    "welcomeBack": "Bon retour!"
+    "welcomeBack": "Bon retour!",
+    "continueAsGuest": "Connexion invité"
   },
   "signup": {
     "signUpButton": "S'inscrire",
@@ -26,6 +49,34 @@ export const frenchCanada = {
     "andText": "et",
     "referralCodeLabel": "Code de parrainage (optionnel)",
     "referralCodePlaceholder": "Entrez le code de parrainage"
+  },
+  "guest": {
+    "loginRequiredTitle": "Connexion requise",
+    "loginRequiredMessage": "Veuillez vous connecter ou créer un compte pour utiliser cette fonctionnalité. En mode invité, vous pouvez seulement explorer les services.",
+    "bookingLoginMessage": "Veuillez vous connecter d'abord pour réserver un service. Créez un compte pour planifier des rendez-vous, payer en toute sécurité et gérer vos réservations.",
+    "featureRequiresLogin": "Veuillez vous connecter pour accéder à cette fonctionnalité.",
+    "tabBookingsMessage": "Connectez-vous pour voir et gérer vos réservations.",
+    "tabMessagesMessage": "Connectez-vous pour discuter avec les fournisseurs de services.",
+    "profileBanner": "Vous naviguez en tant qu'invité. Connectez-vous pour réserver des services, enregistrer des fournisseurs et gérer votre compte.",
+    "signIn": "Connexion",
+    "signInOrRegister": "Connexion / Inscription",
+    "locationRequired": "Nous avons besoin de votre emplacement pour continuer en tant qu'invité. Veuillez autoriser l'accès à la localisation et réessayer.",
+    "locationPermissionTitle": "Accès à la localisation requis",
+    "locationPermissionMessage": "La navigation invité utilise votre emplacement pour afficher les services et fournisseurs à proximité. Veuillez autoriser l'accès pour continuer.",
+    "locationPermissionBlocked": "L'autorisation de localisation est désactivée. Activez-la dans les paramètres pour continuer en tant qu'invité.",
+    "locationFetchFailed": "Nous n'avons pas pu détecter votre emplacement. Vérifiez le GPS et réessayez.",
+    "allowLocation": "Autoriser la localisation",
+    "openSettings": "Ouvrir les paramètres",
+    "addressModalTitle": "Où êtes-vous?",
+    "addressModalMessage": "Pour explorer les services à proximité en tant qu'invité, veuillez ajouter votre adresse. Cela nous aide à afficher les fournisseurs et offres pertinents dans votre région.",
+    "addAddress": "Ajouter votre adresse",
+    "useCurrentLocation": "Utiliser l'emplacement actuel",
+    "detectingLocation": "Détection de votre emplacement...",
+    "signingInAsGuest": "Configuration de l'accès invité...",
+    "settingUpGuest": "Configuration de l'accès invité...",
+    "pleaseWait": "Cela peut prendre quelques secondes.",
+    "welcome": "Bienvenue, invité!",
+    "loginSuccess": "Vous naviguez en tant qu'invité."
   },
   "forgotpass": {
     "forgotPassword": "Mot de passe oublié",
@@ -286,6 +337,7 @@ export const frenchCanada = {
       "update": "Mettre à jour"
     },
     "changePassword": "Changer le mot de passe",
+    "securitySettings": "Sécurité",
     "myAddress": "Mes adresses",
     "myCalendar": "Mon calendrier",
     "paymentHistory1": "Retraits et paiements",
@@ -371,6 +423,8 @@ export const frenchCanada = {
     "codeInvalid": "Veuillez entrer un code de parrainage valide",
     "codeValid": "Code de parrainage valide",
     "validating": "Validation du code de parrainage...",
+    "deepLinkTitle": "Lien de parrainage",
+    "existingAccountOnly": "Les récompenses de parrainage s'appliquent aux nouveaux comptes seulement. Vous êtes déjà connecté.",
     "trigger": {
       "first_booking_completed": "Première réservation complétée",
       "account_creation": "Création de compte",

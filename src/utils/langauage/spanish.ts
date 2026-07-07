@@ -1,4 +1,26 @@
 export const spanish = {
+  "biometric": {
+    "setupTitle": "¿Habilitar inicio de sesión biométrico?",
+    "setupSubtitle": "¿Desea habilitar el inicio de sesión biométrico?",
+    "enable": "Habilitar",
+    "maybeLater": "Quizás más tarde",
+    "setupPromptMessage": "Verifique su identidad para habilitar el inicio de sesión biométrico",
+    "enablePromptMessage": "Verifique su identidad para habilitar el inicio de sesión biométrico",
+    "disablePromptMessage": "Verifique su identidad para deshabilitar el inicio de sesión biométrico",
+    "loginPromptMessage": "Autentíquese para iniciar sesión",
+    "splashPromptMessage": "Autentíquese para acceder a su cuenta",
+    "loginWith": "Iniciar sesión con {{type}}",
+    "notAvailable": "La autenticación biométrica no está disponible en este dispositivo.",
+    "enabledSuccess": "Inicio de sesión biométrico habilitado correctamente.",
+    "disabledSuccess": "Inicio de sesión biométrico deshabilitado correctamente.",
+    "tokenMissing": "No se encontró una sesión guardada. Inicie sesión con sus credenciales."
+  },
+  "security": {
+    "title": "Seguridad",
+    "sectionTitle": "Seguridad",
+    "enableBiometricLogin": "Habilitar inicio de sesión biométrico",
+    "enableBiometricDescription": "Use {{type}} para desbloquear la aplicación de forma rápida y segura."
+  },
   "login": {
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "loginButton": "Iniciar Sesión",
@@ -6,7 +28,8 @@ export const spanish = {
     "dontHaveAccount": "¿No tienes una cuenta?",
     "signUp": "Regístrate",
     "loginSuccess": "Inicio de sesión exitoso.",
-    "welcomeBack": "¡Bienvenido de nuevo!"
+    "welcomeBack": "¡Bienvenido de nuevo!",
+    "continueAsGuest": "Iniciar sesión como invitado"
   },
   "signup": {
     "signUpButton": "Registrarse",
@@ -26,6 +49,34 @@ export const spanish = {
     "andText": "y",
     "referralCodeLabel": "Código de referido (opcional)",
     "referralCodePlaceholder": "Ingresa el código de referido"
+  },
+  "guest": {
+    "loginRequiredTitle": "Inicio de sesión requerido",
+    "loginRequiredMessage": "Inicie sesión o cree una cuenta para usar esta función. Como invitado solo puede explorar servicios.",
+    "bookingLoginMessage": "Inicie sesión primero para reservar un servicio. Cree una cuenta para programar citas, pagar de forma segura y gestionar sus reservas.",
+    "featureRequiresLogin": "Inicie sesión para acceder a esta función.",
+    "tabBookingsMessage": "Inicie sesión para ver y gestionar sus reservas.",
+    "tabMessagesMessage": "Inicie sesión para chatear con los proveedores de servicios.",
+    "profileBanner": "Está navegando como invitado. Inicie sesión para reservar servicios, guardar proveedores y gestionar su cuenta.",
+    "signIn": "Iniciar sesión",
+    "signInOrRegister": "Iniciar sesión / Registrarse",
+    "locationRequired": "Necesitamos su ubicación para continuar como invitado. Permita el acceso a la ubicación e inténtelo de nuevo.",
+    "locationPermissionTitle": "Se necesita acceso a la ubicación",
+    "locationPermissionMessage": "La navegación como invitado usa su ubicación para mostrar servicios y proveedores cercanos. Permita el acceso para continuar.",
+    "locationPermissionBlocked": "El permiso de ubicación está desactivado. Actívelo en Configuración para continuar como invitado.",
+    "locationFetchFailed": "No pudimos detectar su ubicación. Compruebe el GPS e inténtelo de nuevo.",
+    "allowLocation": "Permitir ubicación",
+    "openSettings": "Abrir configuración",
+    "addressModalTitle": "¿Dónde está?",
+    "addressModalMessage": "Para explorar servicios cercanos como invitado, agregue su dirección. Esto nos ayuda a mostrar proveedores y ofertas relevantes en su zona.",
+    "addAddress": "Agregar su dirección",
+    "useCurrentLocation": "Usar ubicación actual",
+    "detectingLocation": "Detectando su ubicación...",
+    "signingInAsGuest": "Configurando acceso de invitado...",
+    "settingUpGuest": "Configurando acceso de invitado...",
+    "pleaseWait": "Esto puede tardar unos segundos.",
+    "welcome": "¡Bienvenido, invitado!",
+    "loginSuccess": "Está navegando como invitado."
   },
   "forgotpass": {
     "forgotPassword": "Olvidé mi contraseña",
@@ -286,6 +337,7 @@ export const spanish = {
       "update": "Actualizar"
     },
     "changePassword": "Cambiar contraseña",
+    "securitySettings": "Seguridad",
     "myAddress": "Mis direcciones",
     "myCalendar": "Mi calendario",
     "paymentHistory1": "Retiros y pagos",
@@ -372,6 +424,8 @@ export const spanish = {
     "codeInvalid": "Por favor, ingresa un código de referido válido",
     "codeValid": "Código de referido válido",
     "validating": "Validando código de referido...",
+    "deepLinkTitle": "Enlace de referido",
+    "existingAccountOnly": "Las recompensas por referidos son solo para cuentas nuevas. Ya has iniciado sesión.",
     "trigger": {
       "first_booking_completed": "Primera reserva completada",
       "account_creation": "Creación de cuenta",

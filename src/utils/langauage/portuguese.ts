@@ -1,4 +1,26 @@
 export const portuguese = {
+  "biometric": {
+    "setupTitle": "Ativar login biométrico?",
+    "setupSubtitle": "Deseja ativar o login biométrico?",
+    "enable": "Ativar",
+    "maybeLater": "Talvez depois",
+    "setupPromptMessage": "Verifique sua identidade para ativar o login biométrico",
+    "enablePromptMessage": "Verifique sua identidade para ativar o login biométrico",
+    "disablePromptMessage": "Verifique sua identidade para desativar o login biométrico",
+    "loginPromptMessage": "Autentique-se para entrar",
+    "splashPromptMessage": "Autentique-se para acessar sua conta",
+    "loginWith": "Entrar com {{type}}",
+    "notAvailable": "A autenticação biométrica não está disponível neste dispositivo.",
+    "enabledSuccess": "Login biométrico ativado com sucesso.",
+    "disabledSuccess": "Login biométrico desativado com sucesso.",
+    "tokenMissing": "Nenhuma sessão salva encontrada. Entre com suas credenciais."
+  },
+  "security": {
+    "title": "Segurança",
+    "sectionTitle": "Segurança",
+    "enableBiometricLogin": "Ativar login biométrico",
+    "enableBiometricDescription": "Use {{type}} para desbloquear o app de forma rápida e segura."
+  },
   "login": {
     "forgotPassword": "Esqueceu a senha?",
     "loginButton": "Entrar",
@@ -6,7 +28,8 @@ export const portuguese = {
     "dontHaveAccount": "Não tem uma conta?",
     "signUp": "Cadastre-se",
     "loginSuccess": "Login realizado com sucesso.",
-    "welcomeBack": "Bem-vindo de volta!"
+    "welcomeBack": "Bem-vindo de volta!",
+    "continueAsGuest": "Entrar como convidado"
   },
   "signup": {
     "signUpButton": "Cadastrar",
@@ -26,6 +49,34 @@ export const portuguese = {
     "andText": "e",
     "referralCodeLabel": "Código de indicação (opcional)",
     "referralCodePlaceholder": "Digite o código de indicação"
+  },
+  "guest": {
+    "loginRequiredTitle": "Login necessário",
+    "loginRequiredMessage": "Faça login ou crie uma conta para usar este recurso. Como convidado, você só pode explorar serviços.",
+    "bookingLoginMessage": "Faça login primeiro para reservar um serviço. Crie uma conta para agendar compromissos, pagar com segurança e gerenciar suas reservas.",
+    "featureRequiresLogin": "Faça login para acessar este recurso.",
+    "tabBookingsMessage": "Faça login para ver e gerenciar suas reservas.",
+    "tabMessagesMessage": "Faça login para conversar com os prestadores de serviço.",
+    "profileBanner": "Você está navegando como convidado. Faça login para reservar serviços, salvar prestadores e gerenciar sua conta.",
+    "signIn": "Entrar",
+    "signInOrRegister": "Entrar / Cadastrar",
+    "locationRequired": "Precisamos da sua localização para continuar como convidado. Permita o acesso à localização e tente novamente.",
+    "locationPermissionTitle": "Acesso à localização necessário",
+    "locationPermissionMessage": "A navegação como convidado usa sua localização para mostrar serviços e prestadores próximos. Permita o acesso para continuar.",
+    "locationPermissionBlocked": "A permissão de localização está desativada. Ative-a nas Configurações para continuar como convidado.",
+    "locationFetchFailed": "Não foi possível detectar sua localização. Verifique o GPS e tente novamente.",
+    "allowLocation": "Permitir localização",
+    "openSettings": "Abrir configurações",
+    "addressModalTitle": "Onde você está?",
+    "addressModalMessage": "Para explorar serviços próximos como convidado, adicione seu endereço. Isso nos ajuda a mostrar prestadores e ofertas relevantes na sua região.",
+    "addAddress": "Adicionar seu endereço",
+    "useCurrentLocation": "Usar localização atual",
+    "detectingLocation": "Detectando sua localização...",
+    "signingInAsGuest": "Configurando acesso de convidado...",
+    "settingUpGuest": "Configurando acesso de convidado...",
+    "pleaseWait": "Isso pode levar alguns segundos.",
+    "welcome": "Bem-vindo, convidado!",
+    "loginSuccess": "Você está navegando como convidado."
   },
   "forgotpass": {
     "forgotPassword": "Esqueci a Senha",
@@ -286,6 +337,7 @@ export const portuguese = {
       "update": "Atualizar"
     },
     "changePassword": "Alterar Senha",
+    "securitySettings": "Segurança",
     "myAddress": "Meus Endereços",
     "myCalendar": "Meu Calendário",
     "paymentHistory1": "Saques e Histórico",
@@ -371,6 +423,8 @@ export const portuguese = {
     "codeInvalid": "Por favor, insira um código de indicação válido",
     "codeValid": "Código de indicação válido",
     "validating": "Validando código de indicação...",
+    "deepLinkTitle": "Link de indicação",
+    "existingAccountOnly": "As recompensas de indicação são apenas para contas novas. Você já está conectado.",
     "trigger": {
       "first_booking_completed": "Primeira reserva concluída",
       "account_creation": "Criação de conta",

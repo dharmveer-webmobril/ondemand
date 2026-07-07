@@ -1,4 +1,26 @@
 export const hindi = {
+  "biometric": {
+    "setupTitle": "बायोमेट्रिक लॉगिन सक्षम करें?",
+    "setupSubtitle": "क्या आप बायोमेट्रिक लॉगिन सक्षम करना चाहते हैं?",
+    "enable": "सक्षम करें",
+    "maybeLater": "बाद में",
+    "setupPromptMessage": "बायोमेट्रिक लॉगिन सक्षम करने के लिए अपनी पहचान सत्यापित करें",
+    "enablePromptMessage": "बायोमेट्रिक लॉगिन सक्षम करने के लिए अपनी पहचान सत्यापित करें",
+    "disablePromptMessage": "बायोमेट्रिक लॉगिन अक्षम करने के लिए अपनी पहचान सत्यापित करें",
+    "loginPromptMessage": "साइन इन करने के लिए प्रमाणित करें",
+    "splashPromptMessage": "अपने खाते तक पहुँचने के लिए प्रमाणित करें",
+    "loginWith": "{{type}} से लॉगिन करें",
+    "notAvailable": "इस डिवाइस पर बायोमेट्रिक प्रमाणीकरण उपलब्ध नहीं है।",
+    "enabledSuccess": "बायोमेट्रिक लॉगिन सफलतापूर्वक सक्षम किया गया।",
+    "disabledSuccess": "बायोमेट्रिक लॉगिन सफलतापूर्वक अक्षम किया गया।",
+    "tokenMissing": "कोई सहेजा सत्र नहीं मिला। कृपया अपने क्रेडेंशियल से लॉग इन करें।"
+  },
+  "security": {
+    "title": "सुरक्षा",
+    "sectionTitle": "सुरक्षा",
+    "enableBiometricLogin": "बायोमेट्रिक लॉगिन सक्षम करें",
+    "enableBiometricDescription": "ऐप को तेज़ी और सुरक्षित रूप से अनलॉक करने के लिए {{type}} का उपयोग करें।"
+  },
   "login": {
     "forgotPassword": "पासवर्ड भूल गए?",
     "loginButton": "लॉग इन करें",
@@ -6,7 +28,8 @@ export const hindi = {
     "dontHaveAccount": "अकाउंट नहीं है?",
     "signUp": "साइन अप करें",
     "loginSuccess": "लॉगिन सफल रहा।",
-    "welcomeBack": "वापसी पर आपका स्वागत है!"
+    "welcomeBack": "वापसी पर आपका स्वागत है!",
+    "continueAsGuest": "अतिथि लॉगिन"
   },
   "signup": {
     "signUpButton": "साइन अप करें",
@@ -26,6 +49,34 @@ export const hindi = {
     "andText": "और",
     "referralCodeLabel": "रेफरल कोड (वैकल्पिक)",
     "referralCodePlaceholder": "रेफरल कोड दर्ज करें"
+  },
+  "guest": {
+    "loginRequiredTitle": "साइन इन आवश्यक",
+    "loginRequiredMessage": "इस सुविधा का उपयोग करने के लिए कृपया साइन इन करें या खाता बनाएं। अतिथि ब्राउज़िंग से आप केवल सेवाएं देख सकते हैं।",
+    "bookingLoginMessage": "सेवा बुक करने के लिए पहले साइन इन करें। अपॉइंटमेंट शेड्यूल करने, सुरक्षित भुगतान करने और बुकिंग प्रबंधित करने के लिए खाता बनाएं।",
+    "featureRequiresLogin": "इस सुविधा तक पहुँचने के लिए कृपया साइन इन करें।",
+    "tabBookingsMessage": "अपनी बुकिंग देखने और प्रबंधित करने के लिए साइन इन करें।",
+    "tabMessagesMessage": "सेवा प्रदाताओं से चैट करने के लिए साइन इन करें।",
+    "profileBanner": "आप अतिथि के रूप में ब्राउज़ कर रहे हैं। सेवाएं बुक करने, प्रदाता सहेजने और खाता प्रबंधित करने के लिए साइन इन करें।",
+    "signIn": "साइन इन",
+    "signInOrRegister": "साइन इन / रजिस्टर",
+    "locationRequired": "अतिथि के रूप में जारी रखने के लिए हमें आपका स्थान चाहिए। कृपया स्थान की अनुमति दें और पुनः प्रयास करें।",
+    "locationPermissionTitle": "स्थान की अनुमति आवश्यक",
+    "locationPermissionMessage": "अतिथि ब्राउज़िंग आपके क्षेत्र की नज़दीकी सेवाएं और प्रदाता दिखाने के लिए आपके स्थान का उपयोग करती है। जारी रखने के लिए स्थान की अनुमति दें।",
+    "locationPermissionBlocked": "स्थान की अनुमति बंद है। अतिथि के रूप में जारी रखने के लिए सेटिंग्स में इसे चालू करें।",
+    "locationFetchFailed": "हम आपका स्थान पता नहीं लगा सके। कृपया GPS जाँचें और पुनः प्रयास करें।",
+    "allowLocation": "स्थान की अनुमति दें",
+    "openSettings": "सेटिंग्स खोलें",
+    "addressModalTitle": "आप कहाँ हैं?",
+    "addressModalMessage": "अतिथि के रूप में नज़दीकी सेवाएं देखने के लिए कृपया अपना पता जोड़ें। इससे हम आपके क्षेत्र के प्रासंगिक प्रदाता और ऑफ़र दिखा सकते हैं।",
+    "addAddress": "अपना पता जोड़ें",
+    "useCurrentLocation": "वर्तमान स्थान का उपयोग करें",
+    "detectingLocation": "आपका स्थान पता लगाया जा रहा है...",
+    "signingInAsGuest": "अतिथि एक्सेस सेट किया जा रहा है...",
+    "settingUpGuest": "अतिथि एक्सेस सेट किया जा रहा है...",
+    "pleaseWait": "इसमें कुछ सेकंड लग सकते हैं।",
+    "welcome": "स्वागत है, अतिथि!",
+    "loginSuccess": "आप अतिथि के रूप में ब्राउज़ कर रहे हैं।"
   },
   "forgotpass": {
     "forgotPassword": "पासवर्ड भूल गए",
@@ -286,6 +337,7 @@ export const hindi = {
       "update": "अपडेट करें"
     },
     "changePassword": "पासवर्ड बदलें",
+    "securitySettings": "सुरक्षा",
     "myAddress": "मेरा पता",
     "myCalendar": "मेरा कैलेंडर",
     "paymentHistory1": "भुगतान निकासी और इतिहास",
@@ -311,6 +363,7 @@ export const hindi = {
     "enterEmailID": "अपना ईमेल ID दर्ज करें",
     "save": "सहेजें",
     "bookmarkedProviders": "सहेजे गए प्रदाता",
+    "walletTransactions": "वॉलेट और लेन-देन",
     "transactions": "लेन-देन",
     "defaultAddress": "डिफ़ॉल्ट"
   },
@@ -371,6 +424,8 @@ export const hindi = {
     "codeInvalid": "कृपया मान्य रेफरल कोड दर्ज करें",
     "codeValid": "मान्य रेफरल कोड",
     "validating": "रेफरल कोड सत्यापित हो रहा है...",
+    "deepLinkTitle": "रेफरल लिंक",
+    "existingAccountOnly": "रेफरल रिवॉर्ड केवल नए खातों के लिए हैं। आप पहले से साइन इन हैं।",
     "trigger": {
       "first_booking_completed": "पहली बुकिंग पूरी",
       "account_creation": "खाता निर्माण",

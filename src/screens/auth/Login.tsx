@@ -33,6 +33,7 @@ import {
 import { useGuestLogin, useLogin } from '@services';
 import { SCREEN_NAMES } from '@navigation';
 import { tryOpenPendingProviderProfile } from '@utils/providerProfileDeepLink';
+import { tryOpenPendingReferralDeepLink } from '@utils/referralDeepLink';
 import { useDisableGestures } from '@utils/hooks';
 import { setCurrentLocationAddress, setUserCity } from '@store/slices/appSlice';
 import type { SignupAddressSelection } from '@utils/address';
@@ -150,7 +151,10 @@ const Login = () => {
       resetToDestination(destination.screen, destination.params);
 
       if (destination.screen === SCREEN_NAMES.HOME) {
-        setTimeout(() => tryOpenPendingProviderProfile(), 600);
+        setTimeout(() => {
+          tryOpenPendingReferralDeepLink();
+          tryOpenPendingProviderProfile();
+        }, 600);
       }
     } catch (error) {
       if (error instanceof BiometricError && error.code === 'CANCELLED') {
@@ -228,7 +232,10 @@ const Login = () => {
           try {
             if (customer?.interests && customer?.interests?.length > 0) {
               navigate(SCREEN_NAMES.HOME);
-              setTimeout(() => tryOpenPendingProviderProfile(), 600);
+              setTimeout(() => {
+                tryOpenPendingReferralDeepLink();
+                tryOpenPendingProviderProfile();
+              }, 600);
             } else {
               navigate(SCREEN_NAMES.INTEREST_CHOOSE, { prevScreen: 'auth' });
             }

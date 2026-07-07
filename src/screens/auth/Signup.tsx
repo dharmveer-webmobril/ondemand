@@ -15,7 +15,7 @@ import { SCREEN_NAMES } from '@navigation';
 import { SignupStyle } from '@styles/screens';
 import { navigate } from '@utils/NavigationUtils';
 import { useThemeContext } from '@utils/theme';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -64,6 +64,7 @@ const Signup = () => {
 
   const signupMutation = useSignup();
   const validateReferralMutation = useValidateReferralCode();
+  const appliedReferralRef = useRef<string | null>(null);
 
   const validationSchema = useMemo(
     () =>
@@ -290,9 +291,11 @@ const Signup = () => {
 
   useEffect(() => {
     const prefilled = sanitizeReferralCode(String(route.params?.ref || ''));
-    if (prefilled.length === 8) {
-      void validateReferralCode(prefilled);
+    if (prefilled.length !== 8 || appliedReferralRef.current === prefilled) {
+      return;
     }
+    appliedReferralRef.current = prefilled;
+    void validateReferralCode(prefilled);
   }, [route.params?.ref, validateReferralCode]);
 
   const referralErrorText = useMemo(() => {
