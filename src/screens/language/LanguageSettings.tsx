@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { AppHeader, Container, CustomText, VectoreIcons } from '@components';
 import { useAppDispatch } from '@store/hooks';
 import { setLanguage } from '@store/slices/appSlice';
+import { configureCalendarLocale } from '@utils/calendarLocale';
+import { setFormattingLocaleSync } from '@utils/currency';
+import { mapI18nLanguageToIntlLocale } from '@utils/langauage/locale';
 
 const LanguageSettings: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -24,6 +27,8 @@ const LanguageSettings: React.FC = () => {
     const btnChangeLang = async (lan: string) => {
         i18next.changeLanguage(lan);
         dispatch(setLanguage(lan));
+        setFormattingLocaleSync(mapI18nLanguageToIntlLocale(lan));
+        configureCalendarLocale(lan);
         await StorageProvider.saveItem('language', lan);
     }
 

@@ -14,6 +14,7 @@ import { CustomText, CustomButton } from '@components/common';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getProviderDisplayName } from '@utils/tools';
 import { formatAmount } from '@utils/formatAmount';
+import type { TFunction } from 'i18next';
 
 /** Matches common “success” UI green (see booking-confirmed mockups). */
 const SUCCESS_GREEN = '#58B78D';
@@ -31,6 +32,38 @@ function formatMoneyAmount(
 ): string {
   if (amount == null || !Number.isFinite(Number(amount))) return '';
   return formatAmount(amount);
+}
+
+function translatePaymentSuccessStatus(t: TFunction, raw: string): string {
+  const key = String(raw || '').trim().toLowerCase();
+  if (!key) return '';
+  const translated = t(`checkout.paymentSuccessModal.status.${key}`, {
+    defaultValue: '',
+  });
+  return translated || raw;
+}
+
+function translatePaymentMethodPart(t: TFunction, raw: string): string {
+  const key = String(raw || '').trim().toLowerCase();
+  if (!key) return '';
+  const fromModal = t(`checkout.paymentSuccessModal.paymentMethod.${key}`, {
+    defaultValue: '',
+  });
+  if (fromModal) return fromModal;
+  const fromGateway = t(`checkout.paymentGateways.${key}`, {
+    defaultValue: '',
+  });
+  if (fromGateway) return fromGateway;
+  return raw;
+}
+
+function translateGatewayLabel(t: TFunction, raw: string): string {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  return value
+    .split('·')
+    .map(part => translatePaymentMethodPart(t, part.trim()))
+    .join(' · ');
 }
 
 export default function BookingPaymentSuccessModal({
@@ -72,11 +105,16 @@ export default function BookingPaymentSuccessModal({
       )
     : '';
 
-  const gatewayLabel =
-    transaction?.paymentGateway &&
-    `${transaction.paymentGateway}${
-      transaction.paymentMethod ? ` · ${transaction.paymentMethod}` : ''
-    }`;
+  const gatewayLabel = translateGatewayLabel(
+    t,
+    transaction?.paymentGateway
+      ? `${transaction.paymentGateway}${
+          transaction.paymentMethod ? ` · ${transaction.paymentMethod}` : ''
+        }`
+      : paymentFlowKind
+      ? String(paymentFlowKind)
+      : '',
+  );
 
   const rows: { label: string; value: string }[] = [
     {
@@ -99,27 +137,36 @@ export default function BookingPaymentSuccessModal({
     },
     {
       label: t('checkout.paymentSuccessModal.bookingStatus'),
-      value: isRoutine
-        ? routineBooking?.routineStatus
-          ? String(routineBooking.routineStatus)
-          : ''
-        : booking?.bookingStatus
-        ? String(booking.bookingStatus)
-        : '',
+      value: translatePaymentSuccessStatus(
+        t,
+        isRoutine
+          ? routineBooking?.routineStatus
+            ? String(routineBooking.routineStatus)
+            : ''
+          : booking?.bookingStatus
+          ? String(booking.bookingStatus)
+          : '',
+      ),
     },
     {
       label: t('checkout.paymentSuccessModal.paymentStatus'),
-      value: isRoutine
-        ? routineBooking?.paymentStatus
-          ? String(routineBooking.paymentStatus)
-          : ''
-        : booking?.paymentStatus
-        ? String(booking.paymentStatus)
-        : '',
+      value: translatePaymentSuccessStatus(
+        t,
+        isRoutine
+          ? routineBooking?.paymentStatus
+            ? String(routineBooking.paymentStatus)
+            : ''
+          : booking?.paymentStatus
+          ? String(booking.paymentStatus)
+          : '',
+      ),
     },
     {
       label: t('checkout.paymentSuccessModal.transactionStatus'),
-      value: transaction?.status ? String(transaction.status) : '',
+      value: translatePaymentSuccessStatus(
+        t,
+        transaction?.status ? String(transaction.status) : '',
+      ),
     },
     {
       label: t('checkout.paymentSuccessModal.transactionId'),
@@ -129,7 +176,7 @@ export default function BookingPaymentSuccessModal({
     },
     {
       label: t('checkout.paymentSuccessModal.gateway'),
-      value: gatewayLabel || (paymentFlowKind ? String(paymentFlowKind) : ''),
+      value: gatewayLabel,
     },
   ];
 
@@ -173,27 +220,15 @@ export default function BookingPaymentSuccessModal({
               >
                 {t('checkout.paymentSuccessModal.confirmedHeading')}
               </CustomText>
-              {(confirmResponse?.ResponseMessage || '').trim() ? (
-                <CustomText
-                  fontFamily={theme.fonts.REGULAR}
-                  fontSize={theme.fontSize.sm}
-                  color={theme.colors.gray || '#6B7280'}
-                  style={styles.heroSubtext}
-                  textAlign="center"
-                >
-                  {confirmResponse.ResponseMessage}
-                </CustomText>
-              ) : (
-                <CustomText
-                  fontFamily={theme.fonts.REGULAR}
-                  fontSize={theme.fontSize.sm}
-                  color={theme.colors.gray || '#6B7280'}
-                  style={styles.heroSubtext}
-                  textAlign="center"
-                >
-                  {t('checkout.paymentSuccessModal.subtitle')}
-                </CustomText>
-              )}
+              <CustomText
+                fontFamily={theme.fonts.REGULAR}
+                fontSize={theme.fontSize.sm}
+                color={theme.colors.gray || '#6B7280'}
+                style={styles.heroSubtext}
+                textAlign="center"
+              >
+                {t('checkout.paymentSuccessModal.subtitle')}
+              </CustomText>
             </View>
 
             <View style={styles.detailsWrap}>

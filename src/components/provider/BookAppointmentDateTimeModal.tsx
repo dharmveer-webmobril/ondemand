@@ -60,7 +60,7 @@ export default function BookAppointmentDateTimeModal({
   maxRoutineSessions = 24,
   routineAdvanceNoticeMs = 24 * 60 * 60 * 1000,
 }: BookAppointmentDateTimeModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -243,6 +243,7 @@ export default function BookAppointmentDateTimeModal({
               ) : null}
 
               <Calendar
+                key={i18n.language}
                 current={currentMonth}
                 onDayPress={handleDayPress}
                 onMonthChange={handleMonthChange}

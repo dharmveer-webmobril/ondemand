@@ -1,6 +1,6 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import { I18nManager } from "react-native";
+import { configureCalendarLocale } from "../calendarLocale";
 
 import { english } from "./english";
 import frenchCanada from "./frenchCanada";
@@ -48,5 +48,7 @@ i18next
       escapeValue: false,
     },
   });
+
+configureCalendarLocale(i18next.language || "en");
 
 export default i18next;

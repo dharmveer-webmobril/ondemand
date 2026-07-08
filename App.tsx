@@ -11,6 +11,7 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 import RootNavigator from './src/navigation/RootNavigator';
 import { StorageProvider, ThemeProvider } from '@utils/index';
 import { setFormattingLocaleSync } from '@utils/currency';
+import { configureCalendarLocale } from '@utils/calendarLocale';
 import { mapI18nLanguageToIntlLocale } from './src/utils/langauage/locale';
 import i18next from 'i18next';
 import './src/utils/langauage/i18n';
@@ -48,6 +49,7 @@ const App = () => {
     i18next.changeLanguage(lang);
     store.dispatch(setLanguage(lang));
     setFormattingLocaleSync(mapI18nLanguageToIntlLocale(lang));
+    configureCalendarLocale(lang);
     await requestUserPermission();
     notificationListener();
   }

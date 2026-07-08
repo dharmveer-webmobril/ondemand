@@ -28,7 +28,7 @@ function BookingListCalendarModalComponent({
   onDateSelect,
 }: Props) {
   const theme = useThemeContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const renderCalendarArrow = useCallback(
@@ -70,7 +70,7 @@ function BookingListCalendarModalComponent({
             </View>
 
             <Calendar
-              key={currentMonth}
+              key={`${i18n.language}-${currentMonth}`}
               current={currentMonth}
               onDayPress={onDateSelect}
               renderArrow={renderCalendarArrow}

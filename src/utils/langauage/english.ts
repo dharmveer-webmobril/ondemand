@@ -700,7 +700,23 @@ export const english = {
       "paymentStatus": "Payment status",
       "transactionStatus": "Transaction status",
       "transactionId": "Transaction ID",
-      "gateway": "Payment"
+      "gateway": "Payment",
+      "status": {
+        "requested": "Requested",
+        "accepted": "Accepted",
+        "ongoing": "Ongoing",
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed",
+        "cancelled": "Cancelled",
+        "rejected": "Rejected"
+      },
+      "paymentMethod": {
+        "card": "Card",
+        "wallet": "Wallet",
+        "cash": "Cash",
+        "online": "Online"
+      }
     }
   },
   "imagePickerModal": {

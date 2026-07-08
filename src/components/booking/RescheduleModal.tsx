@@ -53,7 +53,7 @@ export default function RescheduleModal({
 }: RescheduleModalProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const today = useMemo(() => {
     const date = new Date();
@@ -242,6 +242,7 @@ export default function RescheduleModal({
               </CustomText>
               <View style={styles.calendarContainer}>
                 <Calendar
+                  key={i18n.language}
                   current={currentMonth}
                   onDayPress={handleDayPress}
                   onMonthChange={handleMonthChange}
