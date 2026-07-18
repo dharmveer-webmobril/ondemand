@@ -12,7 +12,7 @@ import React, {
   import { useSelector } from 'react-redux';
   import { RootState } from '@store/index';
   
-  const SOCKET_URL = 'https://indoredev.webmobrildemo.com:10054';
+  const SOCKET_URL = 'https://squedio.com';
   
   interface SocketContextType {
     socket: Socket | null;

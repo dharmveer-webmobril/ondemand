@@ -3,11 +3,11 @@ import React, { useMemo } from 'react';
 import {
   View,
   StyleSheet,
-  Pressable,
   Platform,
   ViewStyle,
 } from 'react-native';
 import { useThemeContext } from '@utils/theme';
+import AnimatedPressable from './AnimatedPressable';
 import CustomText from './CustomText';
 import VectoreIcons from './VectoreIcons';
 
@@ -102,9 +102,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       {/* Left Icon */}
       <View style={styles.leftside}>
         {hasLeft && (
-          <Pressable
+          <AnimatedPressable
             onPress={onLeftPress}
-            style={({ pressed }) => [styles.iconButtonleft, pressed && { opacity: 0.7 }]}
+            style={styles.iconButtonleft}
           >
             <VectoreIcons
               icon={leftIconFamily}
@@ -112,7 +112,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               size={theme.SF(32)}
               color={iconColor}
             />
-          </Pressable>
+          </AnimatedPressable>
         )}
       </View>
 
@@ -127,9 +127,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </View>
       <View style={styles.rightside}>
         {hasRight ? (
-          <Pressable
+          <AnimatedPressable
             onPress={onRightPress}
-            style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.7 }]}
+            style={styles.iconButton}
           >
             <VectoreIcons
               icon={rightIconFamily}
@@ -137,7 +137,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               size={theme.SF(26)}
               color={iconColor}
             />
-          </Pressable>
+          </AnimatedPressable>
         ) : (
           <View style={styles.iconButton} />
         )}

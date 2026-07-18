@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { CustomText, CustomButton, ImageLoader } from '@components/common';
+import { View, StyleSheet } from 'react-native';
+import { AnimatedEnter, AnimatedPressable, CustomText, CustomButton, ImageLoader } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { useTranslation } from 'react-i18next';
 import imagePaths from '@assets';
@@ -26,6 +26,7 @@ type BookingCardProps = {
   onRateNow?: () => void;
   showRateNow?: boolean;
   onPress?: () => void;
+  index?: number;
 };
 
 export default function BookingCard({
@@ -45,6 +46,7 @@ export default function BookingCard({
   onRateNow,
   showRateNow = false,
   onPress,
+  index = 0,
 }: BookingCardProps) {
   const theme = useThemeContext();
   const { t } = useTranslation();
@@ -54,11 +56,11 @@ export default function BookingCard({
   const statusLabel = getTranslatedBookingStatus(status, t);
 
   return (
-    <Pressable
-      style={styles.card}
-      onPress={onPress}
-      android_ripple={{ color: theme.colors.gray || '#F0F0F0' }}
-    >
+    <AnimatedEnter index={index}>
+      <AnimatedPressable
+        style={styles.card}
+        onPress={onPress}
+      >
       {/* Left: Image (~1/3) */}
       <View style={styles.imageWrapper}>
         <ImageLoader
@@ -196,7 +198,8 @@ export default function BookingCard({
           </View>
         ) : null}
       </View>
-    </Pressable>
+    </AnimatedPressable>
+    </AnimatedEnter>
   );
 }
 

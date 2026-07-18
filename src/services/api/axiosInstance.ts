@@ -7,9 +7,9 @@ import { navigationRef } from '@utils/NavigationUtils';
 import { getApiLocaleHeaders } from '@utils/apiLocaleHeaders';
 
 // Base URL - Update this with your API base URL
-export const BASE_URL = 'https://indoredev.webmobrildemo.com:10054/api';
+export const BASE_URL = 'https://squedio.com/api';
 /** Web origin for profile share pages (no `/api` suffix) */
-export const PROFILE_SHARE_HOST = 'https://indoredev.webmobrildemo.com:10054';
+export const PROFILE_SHARE_HOST = 'https://squedio.com';
 
 // Create axios instance
 const axiosInstance: AxiosInstance = axios.create({

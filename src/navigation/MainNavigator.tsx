@@ -14,10 +14,16 @@ const MainNavigator = () => {
     <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator
         screenOptions={{
-          headerShown: false
+          headerShown: false,
+          animation: 'slide_from_right',
+          animationDuration: 300,
         }}
       >
-        <Stack.Screen name={SCREEN_NAMES.SPLASH} component={SplashScreen} />
+        <Stack.Screen
+          name={SCREEN_NAMES.SPLASH}
+          component={SplashScreen}
+          options={{ animation: 'fade' }}
+        />
         <Stack.Screen name={SCREEN_NAMES.LOGIN} component={Login} />
         <Stack.Screen name={SCREEN_NAMES.INTEREST_CHOOSE} component={IntrestChoose} />
         <Stack.Screen name={SCREEN_NAMES.SIGNUP} component={Signup} />

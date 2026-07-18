@@ -205,12 +205,13 @@ export default function ProfileScreen() {
       <FlatList
         data={menuItems}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <ProfileMenuItem
             label={item.label}
             onPress={() => handleMenuItemPress(item)}
             showArrow={item.showArrow}
             icon={item.icon}
+            index={index}
           />
         )}
         contentContainerStyle={styles.listContent}

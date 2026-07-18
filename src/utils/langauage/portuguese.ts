@@ -1278,7 +1278,9 @@ export const portuguese = {
     "noData": "Nenhum dado disponível",
     "unauthorized": "Você não está autorizado a acessar este recurso",
     "verifiedUser": "Usuário verificado",
-    "distanceKmAway": "{{distance}} km de distância"
+    "distanceKmAway": "{{distance}} km de distância",
+    "seeMore": "Ver mais",
+    "seeLess": "Ver menos"
   },
   "bookingDetail": {
     "rescheduleAccepted": "Reagendamento aceito",

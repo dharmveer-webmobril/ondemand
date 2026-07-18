@@ -1,15 +1,28 @@
 import { useThemeContext } from '@utils/theme';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-    Pressable,
     ActivityIndicator,
+    Pressable,
     StyleSheet,
     StyleProp,
     TextStyle,
     ViewStyle,
     View,
 } from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import {
+    PRESS_DURATION_MS,
+    PRESS_EASING,
+    PRESS_SCALE,
+    RELEASE_DURATION_MS,
+} from '@utils/animations';
 import CustomText from './CustomText';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type CustomButtonProps = {
     title?: string;
@@ -47,6 +60,28 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 }) => {
     const isButtonDisabled = isLoading || disable;
     const theme = useThemeContext();
+    const scale = useSharedValue(1);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    const handlePressIn = useCallback(() => {
+        if (!isButtonDisabled) {
+            scale.value = withTiming(PRESS_SCALE, {
+                duration: PRESS_DURATION_MS,
+                easing: PRESS_EASING,
+            });
+        }
+    }, [isButtonDisabled, scale]);
+
+    const handlePressOut = useCallback(() => {
+        scale.value = withTiming(1, {
+            duration: RELEASE_DURATION_MS,
+            easing: PRESS_EASING,
+        });
+    }, [scale]);
+
     const styles = useMemo(
         () =>
             StyleSheet.create({
@@ -81,17 +116,19 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     );
 
     return (
-        <Pressable
+        <AnimatedPressable
             onPress={!isButtonDisabled ? onPress : undefined}
-            style={({ pressed }) => [
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            disabled={isButtonDisabled}
+            style={[
                 styles.buttonStyle,
                 { marginTop, marginBottom },
                 { backgroundColor: backgroundColor || theme.colors.primary },
                 isButtonDisabled && { opacity: 0.75 },
-                pressed && !isButtonDisabled && { opacity: 0.8 },
                 buttonStyle,
+                animatedStyle,
             ]}
-            disabled={isButtonDisabled}
         >
             {isLoading ? (
                 <ActivityIndicator
@@ -106,7 +143,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
                     </CustomText>
                 </View>
             )}
-        </Pressable>
+        </AnimatedPressable>
     );
 };
 

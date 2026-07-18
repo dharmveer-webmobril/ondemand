@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native'
 import React, { useMemo } from 'react'
-import Animated, { FadeInRight } from 'react-native-reanimated'
+import Animated, { FadeIn } from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import Swiper from 'react-native-swiper';
@@ -86,7 +86,7 @@ export default function HomeSlider({ banners = [], isLoading = false, isError = 
                 {activeBanners.map((banner, index) => (
                     <Animated.View
                       key={banner._id}
-                      entering={FadeInRight.delay(index * 80).springify().damping(14)}
+                      entering={FadeIn.delay(index * 80).duration(280)}
                       style={[styles.slide, HOME_CARD_SHADOW]}
                     >
                         <View style={styles.slideClip}>

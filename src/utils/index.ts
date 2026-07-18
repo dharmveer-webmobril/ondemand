@@ -10,5 +10,6 @@ export * from './formatAmount'
 export * from './currency'
 export * from './apiLocaleHeaders'
 export * from './profileLocale'
+export * from './animations'
 export {default as StorageProvider} from './StorageProvider';
 export {default as regex} from './regexList';

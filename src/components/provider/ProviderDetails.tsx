@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, CustomButton, VectoreIcons } from '@components/common';
+import { CustomText, CustomButton, VectoreIcons, ExpandableText } from '@components/common';
 
 const DEFAULT_MAP_DELTA = 0.012;
 const MIN_MAP_DELTA = 0.0008;
@@ -299,7 +299,11 @@ export default function ProviderDetails({
         <CustomText style={styles.sectionTitle}>
           {t('providerDetails.aboutUs')}
         </CustomText>
-        <CustomText style={styles.aboutText}>{aboutUs}</CustomText>
+        <ExpandableText
+          text={aboutUs}
+          numberOfLines={4}
+          textStyle={styles.aboutText}
+        />
       </View>
 
       {/* Members (e.g. team list) */}

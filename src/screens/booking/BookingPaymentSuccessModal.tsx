@@ -7,6 +7,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { ThemeType, useThemeContext } from '@utils/theme';
@@ -192,7 +193,10 @@ export default function BookingPaymentSuccessModal({
     >
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
         <View style={styles.overlay}>
-          <View style={styles.card}>
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            style={styles.card}
+          >
             <Pressable
               style={styles.closeFab}
               onPress={onContinueToBooking}
@@ -266,7 +270,7 @@ export default function BookingPaymentSuccessModal({
               marginTop={theme.SH(8)}
               buttonStyle={styles.cta}
             />
-          </View>
+          </Animated.View>
         </View>
       </SafeAreaView>
     </Modal>

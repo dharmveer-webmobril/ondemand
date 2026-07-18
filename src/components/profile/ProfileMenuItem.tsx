@@ -1,7 +1,7 @@
-import { StyleSheet, Pressable, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useMemo } from 'react'
 import { ThemeType, useThemeContext } from '@utils/theme';
-import { CustomText, VectoreIcons } from '@components/common';
+import { AnimatedEnter, AnimatedPressable, CustomText, VectoreIcons } from '@components/common';
 
 type IconType =
   | 'Feather'
@@ -21,65 +21,64 @@ interface ProfileMenuItemProps {
   label: string;
   onPress: () => void;
   showArrow?: boolean;
+  index?: number;
   icon?: {
     name: string;
     icon: IconType;
   };
 }
 
-export default function ProfileMenuItem({ label, onPress, showArrow = true, icon }: ProfileMenuItemProps) {
+export default function ProfileMenuItem({
+  label,
+  onPress,
+  showArrow = true,
+  index = 0,
+  icon,
+}: ProfileMenuItemProps) {
   const theme = useThemeContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <Pressable
-      style={styles.container}
-      onPress={onPress}
-    >
-      <View style={styles.leftSection}>
-        {icon && (
+    <AnimatedEnter index={index} variant="fade">
+      <AnimatedPressable
+        style={styles.container}
+        onPress={onPress}
+      >
+        <View style={styles.leftSection}>
+          {icon && (
+            <VectoreIcons
+              name={icon.name}
+              size={theme.SF(22)}
+              icon={icon.icon}
+              color={theme.colors.primary || '#135D96'}
+            />
+          )}
+          <View style={{ flex: 1 }}>
+            <CustomText style={styles.labelText}>{label}</CustomText>
+          </View>
+        </View>
+        {showArrow && (
           <VectoreIcons
-            name={icon.name}
-            size={theme.SF(22)}
-            icon={icon.icon}
-            color={theme.colors.primary || '#135D96'}
+            name="chevron-forward"
+            size={theme.SF(20)}
+            icon="Ionicons"
+            color={theme.colors.lightText}
           />
         )}
-        <View style={{flex:1}}>
-
-        <CustomText style={styles.labelText}>{label}</CustomText>
-        </View>
-      </View>
-      {showArrow && (
-        <VectoreIcons
-          name="chevron-forward"
-          size={theme.SF(20)}
-          icon="Ionicons"
-          color={theme.colors.lightText}
-        />
-      )}
-    </Pressable>
+      </AnimatedPressable>
+    </AnimatedEnter>
   );
 }
 
 const createStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
-    // flexDirection: 'row',
-    // justifyContent: 'space-between',
-    // alignItems: 'center',
-    // backgroundColor: theme.colors.secondary ,
     borderRadius: theme.borderRadius.md,
     paddingHorizontal: theme.SW(20),
     paddingVertical: theme.SH(16),
     marginHorizontal: theme.SW(20),
-    // marginBottom: theme.SH(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // alignItems: 'center',
     backgroundColor: theme.colors.secondary,
-    // borderRadius: theme.borderRadius.md,
-    // paddingHorizontal: theme.SW(20),
-    // paddingVertical: theme.SH(16),
     marginBottom: theme.SH(12),
     shadowColor: '#000',
     shadowOffset: {
@@ -91,7 +90,7 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     elevation: 2,
   },
   leftSection: {
-    flex:1,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.SW(12),
@@ -102,4 +101,3 @@ const createStyles = (theme: ThemeType) => StyleSheet.create({
     fontFamily: theme.fonts.MEDIUM,
   },
 });
-

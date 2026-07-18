@@ -9,6 +9,8 @@ import {
   StyleProp,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { ENTER_EASING, SCREEN_ENTER_MS } from '@utils/animations';
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -17,6 +19,8 @@ interface ContainerProps {
   barStyle?: "light-content" | "dark-content";
   style?: StyleProp<ViewStyle>;
   edges?: ("top" | "bottom" | "left" | "right")[];
+  /** Screen content entrance animation (default on). */
+  animate?: boolean;
 }
 
 const Container: React.FC<ContainerProps> = ({
@@ -26,8 +30,21 @@ const Container: React.FC<ContainerProps> = ({
   barStyle = "dark-content",
   style,
   edges = ["top", "bottom"],
+  animate = true,
 }) => {
   const isAndroid = Platform.OS === "android";
+
+  const content = animate ? (
+    <Animated.View
+      entering={FadeIn.duration(SCREEN_ENTER_MS).easing(ENTER_EASING)}
+      style={{ flex: 1 }}
+      renderToHardwareTextureAndroid={isAndroid}
+    >
+      {children}
+    </Animated.View>
+  ) : (
+    children
+  );
 
   return safeArea ? (
     <>
@@ -38,7 +55,7 @@ const Container: React.FC<ContainerProps> = ({
       />
 
       <SafeAreaView style={[{flex:1},style]} edges={['top', 'bottom']}>
-        {children}
+        {content}
       </SafeAreaView>
     </>
   ) : (
@@ -55,7 +72,7 @@ const Container: React.FC<ContainerProps> = ({
           style,
         ]}
       >
-        {children}
+        {content}
       </View>
     </>
   );

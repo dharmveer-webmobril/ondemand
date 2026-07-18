@@ -1310,7 +1310,9 @@ export const hindi = {
     "noData": "कोई डेटा उपलब्ध नहीं है",
     "unauthorized": "आपको इस संसाधन तक पहुंचने की अनुमति नहीं है",
     "verifiedUser": "सत्यापित उपयोगकर्ता",
-    "distanceKmAway": "{{distance}} किमी दूर"
+    "distanceKmAway": "{{distance}} किमी दूर",
+    "seeMore": "और देखें",
+    "seeLess": "कम देखें"
   },
   "bookingDetail": {
     "rescheduleAccepted": "रीशेड्यूल स्वीकार किया गया",

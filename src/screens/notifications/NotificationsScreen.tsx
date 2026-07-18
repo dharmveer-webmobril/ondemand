@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Container, AppHeader, CustomText, VectoreIcons } from '@components/common';
+import { Container, AppHeader, CustomText, VectoreIcons, AnimatedEnter, AnimatedPressable } from '@components/common';
 import { useThemeContext } from '@utils/theme';
 import {
   useGetNotifications,
@@ -154,25 +154,25 @@ export default function NotificationsScreen() {
   }, [clearAllMutation, list.length, t]);
 
   const renderItem = useCallback(
-    ({ item }: { item: NotificationItem }) => {
+    ({ item, index }: { item: NotificationItem; index: number }) => {
       const isDeleting = deletingId === item._id;
       return (
-        <View style={styles.card}>
-          <View style={styles.cardContent}>
-            <CustomText style={styles.title} numberOfLines={1}>
-              {item.title}
-            </CustomText>
-            <CustomText style={styles.description} numberOfLines={4}>
-              {item.description}
-            </CustomText>
-            <CustomText style={styles.date}>{formatNotificationDate(item.createdAt)}</CustomText>
-          </View>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => handleDelete(item)}
-            disabled={isDeleting}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
+        <AnimatedEnter index={index}>
+          <View style={styles.card}>
+            <View style={styles.cardContent}>
+              <CustomText style={styles.title} numberOfLines={1}>
+                {item.title}
+              </CustomText>
+              <CustomText style={styles.description} numberOfLines={4}>
+                {item.description}
+              </CustomText>
+              <CustomText style={styles.date}>{formatNotificationDate(item.createdAt)}</CustomText>
+            </View>
+            <AnimatedPressable
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item)}
+              disabled={isDeleting}
+            >
             {isDeleting ? (
               <ActivityIndicator size="small" color={theme.colors.primary} />
             ) : (
@@ -183,8 +183,9 @@ export default function NotificationsScreen() {
                 color={(theme.colors as any).error || '#c0392b'}
               />
             )}
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
+        </AnimatedEnter>
       );
     },
     [styles, deletingId, handleDelete, theme]

@@ -1,5 +1,6 @@
 import React,{ useState, useCallback, useEffect, useMemo } from 'react';
 import { StatusBar, View, StyleSheet, Platform } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { HomeHeader, HomeMainList, HomeSearchBar, VectoreIcons } from '@components';
@@ -27,6 +28,7 @@ import { checkPermissionAndGetFcmToken } from '@services/PushNotification';
 import { syncFcmTokenToBackendIfNeeded } from '@services/api/queries/authQueries';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeContext } from '@utils/theme';
+import { ENTER_EASING, SCREEN_ENTER_MS } from '@utils/animations';
 
 export default function Home() {
   useDisableGestures();
@@ -289,7 +291,10 @@ export default function Home() {
         backgroundColor="transparent"
         barStyle="dark-content"
       />
-      <View style={styles.container}>
+      <Animated.View
+        entering={FadeIn.duration(SCREEN_ENTER_MS).easing(ENTER_EASING)}
+        style={styles.container}
+      >
         <HomeHeader
           onCityUpdate={handleCityUpdate}
           onCityUpdateLoading={setIsCityUpdating}
@@ -354,7 +359,7 @@ export default function Home() {
             />
           }
         />
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }

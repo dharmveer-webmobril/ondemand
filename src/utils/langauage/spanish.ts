@@ -1287,7 +1287,9 @@ export const spanish = {
     "noData": "No hay datos disponibles",
     "unauthorized": "No estás autorizado para acceder a este recurso",
     "verifiedUser": "Usuario verificado",
-    "distanceKmAway": "{{distance}} km de distancia"
+    "distanceKmAway": "{{distance}} km de distancia",
+    "seeMore": "Ver más",
+    "seeLess": "Ver menos"
   },
   "bookingDetail": {
     "rescheduleAccepted": "Reprogramación aceptada",

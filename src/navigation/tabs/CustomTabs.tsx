@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View,Platform } from "react-native";
+import { AnimatedPressable } from "@components/common";
 import { SH, ThemeType, useThemeContext } from "@utils";
 import { CustomText, GuestLoginRequiredModal } from "@components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,7 +47,7 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
             <View
               style={[
                 styles.tabContainer,
-                { height: SH(TAB_BAR_BASE_HEIGHT) + bottom.bottom },
+                { height: Platform.OS === 'ios' ? SH(TAB_BAR_BASE_HEIGHT)  : SH(TAB_BAR_BASE_HEIGHT)+ bottom.bottom},
               ]}
             >
                 <View style={{
@@ -59,10 +60,10 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
                         const isFocused = state.index === index;
                         const label = tabLabels[route.name] ?? '';
                         return (
-                            <TouchableOpacity
+                            <AnimatedPressable
                                 key={route.key}
                                 style={[styles.tabItem, isFocused && styles.focusedTabItem]}
-                                activeOpacity={0.7}
+                                scaleTo={0.92}
                                 onPress={() => {
                                     if (
                                         isGuest &&
@@ -95,12 +96,12 @@ export const CustomTabs: React.FC<BottomTabBarProps> = ({ state, navigation }) =
                             >
                                 <TabImages name={route.name} focused={isFocused} />
                                 <CustomText
-                                    variant="h6"
                                     color={isFocused ? theme.colors.primary : "#B3B3B3"}
+                                    style={{ fontSize: Platform.OS === 'ios' ? 14 : 12,marginTop: Platform.OS === 'ios' ? 2 : 0 }}
                                 >
                                     {label}
                                 </CustomText>
-                            </TouchableOpacity>
+                            </AnimatedPressable>
                         );
                     })}
                 </View>

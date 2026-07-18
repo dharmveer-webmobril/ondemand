@@ -1278,7 +1278,9 @@ export const frenchCanada = {
     "noData": "Aucune donnée disponible",
     "unauthorized": "Vous n'êtes pas autorisé à accéder à cette ressource",
     "verifiedUser": "Utilisateur vérifié",
-    "distanceKmAway": "{{distance}} km"
+    "distanceKmAway": "{{distance}} km",
+    "seeMore": "Voir plus",
+    "seeLess": "Voir moins"
   },
   "bookingDetail": {
     "rescheduleAccepted": "Report accepté",

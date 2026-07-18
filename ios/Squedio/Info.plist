@@ -71,13 +71,6 @@
 		<string>Inter-Medium.ttf</string>
 		<string>Inter-Regular.ttf</string>
 		<string>Inter-SemiBold.ttf</string>
-		<string>Inter_28pt-Regular.ttf</string>
-		<string>PlusJakartaSans-Bold.ttf</string>
-		<string>PlusJakartaSans-ExtraBold.ttf</string>
-		<string>PlusJakartaSans-Light.ttf</string>
-		<string>PlusJakartaSans-Medium.ttf</string>
-		<string>PlusJakartaSans-Regular.ttf</string>
-		<string>PlusJakartaSans-SemiBold.ttf</string>
 		<string>AntDesign.ttf</string>
 		<string>Entypo.ttf</string>
 		<string>EvilIcons.ttf</string>
@@ -93,10 +86,7 @@
 		<string>Octicons.ttf</string>
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
-		<string>Chivo-Bold.ttf</string>
-		<string>Chivo-Medium.ttf</string>
 		<string>Chivo-Regular.ttf</string>
-		<string>Chivo-SemiBold.ttf</string>
 		<string>Kanit-SemiBold.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

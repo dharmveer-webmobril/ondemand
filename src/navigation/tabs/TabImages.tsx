@@ -1,4 +1,4 @@
-import { View,  Image } from 'react-native'
+import { View,  Image,Platform } from 'react-native'
 import React from 'react'
 import imagePaths from '@assets';
 import { useThemeContext } from '@utils/theme';
@@ -29,7 +29,7 @@ export default function TabImages({ name, focused }: TabProps & IconProp) {
     };
     return (
         <View>
-            <Image source={getIconName()} style={{ height: 24, width: 24, tintColor: focused ? theme.colors.primary : theme.colors.lightText }} />
+            <Image source={getIconName()} style={Platform.OS === 'ios' ? { height: 28, width: 28, tintColor: focused ? theme.colors.primary : theme.colors.lightText } : { height: 24, width: 24, tintColor: focused ? theme.colors.primary : theme.colors.lightText }} />
         </View>
     )
 }

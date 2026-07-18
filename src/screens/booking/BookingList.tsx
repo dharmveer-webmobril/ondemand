@@ -395,7 +395,7 @@ export default function BookingList() {
   );
 
   const renderGeneralItem = useCallback(
-    ({ item }: any) => {
+    ({ item, index }: any) => {
       const completed = item.status?.toLowerCase() === 'completed';
       const showRateNow =
         completed && bookingHasPendingCustomerReviews(item.originalBooking);
@@ -413,6 +413,7 @@ export default function BookingList() {
           address={item.address}
           price={item.price}
           image={item.image}
+          index={index}
           onBookAgain={
             completed ? () => handleBookAgain(item.id) : undefined
           }
@@ -437,7 +438,7 @@ export default function BookingList() {
   );
 
   const renderRoutineItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item, index }: { item: any; index: number }) => (
       <RoutineBookingCard
         routineBookingId={item.routineBookingId}
         sessionCount={item.pricing?.sessionCount ?? 0}
@@ -445,6 +446,7 @@ export default function BookingList() {
         currency={item.pricing?.currency}
         routineStatus={item.routineStatus}
         proRespondBy={item.proRespondBy}
+        index={index}
         onPress={() =>
           navigate(SCREEN_NAMES.ROUTINE_BOOKING_DETAIL, {
             routineBookingId: item._id,

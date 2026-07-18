@@ -1,8 +1,8 @@
-import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { Container, CustomInput, CustomText } from '@components/common';
+import { AnimatedPressable, Container, CustomInput, CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import { Category, useGetCategories } from '@services/api/queries/appQueries';
 import imagePaths from '@assets';
@@ -24,11 +24,12 @@ const CategoryItem = memo(function CategoryItem({
 
   const handlePress = useCallback(() => onPress(category), [category, onPress]);
 
+  const displayName = category.name
+    ? category.name.trim().charAt(0).toUpperCase() + category.name.trim().slice(1)
+    : '';
+
   return (
-    <Pressable
-      onPress={handlePress}
-      style={({ pressed }) => [styles.itemWrapper, pressed && styles.pressedItem]}
-    >
+    <AnimatedPressable onPress={handlePress} style={styles.itemWrapper}>
       <View style={styles.card}>
         <View style={styles.coverImageLoader}>
           <ImageLoader
@@ -38,10 +39,10 @@ const CategoryItem = memo(function CategoryItem({
           />
         </View>
         <CustomText style={styles.itemText} numberOfLines={2}>
-          {category.name ? category.name.trim().charAt(0).toUpperCase() + category.name.trim().slice(1) : ''}
+          {displayName}
         </CustomText>
       </View>
-    </Pressable>
+    </AnimatedPressable>
   );
 });
 
@@ -62,32 +63,31 @@ export default function CategoryList() {
   const search = searchQuery.trim().toLowerCase();
   const filteredCategories = useMemo(() => {
     if (!search) return activeCategories;
-    return activeCategories.filter((cat) => (cat.name || '').toLowerCase().includes(search));
+    return activeCategories.filter((cat) =>
+      (cat.name || '').toLowerCase().includes(search),
+    );
   }, [activeCategories, search]);
 
   const handleClearSearch = useCallback(() => setSearchQuery(''), []);
 
-  const handleCategoryPress = useCallback(
-    (category: Category) => {
-      navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
-        category,
-        resetSession: true,
-      });
-    },
-    []
-  );
+  const handleCategoryPress = useCallback((category: Category) => {
+    navigate(SCREEN_NAMES.CATEGORY_PROVIDERS, {
+      category,
+      resetSession: true,
+    });
+  }, []);
 
   return (
-    <Container safeArea={true} style={styles.container}>
+    <Container safeArea animate={false} style={styles.container}>
       <View style={styles.searchContainer}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <VectoreIcons
             icon="FontAwesome"
             name="angle-left"
             size={theme.SF(40)}
             color={theme.colors.text}
           />
-        </Pressable>
+        </AnimatedPressable>
 
         <View style={styles.searchInputWrapper}>
           <CustomInput
@@ -122,7 +122,9 @@ export default function CategoryList() {
         <FlatList
           data={filteredCategories}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => <CategoryItem category={item} onPress={handleCategoryPress} />}
+          renderItem={({ item }) => (
+            <CategoryItem category={item} onPress={handleCategoryPress} />
+          )}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
@@ -144,6 +146,8 @@ export default function CategoryList() {
 
 const createStyles = (theme: ThemeType) => {
   const { colors: Colors, SF, fonts: Fonts, SW, SH } = theme;
+  const columnGap = SW(12);
+
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -153,16 +157,15 @@ const createStyles = (theme: ThemeType) => {
       padding: SW(10),
     },
     searchContainer: {
-      paddingHorizontal: SW(20),
+      paddingHorizontal: SW(16),
       paddingVertical: SH(10),
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       backgroundColor: Colors.white || '#FFFFFF',
     },
     searchInputWrapper: {
       flex: 1,
-      marginLeft: SW(15),
+      marginLeft: SW(8),
     },
     loaderContainer: {
       flex: 1,
@@ -199,19 +202,15 @@ const createStyles = (theme: ThemeType) => {
     },
     listContent: {
       paddingTop: SH(16),
-      paddingBottom: SH(20),
-      paddingHorizontal: SW(20),
+      paddingBottom: SH(24),
+      paddingHorizontal: SW(16),
     },
     columnWrapper: {
-      justifyContent: 'space-between',
+      gap: columnGap,
+      marginBottom: SH(14),
     },
     itemWrapper: {
-      width: '48%',
-      marginBottom: SH(18),
-      alignItems: 'center',
-    },
-    pressedItem: {
-      opacity: 0.85,
+      flex: 1,
     },
     card: {
       width: '100%',
@@ -219,37 +218,25 @@ const createStyles = (theme: ThemeType) => {
       borderRadius: SF(12),
       overflow: 'hidden',
       borderWidth: 1,
-      borderColor: Colors.border || 'rgba(0,0,0,0.05)',
-      alignItems: 'center',
-      paddingBottom: SH(10),
+      borderColor: Colors.border || 'rgba(0,0,0,0.06)',
     },
     coverImageLoader: {
       width: '100%',
-      height: SH(90),
+      height: SH(100),
       backgroundColor: Colors.background || '#F5F5F5',
     },
     coverMainImage: {
       width: '100%',
       height: '100%',
     },
-    iconImageLoader: {
-      height: SF(62),
-      width: SF(62),
-      borderRadius: SF(62) / 2,
-      borderWidth: 1,
-      borderColor: Colors.primary,
-      overflow: 'hidden',
-      marginTop: SH(12),
-    },
-    iconMainImage: {
-      width: '100%',
-      height: '100%',
-    },
     itemText: {
       color: Colors.text,
       fontFamily: Fonts.MEDIUM,
-      fontSize: SF(12),
-      marginTop: SH(8),
+      fontSize: SF(13),
+      lineHeight: SF(18),
+      marginTop: SH(10),
+      marginBottom: SH(12),
+      paddingHorizontal: SW(8),
       textAlign: 'center',
     },
   });

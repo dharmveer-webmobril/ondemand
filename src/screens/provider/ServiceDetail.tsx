@@ -16,6 +16,7 @@ import {
   Container,
   CustomButton,
   CustomText,
+  ExpandableText,
   ImageLoader,
   LoadingComp,
   showToast,
@@ -362,9 +363,17 @@ export default function ServiceDetail() {
           <CustomText style={styles.sectionTitle}>
             {t('serviceDetail.description')}
           </CustomText>
-          <CustomText style={styles.descriptionText}>
-            {service.description?.trim() || t('serviceDetail.noDescription')}
-          </CustomText>
+          {service.description?.trim() ? (
+            <ExpandableText
+              text={service.description.trim()}
+              numberOfLines={4}
+              textStyle={styles.descriptionText}
+            />
+          ) : (
+            <CustomText style={styles.descriptionText}>
+              {t('serviceDetail.noDescription')}
+            </CustomText>
+          )}
         </View>
 
         <View style={styles.card}>

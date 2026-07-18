@@ -15,6 +15,8 @@ import {
   AppHeader,
   CustomText,
   CustomButton,
+  AnimatedEnter,
+  AnimatedPressable,
 } from '@components/common';
 import { useThemeContext } from '@utils/theme';
 import SCREEN_NAMES from '@navigation/ScreenNames';
@@ -79,20 +81,20 @@ export default function SupportTicketsList() {
         });
 
   const renderTicket = useCallback(
-    ({ item }: { item: SupportTicket }) => {
+    ({ item, index }: { item: SupportTicket; index: number }) => {
       const statusStyle = supportStatusStyle(item.status, theme);
       const priorityStyle = supportPriorityStyle(item.priority);
 
       return (
-        <TouchableOpacity
-          style={styles.ticketCard}
-          activeOpacity={0.75}
-          onPress={() =>
-            navigation.navigate(SCREEN_NAMES.SUPPORT_TICKET_DETAIL, {
-              ticketId: item._id || item.id,
-            })
-          }
-        >
+        <AnimatedEnter index={index}>
+          <AnimatedPressable
+            style={styles.ticketCard}
+            onPress={() =>
+              navigation.navigate(SCREEN_NAMES.SUPPORT_TICKET_DETAIL, {
+                ticketId: item._id || item.id,
+              })
+            }
+          >
           <View style={styles.ticketTopRow}>
             <CustomText style={styles.ticketId}>
               {getSupportTicketDisplayId(item)}
@@ -137,7 +139,8 @@ export default function SupportTicketsList() {
               {formatSupportTicketDate(item.createdAt)}
             </CustomText>
           </View>
-        </TouchableOpacity>
+        </AnimatedPressable>
+        </AnimatedEnter>
       );
     },
     [navigation, styles, t, theme],

@@ -1,5 +1,6 @@
 import { defaultTheme, useThemeContext } from '@utils/theme';
 import { Modal, View, StyleSheet, Platform } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import VectorIcon from './VectoreIcons';
 import CustomText from './CustomText';
 import CustomButton from './CustomButton';
@@ -54,7 +55,7 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
   const styles = createStyles(theme);
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={visible}
       statusBarTranslucent={true}
@@ -62,7 +63,10 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
         <View style={styles.setbgcolorgrsay}>
           <View style={styles.centeredView}>
-            <View style={styles.modalView}>
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              style={styles.modalView}
+            >
               {/* Icon Section */}
               <View style={styles.setroundcenter}>
                 <View
@@ -105,7 +109,7 @@ const SweetaelertModal: React.FC<SweetaelertModalProps> = ({
                   </View>
                 )}
               </View>
-            </View>
+            </Animated.View>
           </View>
         </View>
       </SafeAreaView>

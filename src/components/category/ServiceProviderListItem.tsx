@@ -1,9 +1,9 @@
-import { View, StyleSheet, Pressable, Image, ScrollView, ImageSourcePropType } from 'react-native';
+import { View, StyleSheet, Image, ScrollView, ImageSourcePropType } from 'react-native';
 import React, { useMemo } from 'react';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import StarRating from 'react-native-star-rating-widget';
 import { useTranslation } from 'react-i18next';
-import { CustomText, DistanceLabel, ImageLoader, Spacing } from '@components/common';
+import { AnimatedEnter, AnimatedPressable, CustomText, DistanceLabel, ImageLoader, Spacing } from '@components/common';
 import imagePaths from '@assets';
 
 type ServiceProviderListItemProps = {
@@ -20,6 +20,7 @@ type ServiceProviderListItemProps = {
   onPress?: () => void;
   providerId?: string;
   distanceKm?: number;
+  index?: number;
 };
 
 export default function ServiceProviderListItem({
@@ -34,6 +35,7 @@ export default function ServiceProviderListItem({
   // isOpen = true,
   onPress,
   distanceKm,
+  index = 0,
   // providerId,
 }: ServiceProviderListItemProps) {
   const theme = useThemeContext();
@@ -41,13 +43,11 @@ export default function ServiceProviderListItem({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.container,
-        pressed && { opacity: 0.8 },
-      ]}
-    >
+    <AnimatedEnter index={index}>
+      <AnimatedPressable
+        onPress={onPress}
+        style={styles.container}
+      >
       <View style={styles.content}>
         {/* Logo and Name Section */}
         <View style={styles.header}>
@@ -135,7 +135,8 @@ export default function ServiceProviderListItem({
           </View>
         </View>
       </View>
-    </Pressable>
+    </AnimatedPressable>
+    </AnimatedEnter>
   );
 }
 

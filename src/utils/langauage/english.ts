@@ -1399,7 +1399,9 @@ export const english = {
     "noData": "No data available",
     "unauthorized": "You are not authorized to access this resource",
     "verifiedUser": "Verified User",
-    "distanceKmAway": "{{distance}} km away"
+    "distanceKmAway": "{{distance}} km away",
+    "seeMore": "See more",
+    "seeLess": "See less"
   },
   "bookingDetail": {
     "rescheduleAccepted": "Reschedule accepted",

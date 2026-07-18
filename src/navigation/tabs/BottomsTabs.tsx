@@ -10,6 +10,7 @@ export default function BottomTabs() {
             tabBar={props => <CustomTabs {...props} />}
             screenOptions={() => ({
                 headerShown: false,
+                animation: 'shift',
             })}
         >
             <Tab.Screen name={TAB_SCREENS.HOME} component={Home} />

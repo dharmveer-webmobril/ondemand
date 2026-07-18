@@ -7,7 +7,7 @@ import axiosInstance from '../axiosInstance';
 import { ApiResponse } from '../index';
 import EndPoints from '../EndPoints';
 import axios from 'axios';
-const BASE_URL = 'https://indoredev.webmobrildemo.com:10054/api';
+const BASE_URL = 'https://squedio.com/api';
 // Example: Get user profile
 export const useGetUserProfile = (userId: string | null) => {
   return useQuery({

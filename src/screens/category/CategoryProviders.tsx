@@ -452,9 +452,10 @@ console.log('filteredProviders-----CategoryProviders', filteredProviders);
         <FlatList
           data={filteredProviders}
           keyExtractor={item => item._id}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <ServiceProviderListItem
               id={item._id}
+              index={index}
               name={getProviderDisplayName(item, t('bookingList.serviceProviderDefault'))}
               logo={
                 item.businessProfile?.bannerImage

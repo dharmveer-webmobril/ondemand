@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { CustomText } from '@components/common';
+import { AnimatedEnter, AnimatedPressable, CustomText } from '@components/common';
 import { ThemeType, useThemeContext } from '@utils/theme';
 import {
   centsToDisplay,
@@ -18,6 +18,7 @@ type Props = {
   routineStatus: string;
   proRespondBy?: string | null;
   onPress?: () => void;
+  index?: number;
 };
 
 export default function RoutineBookingCard({
@@ -28,6 +29,7 @@ export default function RoutineBookingCard({
   routineStatus,
   proRespondBy,
   onPress,
+  index = 0,
 }: Props) {
   const theme = useThemeContext();
   const { t } = useTranslation();
@@ -39,7 +41,8 @@ export default function RoutineBookingCard({
   const deadline = formatProRespondBy(proRespondBy);
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <AnimatedEnter index={index}>
+      <AnimatedPressable style={styles.card} onPress={onPress}>
       <View style={styles.topRow}>
         <CustomText style={styles.bookingId} numberOfLines={1}>
           {routineBookingId}
@@ -60,7 +63,8 @@ export default function RoutineBookingCard({
           {t('routineBooking.providerDeadline', { date: deadline })}
         </CustomText>
       ) : null}
-    </Pressable>
+    </AnimatedPressable>
+    </AnimatedEnter>
   );
 }
 
