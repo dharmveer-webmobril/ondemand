@@ -1,0 +1,365 @@
+================================================================================
+SQUEDIO — PRIVACY POLICY & TERMS OF SERVICE (copy-ready for live hosting)
+================================================================================
+App: Squedio (On-Demand Service Booking Platform)
+Website: https://squedio.com
+Support: support@ondemand.com
+Effective date: July 22, 2026
+Last updated: July 22, 2026
+
+HOW TO USE THIS FILE
+--------------------
+1. Copy each section below into a live web page on your domain.
+2. Suggested live URLs for App Store / Google Play:
+
+   Privacy Policy URL:
+   https://squedio.com/privacy-policy
+
+   Terms of Service URL:
+   https://squedio.com/terms-of-service
+
+3. Existing in-app / website policy pages (also valid if they stay live):
+
+   Privacy:
+   https://squedio.com/policies?countryId=IND&language=en&policyType=privacy_policy&userType=customer
+
+   Terms:
+   https://squedio.com/policies?countryId=IND&language=en&policyType=terms_and_conditions&userType=customer
+
+4. Keep the content on these live pages aligned with what your in-app
+   Terms/Privacy API returns (flag: "Privacy Policies" / "Terms and Condition").
+
+IMPORTANT: This is a practical template based on Squedio’s app features.
+Have your lawyer review before publishing if you need formal legal coverage.
+
+
+################################################################################
+#                                                                              #
+#                         PRIVACY POLICY — SQUEDIO                             #
+#                                                                              #
+################################################################################
+
+Privacy Policy
+
+Effective Date: July 22, 2026
+Last Updated: July 22, 2026
+
+Squedio (“Squedio”, “we”, “us”, or “our”) operates the Squedio mobile application
+and related website at https://squedio.com (the “Service”). This Privacy Policy
+explains how we collect, use, share, and protect your information when you use
+our Service as a customer.
+
+By using Squedio, you agree to this Privacy Policy. If you do not agree, please
+do not use the Service.
+
+Contact: support@ondemand.com
+Website: https://squedio.com
+
+
+1. Information We Collect
+
+1.1 Information you provide
+- Account details: name, email address, phone number, password, and profile photo
+- Address and location details used for bookings and service delivery
+- Booking details: selected services, schedules, add-ons, notes, and related persons
+- Payment-related information needed to process bookings and wallet activity
+  (card/payment data is processed by our payment provider; we do not store full
+  card numbers on our servers)
+- Support messages, tickets, feedback, and ratings/reviews
+- Referral codes and referral-related activity
+- Documents or files you upload when requested by the Service
+- Contacts you choose to share (for example, to connect with friends), only with
+  your permission
+
+1.2 Information collected automatically
+- Device information (device type, OS, app version)
+- Log and usage data (screens viewed, actions in the app, crash/diagnostic data)
+- Approximate or precise location, when you grant location permission, to show
+  nearby services and improve booking accuracy
+- Push notification tokens (for example FCM) to send service alerts
+- Chat/messaging content between you and service providers within the app
+
+1.3 Permissions the app may request
+Depending on your device and features you use, Squedio may ask for:
+- Location (to personalize services and improve accuracy)
+- Camera and photo library (profile photos and uploads)
+- Microphone and speech recognition (voice input features)
+- Contacts (optional social/connect features)
+- Biometrics / Face ID (optional quick and secure authentication)
+- Notifications (booking updates and alerts)
+
+You can change these permissions in your device settings. Some features may not
+work without certain permissions.
+
+
+2. How We Use Your Information
+
+We use your information to:
+- Create and manage your account
+- Process bookings, payments, refunds, cancellations, and wallet settlements
+- Connect you with service providers and enable in-app chat
+- Send transactional emails, SMS/OTP, and push notifications
+- Personalize content, recommendations, and service discovery
+- Provide customer support and resolve disputes
+- Improve safety, security, fraud prevention, and app performance
+- Comply with legal obligations and enforce our Terms of Service
+- Operate referral and promotional programs
+
+
+3. How We Share Information
+
+We may share information with:
+- Service providers you book with (as needed to fulfill the booking)
+- Payment processors (for example Stripe) to handle payments securely
+- Cloud hosting, analytics, messaging, maps, and notification providers who
+  process data on our behalf under contractual obligations
+- Professional advisors or authorities when required by law or to protect rights,
+  safety, and security
+
+We do not sell your personal information.
+
+We may share aggregated or de-identified information that cannot reasonably
+identify you.
+
+
+4. Payments
+
+Payments are processed by third-party payment providers. Those providers process
+payment data under their own privacy policies. Squedio receives payment status
+and related transaction records needed to manage bookings and your wallet.
+
+
+5. Data Retention
+
+We retain personal data for as long as your account is active and as needed to
+provide the Service, resolve disputes, enforce agreements, and meet legal,
+tax, and accounting requirements. When data is no longer needed, we delete or
+anonymize it where reasonably possible.
+
+
+6. Data Security
+
+We use reasonable administrative, technical, and organizational measures to
+protect your information. No method of transmission or storage is 100% secure,
+and we cannot guarantee absolute security.
+
+
+7. Your Rights and Choices
+
+Subject to applicable law, you may:
+- Access, update, or correct your profile information in the app
+- Manage notification preferences
+- Withdraw device permissions
+- Request deletion of your account/data by contacting support@ondemand.com
+- Request a copy of personal data we hold about you
+
+We may need to verify your identity before responding. Some data may be retained
+where required by law or for legitimate business purposes (for example completed
+transactions).
+
+
+8. Children’s Privacy
+
+Squedio is not directed to children under 13 (or the minimum age required in
+your country). We do not knowingly collect personal information from children.
+If you believe a child has provided us data, contact support@ondemand.com and
+we will take appropriate steps to delete it.
+
+
+9. International Transfers
+
+Your information may be processed in countries other than where you live. Where
+required, we take steps to ensure appropriate safeguards for such transfers.
+
+
+10. Third-Party Links and Services
+
+The Service may contain links to third-party websites or services. Their privacy
+practices are not controlled by us. Review their policies before sharing data.
+
+
+11. Changes to This Policy
+
+We may update this Privacy Policy from time to time. We will post the updated
+version with a revised “Last Updated” date. Continued use of the Service after
+changes means you accept the updated Policy.
+
+
+12. Contact Us
+
+For privacy questions or requests:
+Email: support@ondemand.com
+Website: https://squedio.com
+
+
+################################################################################
+#                                                                              #
+#                       TERMS OF SERVICE — SQUEDIO                             #
+#                                                                              #
+################################################################################
+
+Terms of Service
+
+Effective Date: July 22, 2026
+Last Updated: July 22, 2026
+
+These Terms of Service (“Terms”) govern your access to and use of the Squedio
+mobile application and website at https://squedio.com (the “Service”), operated
+by Squedio (“Squedio”, “we”, “us”, or “our”).
+
+By creating an account or using Squedio, you agree to these Terms and our
+Privacy Policy. If you do not agree, do not use the Service.
+
+Contact: support@ondemand.com
+
+
+1. About Squedio
+
+Squedio is an on-demand marketplace platform that connects customers with
+independent service providers. Squedio facilitates discovery, booking,
+messaging, payments, and related features. Unless expressly stated otherwise,
+service providers are independent third parties and are not employees of
+Squedio.
+
+
+2. Eligibility
+
+You must be legally able to enter a binding contract in your jurisdiction and
+meet any minimum age requirements. You are responsible for the accuracy of
+information you provide and for keeping your login credentials secure.
+
+
+3. Accounts
+
+- You must provide accurate registration information (including phone/email).
+- You are responsible for all activity under your account.
+- Notify us immediately of unauthorized use at support@ondemand.com.
+- We may suspend or terminate accounts that violate these Terms, appear
+  fraudulent, inactive, or create risk for users or the platform.
+
+
+4. Bookings and Services
+
+- Bookings are requests for services from providers listed on the platform.
+- Availability, pricing, add-ons, timing, and service quality are primarily
+  controlled by the service provider.
+- You agree to provide accurate address, schedule, and service details.
+- Routine/recurring bookings, reschedules, cancellations, and add-ons are
+  subject to the rules shown in the app at the time of booking.
+- Squedio is not responsible for the acts, omissions, quality, legality, or
+  safety of services performed by providers, except to the extent required by
+  applicable law.
+
+
+5. Fees, Payments, and Wallet
+
+- Prices, taxes, fees, and currency may vary by location and provider.
+- Payments are processed through third-party payment processors.
+- Wallet balances, settlements, refunds, and promotions are subject to the
+  policies displayed in the app and any applicable cancellation/refund policy.
+- You authorize us and our payment partners to charge your selected payment
+  method for bookings and related charges.
+- Chargebacks or payment disputes may result in account review or suspension.
+
+
+6. Cancellations, Reschedules, and Refunds
+
+Cancellation, reschedule, and refund eligibility depend on timing, provider
+rules, and the cancellation/refund policy available in the app. Where a refund
+is approved, it may be returned to your original payment method or wallet,
+subject to processor timelines.
+
+
+7. User Conduct
+
+You agree not to:
+- Use the Service for unlawful, harmful, abusive, or fraudulent purposes
+- Harass service providers, staff, or other users
+- Upload malware, scrape data without permission, or reverse engineer the app
+- Impersonate others or misrepresent your identity or affiliation
+- Interfere with platform security, payments, ratings, or referral systems
+- Post false, defamatory, or infringing content in chats, reviews, or support
+
+
+8. Content and Reviews
+
+You retain ownership of content you submit (reviews, messages, photos, etc.),
+and you grant Squedio a worldwide, non-exclusive, royalty-free license to use,
+host, display, and distribute that content as needed to operate and promote the
+Service. You are responsible for the content you submit. We may remove content
+that violates these Terms.
+
+
+9. Intellectual Property
+
+The Squedio name, logo, app, design, and software are owned by Squedio or its
+licensors. You may not copy, modify, distribute, or create derivative works
+without prior written permission, except as allowed by law.
+
+
+10. Third-Party Services
+
+The Service may integrate maps, payments, messaging, analytics, authentication,
+and other third-party tools. Your use of those tools may be subject to their
+own terms and privacy policies.
+
+
+11. Disclaimers
+
+THE SERVICE IS PROVIDED “AS IS” AND “AS AVAILABLE.” TO THE MAXIMUM EXTENT
+PERMITTED BY LAW, SQUEDIO DISCLAIMS WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT GUARANTEE UNINTERRUPTED
+OR ERROR-FREE OPERATION, OR THAT BOOKINGS WILL MEET YOUR EXPECTATIONS.
+
+
+12. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, SQUEDIO AND ITS AFFILIATES SHALL NOT
+BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
+DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR GOODWILL, ARISING FROM YOUR USE OF
+THE SERVICE. OUR TOTAL LIABILITY FOR ANY CLAIM RELATED TO THE SERVICE SHALL NOT
+EXCEED THE GREATER OF (A) THE AMOUNTS YOU PAID TO SQUEDIO FOR THE BOOKING
+GIVING RISE TO THE CLAIM IN THE 3 MONTHS BEFORE THE CLAIM, OR (B) USD 100
+(OR LOCAL CURRENCY EQUIVALENT), EXCEPT WHERE LIABILITY CANNOT BE LIMITED BY LAW.
+
+
+13. Indemnity
+
+You agree to defend and indemnify Squedio against claims, damages, and expenses
+arising from your misuse of the Service, your content, your bookings, or your
+violation of these Terms or applicable law.
+
+
+14. Termination
+
+You may stop using the Service at any time. We may suspend or terminate access
+if you breach these Terms or if we discontinue the Service. Sections that by
+nature should survive (including payments owed, disclaimers, and liability
+limits) will survive termination.
+
+
+15. Changes to the Terms
+
+We may update these Terms periodically. We will update the “Last Updated” date
+and may notify you in-app or by email for material changes. Continued use after
+changes means you accept the revised Terms.
+
+
+16. Governing Law
+
+These Terms are governed by the laws applicable in the jurisdiction where
+Squedio operates its primary business, without regard to conflict-of-law rules,
+except where mandatory consumer laws in your country provide otherwise.
+
+
+17. Contact
+
+Questions about these Terms:
+Email: support@ondemand.com
+Website: https://squedio.com
+
+
+================================================================================
+END OF FILE
+================================================================================
+)

@@ -1,0 +1,412 @@
+================================================================================
+SQUEDIO — APP STORE & PLAY STORE LISTING CONTENT (copy-ready)
+================================================================================
+App name: Squedio
+Package / Bundle ID: com.squedio
+Version: 1.0 (iOS build 2 / Android versionCode 1)
+Website: https://squedio.com
+Support email: support@ondemand.com
+Privacy Policy: https://squedio.com/privacy-policy
+Terms of Service: https://squedio.com/terms-of-service
+
+Related file in this repo:
+- LEGAL_PRIVACY_AND_TERMS.txt  (full legal text to host live)
+
+Languages supported in app: English, Hindi, Spanish, Portuguese, French (Canada)
+
+
+################################################################################
+# 1) SHARED DETAILS (use on both stores)                                       #
+################################################################################
+
+APP NAME
+--------
+Squedio
+
+ONE-LINE TAGLINE
+----------------
+Book trusted local services on demand — fast, simple, secure.
+
+SHORT PITCH (1–2 sentences)
+---------------------------
+Squedio helps you discover and book nearby service providers, manage
+appointments, pay securely, chat with providers, and track everything in one app.
+
+PRIMARY CATEGORY
+----------------
+Lifestyle  (or Services / Lifestyle)
+
+SECONDARY CATEGORY (optional)
+-----------------------------
+Productivity  OR  Shopping
+
+CONTENT RATING / AGE
+--------------------
+Suggested: 12+ / Teen (because of user-generated chat/reviews; no gambling/alcohol focus)
+Google Play questionnaire: typically PEGI 3 / Everyone, unless chat is open social.
+
+CONTACT / SUPPORT
+-----------------
+Support email: support@ondemand.com
+Support / Marketing URL: https://squedio.com
+Privacy Policy URL: https://squedio.com/privacy-policy
+Terms of Service URL: https://squedio.com/terms-of-service
+
+ALTERNATE LIVE POLICY URLS (if cleaner paths not ready yet)
+-----------------------------------------------------------
+Privacy:
+https://squedio.com/policies?countryId=IND&language=en&policyType=privacy_policy&userType=customer
+
+Terms:
+https://squedio.com/policies?countryId=IND&language=en&policyType=terms_and_conditions&userType=customer
+
+
+KEY FEATURES (bullet list for descriptions)
+-------------------------------------------
+• Discover local service providers by category and location
+• Book one-time or routine/recurring appointments
+• Secure payments with card and in-app wallet
+• Chat with providers about your booking
+• Track booking status, reschedule, and cancel when allowed
+• Save favorite providers and manage multiple addresses
+• Push notifications for booking and payment updates
+• AI assistant + voice search to find services faster
+• Refer & earn rewards
+• Multi-language support
+• Guest browse mode (sign in required to book)
+• Face ID / biometric login (optional)
+• Customer support tickets inside the app
+
+
+WHAT’S NEW — VERSION 1.0
+------------------------
+Welcome to Squedio!
+• Browse and book local services
+• Secure checkout and wallet payments
+• In-app chat with providers
+• Booking management, notifications, and support
+• AI assistant and voice search
+• Refer & earn
+
+
+################################################################################
+# 2) APPLE APP STORE CONNECT                                                   #
+################################################################################
+
+App Information
+---------------
+Name: Squedio
+Subtitle (30 characters max):
+Book local services fast
+
+Promotional Text (170 characters max) — can update without new build:
+Find trusted local providers, book appointments, pay securely, and chat in one app. Try Squedio today.
+
+Description (4000 characters max)
+---------------------------------
+Squedio is your on-demand marketplace for booking local services — quickly, clearly, and securely.
+
+Whether you need a trusted provider nearby or want to schedule recurring appointments, Squedio brings discovery, booking, payments, and communication together in one simple app.
+
+WHY SQUEDIO
+• Discover providers by category, ratings, and location
+• Book appointments that fit your schedule — one-time or routine
+• Pay securely with modern payment options and an in-app wallet
+• Chat with your provider about timing, details, and updates
+• Manage bookings, addresses, favorites, and notifications in one place
+• Get help with in-app customer support tickets
+• Use AI assistant and voice search to find what you need faster
+• Invite friends with Refer & Earn
+
+HOW IT WORKS
+1. Create an account (or browse as a guest)
+2. Choose a service category and explore providers
+3. Pick a time, add details, and confirm your booking
+4. Pay securely and track your appointment status
+5. Chat, reschedule, or get support when you need it
+
+BUILT FOR REAL LIFE
+Squedio supports multiple languages, location-based service discovery, secure authentication, and clear booking policies so you always know what to expect.
+
+Download Squedio and book your next service in minutes.
+
+Keywords (100 characters max, comma-separated, no spaces after commas preferred)
+--------------------------------------------------------------------------------
+booking,services,appointments,local,ondemand,providers,schedule,wallet,chat,home
+
+Suggested keyword string (≤100 chars):
+booking,services,appointments,ondemand,local,providers,schedule,wallet,chat,home
+
+(Character count: 78)
+
+Support URL
+-----------
+https://squedio.com
+
+Marketing URL (optional)
+------------------------
+https://squedio.com
+
+Privacy Policy URL (required)
+-----------------------------
+https://squedio.com/privacy-policy
+
+Copyright
+---------
+© 2026 Squedio. All rights reserved.
+
+Age Rating Questionnaire — suggested answers
+--------------------------------------------
+• Unrestricted Web Access: No (or Limited, if in-app webviews for payment/tracking only)
+• Gambling / Contests: No
+• Contests: No
+• Mature/Suggestive Themes: None
+• Profanity: Infrequent/Mild possible via user chat (answer carefully based on moderation)
+• Horror/Fear: None
+• Medical/Treatment Info: None (unless your service categories include medical)
+• Alcohol/Tobacco/Drugs: None (unless categories include these)
+• Violence: None
+• Sexual Content: None
+• User-Generated Content: Yes (chat, reviews) — enable appropriate age / UGC declarations
+
+App Privacy (Privacy Nutrition Labels) — declare what you collect
+-----------------------------------------------------------------
+Data Linked to User (typical for Squedio):
+• Contact Info: Name, Email Address, Phone Number, Physical Address
+• Location: Precise Location (when permitted), Coarse Location
+• Identifiers: User ID, Device ID (push token)
+• Purchases: Purchase History
+• User Content: Photos/Videos (profile), Customer Support, Other User Content (chat/reviews)
+• Usage Data: Product Interaction
+• Diagnostics: Crash Data / Performance Data (if collected)
+
+Data Used to Track You: No (PrivacyInfo.xcprivacy currently has NSPrivacyTracking = false)
+
+Tracking: Do not check “Used to Track” unless you use IDFA/ad tracking networks.
+
+App Review Notes (for Apple reviewers)
+--------------------------------------
+Demo account (fill before submit):
+Email: ______________________
+Password: ____________________
+
+Notes:
+• Location permission is used to show nearby providers and improve booking accuracy.
+• Camera/Photos are used for profile images.
+• Microphone/Speech are used for optional voice search / AI assistant input.
+• Contacts permission is optional (connect/friends features).
+• Face ID is optional for quick login.
+• Payments are processed via Stripe.
+• Chat is booking/provider related, not an open social network.
+• Guest mode allows browsing; booking requires sign-in.
+
+
+################################################################################
+# 3) GOOGLE PLAY CONSOLE                                                       #
+################################################################################
+
+Store listing
+-------------
+App name (30 characters max):
+Squedio
+
+Short description (80 characters max):
+Book trusted local services on demand. Schedule, pay, and chat in one app.
+
+(Character count: 74)
+
+Full description (4000 characters max)
+--------------------------------------
+Squedio is an on-demand service booking app that helps you find local providers, schedule appointments, pay securely, and stay connected — all in one place.
+
+Discover services near you
+Browse categories, compare providers, check ratings, and choose the service that fits your needs.
+
+Book with confidence
+Schedule one-time or routine bookings, add extras, manage addresses, and keep your appointments organized.
+
+Pay your way
+Checkout securely and manage payments with your in-app wallet and transaction history.
+
+Stay connected
+Chat with providers, get push notifications for updates, and track booking status as things progress.
+
+Smarter search
+Use the AI assistant and voice search to ask about services, availability, bookings, and payments.
+
+More reasons to choose Squedio
+• Save favorite providers
+• Refer & earn rewards
+• Multi-language support
+• In-app customer support tickets
+• Guest browse mode (sign in to book)
+
+Download Squedio and book your next service in minutes.
+
+Application category
+--------------------
+Lifestyle  (alternative: Productivity)
+
+Tags / keywords ideas (Play uses ASO differently; put keywords naturally in description)
+----------------------------------------------------------------------------------------
+on demand services, book appointment, local service providers, service booking app,
+schedule services, wallet payment, provider chat, home services
+
+Graphic assets checklist
+------------------------
+• App icon: 512 x 512 PNG (32-bit)
+• Feature graphic: 1024 x 500
+• Phone screenshots: at least 2 (recommended 4–8)
+• 7-inch / 10-inch tablet screenshots: optional but recommended
+• Promo video: optional (YouTube URL)
+
+Suggested screenshot captions (overlay text)
+--------------------------------------------
+1. Discover local services near you
+2. Book appointments in minutes
+3. Pay securely with wallet & checkout
+4. Chat with your provider
+5. Track and manage every booking
+6. Ask the AI assistant anything
+7. Refer friends and earn rewards
+
+Data safety form — suggested declarations
+-----------------------------------------
+Does your app collect or share user data? YES
+
+Data collected (examples aligned with the app):
+• Personal info: Name, Email, Phone, Address
+• Location: Approximate and Precise (optional permission)
+• Financial info: Purchase history; Payment info handled by Stripe (declare per Play guidance)
+• Photos and videos: User-selected media for profile/uploads
+• Audio files: If voice messages/recordings are stored — declare if applicable
+• Messages: In-app messages / chat
+• App activity: App interactions, in-app search history
+• App info and performance: Crash logs / diagnostics (if collected)
+• Device or other IDs: Device IDs / push tokens
+
+Data sharing: Share with service providers as needed for bookings; processors
+(payment, hosting, maps, notifications) as service providers.
+
+Is data encrypted in transit? YES (HTTPS)
+Can users request deletion? YES (via support / account request)
+Committed to Play Families Policy? NO (unless you enroll)
+Is the app designed for children? NO
+
+Content rating questionnaire
+----------------------------
+Complete IARC questionnaire in Play Console.
+Likely outcome for this app type: Everyone / PEGI 3 / equivalent,
+unless open user chat causes a higher rating.
+
+Target audience
+---------------
+Age groups: 18+ recommended (or 13+ if you allow teens and comply with policies)
+Not primarily Child-Directed.
+
+Ads
+---
+Contains ads: NO (update if you add ads later)
+
+News / COVID / Government apps
+------------------------------
+Not a news app / not a COVID app / not a government app (unless otherwise)
+
+Store presence URLs
+-------------------
+Privacy policy (required): https://squedio.com/privacy-policy
+Terms of service (optional but recommended): https://squedio.com/terms-of-service
+
+
+################################################################################
+# 4) PERMISSIONS / DATA USE — STORE DECLARATIONS                               #
+################################################################################
+
+Permission                 Why Squedio needs it
+-------------------------  ----------------------------------------------------
+Internet                   Core app / API access
+Location (fine/coarse)     Nearby providers, personalized services, accuracy
+Camera                     Profile photo upload
+Photos / Media             Profile pictures and uploads
+Microphone                 Voice search / AI assistant input
+Speech recognition         Convert voice to text
+Contacts                   Optional connect-with-friends features
+Notifications              Booking, payment, and chat alerts
+Biometrics / Face ID       Optional secure quick login
+External storage (legacy)  Media access on older Android versions
+
+Never claim a permission for a purpose you do not use.
+
+
+################################################################################
+# 5) CONTACT & BUSINESS DETAILS (fill before submit)                           #
+################################################################################
+
+Developer / Seller name: _______________________________
+Organization / Legal entity: ___________________________
+Country / Region: _____________________________________
+Address: ______________________________________________
+Phone: ________________________________________________
+Website: https://squedio.com
+Support email: support@ondemand.com
+Privacy contact email: support@ondemand.com
+
+App Store Team ID / Apple Developer Account: ___________
+Google Play Developer Account: _________________________
+
+
+################################################################################
+# 6) PRE-SUBMIT CHECKLIST                                                      #
+################################################################################
+
+[ ] Privacy Policy live at https://squedio.com/privacy-policy
+[ ] Terms of Service live at https://squedio.com/terms-of-service
+[ ] In-app Terms/Privacy API content matches live pages
+[ ] Demo login ready for reviewers
+[ ] Screenshots prepared (light mode, no debug banners, no placeholder text)
+[ ] App icon final
+[ ] Feature graphic (Play) prepared
+[ ] Support email monitored
+[ ] Payment / Stripe production keys configured
+[ ] Push notifications working on release builds
+[ ] Location / camera / mic permission strings accurate
+[ ] No test/debug URLs left in production (confirm deep links / share hosts)
+[ ] Age rating / Data safety / App Privacy forms completed
+[ ] Release notes filled (What’s New)
+
+
+################################################################################
+# 7) READY-TO-PASTE QUICK BLOCK                                                #
+################################################################################
+
+APP NAME:
+Squedio
+
+PRIVACY POLICY URL:
+https://squedio.com/privacy-policy
+
+TERMS OF SERVICE URL:
+https://squedio.com/terms-of-service
+
+SUPPORT URL:
+https://squedio.com
+
+SUPPORT EMAIL:
+support@ondemand.com
+
+APP STORE SUBTITLE:
+Book local services fast
+
+APP STORE KEYWORDS:
+booking,services,appointments,ondemand,local,providers,schedule,wallet,chat,home
+
+PLAY SHORT DESCRIPTION:
+Book trusted local services on demand. Schedule, pay, and chat in one app.
+
+PLAY / APP STORE LONG DESCRIPTION:
+(Use the Full Description sections above.)
+
+================================================================================
+END OF FILE
+================================================================================
+)
